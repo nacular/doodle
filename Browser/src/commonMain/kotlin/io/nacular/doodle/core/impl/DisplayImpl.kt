@@ -48,6 +48,9 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.observable
 
 internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, private val rootElement: HTMLElement): InternalDisplay {
@@ -59,17 +62,32 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     }
 
     override val children by lazy { ObservableList<View>().apply {
-        changed += { _, removed, added, moved ->
-            added.forEach { item ->
-                filterIndexed { index, view -> index != item.key && view == item.value }.forEach { remove(it) }
+        changed += { _, differences ->
+            var index = 0
+
+            differences.forEach { diff ->
+                when (diff) {
+                    is Insert -> {
+                        diff.items.forEach { item ->
+                            if (diff.origin(of = item) == null) {
+                                // Avoid duplicating View
+                                filterIndexed { i, view -> i != index && view == item }.forEach { remove(item); --index }
+                            }
+
+                            ++index
+                        }
+                    }
+                    is Delete -> {}
+                    else      -> { index += diff.items.size }
+                }
             }
 
-            (childrenChanged as ChildObserversImpl).invoke(removed, added, moved)
+            (childrenChanged as ChildObserversImpl).invoke(differences)
         }
     } }
 
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<Display>> = mutableSetOf()): SetPool<ChildObserver<Display>>(mutableSet) {
-        operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@DisplayImpl, removed, added, moved) }
+        operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@DisplayImpl, differences) }
     }
 
     override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }

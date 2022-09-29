@@ -9,12 +9,16 @@ import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.size
 
-public typealias ItemsObserver<T> = (source: List<T, *>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ItemsObserver<T> = (source: List<T, *>, differences: Differences<T>) -> Unit
 
 /**
  * A [List] component that renders a potentially mutable list of items of type [T] using a [ListBehavior]. Items are obtained via
@@ -39,23 +43,45 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         fitContent    : Set<Dimension>                  = setOf(Width, Height),
         scrollCache   : Int                             = 0): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
 
-    private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
-        var trueRemoved = removed.filterKeys { it !in added   }
-        var trueAdded   = added.filterKeys   { it !in removed }
+    private val modelChanged: ModelObserver<T> = { _,diffs ->
+        val removed = mutableListOf<Int>()
+        val added   = mutableListOf<Int>()
+        val moved   = mutableListOf<Int>()
 
-        itemsChanged(added = trueAdded, removed = trueRemoved, moved = moved)
+        var index = 0
+
+        diffs.computeMoves().forEach { diff ->
+            when (diff) {
+                is Insert -> {
+                    diff.items.forEach {
+                        when {
+                            diff.origin(of = it) == null -> added += index
+                            else                         -> moved += index
+                        }
+                        ++index
+                    }
+                }
+                is Delete -> {
+                    diff.items.forEach {
+                        if (diff.destination(of = it) == null) {
+                            removed += index
+                        }
+                    }
+                }
+                else -> { index += diff.items.size }
+            }
+        }
+
+        // FIXME: Handle Selection updates
+//        itemsChanged(added = trueAdded, removed = trueRemoved, moved = moved)
 
         val oldVisibleRange = firstVisibleItem..lastVisibleItem
 
-        trueRemoved = trueRemoved.filterKeys { it <= lastVisibleItem }
-
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty()) {
+        if (removed.isNotEmpty() || added.isNotEmpty()) {
             updateVisibleHeight()
         }
 
-        trueAdded = trueAdded.filterKeys   { it <= lastVisibleItem }
-
-        if (trueRemoved.size > trueAdded.size && oldVisibleRange.size != (firstVisibleItem..lastVisibleItem).size) {
+        if (removed.size > added.size && oldVisibleRange.size != (firstVisibleItem..lastVisibleItem).size) {
             val numToRemove = oldVisibleRange.size - (firstVisibleItem..lastVisibleItem).size
             children.batch {
                 for (it in 0 until numToRemove) {
@@ -66,15 +92,15 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
             }
         }
 
-        if (trueRemoved.isNotEmpty() || trueAdded.isNotEmpty() || moved.isNotEmpty()) {
+        if (removed.isNotEmpty() || added.isNotEmpty() || moved.isNotEmpty()) {
             // FIXME: Make this more efficient
             (firstVisibleItem..lastVisibleItem).forEach { update(children, it) }
         } else {
             // These are the edited rows
-            added.keys.filter { it in removed }.forEach { update(children, it) }
+            added.forEach { update(children, it) }
         }
 
-        (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
+        (itemsChanged as SetPool).forEach { it(this, diffs) }
     }
 
     /**

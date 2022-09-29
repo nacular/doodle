@@ -1,5 +1,11 @@
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Difference
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
+import io.nacular.doodle.utils.diff.compare
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.properties.ReadWriteProperty
@@ -9,7 +15,7 @@ import kotlin.reflect.KProperty
  * Created by Nicholas Eddy on 10/21/17.
  */
 public typealias SetObserver     <S, T> = (source: S, removed: Set<T>,      added: Set<T>                                    ) -> Unit
-public typealias ListObserver    <S, T> = (source: S, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ListObserver    <S, T> = (source: S, changes: Differences<T>) -> Unit
 public typealias ChangeObserver  <S>    = (source: S                                                                         ) -> Unit
 public typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                         ) -> Unit
 
@@ -87,11 +93,31 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
         if (to !in 0 until size || oldIndex < 0 || oldIndex == to) return false
 
+        val firstIndex = min(oldIndex, to)
+        val lastIndex  = max(oldIndex, to)
+
+        val diffs = mutableListOf<Difference<E>>()
+
+        if (firstIndex > 0) {
+            diffs += Equal(list.subList(fromIndex = 0, toIndex = firstIndex).toList())
+        }
+
+        val delta       = if (to > oldIndex) 1 else 0
+        val elementList = listOf(element)
+
+        diffs += if (oldIndex > to) Insert(elementList) else Delete(elementList)
+        diffs += Equal (list.subList(fromIndex = firstIndex + delta, toIndex = lastIndex + delta).toList())
+        diffs += if (oldIndex > to) Delete(elementList) else Insert(elementList)
+
+        if (lastIndex < size - 1) {
+            diffs += Equal(list.subList(fromIndex = lastIndex + 1, toIndex = size).toList())
+        }
+
         list.removeAt(oldIndex)
         list.add     (to, element)
 
         changed_.forEach {
-            it(this, mapOf(), mapOf(), mapOf(to to (oldIndex to element)))
+            it(this, Differences(diffs))
         }
 
         return true
@@ -104,10 +130,24 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
             override fun next() = it.next().also { index++ }
 
             override fun remove() {
+                val i       = index--
                 val element = list[index--]
                 it.remove()
+
+                val diffs = mutableListOf<Difference<E>>()
+
+                if (i > 0) {
+                    diffs += Equal(list.subList(fromIndex = 0, toIndex = index).toList())
+                }
+
+                diffs += Delete(listOf(element))
+
+                if (index < size - 1) {
+                    diffs += Equal(list.subList(fromIndex = index + 1, toIndex = size).toList())
+                }
+
                 changed_.forEach {
-                    it(this@ObservableListImpl, mapOf(index to element), mapOf(), mapOf())
+                    it(this@ObservableListImpl, Differences(diffs))
                 }
             }
         }
@@ -122,8 +162,16 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
     }
 
     override fun add(element: E): Boolean = list.add(element).ifTrue {
+        val diffs = mutableListOf<Difference<E>>()
+
+        if (size > 1) {
+            diffs += Equal(this.subList(fromIndex = 0, toIndex = size - 1).toList())
+        }
+
+        diffs += Insert(listOf(element))
+
         changed_.forEach {
-            it(this, mapOf(), mapOf(list.size - 1 to element), mapOf())
+            it(this, Differences(diffs))
         }
     }
 
@@ -132,7 +180,21 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
         return when {
             index < 0 -> false
-            else      -> list.remove(element).ifTrue { changed_.forEach { it(this, mapOf(index to element), mapOf(), mapOf()) } }
+            else      -> list.remove(element).ifTrue {
+                val diffs = mutableListOf<Difference<E>>()
+
+                if (index > 0) {
+                    diffs += Equal(this.subList(fromIndex = 0, toIndex = index).toList())
+                }
+
+                diffs += Delete(listOf(element))
+
+                if (index < size - 1) {
+                    diffs += Equal(this.subList(fromIndex = index, toIndex = size).toList())
+                }
+
+                changed_.forEach { it(this, Differences(diffs)) }
+            }
         }
     }
 
@@ -152,156 +214,102 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
         val old = ArrayList(list)
 
         list.run(block).also {
-            diffLists(old, this, equality)?.let { diffs ->
+            compare(old, this, by = equality).takeIf { it.iterator().hasNext() }?.let { diffs ->
                 changed_.forEach {
-                    it(this, diffs.removed, diffs.added, diffs.moved)
+                    it(this, diffs)
                 }
             }
         }
     }
 
     override fun clear() {
-        val size    = list.size
         val oldList = ArrayList(list)
+        val diffs   = listOf(Delete(oldList))
 
         list.clear()
 
         changed_.forEach {
-            it(this, (0 until size).associate { it to oldList[it] }, mapOf(), mapOf())
+            it(this, Differences(diffs))
         }
     }
 
     override operator fun set(index: Int, element: E): E = list.set(index, element).also { old ->
         if (old != element) {
+            val diffs = mutableListOf<Difference<E>>()
+
+            if (index > 0) {
+                diffs += Equal(this.subList(fromIndex = 0, toIndex = index))
+            }
+
+            diffs += Delete(listOf(old))
+            diffs += Insert(listOf(element))
+
+            if (index < size - 1) {
+                diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
+            }
+
             changed_.forEach {
-                it(this, mapOf(index to old), mapOf(index to element), mapOf())
+                it(this, Differences(diffs))
             }
         }
     }
 
     public override fun notifyChanged(index: Int) {
+        val diffs = mutableListOf<Difference<E>>()
+
+        if (index > 0) {
+            diffs += Equal(this.subList(fromIndex = 0, toIndex = index))
+        }
+
+        diffs += Delete(listOf(this[index]))
+        diffs += Insert(listOf(this[index]))
+
+        if (index < size - 1) {
+            diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
+        }
+
         changed_.forEach {
-            it(this, mapOf(index to this[index]), mapOf(index to this[index]), mapOf())
+            it(this, Differences(diffs))
         }
     }
 
     override fun add(index: Int, element: E) {
         list.add(index, element)
 
+        val diffs = mutableListOf<Difference<E>>()
+
+        if (index > 0) {
+            diffs += Equal(this.subList(fromIndex = 0, toIndex = index))
+        }
+
+        diffs += Insert(listOf(element))
+
+        if (index < size - 1) {
+            diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
+        }
+
         changed_.forEach {
-            it(this, mapOf(), mapOf(index to element), mapOf())
+            it(this, Differences(diffs))
         }
     }
 
     override fun removeAt(index: Int): E = list.removeAt(index).also { removed ->
+        val diffs = mutableListOf<Difference<E>>()
+
+        if (index > 0) {
+            diffs += Equal(this.subList(fromIndex = 0, toIndex = index).toList())
+        }
+
+        diffs += Delete(listOf(removed))
+
+        if (index < size - 1) {
+            diffs += Equal(this.subList(fromIndex = index, toIndex = size).toList())
+        }
+
         changed_.forEach {
-            it(this, mapOf(index to removed), mapOf(), mapOf())
+            it(this, Differences(diffs))
         }
     }
-}
-
-internal data class DiffResult<T>(val removed: Map<Int, T>, val added: Map<Int, T>, val moved: Map<Int, Pair<Int, T>>)
-
-private class Move<T>(var from: Int, var to:Int, var value: T) {
-    override fun toString() = "${from to to to value}"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Move<*>) return false
-
-//            if (value != other.value) return false
-
-        if (from !in listOf(other.from, other.to  )) return false
-        if (to   !in listOf(other.to,   other.from)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        val first = min(from, to)
-        val last  = max(from, to)
-
-        var result = first
-        result = 31 * result + last
-        return result
-    }
-}
-
-private fun <T> List<T>.isEqual(other: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Boolean {
-    if (size != other.size) return false
-
-    repeat(size - 1) { index ->
-        if (!by(this[index], other[index])) return false
-    }
-
-    return true
-}
-
-internal fun <T> diffLists(old: List<T>, new: List<T>, equality: (T, T) -> Boolean): DiffResult<T>? {
-    if (!old.isEqual(new, equality)) {
-        val removed       = mutableMapOf<Int, T>()
-        val added         = mutableMapOf<Int, T>()
-        val uniqueMoved   = mutableListOf<Move<T>>()
-        val unusedIndexes = new.indices.toMutableSet()
-
-        old.forEachIndexed { index, item ->
-            if (index >= new.size || new[index] != item) {
-                when (val newIndex = unusedIndexes.firstOrNull { i -> new.getOrNull(i)?.let { equality(it, item) } ?: false }) {
-                    null -> removed[index] = item
-                    else -> {
-                        uniqueMoved += Move(from = index, to = newIndex, value = item)
-                        unusedIndexes.remove(newIndex)
-                    }
-                }
-            }
-        }
-
-        val removedIndexes = removed.keys.sorted()
-        var j = removedIndexes.size - 1
-        var i = uniqueMoved.size - 1
-
-        while(j >= 0 && i >= 0) {
-            when {
-                uniqueMoved[i].from > removedIndexes[j] -> {
-                    uniqueMoved[i].from -= j + 1
-                    if (uniqueMoved[i].from == uniqueMoved[i].to) {
-                        uniqueMoved.removeAt(i)
-                    }
-
-                    --i
-                }
-                else                                    -> {
-                    if (uniqueMoved[i].from == removedIndexes[j]) {
-                        uniqueMoved.removeAt(i)
-                        --i
-                    }
-
-                    --j
-                }
-            }
-        }
-
-        unusedIndexes.forEach {
-            val item = new[it]
-
-            if (it >= old.size || !equality(old[it], item)) {
-                added[it] = item
-
-                // Adjust all the moves
-                uniqueMoved.filter { element -> element.from >= it }.sortedByDescending { it.to }.forEach { element ->
-                    uniqueMoved.remove(element)
-
-                    if (element.from + 1 != element.to) {
-                        uniqueMoved.add(Move(element.from + 1, element.to, element.value))
-                    }
-                }
-            }
-        }
-
-        return DiffResult(removed = removed, added = added, moved = uniqueMoved.toSet().associate { it.from to (it.to to it.value) })
-    }
-
-    return null
 }
 
 public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {

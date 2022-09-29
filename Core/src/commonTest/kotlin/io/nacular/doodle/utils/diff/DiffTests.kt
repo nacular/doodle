@@ -188,6 +188,19 @@ class DiffTests {
 //        expect(listOf(makeDiff(Insert, "x"), makeDiff(Equal, "a"), makeDiff(Delete, "b"), makeDiff(Insert, "x"), makeDiff(Equal, "c"), makeDiff(Delete, "y"), makeDiff(Insert, "xabc")), "Compare: Overlap #3.") { compare("abcy", "xaxcxabc") }
     }
 
+    @Test @JsName("computesMoves") fun `computes moves`() {
+        val differences = compare("ABCD".toList(), "ACBD".toList())
+
+        expect(Differences(listOf(Equal('A'), Insert('C'), Equal('B'), Delete('C'), Equal('D')))) { differences }
+        expect(Differences(listOf(
+            Equal('A'),
+            Insert('C').apply { setOrigin(of = 'C', 2) },
+            Equal('B'),
+            Delete('C').apply { setDestination(of = 'C', 1) },
+            Equal('D')
+        ))) { differences.computeMoves() }
+    }
+
     private fun makeDiff(operation: Operation, string: String) = when(operation) {
         Equal  -> Equal (string.toList())
         Delete -> Delete(string.toList())

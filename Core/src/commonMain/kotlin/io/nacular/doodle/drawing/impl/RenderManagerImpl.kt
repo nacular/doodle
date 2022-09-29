@@ -21,6 +21,9 @@ import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
 import io.nacular.doodle.utils.MutableTreeSet
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.ifTrue
 
 @Internal
@@ -55,17 +58,38 @@ public open class RenderManagerImpl(
     protected open val pendingBoundsChange: MutableSet<View>                   = mutableSetOf()
 
     init {
-        display.childrenChanged += { _,removed,added,moved ->
-            removed.values.forEach { childRemoved(null, it) }
-            added.values.forEach   { childAdded  (null, it) }
+        display.childrenChanged += { _, diffs ->
+            var needsLayout = false
 
-            moved.forEach {
-                val surface = graphicsDevice[it.value.second]
-
-                surface.index = it.key
+            diffs.computeMoves().forEach {
+                when (it) {
+                    is Insert -> {
+                        it.items.forEach { item ->
+                            if (it.origin(of = item) == null) {
+                                childAdded(null, item)
+                                needsLayout = true
+                            }
+                        }
+                    }
+                    is Delete -> {
+                        it.items.forEach { item ->
+                            when (val destination = it.destination(of = item)) {
+                                null -> {
+                                    childRemoved(null, item)
+                                    needsLayout = true
+                                }
+                                else -> {
+                                   val surface = graphicsDevice[item]
+                                   surface.index = destination
+                               }
+                            }
+                        }
+                    }
+                    else -> {}
+                }
             }
 
-            if (removed.isNotEmpty() || added.isNotEmpty()) {
+            if (needsLayout) {
                 display.relayout()
             }
         }
@@ -415,24 +439,39 @@ public open class RenderManagerImpl(
         }
     }
 
-    override fun childrenChanged(view: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) {
-        removed.values.forEach { childRemoved(view, it) }
-        added.values.forEach   { childAdded  (view, it) }
-
-        if (view !in pendingRender) {
-            moved.forEach {
-                graphicsDevice[it.value.second].index = it.key
+    override fun childrenChanged(view: View, differences: Differences<View>) {
+        differences.computeMoves().forEach {
+            when (it) {
+                is Insert -> {
+                    it.items.forEach { item ->
+                        if (it.origin(of = item) == null) {
+                            childAdded(view, item)
+                        }
+                    }
+                }
+                is Delete -> {
+                    it.items.forEach { item ->
+                        when (val newIndex = it.destination(of = item)) {
+                            null -> childRemoved(view, item)
+                            else -> if (item !in pendingRender) {
+                                graphicsDevice[item].index = newIndex
+                            }
+                        }
+                    }
+                }
+                else -> {}
             }
         }
 
-        if (view.visible && !view.size.empty) {
-            view.revalidate_()
-        } else {
-            pendingCleanup[view]?.forEach {
-                releaseResources(view, it)
-            }
+        when {
+            view.visible && !view.size.empty -> view.revalidate_()
+            else                             -> {
+                pendingCleanup[view]?.forEach {
+                    releaseResources(view, it)
+                }
 
-            view.doLayout_()
+                view.doLayout_()
+            }
         }
     }
 

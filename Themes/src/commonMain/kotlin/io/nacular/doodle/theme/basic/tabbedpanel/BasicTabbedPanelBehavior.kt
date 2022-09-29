@@ -39,6 +39,9 @@ import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.Cancelable
 import io.nacular.doodle.utils.addOrAppend
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.div
@@ -339,8 +342,16 @@ public class AnimatingTabContainer<T>(
     private val hoverColors     = mutableMapOf<View, Color?>()
 
     init {
-        childrenChanged += { _,_,added,_ ->
-            added.values.filterIsInstance<Tab<T>>().forEach { tagTab(panel, it) }
+        childrenChanged += { _,diffs ->
+            diffs.forEach {
+                if (it is Delete) {
+                    it.items.filterIsInstance<Tab<T>>().forEach { item ->
+                        if (it.destination(of = item) != null) {
+                            tagTab(panel, item)
+                        }
+                    }
+                }
+            }
         }
 
         children.filterIsInstance<Tab<T>>().forEach { tagTab(panel, it) }
@@ -586,19 +597,33 @@ public open class BasicTabbedPanelBehavior<T>(
         (panel.children.getOrNull(0) as? TabContainer<T>)?.selectionChanged(panel, newIndex, oldIndex)
     }
 
-    override fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) {
+    override fun itemsChanged(panel: TabbedPanel<T>, differences: Differences<T>) {
         (panel.children.getOrNull(0) as? TabContainer<T>)?.apply {
-            itemsChanged(panel, removed, added, moved)
+            itemsChanged(panel, differences)
         }
 
-        removed.keys.forEach { panel.children.removeAt(it + 1) }
+        var index = 0
 
-        added.forEach { (index, item) ->
-            panel.children.addOrAppend(index + 1, panel.visualizer(item))
-        }
-
-        moved.forEach { (new, old) ->
-            panel.children.addOrAppend(new + 1, panel.children.removeAt(old.first + 1))
+        differences.computeMoves().forEach {
+            when (it) {
+                is Delete -> {
+                    it.items.forEach { item ->
+                        when (val destination = it.destination(of = item)) {
+                            null -> panel.children.removeAt(index + 1)
+                            else -> panel.children.addOrAppend(destination + 1, panel.children.removeAt(index + 1))
+                        }
+                    }
+                }
+                is Insert -> {
+                    it.items.forEach { item ->
+                        if (it.origin(of = item) == null) {
+                            panel.children.removeAt(index + 1)
+                        }
+                        ++index
+                    }
+                }
+                else      -> { index += it.items.size }
+            }
         }
     }
 

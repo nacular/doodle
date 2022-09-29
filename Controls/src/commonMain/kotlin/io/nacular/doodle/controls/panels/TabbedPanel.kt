@@ -16,6 +16,9 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.observable
 
 /**
@@ -48,11 +51,9 @@ public abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
      * Called whenever the items within the TabbedPanel change.
      *
      * @param panel with change
-     * @param removed items
-     * @param added items
-     * @param moved items (changed index)
+     * @param differences that occurred
      */
-    public abstract fun itemsChanged(panel: TabbedPanel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>)
+    public abstract fun itemsChanged(panel: TabbedPanel<T>, differences: Differences<T>)
 }
 
 /**
@@ -131,39 +132,66 @@ public class TabbedPanel<T>(
             behavior?.selectionChanged(this, selectedItem, new, old?.let { get(it) }, old)
         }
 
-        items.changed += { _,removed,added,moved ->
+        items.changed += { _,diffs ->
 
-            behavior?.itemsChanged(this, removed, added, moved)
+            behavior?.itemsChanged(this, diffs)
 
-            removed.forEach { (index, _) ->
-                selection = when {
-                    selection ?: 0 > index -> selection?.let { it - 1 }
-                    selection == index     -> {
-                        selection = -1; return@forEach
+            var globalIndex = 0
+
+            diffs.forEach {
+                when (it) {
+                    is Delete -> {
+                        repeat(it.items.size) { index ->
+                            selection = when {
+                                (selection ?: 0) > globalIndex + index -> selection?.let { it - 1 }
+                                selection == globalIndex               -> {
+                                    selection = -1; return@forEach
+                                }
+
+                                else                                    -> selection
+                            }
+                        }
                     }
-                    else -> selection
+                    is Insert -> {
+                        repeat(it.items.size) { index ->
+                            selection = selection?.let { if (it >= globalIndex + index) it + 1 else it }
+                            ++globalIndex
+                        }
+                    }
+                    else      -> { globalIndex += it.items.size }
                 }
             }
 
-            added.forEach { (index, _) ->
-                selection = selection?.let { if (it >= index) it + 1 else it }
-            }
-
-            moved.forEach { (new, old) ->
-                val to   = new
-                val from = old.first
-
-                selection = when (val s = selection) {
-                    null                     -> s
-                    in (from + 1) until to   -> s - 1
-                    in (to   + 1) until from -> s + 1
-                    from                     -> to
-                    else                     -> s
-                }
-            }
+            // FIXME: Handle selection
+//            removed.forEach { (index, _) ->
+//                selection = when {
+//                    selection ?: 0 > index -> selection?.let { it - 1 }
+//                    selection == index     -> {
+//                        selection = -1; return@forEach
+//                    }
+//                    else -> selection
+//                }
+//            }
+//
+//            added.forEach { (index, _) ->
+//                selection = selection?.let { if (it >= index) it + 1 else it }
+//            }
+//
+//            moved.forEach { (new, old) ->
+//                val to   = new
+//                val from = old.first
+//
+//                selection = when (val s = selection) {
+//                    null                     -> s
+//                    in (from + 1) until to   -> s - 1
+//                    in (to   + 1) until from -> s + 1
+//                    from                     -> to
+//                    else                     -> s
+//                }
+//            }
 
             (itemsChanged as SetPool).forEach {
-                it(this, removed, added, moved)
+                it(this, diffs)
             }
         }
     }

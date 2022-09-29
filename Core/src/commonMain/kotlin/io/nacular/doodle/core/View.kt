@@ -62,6 +62,9 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
 import kotlin.properties.ReadWriteProperty
@@ -119,7 +122,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
-        operator fun invoke(removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>) = delegate.forEach { it(this@View, removed, added, moved) }
+        operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@View, differences) }
     }
 
     // region Accessibility
@@ -637,21 +640,30 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** List of child Views within this one */
     protected open val children: ObservableList<View> by lazy {
         ObservableList<View>().apply {
-            changed += { _, removed, added, moved ->
-                removed.values.forEach {
-                    it.parent   = null
-                    it.zOrder   = 0
-                    it.position = Origin
-                }
-                added.values.forEach {
-                    require(it !== this@View         ) { "cannot add to self"                }
-                    require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
+            changed += { _, diffs ->
+                diffs.computeMoves().forEach { diff ->
+                    when (diff) {
+                        is Delete -> diff.items.forEach {
+                            if (diff.destination(of = it) == null) {
+                                it.parent = null
+                                it.zOrder = 0
+                                it.position = Origin
+                            }
+                        }
+                        is Insert -> diff.items.forEach {
+                            if (diff.origin(of = it) == null) {
+                                require(it !== this@View) { "cannot add to self" }
+                                require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
 
-                    it.parent = this@View
+                                it.parent = this@View
+                            }
+                        }
+                        else      -> {}
+                    }
                 }
 
-                renderManager?.childrenChanged(this@View, removed, added, moved)
-                (childrenChanged_ as ChildObserversImpl).invoke(removed, added, moved)
+                renderManager?.childrenChanged(this@View, diffs)
+                (childrenChanged_ as ChildObserversImpl).invoke(diffs)
             }
         }
     }

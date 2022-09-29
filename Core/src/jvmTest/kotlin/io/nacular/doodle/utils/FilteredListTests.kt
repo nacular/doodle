@@ -3,6 +3,11 @@ package io.nacular.doodle.utils
 import io.mockk.mockk
 import io.mockk.verify
 import JsName
+import io.mockk.verifyOrder
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -51,7 +56,14 @@ class FilteredListTests {
 
         filteredList.filter = { it.isEven }
 
-        verify(exactly = 1) { listener(filteredList, mapOf(1 to 1, 3 to 3, 5 to 5), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(
+            Equal (0),
+            Delete(1),
+            Equal (2),
+            Delete(3),
+            Equal (4),
+            Delete(5),
+        ))) }
     }
 
     @Test @JsName("removeWhenFilteredWorks")
@@ -70,7 +82,7 @@ class FilteredListTests {
             remove(0)
         }
 
-        verify(exactly = 1) { listener(filteredList, mapOf(1 to 2, 0 to 0), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2), Equal (4)))) }
     }
 
     @Test @JsName("removeFrontWhenNoOpFilteredWorks")
@@ -87,7 +99,7 @@ class FilteredListTests {
             removeAt(0)
         }
 
-        verify(exactly = 1) { listener(filteredList, mapOf(0 to 1), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(1), Equal(2,3)))) }
     }
 
     @Test @JsName("setWhenFilteredWorks")
@@ -102,7 +114,7 @@ class FilteredListTests {
 
         source[2] = 3
 
-        verify(exactly = 1) { listener(filteredList, mapOf(1 to 2), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4)))) }
     }
 
     @Test @JsName("setWhenNoOpFilteredWorks")
@@ -117,7 +129,7 @@ class FilteredListTests {
 
         source[1] = 3
 
-        verify(exactly = 1) { listener(filteredList, mapOf(1 to 2), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4)))) }
     }
 
     @Test @JsName("toggleWhenFilteredWorks")
@@ -132,11 +144,11 @@ class FilteredListTests {
 
         source[1] = 3
 
-        verify(exactly = 1) { listener(filteredList, mapOf(1 to 2), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4)))) }
 
         source[1] = 2
 
-        verify(exactly = 1) { listener(filteredList, emptyMap(), mapOf(1 to 2), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Insert(2), Equal(4)))) }
     }
 
     @Test @JsName("addWhenFilteredWorks")
@@ -157,7 +169,7 @@ class FilteredListTests {
         // 0,2,4
         // 0,2,2,4,6
 
-        verify(exactly = 1) { listener(filteredList, emptyMap(), mapOf(2 to 2, 4 to 6), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,2), Insert(2), Equal(4), Insert(6)))) }
     }
 
     @Test @JsName("moveWhenFilteredWorks")
@@ -178,7 +190,11 @@ class FilteredListTests {
         // 0,2,4 -> 0,2,4
         // 0,3,5 -> 0,4,2
 
-        verify(exactly = 1) { listener(filteredList, emptyMap(), emptyMap(), mapOf(1 to (2 to 2), 2 to (1 to 4))) }
+        try {
+            verifyOrder { listener(filteredList, Differences(listOf(Equal(0), Insert(4), Equal(2), Delete(4)))) }
+        } catch (exception: AssertionError) {
+            verifyOrder { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4), Insert(2)))) }
+        }
     }
 
     @Test @JsName("clearWhenFilteredWorks")
@@ -193,7 +209,7 @@ class FilteredListTests {
 
         filteredList.clear()
 
-        verify(exactly = 1) { listener(filteredList, mapOf(0 to 0, 1 to 2, 2 to 4), emptyMap(), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2,4)))) }
 
         expect(listOf(1,3,5)) { source }
     }
@@ -213,7 +229,7 @@ class FilteredListTests {
             add(6)
         }
 
-        verify(exactly = 1) { listener(filteredList, mapOf(0 to 0, 1 to 2, 2 to 4), mapOf(0 to 6), emptyMap()) }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2,4), Insert(6)))) }
 
         expect(listOf(1,3,5,6)) { source }
     }

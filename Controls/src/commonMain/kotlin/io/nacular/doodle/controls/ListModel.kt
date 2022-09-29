@@ -3,10 +3,9 @@ package io.nacular.doodle.controls
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.sortWith
 import io.nacular.doodle.utils.sortWithDescending
-import kotlin.Result.Companion.failure
-import kotlin.Result.Companion.success
 
 /**
  * Holds data in a list-like structure for use with controls like [List][io.nacular.doodle.controls.list.List].
@@ -36,7 +35,7 @@ public interface ListModel<T>: Iterable<T> {
     public fun contains(value: T): Boolean
 }
 
-public typealias ModelObserver<T> = (source: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>>) -> Unit
+public typealias ModelObserver<T> = (source: DynamicListModel<T>, Differences<T>) -> Unit
 
 /**
  * A model that can change over time. These models do not directly expose mutators,
@@ -96,9 +95,9 @@ public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
 public open class SimpleMutableListModel<T>(private val list: ObservableList<T>): SimpleListModel<T>(list), MutableListModel<T> {
     init {
-        list.changed += { _,removed,added,moved ->
+        list.changed += { _,diffs ->
             (changed as SetPool).forEach {
-                it(this, removed, added, moved)
+                it(this, diffs)
             }
         }
     }

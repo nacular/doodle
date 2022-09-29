@@ -28,6 +28,10 @@ import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
 import kotlin.Result.Companion.failure
 
 /**
@@ -323,25 +327,35 @@ public open class TreeTable<T, M: TreeModel<T>>(
             init {
                 // FIXME: Centralize to avoid calling allRowsBelow more than once per changed path
                 expanded += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
-                    val added = paths.flatMap { allRowsBelow(it) }
+                    var index = 0
 
-                    // FIXME: This is way too expensive for large trees
-                    changed.forEach {
-                        it(this, emptyMap(), added.associate { rowFromPath(it)!! to extractor(model[it].getOrNull()!!) }, emptyMap())
+                    val changes = paths.map { rowFromPath(it)!! to it }.sortedBy {
+                        it.first
+                    }.flatMap { (row, path) ->
+                        listOf(
+                            Equal((index..row).map  { extractor(model[pathFromRow(it)!!].getOrNull()!!) }),
+                            Insert(allRowsBelow(path).map { extractor(model[it].getOrNull()!!) }.also { index += it.size })
+                        )
                     }
+
+//                    // FIXME: This is way too expensive for large trees
+                    changed.forEach { it(this, Differences(changes)) }
                 }
 
                 collapsed += { _: TreeTable<*,*>, paths: Set<Path<Int>> ->
-                    val removed = paths.flatMap {
-                        var index = rowFromPath(it)!!
+                    var index = 0
 
-                        allRowsBelow(it).map { index++ to it }
+                    val changes = paths.map { rowFromPath(it)!! to it }.sortedBy {
+                        it.first
+                    }.flatMap { (row, path) ->
+                        listOf(
+                            Equal((index..row).map  { extractor(model[pathFromRow(it)!!].getOrNull()!!) }),
+                            Delete(allRowsBelow(path).map { extractor(model[it].getOrNull()!!) }.also { index += it.size })
+                        )
                     }
 
-                    // FIXME: This is way too expensive for large trees
-                    changed.forEach {
-                        it(this, removed.associate { (index, path) -> index to extractor(model[path].getOrNull()!!) }, emptyMap(), emptyMap())
-                    }
+//                    // FIXME: This is way too expensive for large trees
+                    changed.forEach { it(this, Differences(changes)) }
                 }
             }
 

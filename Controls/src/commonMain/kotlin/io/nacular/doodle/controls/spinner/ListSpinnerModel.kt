@@ -23,7 +23,7 @@ public open class ListSpinnerModel<T, out L: List<T>>(protected open val values:
 
 public class MutableListSpinnerModel<T>(values: List<T> = emptyList()): ListSpinnerModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableSpinnerModel<T> {
     init {
-        super.values.changed += { _, _, _, _ ->
+        super.values.changed += { _,_ ->
             changed_()
         }
     }

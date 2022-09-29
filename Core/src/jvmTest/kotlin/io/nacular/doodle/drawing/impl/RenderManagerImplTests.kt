@@ -35,6 +35,9 @@ import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
@@ -100,7 +103,7 @@ class RenderManagerImplTests {
 
         verify(exactly = 0) { display.relayout() }
 
-        slot.captured(display, emptyMap(), mapOf(1 to view()), emptyMap())
+        slot.captured(display, Differences(listOf(Equal(display.children), Insert(listOf(view())))))
 
         verify(exactly = 1) { display.relayout() }
     }
@@ -1183,8 +1186,8 @@ class RenderManagerImplTests {
 
         val observers = SetPool<ChildObserver<Display>>()
 
-        displayChildren.changed += { _, removed, added, moved ->
-            observers.forEach { it(this, removed, added, moved) }
+        displayChildren.changed += { _, differences ->
+            observers.forEach { it(this, differences) }
         }
 
         val view = slot<View>()

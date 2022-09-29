@@ -13,6 +13,7 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.diff.Differences
 
 /**
  * Created by Nicholas Eddy on 9/29/19.
@@ -92,14 +93,14 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
 
         protected open inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {
-                model.changed += { _: DynamicListModel<T>, removed: Map<Int, T>, added: Map<Int, T>, moved: Map<Int, Pair<Int, T>> ->
+                model.changed += { _: DynamicListModel<T>, differences: Differences<T> ->
 
                     if (!firstColumn) {
                         selectionModelWrapper?.allowMutations = false
                     }
 
                     changed.forEach {
-                        it(this,removed.mapValues { extractor(it.value) }, added.mapValues { extractor(it.value) }, moved.mapValues { it.value.first to extractor(it.value.second) })
+                        it(this, differences.map { extractor(it) })
                     }
 
                     if (!firstColumn) {

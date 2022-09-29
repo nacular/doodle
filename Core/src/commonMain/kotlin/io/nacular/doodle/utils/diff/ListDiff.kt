@@ -7,7 +7,9 @@ import kotlin.math.min
  * Classes are derived works from [https://github.com/danielearwicker/ListDiff]
  */
 
-public sealed class Difference<T>(public var items: List<T>) {
+public sealed class Difference<T>(items: List<T>) {
+    public var items: List<T> = items; internal set
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Difference<*>) return false
@@ -20,55 +22,82 @@ public sealed class Difference<T>(public var items: List<T>) {
     override fun hashCode(): Int {
         return items.hashCode()
     }
+
+    public abstract fun <R> map(block: (T) -> R): Difference<R>
 }
 
 @Suppress("EqualsOrHashCode")
-public class Equal<T> (items: List<T>): Difference<T>(items) {
-    override fun toString(): String = "= $items"
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Equal<*>) return false
-        return super.equals(other)
-    }
+public class Equal<T>(items: List<T>): Difference<T>(items) {
+    public constructor(vararg items: T): this(items.toList())
+
+    override fun toString(           ): String  = "= $items"
+    override fun equals  (other: Any?): Boolean = other is Equal<*> && super.equals(other)
+
+    override fun <R> map(block: (T) -> R): Difference<R> = Equal(items.map(block))
 }
 
-public class Delete<T>(items: List<T>, destination: Int? = null): Difference<T>(items) {
-    public var destination: Int? = destination; internal set
+public class Delete<T>(items: List<T>): Difference<T>(items) {
+    public constructor(vararg items: T): this(items.toList())
+
+    public fun destination(of: T): Int? = destinations?.get(of)
+
+    private var destinations: MutableMap<T, Int>? = null
+
+    internal fun setDestination(of: T, destination: Int) {
+        if (destinations == null) destinations = mutableMapOf()
+
+        destinations!![of] = destination
+    }
 
     override fun toString(): String = "- $items"
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Delete<*>) return false
 
-        if (destination != other.destination) return false
+        if (destinations != other.destinations) return false
 
         return super.equals(other)
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (destination ?: 0)
+        result = 31 * result + destinations.hashCode()
         return result
     }
+
+    override fun <R> map(block: (T) -> R): Difference<R> = Delete(items.map(block))
 }
 
-public class Insert<T>(items: List<T>, origin: Int? = null): Difference<T>(items) {
-    public var origin: Int? = origin; internal set
+public class Insert<T>(items: List<T>): Difference<T>(items) {
+    public constructor(vararg items: T): this(items.toList())
+
+    public fun origin(of: T): Int? = origins?.get(of)
+
+    private var origins: MutableMap<T, Int>? = null
+
+    internal fun setOrigin(of: T, origin: Int) {
+        if (origins == null) origins = mutableMapOf()
+
+        origins!![of] = origin
+    }
+
     override fun toString(): String = "+ $items"
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Insert<*>) return false
 
-        if (origin != other.origin) return false
+        if (origins != other.origins) return false
 
         return super.equals(other)
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (origin ?: 0)
+        result = 31 * result + origins.hashCode()
         return result
     }
+
+    override fun <R> map(block: (T) -> R): Difference<R> = Insert(items.map(block))
 }
 
 public class Differences<T>(private val changes: List<Difference<T>>, private var movesComputed: Boolean = false): Iterable<Difference<T>> {
@@ -76,6 +105,30 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
     public fun computeMoves(): Differences<T> {
         if (!movesComputed) {
             movesComputed = true
+
+            val inserts = mutableListOf<Pair<Insert<T>, Int>>()
+            val deletes = mutableListOf<Pair<Delete<T>, Int>>()
+
+            var index = 0
+
+            changes.forEach { change ->
+                when (change) {
+                    is Insert -> { inserts += (change to index); index += change.items.size }
+                    is Delete ->   deletes += (change to index)
+                    else      ->   index   += change.items.size
+                }
+            }
+
+            inserts.forEach { (insert, insertStart) ->
+                insert.items.forEachIndexed { insertIndex, item ->
+                    deletes.forEach { (delete, deleteStart) ->
+                        delete.items.indexOfFirst { it == item && delete.destination(of = item) == null }.takeIf { it >= 0 }?.let {
+                            insert.setOrigin(item, it + deleteStart - if (deleteStart > insertStart) 1 else 0)
+                            delete.setDestination(item, insertIndex + insertStart)
+                        }
+                    }
+                }
+            }
         }
 
         return this
@@ -95,6 +148,10 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
     override fun hashCode(): Int {
         return changes.hashCode()
     }
+
+    override fun toString(): String = "$changes"
+
+    public fun <R> map(block: (T) -> R): Differences<R> = Differences(changes.map { it.map(block) })
 }
 
 internal enum class Operation {

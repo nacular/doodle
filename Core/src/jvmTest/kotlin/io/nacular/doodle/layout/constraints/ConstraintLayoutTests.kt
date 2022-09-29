@@ -328,8 +328,8 @@ class ConstraintLayoutTests {
 
         val observers = SetPool<ChildObserver<Display>>()
 
-        displayChildren.changed += { _, removed, added, moved ->
-            observers.forEach { it(this, removed, added, moved) }
+        displayChildren.changed += { _, differences ->
+            observers.forEach { it(this, differences) }
         }
 
         val view = slot<View>()

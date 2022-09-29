@@ -30,6 +30,10 @@ import JsName
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.minusAssign
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -38,8 +42,6 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 8/10/19.
  */
-
-@Suppress("FunctionName")
 class DisplayImplTests {
     @Test @JsName("defaultsValid") fun `defaults valid`() {
         expect(true, "DisplayImpl::children.isEmpty()") { display().children.isEmpty() }
@@ -124,7 +126,7 @@ class DisplayImplTests {
         display += view
 
         verify (exactly = 1) {
-            observer(display, emptyMap(), mapOf(0 to view), emptyMap())
+            observer(display, Differences(listOf(Insert(view))))
         }
     }
 
@@ -141,7 +143,7 @@ class DisplayImplTests {
         display -= view
 
         verifyOrder {
-            observer(display, mapOf(0 to view), emptyMap(), emptyMap())
+            observer(display, Differences(listOf(Delete(view))))
         }
     }
 
@@ -161,7 +163,7 @@ class DisplayImplTests {
         display.children.move(view2, 0)
 
         verifyOrder {
-            observer(display, emptyMap(), emptyMap(), mapOf(0 to (1 to view2)))
+            observer(display, Differences(listOf(Insert(view2), Equal(view1), Delete(view2), Equal(view3))))
         }
     }
 
@@ -235,6 +237,36 @@ class DisplayImplTests {
 
             verify (exactly= 2) { layout.layout(any()) }
         }
+    }
+
+    @Test @JsName("multiplePlusAssignWork") fun `plus equal child multiple times works`() {
+        val display = display()
+        val child0  = view()
+        val child1  = view()
+        val child2  = view()
+
+        display += child0
+        display += child1
+        display += child2
+        display += child0
+
+        expect(listOf(child1, child2, child0)) { display.children }
+    }
+
+    @Test @JsName("repeatedChildAddWork") fun `repeated child add works`() {
+        val display = display()
+        val child0  = view()
+        val child1  = view()
+        val child2  = view()
+
+        display.children.addAll(listOf(
+            child0,
+            child1,
+            child2,
+            child0
+        ))
+
+        expect(listOf(child1, child2, child0)) { display.children }
     }
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }

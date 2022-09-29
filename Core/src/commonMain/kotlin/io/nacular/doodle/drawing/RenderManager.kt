@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.utils.diff.Differences
 
 
 /**
@@ -105,11 +106,9 @@ public abstract class RenderManager {
      * Notifies whenever a View's [children][View.children] changes
      *
      * @param view that is changing
-     * @param removed children
-     * @param added children
-     * @param moved children (changed indexes)
+     * @param differences representing changes
      */
-    internal abstract fun childrenChanged(view: View, removed: Map<Int, View>, added: Map<Int, View>, moved: Map<Int, Pair<Int, View>>)
+    internal abstract fun childrenChanged(view: View, differences: Differences<View>)
 
     /**
      * Notifies whenever a View's [ideal size][View.idealSize] or [minimum size][View.minimumSize] change.

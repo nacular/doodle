@@ -1,9 +1,12 @@
 package io.nacular.doodle.utils
 
+import JsName
 import io.mockk.mockk
 import io.mockk.verify
-import JsName
-import kotlin.test.Ignore
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -13,7 +16,7 @@ import kotlin.test.expect
 class ObservableSetTests {
     @Test @JsName("addNotifies")
     fun `add notifies`() {
-        validateChanges(ObservableSet<Int>()) { set, changed ->
+        validateChanges<Int>(ObservableSet()) { set, changed ->
             set += 4
             set += 5
             set += listOf(6, 7, 8)
@@ -146,9 +149,9 @@ class ObservableListTests {
             list += 5
             list += listOf(6, 7, 8)
 
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(0 to 4                ), emptyMap()) }
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(1 to 5                ), emptyMap()) }
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(2 to 6, 3 to 7, 4 to 8), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(            Insert(listOf(4    ))))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4  ), Insert(listOf(5    ))))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4,5), Insert(listOf(6,7,8))))) }
 
             expect(true) { (4 .. 8).all { it in list } }
         }
@@ -156,14 +159,14 @@ class ObservableListTests {
 
     @Test @JsName("insertNotifies")
     fun `insert notifies`() {
-        validateChanges(ObservableList<Int>()) { list, changed ->
+        validateChanges(ObservableList()) { list, changed ->
             list += 4
             list += 6
             list.add(1, 5)
 
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(0 to 4), emptyMap()) }
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(1 to 6), emptyMap()) }
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(1 to 5), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(          Insert(4          )))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4), Insert(6          )))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4), Insert(5), Equal(6)))) }
 
             expect(true) { (4 .. 6).all { it in list } }
         }
@@ -175,8 +178,8 @@ class ObservableListTests {
             list[1] = 10
             list[2] = 12
 
-            verify(exactly = 1) { changed(list, mapOf(1 to 5), mapOf(1 to 10), emptyMap()) }
-            verify(exactly = 1) { changed(list, mapOf(2 to 6), mapOf(2 to 12), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4   ), Delete(5), Insert(10), Equal(12,7,8)))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4,10), Delete(6), Insert(12), Equal(   7,8)))) }
 
             expect(5    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -190,9 +193,9 @@ class ObservableListTests {
             list.removeAt(0)
             list -= listOf(6, 7, 8)
 
-            verify(exactly = 1) { changed(list, mapOf(0 to 4                ), emptyMap(), emptyMap()) }
-            verify(exactly = 1) { changed(list, mapOf(0 to 5                ), emptyMap(), emptyMap()) }
-            verify(exactly = 1) { changed(list, mapOf(0 to 6, 1 to 7, 2 to 8), emptyMap(), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4    ), Equal(5,6,7,8)))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(5    ), Equal(  6,7,8)))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(6,7,8)                ))) }
 
             expect(0   ) { list.size      }
             expect(true) { list.isEmpty() }
@@ -206,7 +209,7 @@ class ObservableListTests {
             list -= 2
             list -= listOf(0, 9, 10)
 
-            verify(exactly = 0) { changed(any(), any(), any(), any()) }
+            verify(exactly = 0) { changed(any(), any()) }
 
             expect(5    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -218,7 +221,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.clear()
 
-            verify(exactly = 1) { changed(list, mapOf(0 to 4, 1 to 5, 2 to 6, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4,5,6,7,8)))) }
 
             expect(0   ) { list.size      }
             expect(true) { list.isEmpty() }
@@ -230,7 +233,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.addAll(1, setOf(1, 2))
 
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(1 to 1, 2 to 2), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4), Insert(1, 2), Equal(5,6,7,8)))) }
 
             expect(7    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -242,7 +245,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.retainAll(setOf(5, 6))
 
-            verify(exactly = 1) { changed(list, mapOf(0 to 4, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4), Equal(5,6), Delete(7,8)))) }
 
             expect(2    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -254,7 +257,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(5, 6))
 
-            verify(exactly = 1) { changed(list, mapOf(0 to 4, 3 to 7, 4 to 8), emptyMap(), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4), Equal(5,6), Delete(7,8)))) }
 
             expect(2    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -266,7 +269,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(1, 2, 3))
 
-            verify(exactly = 1) { changed(list, mapOf(0 to 4, 1 to 5, 2 to 6, 3 to 7, 4 to 8), mapOf(0 to 1, 1 to 2, 2 to 3), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4,5,6,7,8), Insert(1,2,3)))) }
 
             expect(3    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -278,7 +281,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(4, 5, 6, 7, 8))
 
-            verify(exactly = 0) { changed(any(), any(), any(), any()) }
+            verify(exactly = 0) { changed(any(), any()) }
 
             expect(5    ) { list.size      }
             expect(false) { list.isEmpty() }
@@ -294,25 +297,91 @@ class ObservableListTests {
                 add(8)
             }
 
-            verify(exactly = 1) { changed(list, emptyMap(), mapOf(4 to 3, 5 to 67), emptyMap()) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal(4,5,6,7), Insert(3,67), Equal(8)))) }
 
             expect(7    ) { list.size      }
             expect(false) { list.isEmpty() }
         }
     }
 
-    @Test @Ignore @JsName("moveNotifies")
-    fun `move notifies`() {
+    @Test @JsName("batchMoveNotifies")
+    fun `batch move notifies`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.batch {
                 remove('a')
                 add(2, 'a')
             }
 
-            verify(exactly = 1) { changed(list, emptyMap(), emptyMap(), mapOf(0 to (2 to 'a'))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete('a'), Equal('b','c'), Insert('a'), Equal('d')))) }
 
             expect(4    ) { list.size      }
             expect(false) { list.isEmpty() }
+        }
+    }
+
+    @Test @JsName("moveNotifies")
+    fun `move notifies`() {
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('a', 2)
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete('a'), Equal('b','c'), Insert('a'), Equal('d')))) }
+
+            expect(4    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('a', 3)
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete('a'), Equal('b','c','d'), Insert('a')))) }
+
+            expect(4    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('d', 0)
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Insert('d'), Equal('a','b','c'), Delete('d')))) }
+
+            expect(4    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('d', 1)
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Equal('a'), Insert('d'), Equal('b','c'), Delete('d')))) }
+
+            expect(4    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c'))) { list, changed ->
+            list.move('b', 0)
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Insert('b'), Equal('a'), Delete('b'), Equal('c')))) }
+
+            expect(3    ) { list.size      }
+            expect(false) { list.isEmpty() }
+        }
+    }
+
+    @Test @JsName("moveUnknownElementNoOps")
+    fun `move unknown element no-ops`() {
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('q', 5)
+
+            verify(exactly = 0) { changed(list, any()) }
+
+            expect(listOf('a', 'b', 'c', 'd')) { list }
+        }
+    }
+
+    @Test @JsName("moveToInvalidIndexNoOps")
+    fun `move to invalid index no-ops`() {
+        validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
+            list.move('b', 5)
+
+            verify(exactly = 0) { changed(list, any()) }
+
+            expect(listOf('a', 'b', 'c', 'd')) { list }
         }
     }
 
@@ -321,11 +390,7 @@ class ObservableListTests {
         validateChanges(ObservableList(mutableListOf(5, 6, 1, 2))) { list, changed ->
             list.sortWith { a, b -> a.compareTo(b) }
 
-            verify(exactly = 1) { changed(
-                    list,
-                    emptyMap(),
-                    emptyMap(),
-                    mapOf(0 to (2 to 5), 1 to (3 to 6))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Insert(1,2), Equal(5,6), Delete(1,2)))) }
 
             expect(listOf(1, 2, 5, 6)) { list }
             expect(false) { list.isEmpty() }

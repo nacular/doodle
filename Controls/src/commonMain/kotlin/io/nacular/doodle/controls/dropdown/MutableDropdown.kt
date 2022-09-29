@@ -61,7 +61,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
 
     private var editOperation = null as EditOperation<T>?
 
-    private val modelChanged: ModelObserver<T> = { _,_,_,_ ->
+    private val modelChanged: ModelObserver<T> = { _,_ ->
         behavior?.changed(this)
     }
 

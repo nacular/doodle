@@ -1,5 +1,12 @@
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.utils.diff.Delete
+import io.nacular.doodle.utils.diff.Difference
+import io.nacular.doodle.utils.diff.Differences
+import io.nacular.doodle.utils.diff.Equal
+import io.nacular.doodle.utils.diff.Insert
+import io.nacular.doodle.utils.diff.compare
+
 /**
  * Provides a filtered view of an underlying [ObservableList]. Changes to this list affect the underlying list,
  * but their effects may not be visible once applied due to [filter].
@@ -29,33 +36,56 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
 
         updateIndexes()
 
-        source.changed += { _, removed, added, moved ->
-            val mappedMoved   = mutableMapOf<Int, Pair<Int, E>>()
-            val mappedRemoved = handleRemoves(removed)
-            val mappedAdded   = handleAdds   (added  )
+        source.changed += { _, diffs ->
+            var filteredDiffs = diffs
 
-            val movedIndexes = mutableMapOf<Int, Int>()
+            this.filter?.let { filter->
+                val changes = mutableListOf<Difference<E>>()
 
-            indexToSource.forEachIndexed { i, sourceIndex ->
-                moved[sourceIndex]?.let {
-                    movedIndexes[i] = it.first
+                var index = 0
 
-                    indexToSource[i] = it.first
+                diffs.forEach { difference ->
+                    difference.items.filter { filter(it) }.takeIf { it.isNotEmpty() }?.let { items ->
+                        when (difference) {
+                            is Equal  -> {
+                                changes.lastOrNull()?.takeIf { it is Equal }?.let {
+                                    changes[changes.size - 1] = Equal(it.items + items)
+                                } ?: changes.plusAssign(Equal(items))
+                            }
+                            is Delete -> {
+                                changes.lastOrNull()?.takeIf { it is Delete }?.let {
+                                    changes[changes.size - 1] = Delete(it.items + items)
+                                } ?: changes.plusAssign(Delete(items))
+                            }
+                            is Insert -> {
+                                changes.lastOrNull()?.takeIf { it is Insert }?.let {
+                                    changes[changes.size - 1] = Insert(it.items + items)
+                                } ?: changes.plusAssign(Insert(items))
+                            }
+                        }
+                    }
+
+                    when (difference) {
+                        is Delete -> {
+                            handleRemoves(List(difference.items.size) { i -> index + i })
+                        }
+                        is Insert -> {
+                            difference.items.forEachIndexed { itemIndex, item ->
+                                if (difference.origin(of = item) == null && this.filter?.invoke(item) != false) {
+                                    indexToSource.addOrAppend(insertionIndex(index + itemIndex), index + itemIndex)
+                                }
+
+                                ++index
+                            }
+                        }
+                        else -> index += difference.items.size
+                    }
                 }
+
+                filteredDiffs = Differences(changes)
             }
 
-            indexToSource.sort()
-
-            movedIndexes.forEach {
-                val sourceIndex = indexFromSource(it.value)!!
-                mappedMoved[it.key] = sourceIndex to source[it.value]
-            }
-
-            // FIXME: Prune redundant moves
-
-            if (mappedRemoved.isNotEmpty() || mappedAdded.isNotEmpty() || mappedMoved.isNotEmpty()) {
-                changed_.forEach { it(this, mappedRemoved, mappedAdded, mappedMoved) }
-            }
+            changed_.forEach { it(this, filteredDiffs) }
         }
     }
 
@@ -153,13 +183,19 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
 
         updateIndexes()
 
-        diffLists(oldIndexes, indexToSource, { a,b -> a == b})?.let { diffs ->
+        compare(oldIndexes, indexToSource).let { diffs ->
             changed_.forEach {
-                it(this,
-                   diffs.removed.mapValues { source[it.value] },
-                   diffs.added.mapValues   { source[it.value] },
-                   diffs.moved.mapValues   { it.value.first to source[it.value.second] }
-                )
+                val changes = mutableListOf<Difference<E>>()
+
+                diffs.forEach { difference ->
+                    changes += when (difference) {
+                        is Equal  -> Equal (difference.items.map { source[it] })
+                        is Delete -> Delete(difference.items.map { source[it] })
+                        is Insert -> Insert(difference.items.map { source[it] })
+                    }
+                }
+
+                it(this, Differences(changes))
             }
         }
     }
@@ -178,22 +214,19 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         }
     }
 
-    private fun handleRemoves(removed: Map<Int, E>): Map<Int, E> {
-        val mappedRemoved = mutableMapOf<Int, E>()
-        val removedKeys = removed.keys.sorted()
-        var j = removedKeys.size - 1
+    private fun handleRemoves(removed: List<Int>) {
+        var j = removed.size - 1
         var i = size - 1
 
         while(j >= 0 && i >= 0) {
             when {
-                indexToSource[i] > removedKeys[j] -> {
+                indexToSource[i] > removed[j] -> {
                     indexToSource[i] -= j + 1
                     --i
                 }
                 else                               -> {
-                    if (indexToSource[i] == removedKeys[j]) {
+                    if (indexToSource[i] == removed[j]) {
                         indexToSource.removeAt(i)
-                        mappedRemoved[i] = removed[removedKeys[j]]!!
                         --i
                     }
 
@@ -201,44 +234,6 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                 }
             }
         }
-
-        return mappedRemoved
-    }
-
-    private fun handleAdds(added: Map<Int, E>): Map<Int, E> {
-        val mappedAdded = mutableMapOf<Int, E>()
-        val addedKeys = added.keys.sorted()
-        var j = added.size - 1
-
-        addedKeys.forEach { addedIndex ->
-            if (this.filter?.invoke(added[addedIndex]!!) != false) {
-                indexToSource.addOrAppend(insertionIndex(addedIndex), addedIndex)
-            }
-        }
-
-        if (j >= 0) {
-            (size - 1 downTo 0).forEach { i ->
-                val addedIndex    = addedKeys    [j]
-                val localIndex    = indexToSource[i]
-                val previousIndex = indexToSource.getOrNull(i-1) ?: -1
-
-                when {
-                    localIndex > addedIndex || (localIndex == addedIndex &&
-                            (previousIndex == addedIndex || this.filter?.invoke(added[addedIndex]!!) == false)) -> indexToSource[i] += 1
-                    else                    -> {
-                        if (localIndex == addedIndex && previousIndex < addedIndex) {
-                            mappedAdded[i] = added[indexToSource[i]]!!
-                        }
-
-                        if (--j < 0) {
-                            return mappedAdded
-                        }
-                    }
-                }
-            }
-        }
-
-        return mappedAdded
     }
 
     private fun insertionIndex(indexFromSource: Int): Int {
