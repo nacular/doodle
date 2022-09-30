@@ -37,7 +37,7 @@ kotlin {
 
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
-                implementation("junit:junit:$junitVersion")
+                implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
                 implementation(kotlin("test-junit"))
 
                 implementation("org.slf4j:slf4j-api:$log4jVersion")

@@ -6,7 +6,7 @@ repositories {
     mavenCentral()
 }
 
-val kotlinVersion = "1.7.10" //: String by System.getProperties()
+val kotlinVersion = "1.7.20" //: String by System.getProperties()
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")

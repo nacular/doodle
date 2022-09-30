@@ -447,7 +447,7 @@ class CanvasImplTests {
 
     @Test @JsName("rendersPath") fun `renders path`() = validateRender { _,_,_,renderer,_ ->
         val path     = mockk<Path>    ()
-        val fill     = mockk<Paint>    ()
+        val fill     = mockk<Paint>   ()
         val stroke   = mockk<Stroke>  ()
         val fillRule = mockk<FillRule>()
 
