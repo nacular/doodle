@@ -2,12 +2,12 @@ package io.nacular.doodle.utils
 
 import io.mockk.mockk
 import io.mockk.verify
-import JsName
 import io.mockk.verifyOrder
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Equal
 import io.nacular.doodle.utils.diff.Insert
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -15,8 +15,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 1/31/21.
  */
 class FilteredListTests {
-    @Test @JsName("iteratingWhenFilteredWorks")
-    fun `iterating when filtered works`() {
+    @Test fun `iterating when filtered works`() {
         val source = ObservableList(listOf(0,1,2,3,4,5))
 
         val filteredList = FilteredList(source).apply {
@@ -42,11 +41,10 @@ class FilteredListTests {
 
         expect(3) { count }
 
-//        expect(listOf(0,2,4)) { filteredList }
+        expect(filteredList) { listOf(0,2,4) }
     }
 
-    @Test @JsName("changingFilterWorks")
-    fun `changing filter works`() {
+    @Test fun `changing filter works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -66,8 +64,7 @@ class FilteredListTests {
         ))) }
     }
 
-    @Test @JsName("removeWhenFilteredWorks")
-    fun `remove when filtered works`() {
+    @Test fun `remove from source when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -85,8 +82,26 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2), Equal (4)))) }
     }
 
-    @Test @JsName("removeFrontWhenNoOpFilteredWorks")
-    fun `remove front when no-op filtered works`() {
+    @Test fun `remove when filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+            changed += listener
+        }
+
+        filteredList.batch {
+            remove(2)
+            remove(0)
+        }
+
+        expect(listOf(4)) { filteredList.toList() }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2), Equal (4)))) }
+        expect(listOf(1,3,4,5)) { source.toList() }
+    }
+
+    @Test fun `remove front when no-op filtered works`() {
         val source   = ObservableList(listOf(1,2,3))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -102,8 +117,7 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(1), Equal(2,3)))) }
     }
 
-    @Test @JsName("setWhenFilteredWorks")
-    fun `set when filtered works`() {
+    @Test fun `set when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -117,8 +131,7 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4)))) }
     }
 
-    @Test @JsName("setWhenNoOpFilteredWorks")
-    fun `set when no-op filtered works`() {
+    @Test fun `set when no-op filtered works`() {
         val source   = ObservableList(listOf(0,2,4))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -132,8 +145,7 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Delete(2), Equal(4)))) }
     }
 
-    @Test @JsName("toggleWhenFilteredWorks")
-    fun `toggle when filtered works`() {
+    @Test fun `toggle when filtered works`() {
         val source   = ObservableList(listOf(0,2,3,4))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -151,8 +163,7 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0), Insert(2), Equal(4)))) }
     }
 
-    @Test @JsName("addWhenFilteredWorks")
-    fun `add when filtered works`() {
+    @Test fun `add to source when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -166,14 +177,32 @@ class FilteredListTests {
             add(6)
         }
 
-        // 0,2,4
-        // 0,2,2,4,6
-
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,2), Insert(2), Equal(4), Insert(6)))) }
+
+        expect(listOf(0,1,2,2,3,4,5,6)) { source.toList() }
     }
 
-    @Test @JsName("moveWhenFilteredWorks")
-    fun `move when filtered works`() {
+    @Test fun `add when filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+            changed += listener
+        }
+
+        filteredList.batch {
+            add(2, 2)
+            add(6)
+        }
+
+        expect(listOf(0,2,2,4,6)) { filteredList.toList() }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,2), Insert(2), Equal(4), Insert(6)))) }
+
+        expect(listOf(0,1,2,3,2,4,6,5)) { source.toList() }
+    }
+
+    @Test fun `move when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -197,8 +226,7 @@ class FilteredListTests {
         }
     }
 
-    @Test @JsName("clearWhenFilteredWorks")
-    fun `clear when filtered works`() {
+    @Test fun `clear when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -214,8 +242,7 @@ class FilteredListTests {
         expect(listOf(1,3,5)) { source }
     }
 
-    @Test @JsName("batchWhenFilteredWorks")
-    fun `batch when filtered works`() {
+    @Test fun `batch when filtered works`() {
         val source   = ObservableList(listOf(0,1,2,3,4,5))
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
@@ -232,5 +259,17 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2,4), Insert(6)))) }
 
         expect(listOf(1,3,5,6)) { source }
+    }
+
+    @Test fun `index out of bounds for get`() {
+        val source = ObservableList(listOf(0,1,2,3,4,5))
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+        }
+
+        assertThrows<IndexOutOfBoundsException> {
+            filteredList[3]
+        }
     }
 }

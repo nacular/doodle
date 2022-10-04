@@ -15,6 +15,7 @@ import io.nacular.doodle.utils.diff.compare
  * @param filter to apply to [source]
  */
 public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) -> Boolean)? = null): ObservableList<E> by source {
+
     private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
     public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
 
@@ -37,55 +38,74 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         updateIndexes()
 
         source.changed += { _, diffs ->
-            var filteredDiffs = diffs
+            var filteredDiffs   = diffs
+            var filteredChanged = false
 
-            this.filter?.let { filter->
-                val changes = mutableListOf<Difference<E>>()
+            this.filter?.let { filter ->
 
-                var index = 0
+                var indexInSource   = 0
+                val adds            = mutableListOf<Int>()
+                val removes         = mutableListOf<Int>()
+                val filteredChanges = mutableListOf<Difference<E>>()
 
                 diffs.forEach { difference ->
+
+                    // Compute filtered differences
                     difference.items.filter { filter(it) }.takeIf { it.isNotEmpty() }?.let { items ->
                         when (difference) {
                             is Equal  -> {
-                                changes.lastOrNull()?.takeIf { it is Equal }?.let {
-                                    changes[changes.size - 1] = Equal(it.items + items)
-                                } ?: changes.plusAssign(Equal(items))
+                                filteredChanges.lastOrNull()?.takeIf { it is Equal }?.let {
+                                    filteredChanges[filteredChanges.size - 1] = Equal(it.items + items)
+                                } ?: filteredChanges.plusAssign(Equal(items))
                             }
+
                             is Delete -> {
-                                changes.lastOrNull()?.takeIf { it is Delete }?.let {
-                                    changes[changes.size - 1] = Delete(it.items + items)
-                                } ?: changes.plusAssign(Delete(items))
+                                filteredChanges.lastOrNull()?.takeIf { it is Delete }?.let {
+                                    filteredChanges[filteredChanges.size - 1] = Delete(it.items + items)
+                                } ?: filteredChanges.plusAssign(Delete(items))
+
+                                filteredChanged = true
                             }
+
                             is Insert -> {
-                                changes.lastOrNull()?.takeIf { it is Insert }?.let {
-                                    changes[changes.size - 1] = Insert(it.items + items)
-                                } ?: changes.plusAssign(Insert(items))
+                                filteredChanges.lastOrNull()?.takeIf { it is Insert }?.let {
+                                    filteredChanges[filteredChanges.size - 1] = Insert(it.items + items)
+                                } ?: filteredChanges.plusAssign(Insert(items))
+
+                                filteredChanged = true
                             }
                         }
                     }
 
+                    // Compute adds/removes to adjust source-index mapping
                     when (difference) {
                         is Delete -> {
-                            handleRemoves(List(difference.items.size) { i -> index + i })
+                            removes += List(difference.items.size) { i -> indexInSource + i }
+                            indexInSource   += difference.items.size
                         }
-                        is Insert -> {
-                            difference.items.forEachIndexed { itemIndex, item ->
-                                if (difference.origin(of = item) == null && this.filter?.invoke(item) != false) {
-                                    indexToSource.addOrAppend(insertionIndex(index + itemIndex), index + itemIndex)
-                                }
 
-                                ++index
+                        is Insert -> {
+                            difference.items.indices.forEach { itemIndex ->
+                                adds += indexInSource + itemIndex - removes.size
+
+                                ++indexInSource
                             }
                         }
-                        else -> index += difference.items.size
+
+                        else      -> indexInSource += difference.items.size
                     }
                 }
 
-                filteredDiffs = Differences(changes)
+                filteredDiffs = Differences(filteredChanges)
+
+                // Update index mapping
+                handleRemoves(removes)
+                handleAdds   (adds   )
             }
 
-            changed_.forEach { it(this, filteredDiffs) }
+            if (filteredChanged) {
+                changed_.forEach { it(this, filteredDiffs) }
+            }
         }
     }
 
@@ -94,24 +114,35 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
     override fun get(index: Int): E = source[indexToSource[index]]
 
     override fun add(element: E): Boolean {
-        val index = indexToSource.size
+        val index = indexToSource.lastOrNull() ?: -1
 
         return when {
-            index == 0 || index >= source.size - 1 ->             source.add(element           )
-            else                                   -> true.also { source.add(index + 1, element) }
+            index < 0 || index >= source.size - 1 ->             source.add(element           )
+            else                                  -> true.also { source.add(index + 1, element) }
         }
+    }
+
+    override fun add(index: Int, element: E) {
+        if (index !in 0 until  size) throw IndexOutOfBoundsException()
+
+        source.add(indexToSource[index], element)
     }
 
     override fun move(element: E, to: Int): Boolean = source.move(element, indexToSource[to])
 
-    override fun removeAt(index: Int): E = source.removeAt(indexToSource[index])
+    override fun removeAt(index: Int): E {
+        if (index !in 0 until  size) throw IndexOutOfBoundsException()
 
-    override fun set(index: Int, element: E): E = source.set(indexToSource[index], element)
-
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> {
-        val result = mutableListOf<E>()
-        return indexToSource.subList(indexToSource[fromIndex], indexToSource[toIndex]).mapTo(result) { source[it] }
+        return source.removeAt(indexToSource[index])
     }
+
+    override fun set(index: Int, element: E): E {
+        if (index !in 0 until  size) throw IndexOutOfBoundsException()
+
+        return source.set(indexToSource[index], element)
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> = indexToSource.subList(indexToSource[fromIndex], indexToSource[toIndex]).mapTo(mutableListOf()) { source[it] }
 
     override fun equals(other: Any?): Boolean {
         if (other !is List<*> || other.size != this.size) return false
@@ -152,10 +183,6 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
     }
 
     override fun lastIndexOf(element: E): Int = indexFromSource(source.lastIndexOf(element)) ?: -1
-
-    override fun add(index: Int, element: E) {
-        source.add(indexToSource[index], element)
-    }
 
     override fun indexOf(element: E): Int = indexFromSource(source.indexOf(element)) ?: -1
 
@@ -215,8 +242,8 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
     }
 
     private fun handleRemoves(removed: List<Int>) {
-        var j = removed.size - 1
-        var i = size - 1
+        var j = removed.lastIndex
+        var i = lastIndex
 
         while(j >= 0 && i >= 0) {
             when {
@@ -236,6 +263,27 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         }
     }
 
+    private fun handleAdds(added: List<Int>) {
+        var j = added.lastIndex
+        var i = lastIndex
+
+        while(j >= 0 && i >= 0) {
+            when {
+                indexToSource[i] >= added[j] -> {
+                    indexToSource[i] += j + 1
+                    --i
+                }
+                else                         -> {
+                    if (filter?.invoke(source[added[j]]) != false) {
+                        indexToSource.addOrAppend(insertionIndex(added[j]), added[j])
+                    }
+                    //--i
+                    --j
+                }
+            }
+        }
+    }
+
     private fun insertionIndex(indexFromSource: Int): Int {
         val result = indexToSource.binarySearch(indexFromSource, 0, size)
 
@@ -243,7 +291,6 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
             result < 0 -> -result - 1
             else       -> result
         }
-
     }
 
     private fun indexFromSource(index: Int): Int? {

@@ -71,7 +71,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
                 }
                 is Delete -> {
                     if (selectionModel != null) {
-                        (0 until diff.items.size).forEach {
+                        diff.items.indices.forEach {
                             selectionOffsets += index + it to -1
                         }
                     }
@@ -82,7 +82,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
                         }
                     }
                 }
-                else -> { index += diff.items.size }
+                else -> index += diff.items.size
             }
         }
 

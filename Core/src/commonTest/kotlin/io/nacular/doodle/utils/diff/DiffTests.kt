@@ -188,16 +188,57 @@ class DiffTests {
 //        expect(listOf(makeDiff(Insert, "x"), makeDiff(Equal, "a"), makeDiff(Delete, "b"), makeDiff(Insert, "x"), makeDiff(Equal, "c"), makeDiff(Delete, "y"), makeDiff(Insert, "xabc")), "Compare: Overlap #3.") { compare("abcy", "xaxcxabc") }
     }
 
-    @Test @JsName("computesMoves") fun `computes moves`() {
-        val differences = compare("ABCD".toList(), "ACBD".toList())
+    @Test @JsName("computesSimpleForwardMove") fun `computes simple forward move`() {
+        val differences = compare("ABCDE".toList(), "ACDBE".toList())
 
-        expect(Differences(listOf(Equal('A'), Insert('C'), Equal('B'), Delete('C'), Equal('D')))) { differences }
+        expect(Differences(listOf(Equal('A'), Delete('B'), Equal('C','D'), Insert('B'), Equal('E')))) { differences }
         expect(Differences(listOf(
-            Equal('A'),
-            Insert('C').apply { setOrigin(of = 'C', 2) },
-            Equal('B'),
-            Delete('C').apply { setDestination(of = 'C', 1) },
-            Equal('D')
+            Equal ('A'     ),
+            Delete('B'     ).apply { setDestination('B', 3) },
+            Equal ('C', 'D'),
+            Insert('B'     ).apply { setOrigin('B', 1) },
+            Equal ('E'     ),
+        ))) { differences.computeMoves() }
+    }
+
+    @Test @JsName("computesForwardMoves") fun `computes forward moves`() {
+        val differences = compare("ADBEC".toList(), "ABCDE".toList())
+
+        expect(Differences(listOf(Equal('A'), Insert('B','C'), Equal('D'), Delete('B'), Equal('E'), Delete('C')))) { differences }
+        expect(Differences(listOf(
+            Equal ('A'     ),
+            Insert('B', 'C').apply { setOrigin('B', 2); setOrigin('C', 4) },
+            Equal ('D'     ),
+            Delete('B'     ).apply { setDestination('B', 1) },
+            Equal ('E'     ),
+            Delete('C'     ).apply { setDestination('C', 2) },
+        ))) { differences.computeMoves() }
+    }
+
+    @Test @JsName("computesSimpleBackwardMove") fun `computes simple backward move`() {
+        val differences = compare("ACDBE".toList(), "ABCDE".toList())
+
+        expect(Differences(listOf(Equal('A'), Insert('B'), Equal('C','D'), Delete('B'), Equal('E')))) { differences }
+        expect(Differences(listOf(
+            Equal ('A'     ),
+            Insert('B'     ).apply { setOrigin('B', 3) },
+            Equal ('C', 'D'),
+            Delete('B'     ).apply { setDestination('B', 1) },
+            Equal ('E'     ),
+        ))) { differences.computeMoves() }
+    }
+
+    @Test @JsName("computesBackwardMoves") fun `computes backward moves`() {
+        val differences = compare("ABCDE".toList(), "ADBEC".toList())
+
+        expect(Differences(listOf(Equal('A'), Insert('D'), Equal('B'), Insert('E'), Equal('C'), Delete('D','E')))) { differences }
+        expect(Differences(listOf(
+            Equal ('A'    ),
+            Insert('D'    ).apply { setOrigin('D', 3) },
+            Equal ('B'    ),
+            Insert('E'    ).apply { setOrigin('E', 4) },
+            Equal ('C'    ),
+            Delete('D','E').apply { setDestination('D', 1); setDestination('E', 3) },
         ))) { differences.computeMoves() }
     }
 

@@ -143,12 +143,13 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
             val inserts = mutableListOf<Pair<Insert<T>, Int>>()
             val deletes = mutableListOf<Pair<Delete<T>, Int>>()
 
-            var index = 0
+            var index           = 0
+            var previousInserts = 0
 
             changes.forEach { change ->
                 when (change) {
-                    is Insert -> { inserts += (change to index); index += change.items.size }
-                    is Delete ->   deletes += (change to index)
+                    is Insert -> { inserts += (change to index); index += change.items.size; previousInserts += change.items.size }
+                    is Delete -> { deletes += (change to index - previousInserts); previousInserts -= change.items.size }
                     else      ->   index   += change.items.size
                 }
             }
@@ -157,7 +158,7 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
                 insert.items.forEachIndexed { insertIndex, item ->
                     deletes.forEach { (delete, deleteStart) ->
                         delete.items.indexOfFirst { it == item && delete.destination(of = item) == null }.takeIf { it >= 0 }?.let {
-                            insert.setOrigin(item, it + deleteStart - if (deleteStart > insertStart) 1 else 0)
+                            insert.setOrigin(item, it + deleteStart)
                             delete.setDestination(item, insertIndex + insertStart)
                         }
                     }
