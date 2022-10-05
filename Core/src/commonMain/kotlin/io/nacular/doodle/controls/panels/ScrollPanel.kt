@@ -163,7 +163,7 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     public inner class ScrollPanelConstraintDslContext internal constructor(delegate: ConstraintDslContext): ConstraintDslContext() {
-        public val scrollBarWith  : Double get() = this@ScrollPanel.verticalScrollBarSize
+        public val scrollBarWidth : Double get() = this@ScrollPanel.verticalScrollBarSize
         public val scrollBarHeight: Double get() = this@ScrollPanel.horizontalScrollBarSize
 
         init {

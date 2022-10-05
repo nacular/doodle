@@ -22,9 +22,12 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.observable
 
 
-public val center              : (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center         }
-public val fill                : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges          }
-public fun fill(insets: Insets): (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges + insets }
+public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
+public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center }
+
+public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) .. strength }
+public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) .. strength }
+public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) .. strength }
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using

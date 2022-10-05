@@ -320,6 +320,7 @@ public fun <T: Any> optionalRadioList(
     buildRadioList(
             first            = first,
             rest             = rest,
+            allowDeselectAll = true,
             optionListConfig = OptionListConfig<T>().also(config),
             initialValue     = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
@@ -1503,14 +1504,15 @@ private fun <T> buildToggleList(
 }
 
 private fun <T> buildRadioList(
-               first       : T,
-        vararg rest        : T,
+               first           : T,
+        vararg rest            : T,
                optionListConfig: OptionListConfig<T>,
-               initialValue: T? = null,
-               config      : (T, RadioButton) -> Unit): Container = container {
+               initialValue    : T? = null,
+               allowDeselectAll: Boolean = false,
+               config          : (T, RadioButton) -> Unit): Container = container {
     insets     = optionListConfig.insets
     render     = { optionListConfig.render(this, this@container) }
-    val group  = ButtonGroup()
+    val group  = ButtonGroup(allowDeselectAll = allowDeselectAll)
     children  += (listOf(first) + rest).map { value ->
         container {
             focusable = false
@@ -1599,6 +1601,7 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
 }
 
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
+    button_.top    eq 0
     button_.width  eq parent.width
     button_.height eq parent.height
     label_.left    eq labelOffset
