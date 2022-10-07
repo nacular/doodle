@@ -178,6 +178,8 @@ public open class ScrollPanel(content: View? = null): View() {
         it.height eq max(0.0, contentHeightConstraints(ScrollPanelConstraintDslContext(this), it))
     }
 
+    private var ignoreLayout = false
+
     init {
         mirrorWhenRightLeft = false
 
@@ -283,8 +285,9 @@ public open class ScrollPanel(content: View? = null): View() {
                     false -> Point(max(0.0, min(point.x, it.width - width)), max(0.0, min(point.y, it.height - height)))
                 }
 
-                scroll      =  newScroll
-                it.position = -newScroll
+                ignoreLayout = true
+                scroll       =  newScroll
+                it.position  = -newScroll
             }
         }
     }
@@ -296,6 +299,7 @@ public open class ScrollPanel(content: View? = null): View() {
             updateConstraints()
         }
 
+        override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle, new: Rectangle) = !ignoreLayout.also { ignoreLayout = false }
         override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = new.idealSize != old.idealSize && matchContentIdealSize
 
         override fun layout(container: PositionableContainer) {

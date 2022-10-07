@@ -126,24 +126,24 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                 constrain(first, last) { first, last ->
                     when (orientation) {
                         Vertical -> {
-                            first.top    eq                 insets.top
-                            first.left   eq                 insets.left
-                            first.bottom eq parent.bottom - insets.bottom
-                            first.right  eq first.left + (parent.width - (panelSpacing() + insets.right)) * ratio
+                            first.top    eq insets.top
+                            first.left   eq insets.left
+                            first.right  eq first.left + (parent.width.readOnly - (panelSpacing() + insets.right)) * ratio
+                            first.bottom eq parent.bottom.readOnly - insets.bottom
                             last.top     eq first.top
                             last.left    eq first.right + panelSpacing()
+                            last.right   eq parent.right.readOnly - insets.right
                             last.bottom  eq first.bottom
-                            last.right   eq parent.right - insets.right
                         }
                         else -> {
                             first.top    eq insets.top
                             first.left   eq insets.left
-                            first.bottom eq first.top + (parent.height - (panelSpacing() + insets.bottom)) * ratio
-                            first.right  eq parent.right - insets.right
+                            first.right  eq parent.right.readOnly - insets.right
+                            first.bottom eq first.top + (parent.height.readOnly - (panelSpacing() + insets.bottom)) * ratio
                             last.top     eq first.bottom + panelSpacing()
                             last.left    eq first.left
                             last.right   eq first.right
-                            last.bottom  eq parent.bottom - insets.bottom
+                            last.bottom  eq parent.bottom.readOnly - insets.bottom
                         }
                     }
                 }

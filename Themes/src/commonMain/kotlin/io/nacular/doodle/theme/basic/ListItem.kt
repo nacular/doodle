@@ -148,13 +148,12 @@ public open class ListItem<T>(
             if (visualizer != oldChild) {
                 oldChild?.let { it.position -= offset }
                 visualizer.position += offset
+                layout = constrainLayout(children[0])
             }
         }
 
-        idealSize     = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
-        layout        = constrainLayout(children[0])
-
-        this.list     = list
+        idealSize = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
+        this.list = list
     }
 
     override fun render(canvas: Canvas) {
