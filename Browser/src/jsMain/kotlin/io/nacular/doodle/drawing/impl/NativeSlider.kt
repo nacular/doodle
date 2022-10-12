@@ -86,7 +86,7 @@ internal class NativeSlider<T> internal constructor(
 
     private val styleChanged: (View) -> Unit = {
         sliderElement.step = when {
-            slider.snapToTicks && slider.ticks > 1 -> "${100.0 / (slider.ticks - 1)}"
+            slider.snapToTicks && slider.ticks > 1 -> "${100.0 / (slider.ticks - 1)}".take(17) // Hack to avoid rounding issue that prevents final step (i.e. 100.0 / 3)
             else                                   -> "any"
         }
     }

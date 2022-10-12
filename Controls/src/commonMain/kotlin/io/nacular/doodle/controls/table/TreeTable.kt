@@ -2,13 +2,15 @@ package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.DynamicListModel
 import io.nacular.doodle.controls.IndexedItem
-import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ModelObserver
 import io.nacular.doodle.controls.SelectionModel
+import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.list.DynamicList
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.list.itemGenerator
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.theme.TreeBehavior
+import io.nacular.doodle.controls.theme.rowGenerator
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
@@ -243,8 +245,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
         override val view = Tree(
                 model.map(extractor),
-                object : ItemVisualizer<R, IndexedItem> {
-                    override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                itemVisualizer { item: R, previous: View?, context: IndexedItem ->
+                    this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
                         override val item     get() = this@TreeTable[index].getOrThrow()
                         override val index    get() = context.index
                         override val column   get() = this@InternalTreeColumn
@@ -270,11 +272,11 @@ public open class TreeTable<T, M: TreeModel<T>>(
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: TreeBehavior<R> {
-                    override val generator get() = object: TreeBehavior.RowGenerator<R> {
-                        override fun invoke(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, object : ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                    override val generator get() = rowGenerator { _: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View? ->
+                        it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
+                            this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
                                 override val item     get() = this@TreeTable[path].getOrThrow()
-                                override val index    get() = index
+                                override val index    get() = context.index
                                 override val column   get() = this@InternalTreeColumn
                                 override val selected get() = context.selected
                             })
@@ -373,20 +375,24 @@ public open class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = DynamicList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
-            override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }), scrollCache = scrollCache, fitContent = emptySet()).apply {
+        override val view = DynamicList(
+            model          = FieldModel(model, extractor),
+            itemVisualizer = itemVisualizer { _: R, _: View?, context: Any -> object : View() {} },
+            selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }),
+            scrollCache    = scrollCache,
+            fitContent     = emptySet()
+        ).apply {
             acceptsThemes = false
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.ItemGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, object: ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
-                                override val item     get() = this@TreeTable[index].getOrThrow()
-                                override val index    get() = index
+                    override val generator get() = itemGenerator { list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
+                        it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
+                            this@InternalListColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                                override val item     get() = this@TreeTable[this.index].getOrThrow()
+                                override val index    get() = context.index
                                 override val column   get() = this@InternalListColumn
                                 override val selected get() = context.selected
                             })

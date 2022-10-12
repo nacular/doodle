@@ -28,6 +28,11 @@ public interface ItemVisualizer<T, in C> {
 
 public operator fun <T> ItemVisualizer<T, Any>.invoke(item: T, previous: View? = null): View = invoke(item, previous, Unit)
 
+/**
+ * Creates an [ItemVisualizer] from the given lambda.
+ *
+ * @param block that will serve as the visualizer's [ItemVisualizer.invoke].
+ */
 public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: View?, context: C) -> View): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C) = block(item, previous, context)
 }

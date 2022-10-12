@@ -7,8 +7,10 @@ import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
+import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListLike
+import io.nacular.doodle.controls.list.itemGenerator
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
@@ -108,11 +110,11 @@ public open class Table<T, M: ListModel<T>>(
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = object: ListBehavior.ItemGenerator<R> {
-                        override fun invoke(list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View?) = it.cellGenerator(this@Table, this@InternalListColumn, item, index, object: ItemVisualizer<R, IndexedItem> {
-                            override fun invoke(item: R, previous: View?, context: IndexedItem) = this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<T, R> {
-                                override val item     get() = this@Table[index].getOrThrow()
-                                override val index    get() = index
+                    override val generator get() = itemGenerator { _: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
+                        it.cellGenerator(this@Table, this@InternalListColumn, item, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
+                            this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<T, R> {
+                                override val item     get() = this@Table[this.index].getOrThrow()
+                                override val index    get() = context.index
                                 override val column   get() = this@InternalListColumn
                                 override val selected get() = context.selected
                             })

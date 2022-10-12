@@ -104,6 +104,15 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
 }
 
 /**
+ * Creates an [ItemGenerator] from the given lambda.
+ *
+ * @param block that will serve as the visualizer's [ItemGenerator.invoke].
+ */
+public inline fun <T> itemGenerator(crossinline block: (list: List<T, *>, item: T, index: Int, current: View?) -> View): ItemGenerator<T> = object: ItemGenerator<T> {
+    override fun invoke(list: List<T, *>, item: T, index: Int, current: View?) = block(list, item, index, current)
+}
+
+/**
  * A visual component that renders an immutable list of items of type [T] using a [ListBehavior]. Items are obtained via
  * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
  * efficiently, since List recycles the Views generated to render its items.

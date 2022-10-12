@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.theme
 
+import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
@@ -28,4 +29,13 @@ public interface TreeBehavior<T>: Behavior<Tree<T, *>> {
 
     public val generator : RowGenerator<T>
     public val positioner: RowPositioner<T>
+}
+
+/**
+ * Creates an [RowGenerator] from the given lambda.
+ *
+ * @param block that will serve as the visualizer's [RowGenerator.invoke].
+ */
+public inline fun <T> rowGenerator(crossinline block: (tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) -> View): RowGenerator<T> = object: RowGenerator<T> {
+    override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = block(tree, node, path, index, current)
 }
