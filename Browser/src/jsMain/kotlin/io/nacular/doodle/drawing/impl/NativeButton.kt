@@ -121,8 +121,10 @@ internal class NativeButton internal constructor(
         private val border                : Insets
 ): NativeEventListener {
 
-    var idealSize: Size? = null
-        private set
+    var idealSize: Size? = null; private set(new) {
+        field = new
+        button.idealSize = new // TODO: Should this be done in NativeButtonBehavior instead?
+    }
 
     private var textElement       : HTMLElement? = null
     private var iconElement       : HTMLElement? = null
@@ -142,6 +144,7 @@ internal class NativeButton internal constructor(
 
     private val styleChanged: (View) -> Unit = {
         buttonElement.style.setFont(it.font)
+        setIconText()
         button.rerender()
     }
 
@@ -207,35 +210,26 @@ internal class NativeButton internal constructor(
             val aStringWidth = stringSize.width
 
             x = when (button.iconAnchor) {
-                Anchor.Leading       ->
+                Anchor.Leading       -> when {
+                    aStringWidth > 0 -> max(minX, textPosition.x - size.width - button.iconTextSpacing)
+                    else             -> max(minX, min(maxX, (button.width - size.width) / 2))
+                }
 
-                    if (aStringWidth > 0) {
-                        max(minX, textPosition.x - size.width - button.iconTextSpacing)
-                    } else {
-                        max(minX, min(maxX, (button.width - size.width) / 2))
-                    }
+                Anchor.Right         -> when {
+                    aStringWidth > 0 -> max(maxX, textPosition.x + aStringWidth + button.iconTextSpacing)
+                    else             -> max(maxX, minX)
+                }
 
-                Anchor.Right         ->
-
-                    if (aStringWidth > 0) {
-                        max(maxX, textPosition.x + aStringWidth + button.iconTextSpacing)
-                    } else {
-                        max(maxX, minX)
-                    }
-
-                Anchor.Trailing ->
-
-                    if (aStringWidth > 0) {
-                        textPosition.x + aStringWidth + button.iconTextSpacing
-                    } else {
-                        max(minX, min(maxX, (button.width - size.width) / 2))
-                    }
+                Anchor.Trailing -> when {
+                    aStringWidth > 0 -> textPosition.x + aStringWidth + button.iconTextSpacing
+                    else             -> max(minX, min(maxX, (button.width - size.width) / 2))
+                }
                 else -> x
             }
 
             y = when (button.verticalAlignment) {
                 Bottom -> button.height - insets.bottom
-                Middle -> max(insets.top, min(button.height - insets.bottom, (button.height - size.height) / 2))
+                Middle -> max(insets.top, min(button.height - insets.bottom, (button.height - size.height) / 2 - border.top))
                 Top    -> insets.top
                 else   -> insets.top
             }
@@ -263,9 +257,9 @@ internal class NativeButton internal constructor(
 
                 iconElement?.let { buttonElement.remove(it) }
 
-                field?.let {
+                field?.let { icon ->
                     iconElement = htmlFactory.create<HTMLElement>().also { iconElement ->
-                        val size = it.size(button)
+                        val size = icon.size(button)
 
                         iconElement.style.setWidth (size.width )
                         iconElement.style.setHeight(size.height)
@@ -274,9 +268,9 @@ internal class NativeButton internal constructor(
 
                         canvas.size = size
 
-                        it.render(button, canvas, Origin)
-
                         buttonElement.insert(iconElement, 0)
+
+                        icon.render(button, canvas, Origin)
                     }
 
                     return
@@ -413,6 +407,7 @@ internal class NativeButton internal constructor(
 
     private fun setIconText() {
         text      = button.text
+        lastIcon  = icon
         idealSize = measureIdealSize()
     }
 }

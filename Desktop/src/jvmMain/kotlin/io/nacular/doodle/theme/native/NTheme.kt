@@ -54,12 +54,6 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             }
         }
 
-//        private val NativeCheckBoxRadioButtonBehavior = Module(name = "NativeCheckBoxRadioButtonBehavior") {
-//            importOnce(CommonNativeModule, allowOverride = true)
-//
-//            bind<NativeCheckBoxRadioButtonFactory>() with singleton { NativeCheckBoxRadioButtonFactoryImpl(instance(), instance(), instance(), instance(), instance(), instanceOrNull()) }
-//        }
-
         public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 

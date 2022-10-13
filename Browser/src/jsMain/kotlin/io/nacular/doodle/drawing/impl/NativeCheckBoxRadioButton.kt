@@ -23,10 +23,11 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.utils.Anchor
+import io.nacular.doodle.utils.Anchor.Right
+import io.nacular.doodle.utils.Anchor.Trailing
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import kotlin.math.max
@@ -76,8 +77,8 @@ internal class NativeCheckBoxRadioButton(
     private var inputSize = Empty
 
     val idealSize: Size get() = Size(
-            inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0,
-            max(inputSize.height, textSize.height)
+        inputSize.width + if (textSize.width > 0) button.iconTextSpacing + textSize.width else 0.0,
+        max(inputSize.height, textSize.height)
     )
 
     private val rootEventHandler : NativeEventHandler
@@ -178,15 +179,16 @@ internal class NativeCheckBoxRadioButton(
         }
 
         rootEventHandler.unregisterFocusListener         ()
+        rootEventHandler.unregisterClickListener         ()
         rootEventHandler.stopConsumingPointerPressEvents ()
+
         inputEventHandler.unregisterFocusListener        ()
-        inputEventHandler.unregisterClickListener        ()
         inputEventHandler.stopConsumingPointerPressEvents()
     }
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
-            canvas.addData(listOf(rootElement), Point.Origin)
+            canvas.addData(listOf(rootElement), Origin)
 
             positionElements()
 
@@ -249,7 +251,7 @@ internal class NativeCheckBoxRadioButton(
             textElement.style.setTop((button.height - textSize.height ) / 2)
 
             when (button.iconAnchor) {
-                Anchor.Right, Anchor.Trailing -> {
+                Right, Trailing -> {
                     rootElement.insert(textElement, 0)
 
                     inputElement.style.setLeft(textSize.width + button.iconTextSpacing)

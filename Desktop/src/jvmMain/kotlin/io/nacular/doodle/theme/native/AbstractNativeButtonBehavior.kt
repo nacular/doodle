@@ -143,31 +143,4 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             nativePeer.selected_ = new
         }
     }
-
-//    override fun entered(event: PointerEvent) {
-//        super.entered(event)
-//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun exited(event: PointerEvent) {
-//        super.exited(event)
-//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun pressed(event: PointerEvent) {
-//        super.pressed(event)
-//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun clicked(event: PointerEvent) {
-//        super.clicked(event)
-//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-//    }
-//
-//    override fun released(event: PointerEvent) {
-//        nativePeer.ignoreSelectionChange = true
-//        super.released(event)
-//        nativePeer.handleMouseEvent(event.toAwt(nativePeer))
-//        nativePeer.ignoreSelectionChange = false
-//    }
 }

@@ -142,7 +142,7 @@ internal class NativeHyperLink internal constructor(
             customCanvas?.also { customCanvas ->
                 customCanvas.size = canvas.size
                 customCanvas.clear()
-                customRenderer?.let { it(hyperLink, customCanvas) }
+                customRenderer?.invoke(hyperLink, customCanvas)
                 customCanvas.flush()
             }
 

@@ -10,8 +10,7 @@ import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.focus.FocusManager
 
-internal class NativeHyperLinkStylerImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory):
-        NativeHyperLinkStyler {
+internal class NativeHyperLinkStylerImpl(private val nativeHyperLinkFactory: NativeHyperLinkFactory): NativeHyperLinkStyler {
     override fun invoke(hyperLink: HyperLink, behavior: Behavior<HyperLink>): Behavior<HyperLink> = NativeHyperLinkBehaviorWrapper(
             nativeHyperLinkFactory,
             hyperLink,
