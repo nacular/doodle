@@ -59,22 +59,40 @@ public class MonthPanel(
 ): View(), Selectable<LocalDate> {
     private inner class MonthLayout: Layout {
         override fun layout(container: PositionableContainer) {
-            val columnWidth = container.width  / numColumns
-            val rowHeight   = container.height / numRows
-            var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
             var row         = 0
+            var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
+            val rowHeight   = container.height / numRows
+            val columnWidth = container.width  / numColumns
 
-            container.children.forEach {
-                constrain(it as View, within = Rectangle(
-                    x      = columnWidth * col,
-                    y      = rowHeight   * row,
-                    width  = columnWidth,
-                    height = rowHeight
-                ), constraints = cellAlignment)
+            when (cellAlignment) {
+                fill -> container.children.forEach {
+                    val rect = Rectangle(
+                        x      = columnWidth * col,
+                        y      = rowHeight * row,
+                        width  = columnWidth,
+                        height = rowHeight
+                    )
 
-                col = (col + 1) % numColumns
+                    col = (col + 1) % numColumns
 
-                if (col == 0) row++
+                    if (col == 0) row++
+
+                    it.bounds = rect
+                }
+                else -> container.children.constrain(using = cellAlignment) { _,_ ->
+                    val within = Rectangle(
+                        x      = columnWidth * col,
+                        y      = rowHeight   * row,
+                        width  = columnWidth,
+                        height = rowHeight
+                    )
+
+                    col = (col + 1) % numColumns
+
+                    if (col == 0) row++
+
+                    within
+                }
             }
         }
     }
@@ -90,19 +108,18 @@ public class MonthPanel(
     /**
      * The first date in the panel (i.e. day 1 of the month shown).
      */
-    public var startDate: LocalDate = date.firstDayOfMonth
-        private set(new) {
-            if (new != field) {
-                field = new
-                numDays = startDate.numDaysOfMonth
-                update  ()
-                rerender()
+    public var startDate: LocalDate = date.firstDayOfMonth; private set(new) {
+        if (new != field) {
+            field = new
+            numDays = startDate.numDaysOfMonth
+            update  ()
+            rerender()
 
-                (monthChanged as SetPool).forEach {
-                    it(this)
-                }
+            (monthChanged as SetPool).forEach {
+                it(this)
             }
         }
+    }
 
     /**
      * The last date in the panel (i.e. the final day of the month shown)
@@ -167,16 +184,18 @@ public class MonthPanel(
 
         var numDays = 0
 
-        sequence.forEachIndexed { index, day ->
-            when {
-                index >= children.size -> children        += visualizer(startDate + DatePeriod(days = day), null,            this)
-                else                   -> children[index]  = visualizer(startDate + DatePeriod(days = day), children[index], this)
+        children.batch {
+            sequence.forEachIndexed { index, day ->
+                when {
+                    index >= this.size -> this        += visualizer(startDate + DatePeriod(days = day), null,        this@MonthPanel)
+                    else               -> this[index]  = visualizer(startDate + DatePeriod(days = day), this[index], this@MonthPanel)
+                }
+                ++numDays
             }
-            ++numDays
-        }
 
-        while (children.size > numDays) {
-            children.removeAt(children.size - 1)
+            while (this.size > numDays) {
+                this.removeAt(this.size - 1)
+            }
         }
 
         // Layout should not have changed if not showing adjacent months

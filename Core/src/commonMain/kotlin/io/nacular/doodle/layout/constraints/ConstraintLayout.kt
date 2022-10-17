@@ -2,9 +2,12 @@ package io.nacular.doodle.layout.constraints
 
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.view
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
@@ -752,28 +755,53 @@ public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: C
 public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
- * Applies the given constraints to the View as though the View's parent were the given rectangle.
+ * Applies the given constraints to the Views as though they were each withing the Rectangle provided by [within].
  *
- * @param view being constrained
+ * @param using this constraint for each View
  * @param within this rectangle
- * @param constraints to be applied
  * @throws ConstraintException
  */
-//@kotlin.contracts.ExperimentalContracts
 @Internal
-public fun constrain(view: View, within: Rectangle, constraints: ConstraintDslContext.(Bounds) -> Unit) {
-//    contract {
-//        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-//    }
+public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(Bounds) -> Unit, within: (Int, T) -> Rectangle) {
+    val activeBounds  = mutableSetOf<ReflectionVariable>()
+    val updatedBounds = mutableSetOf<ReflectionVariable>()
+
+    @Suppress("UNUSED_PARAMETER")
+    fun boundsChanged(child: View, old: Rectangle, new: Rectangle) {
+        updatedBounds += ReflectionVariable(child, child::y,      ReflectionVariable.yId     )
+        updatedBounds += ReflectionVariable(child, child::x,      ReflectionVariable.xId     )
+        updatedBounds += ReflectionVariable(child, child::width,  ReflectionVariable.widthId )
+        updatedBounds += ReflectionVariable(child, child::height, ReflectionVariable.heightId)
+    }
+
+    val fakeView = view {}
 
     val solver  = Solver()
-    val context = ConstraintDslContext()
+    val context = ConstraintDslContext().apply {
+        parent = ImmutableSizeBounds(width_ = Rectangle.Empty::width, height_ = Rectangle.Empty::height, this)
+    }
 
-    context.parent  = ImmutableSizeBounds(width_ = within::width, height_ = within::height, context)
-    context.parent_ = view.parent
+    var parentSize by observable(Size.Empty) {_,new ->
+        context.parent = ImmutableSizeBounds(width_ = new::width, height_ = new::height, context)
+        setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { throw it }
+    }
 
-    setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(view, context))) { (a) -> constraints(a) })) { throw  it }
-    solve(solver, context) { throw  it }
+    setupSolver(solver, context, updatedBounds, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { throw it }
 
-    view.position += within.position
+    boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
+
+    forEachIndexed { index, view ->
+        val bounds = within(index, view)
+
+        parentSize = bounds.size
+
+        if (fakeView.bounds != view.bounds) {
+            fakeView.bounds = view.bounds
+            boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
+        }
+
+        solve(solver, activeBounds = activeBounds, updatedBounds = updatedBounds, context = context) { throw it }
+
+        view.bounds = Rectangle(position = bounds.position + fakeView.position, fakeView.size)
+    }
 }
