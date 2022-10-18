@@ -130,13 +130,12 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
             override fun next() = it.next().also { index++ }
 
             override fun remove() {
-                val i       = index--
                 val element = list[index--]
                 it.remove()
 
                 val diffs = mutableListOf<Difference<E>>()
 
-                if (i > 0) {
+                if (index > 0) {
                     diffs += Equal(list.subList(fromIndex = 0, toIndex = index).toList())
                 }
 

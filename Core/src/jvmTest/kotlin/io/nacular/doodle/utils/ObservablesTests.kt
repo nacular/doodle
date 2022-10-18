@@ -1,6 +1,5 @@
 package io.nacular.doodle.utils
 
-import JsName
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.utils.diff.Delete
@@ -14,8 +13,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 4/5/18.
  */
 class ObservableSetTests {
-    @Test @JsName("addNotifies")
-    fun `add notifies`() {
+    @Test fun `add notifies`() {
         validateChanges<Int>(ObservableSet()) { set, changed ->
             set += 4
             set += 5
@@ -29,8 +27,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("removeNotifies")
-    fun `remove notifies`() {
+    @Test fun `remove notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set -= 4
             set -= 5
@@ -45,8 +42,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("removeUnknownNoops")
-    fun `remove unknown no-ops`() {
+    @Test fun `remove unknown no-ops`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set -= 1
             set -= 2
@@ -59,8 +55,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("clearNotifies")
-    fun `clear notifies`() {
+    @Test fun `clear notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.clear()
 
@@ -71,8 +66,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("retainAllNotifies")
-    fun `retainAll notifies`() {
+    @Test fun `retainAll notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.retainAll(setOf(5, 6))
 
@@ -83,8 +77,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("replaceAllNoNewNotifies")
-    fun `replace all no new notifies`() {
+    @Test fun `replace all no new notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(5, 6))
 
@@ -95,8 +88,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("replaceAllNewNotifies")
-    fun `replace all new notifies`() {
+    @Test fun `replace all new notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(1, 2, 3))
 
@@ -107,8 +99,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("replaceAllSameNoops")
-    fun `replace all same no-ops`() {
+    @Test fun `replace all same no-ops`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.replaceAll(setOf(4, 5, 6, 7, 8))
 
@@ -119,8 +110,7 @@ class ObservableSetTests {
         }
     }
 
-    @Test @JsName("batchingNotifies")
-    fun `batching notifies`() {
+    @Test fun `batching notifies`() {
         validateChanges(ObservableSet(mutableSetOf(4, 5, 6, 7, 8))) { set, changed ->
             set.batch {
                 remove(5)
@@ -142,8 +132,7 @@ class ObservableSetTests {
 }
 
 class ObservableListTests {
-    @Test @JsName("addNotifies")
-    fun `add notifies`() {
+    @Test fun `add notifies`() {
         validateChanges(ObservableList<Int>()) { list, changed ->
             list += 4
             list += 5
@@ -157,8 +146,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("insertNotifies")
-    fun `insert notifies`() {
+    @Test fun `insert notifies`() {
         validateChanges(ObservableList()) { list, changed ->
             list += 4
             list += 6
@@ -172,8 +160,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("setNotifies")
-    fun `set notifies`() {
+    @Test fun `set notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list[1] = 10
             list[2] = 12
@@ -186,8 +173,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("removeNotifies")
-    fun `remove notifies`() {
+    @Test fun `remove notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list -= 4
             list.removeAt(0)
@@ -202,8 +188,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("removeUnknownNoops")
-    fun `remove unknown no-ops`() {
+    @Test fun `remove unknown no-ops`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list -= 1
             list -= 2
@@ -216,8 +201,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("clearNotifies")
-    fun `clear notifies`() {
+    @Test fun `clear notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.clear()
 
@@ -228,8 +212,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("addAllNotifies")
-    fun `addAll notifies`() {
+    @Test fun `addAll notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.addAll(1, setOf(1, 2))
 
@@ -240,8 +223,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("retainAllNotifies")
-    fun `retainAll notifies`() {
+    @Test fun `retainAll notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.retainAll(setOf(5, 6))
 
@@ -252,8 +234,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("replaceAllNoNewNotifies")
-    fun `replace all no new notifies`() {
+    @Test fun `replace all no new notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(5, 6))
 
@@ -264,8 +245,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("replaceAllNewNotifies")
-    fun `replace all new notifies`() {
+    @Test fun `replace all new notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(1, 2, 3))
 
@@ -276,8 +256,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("replaceAllSameNoops")
-    fun `replace all same no-ops`() {
+    @Test fun `replace all same no-ops`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.replaceAll(setOf(4, 5, 6, 7, 8))
 
@@ -288,8 +267,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("batchingNotifies")
-    fun `batching notifies`() {
+    @Test fun `batching notifies`() {
         validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
             list.batch {
                 remove(8)
@@ -304,8 +282,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("batchMoveNotifies")
-    fun `batch move notifies`() {
+    @Test fun `batch move notifies`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.batch {
                 remove('a')
@@ -319,8 +296,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("moveNotifies")
-    fun `move notifies`() {
+    @Test fun `move notifies`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.move('a', 2)
 
@@ -363,8 +339,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("moveUnknownElementNoOps")
-    fun `move unknown element no-ops`() {
+    @Test fun `move unknown element no-ops`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.move('q', 5)
 
@@ -374,8 +349,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("moveToInvalidIndexNoOps")
-    fun `move to invalid index no-ops`() {
+    @Test fun `move to invalid index no-ops`() {
         validateChanges(ObservableList(mutableListOf('a', 'b', 'c', 'd'))) { list, changed ->
             list.move('b', 5)
 
@@ -385,8 +359,7 @@ class ObservableListTests {
         }
     }
 
-    @Test @JsName("sortNotifies")
-    fun `sort notifies`() {
+    @Test fun `sort notifies`() {
         validateChanges(ObservableList(mutableListOf(5, 6, 1, 2))) { list, changed ->
             list.sortWith { a, b -> a.compareTo(b) }
 
@@ -394,6 +367,37 @@ class ObservableListTests {
 
             expect(listOf(1, 2, 5, 6)) { list }
             expect(false) { list.isEmpty() }
+        }
+    }
+
+    @Test fun `remove by iterator works`() {
+        validateChanges(ObservableList(mutableListOf(4, 5, 6, 7, 8))) { list, changed ->
+            val it = list.iterator()
+            it.next()
+            it.remove()
+            it.next()
+            it.remove()
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4), Equal(5,6,7,8)))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(5), Equal(  6,7,8)))) }
+
+            expect(listOf(6,7,8)) { list }
+        }
+    }
+
+    @Test fun `iterator hasNext works`() {
+        validateChanges(ObservableList(mutableListOf(4, 5))) { list, changed ->
+            val it = list.iterator()
+            it.next()
+            it.remove()
+            it.next()
+            it.remove()
+
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(4), Equal(5)))) }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(5)          ))) }
+
+            expect(false) { it.hasNext() }
+            expect(listOf()) { list }
         }
     }
 
