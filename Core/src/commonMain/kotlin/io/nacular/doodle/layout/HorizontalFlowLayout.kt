@@ -71,7 +71,9 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
             layoutLine(itemList, container, lineWidth, y, lineHeight)
         }
 
-        container.idealSize = Size(container.width, container.children.last().bounds.bottom)
+        container.children.lastOrNull()?.let {
+            container.idealSize = Size(container.width, it.bounds.bottom)
+        }
     }
 
     private fun layoutLine(itemList: List<Positionable>, parent: PositionableContainer, lineWidth: Double, lineY: Double, lineHeight: Double) {
