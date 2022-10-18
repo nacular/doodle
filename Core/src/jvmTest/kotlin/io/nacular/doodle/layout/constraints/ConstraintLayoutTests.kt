@@ -176,20 +176,6 @@ class ConstraintLayoutTests {
         expect(80.0) { view.height }
     }
 
-    @Test fun `constrain to rect works`() {
-        val view = view {  }
-
-        constrain(view, within = Rectangle(10, 10, 100, 100)) {
-            it.left   eq 2
-            it.width  eq parent.width
-            it.height eq parent.height
-
-            it.top lessEq parent.centerY
-        }
-
-        expect(Rectangle(10 + 2, 10, 100, 100)) { view.bounds }
-    }
-
     @Test fun `layout using render manager`() {
         val child1 = NamedView("child1").apply { width = 400.0 }
         val child2 = NamedView("child2").apply { width = 400.0 }
@@ -307,14 +293,18 @@ class ConstraintLayoutTests {
         expect(Rectangle(10, 10, 80, 80)) { view.bounds }
     }
 
-    @Test fun `constraint to rect`() {
-        val view = view {}
+    @Test fun `constrain iterable within bounds`() {
+        val view1 = view {}
+        val view2 = view {}
+        val view3 = view {}
+        val view4 = view {}
+        val constraint: ConstraintDslContext.(Bounds) -> Unit = { it.edges eq parent.edges }
 
-        constrain(view, within = Rectangle(10, 10, 10, 10)) {
-            it.edges eq parent.edges
+        listOf(view1, view2, view3, view4).constrain(using = constraint) { index,_ ->
+            Rectangle(index, index, 100, 100)
         }
 
-        expect(Rectangle(10, 10, 10, 10)) { view.bounds }
+        expect(listOf(Rectangle(0, 0, 100, 100), Rectangle(1, 1, 100, 100), Rectangle(2, 2, 100, 100))) { listOf(view1, view2, view3).map { it.bounds } }
     }
 
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {

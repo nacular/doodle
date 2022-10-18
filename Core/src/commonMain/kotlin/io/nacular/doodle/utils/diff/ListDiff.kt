@@ -1,6 +1,7 @@
 package io.nacular.doodle.utils.diff
 
 import io.nacular.doodle.utils.diff.Operation.*
+import io.nacular.doodle.utils.fastMutableMapOf
 import kotlin.math.min
 
 /**
@@ -60,7 +61,7 @@ public class Insert<T>(items: List<T>): Difference<T>(items) {
     private var origins: MutableMap<T, Int>? = null
 
     internal fun setOrigin(of: T, origin: Int) {
-        if (origins == null) origins = mutableMapOf()
+        if (origins == null) origins = fastMutableMapOf()
 
         origins!![of] = origin
     }
@@ -102,7 +103,7 @@ public class Delete<T>(items: List<T>): Difference<T>(items) {
     private var destinations: MutableMap<T, Int>? = null
 
     internal fun setDestination(of: T, destination: Int) {
-        if (destinations == null) destinations = mutableMapOf()
+        if (destinations == null) destinations = fastMutableMapOf()
 
         destinations!![of] = destination
     }
@@ -290,10 +291,10 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
     val doubleEnd    = dualThreshold * 2 < maxD
     var vMap1        = mutableListOf<HashSet<Long>>()
     var vMap2        = mutableListOf<HashSet<Long>>()
-    val v1           = mutableMapOf<Int, Int>().apply { this[1] = 0 }
-    val v2           = mutableMapOf<Int, Int>().apply { this[1] = 0 }
+    val v1           = fastMutableMapOf<Int, Int>().apply { this[1] = 0 }
+    val v2           = fastMutableMapOf<Int, Int>().apply { this[1] = 0 }
     var footstep     = 0L  // Used to track overlapping paths.
-    val footsteps    = mutableMapOf<Long, Int>()
+    val footsteps    = fastMutableMapOf<Long, Int>()
     var done         = false
     val front        = ((firstLength + secondLength) % 2 == 1) // If the total number of characters is odd, then the front path will collide with the reverse path.
 

@@ -1,5 +1,6 @@
 package io.nacular.doodle.layout.constraints
 
+import io.nacular.doodle.utils.fastMutableMapOf
 import kotlin.math.abs
 
 /**
@@ -100,7 +101,7 @@ public open class Expression internal constructor(internal vararg val terms: Ter
     }
 
     internal fun reduce(): Expression {
-        val vars = mutableMapOf<Variable, Double>()
+        val vars = fastMutableMapOf<Variable, Double>()
         for (term in terms.filterIsInstance<VariableTerm>()) {
             var value = vars[term.variable]
             if (value == null) {

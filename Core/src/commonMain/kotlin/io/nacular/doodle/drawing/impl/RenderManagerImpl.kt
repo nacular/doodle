@@ -24,6 +24,8 @@ import io.nacular.doodle.utils.MutableTreeSet
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
+import io.nacular.doodle.utils.fastMutableMapOf
+import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.ifTrue
 
 @Internal
@@ -46,16 +48,16 @@ public open class RenderManagerImpl(
     private var layingOut = null as View?
     private var paintTask = null as Task?
 
-    protected open val views              : MutableSet<View>                   = mutableSetOf()
-    protected open val dirtyViews         : MutableSet<View>                   = mutableSetOf()
-    protected open val displayTree        : MutableMap<View?, DisplayRectNode> = mutableMapOf()
-    protected open val neverRendered      : MutableSet<View>                   = mutableSetOf()
+    protected open val views              : MutableSet<View>                   = fastMutableSetOf()
+    protected open val dirtyViews         : MutableSet<View>                   = fastMutableSetOf()
+    protected open val displayTree        : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
+    protected open val neverRendered      : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingLayout      : MutableSet<View>                   = MutableTreeSet(AncestorComparator)
     protected open val pendingRender      : MutableSet<View>                   = LinkedHashSet()
-    protected open val pendingCleanup     : MutableMap<View, MutableSet<View>> = mutableMapOf()
-    protected open val addedInvisible     : MutableSet<View>                   = mutableSetOf()
-    protected open val visibilityChanged  : MutableSet<View>                   = mutableSetOf()
-    protected open val pendingBoundsChange: MutableSet<View>                   = mutableSetOf()
+    protected open val pendingCleanup     : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
+    protected open val addedInvisible     : MutableSet<View>                   = fastMutableSetOf()
+    protected open val visibilityChanged  : MutableSet<View>                   = fastMutableSetOf()
+    protected open val pendingBoundsChange: MutableSet<View>                   = fastMutableSetOf()
 
     init {
         display.childrenChanged += { _, diffs ->
@@ -411,7 +413,7 @@ public open class RenderManagerImpl(
     }
 
     protected open fun addToCleanupList(parent: View, child: View) {
-        pendingCleanup.getOrPut(parent) { mutableSetOf() }.apply { add(child) }
+        pendingCleanup.getOrPut(parent) { fastMutableSetOf() }.apply { add(child) }
     }
 
     private fun removeFromCleanupList(parent: View?, child: View) {

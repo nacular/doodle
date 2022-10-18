@@ -4,12 +4,13 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
+import io.nacular.doodle.utils.fastMutableMapOf
 
 @Internal
 public class RealGraphicsDevice<T: GraphicsSurface>(private val surfaceFactory: GraphicsSurfaceFactory<T>): GraphicsDevice<T> {
 
-    private val viewSurfaceMap = mutableMapOf<View, T>()
-    private val surfaceViewMap = mutableMapOf<T, View>()
+    private val viewSurfaceMap = fastMutableMapOf<View, T>()
+    private val surfaceViewMap = fastMutableMapOf<T, View>()
 
     override operator fun get(view: View): T = viewSurfaceMap.getOrPut(view) {
         val surface = surfaceFactory(view.parent?.let { this[it] }, view).apply { zOrder = view.zOrder }

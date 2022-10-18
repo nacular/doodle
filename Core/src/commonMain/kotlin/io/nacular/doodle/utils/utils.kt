@@ -1,5 +1,6 @@
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.core.Internal
 import kotlin.math.round
 
 /**
@@ -144,3 +145,9 @@ public fun Double.roundToNearest(value: Double): Double = when (value) {
     0.0  -> this
     else -> round(this / value) * value
 }
+
+@Internal
+public expect fun <K, V> fastMutableMapOf(): MutableMap<K, V>
+
+@Internal
+public expect fun <E> fastMutableSetOf(): MutableSet<E>

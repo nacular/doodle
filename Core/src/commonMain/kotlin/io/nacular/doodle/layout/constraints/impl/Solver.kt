@@ -18,6 +18,8 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.Error
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.External
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Invalid
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
+import io.nacular.doodle.utils.fastMutableMapOf
+import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.observable
 import kotlin.math.abs
 
@@ -91,7 +93,7 @@ internal class Solver {
                 }
             }
         }
-        var cells   = mutableMapOf<Symbol, Double>(); private set
+        var cells   = fastMutableMapOf<Symbol, Double>(); private set
         var constant: Double; private set
 
         constructor(constant: Double = 0.0) {
@@ -107,7 +109,7 @@ internal class Solver {
             }
         }
 
-        private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { mutableSetOf() }.add(this) }
+        private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { fastMutableSetOf() }.add(this) }
         private fun unregisterSymbol(symbol: Symbol) {
             rowsWithSymbol[symbol]?.let {
                 it.remove(this)
@@ -234,14 +236,14 @@ internal class Solver {
         }
     }
 
-    private val constraints    = mutableMapOf<Constraint, Tag>()
-    private val rows           = mutableMapOf<Symbol, Row>()
-    private val vars           = mutableMapOf<Variable, Symbol>()
-    private val edits          = mutableMapOf<Variable, EditInfo>()
+    private val constraints    = fastMutableMapOf<Constraint, Tag>()
+    private val rows           = fastMutableMapOf<Symbol, Row>()
+    private val vars           = fastMutableMapOf<Variable, Symbol>()
+    private val edits          = fastMutableMapOf<Variable, EditInfo>()
     private val infeasibleRows = mutableListOf<Symbol>()
     private val objective      = Row()
     private var artificial     = null as Row?
-    private val rowsWithSymbol = mutableMapOf<Symbol, MutableSet<Row>>()
+    private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
 
     /**
      * Add a constraint to the solver.
@@ -251,7 +253,7 @@ internal class Solver {
      * @throws UnsatisfiableConstraintException The given constraint is required and cannot be satisfied.
      */
     fun addConstraint(constraint: Constraint) {
-        if (constraints.containsKey(constraint)) {
+        if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
 
