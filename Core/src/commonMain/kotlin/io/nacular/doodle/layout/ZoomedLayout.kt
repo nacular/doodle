@@ -12,7 +12,7 @@ import io.nacular.doodle.geometry.Rectangle
 public class ZoomedLayout(private val index: Int, private val targetBounds: Rectangle? = null, private val layout: Layout? = null): Layout {
     override fun layout(container: PositionableContainer) {
 
-        // Need to first layout the children
+        // Need to first lay out the children
         layout?.layout(container)
 
         container.children.getOrNull(index)?.let { view ->

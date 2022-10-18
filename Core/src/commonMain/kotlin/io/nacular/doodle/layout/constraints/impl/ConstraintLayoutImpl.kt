@@ -87,7 +87,7 @@ internal open class BoundsImpl(private val target: View, private val context: Co
     override val edges   by lazy { with(context) { Edges(top + 0, left + 0, right, bottom) } }
 }
 
-internal data class ReadOnlyProperty(val value: KProperty0<Double>): Property() {
+internal class ReadOnlyProperty(val value: KProperty0<Double>): Property() {
     override val readOnly: Double get() = value()
     override fun toTerm() = ConstTerm(this)
 

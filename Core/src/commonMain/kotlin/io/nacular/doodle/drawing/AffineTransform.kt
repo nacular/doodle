@@ -329,7 +329,7 @@ public abstract class AffineTransform internal constructor(internal val matrix: 
      *
      * @return a new, transformed point
      */
-    public open operator fun invoke(point: Point): Vector3D = this(point.as3d())
+    public abstract operator fun invoke(point: Point): Vector3D
 
     /**
      * Applies the transform to [point]. This operation treats [point] as a
@@ -349,7 +349,7 @@ public abstract class AffineTransform internal constructor(internal val matrix: 
      *
      * @return a new, transformed point
      */
-    public operator fun invoke(point: Vector3D): Vector3D = this(points = arrayOf(point)).first()
+    public abstract fun invoke(point: Vector3D): Vector3D
 
     /**
      * Transforms the given points.
@@ -526,23 +526,6 @@ public abstract class AffineTransform2D internal constructor(matrix: AffineMatri
     public override fun flipHorizontally(at: Double): AffineTransform2D = this.translate(x = at).flipHorizontally().translate(x = -at)
 
     /**
-     * Applies the transform to [point]. This operation treats [point] as a
-     * (3x1 or 4x1) [Matrix][io.nacular.doodle.utils.Matrix] (based on whether this is a 2D or 3D transform)
-     * and uses [matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication)
-     * to find a new 3x1 matrix to produce the result.
-     *
-     * ```
-     *
-     *           |a, b, c|
-     * |x, y, 1| |d, e, f| = |xa + yd, xb + ye, 1| -> [xa + yd , xb + ye]
-     *           |0, 0, 1|
-     * ```
-     *
-     * @return a new, transformed point
-     */
-    public override operator fun invoke(point: Point): Point = this(points = arrayOf(point)).first()
-
-    /**
      * Transforms the given points.
      *
      * @param points that will be transformed
@@ -673,6 +656,16 @@ internal class AffineTransformImpl(matrix: AffineMatrix3D): AffineTransform2D(ma
                 -sin, 0.0, cos, 0.0
             )
         )
+    }
+
+    override fun invoke(point: Point): Point = when {
+        isIdentity -> point
+        else       -> matrix(point.as3d()).as2d()
+    }
+
+    override fun invoke(point: Vector3D): Vector3D = when {
+        isIdentity -> point
+        else       -> matrix(point)
     }
 
     override fun invoke(vararg points: Point): List<Point> = this(points = (points.map { it.as3d() }.toTypedArray())).map { it.as2d() }
