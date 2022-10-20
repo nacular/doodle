@@ -106,7 +106,6 @@ class FilteredListTests {
         val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
 
         val filteredList = FilteredList(source).apply {
-            filter = { true }
             changed += listener
         }
 
@@ -200,6 +199,59 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,2), Insert(2), Equal(4), Insert(6)))) }
 
         expect(listOf(0,1,2,3,2,4,6,5)) { source.toList() }
+    }
+
+    @Test fun `add when no-op filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            changed += listener
+        }
+
+        filteredList.batch {
+            add(2, 2)
+            add(6)
+        }
+
+        expect(listOf(0,1,2,2,3,4,5,6)) { filteredList.toList() }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,1,2), Insert(2), Equal(3,4,5), Insert(6)))) }
+
+        expect(listOf(0,1,2,2,3,4,5,6)) { source.toList() }
+    }
+
+    @Test fun `change front when no-op filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            changed += listener
+        }
+
+        filteredList[0] = 34
+
+        expect(listOf(34,1,2,3,4,5)) { filteredList.toList() }
+        expect(source.size) { filteredList.size }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0), Insert(34), Equal(1,2,3,4,5)))) }
+
+        expect(listOf(34,1,2,3,4,5)) { source.toList() }
+    }
+
+    @Test fun `change middle when no-op filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            changed += listener
+        }
+
+        filteredList.addAll(2, listOf(6,7,8,9))
+
+        expect(listOf(0,1,6,7,8,9,2,3,4,5)) { filteredList.toList() }
+        expect(listOf(0,1,6,7,8,9,2,3,4,5)) { source.toList() }
+
+        expect(source.size) { filteredList.size }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Equal(0,1), Insert(6,7,8,9), Equal(2,3,4,5)))) }
     }
 
     @Test fun `move when filtered works`() {

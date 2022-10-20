@@ -41,7 +41,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
             var filteredDiffs   = diffs
             var filteredChanged = false
 
-            this.filter?.let { filter ->
+            (this.filter ?: { true }).let { filter ->
 
                 var indexInSource   = 0
                 val adds            = mutableListOf<Int>()
@@ -281,6 +281,11 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                     --j
                 }
             }
+        }
+
+        while(j >= 0) {
+            indexToSource.addOrAppend(insertionIndex(added[j]), added[j])
+            --j
         }
     }
 

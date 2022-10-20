@@ -401,6 +401,15 @@ class ObservableListTests {
         }
     }
 
+    @Test fun `change front works`() {
+        validateChanges(ObservableList(listOf(0, 1, 2, 3, 4, 5))) { list, changed ->
+            list[0] = 34
+
+            expect(listOf(34, 1, 2, 3, 4, 5)) { list }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(0), Insert(34), Equal(1, 2, 3, 4, 5)))) }
+        }
+    }
+
     private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<ObservableList<T>, T>) -> Unit) {
         val changed = mockk<ListObserver<ObservableList<T>, T>>()
 
