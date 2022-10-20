@@ -169,7 +169,8 @@ public open class VerticalListPositioner(protected open val height: Double, numC
     protected val numColumns: Int = max(1, numColumns)
 
     public fun itemFor(size: Size, insets: Insets, at: Point): Int = max(0,
-        ((at.y - insets.top) / (height + spacing)).toInt() * numColumns + (at.x / columnWidth(size, insets)).toInt())
+        ((at.y - insets.top) / (height + spacing)).toInt() * numColumns + columnFactor(at.x, size, insets)
+    )
 
     public fun minimumSize(numItems: Int, insets: Insets): Size {
         val rows = ceil(numItems.toDouble() / numColumns)
@@ -185,6 +186,11 @@ public open class VerticalListPositioner(protected open val height: Double, numC
         height = height
     )
 
+    private fun columnFactor(x: Double, size: Size, insets: Insets) = when (val width = columnWidth(size, insets)) {
+        0.0  -> 0
+        else -> (x / width).toInt()
+    }
+
     private fun columnWidth(size: Size, insets: Insets) = max(0.0, size.width / numColumns - insets.run { left + right })
 }
 
@@ -192,7 +198,8 @@ public open class HorizontalListPositioner(protected open val width: Double, num
     protected val numRows: Int = max(1, numRows)
 
     public fun itemFor(size: Size, insets: Insets, at: Point): Int = max(0,
-        ((at.x - insets.left) / (width + spacing)).toInt() * numRows + (at.y / rowHeight(size, insets)).toInt())
+        ((at.x - insets.left) / (width + spacing)).toInt() * numRows + rowFactor(at.y, size, insets)
+    )
 
     public fun minimumSize(numItems: Int, insets: Insets): Size {
         val cols = ceil(numItems.toDouble() / numRows)
@@ -207,6 +214,11 @@ public open class HorizontalListPositioner(protected open val width: Double, num
         width  = width,
         height = rowHeight(size, insets)
     )
+
+    private fun rowFactor(y: Double, size: Size, insets: Insets) = when (val height = rowHeight(size, insets)) {
+        0.0  -> 0
+        else -> (y / height).toInt()
+    }
 
     private fun rowHeight(size: Size, insets: Insets) = max(size.height / numRows - insets.run { top + bottom }, 0.0)
 }
