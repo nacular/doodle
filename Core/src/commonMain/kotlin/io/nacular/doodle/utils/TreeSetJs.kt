@@ -1,15 +1,18 @@
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.core.Internal
+
 /**
  * Created by Nicholas Eddy on 4/11/18.
  */
-public class BstNode<E>(public var value: E) {
-    public var left : BstNode<E>? = null
-    public var right: BstNode<E>? = null
-}
-
 @Suppress("PrivatePropertyName", "FunctionName")
+@Internal
 public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
+    private class BstNode<E>(var value: E) {
+        var left : BstNode<E>? = null
+        var right: BstNode<E>? = null
+    }
+
     public constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
     private var root = null as BstNode<E>?
@@ -68,54 +71,81 @@ public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>
         size_ = 0
     }
 
-    private fun add(node: BstNode<E>, element: E): Boolean = when {
-        node.value == element -> false
-        comparator.compare(node.value, element) > 0 -> when (node.left) {
-            null -> { node.left = BstNode(element); true }
-            else -> add(node.left!!, element)
-        }
-        else -> when (node.right) {
-            null -> { node.right = BstNode(element); true }
-            else -> add(node.right!!, element)
-        }
-    }
+    private fun add(node: BstNode<E>, element: E): Boolean {
+        @Suppress("NAME_SHADOWING") var node = node
 
-    private fun remove(from: BstNode<E>, parent: BstNode<E>?, element: E): Boolean {
-        when {
-            comparator.compare(element, from.value) < 0 -> return from.left?.let  { remove(it, from, element) } ?: false
-            comparator.compare(element, from.value) > 0 -> return from.right?.let { remove(it, from, element) } ?: false
-            else                                        -> {
-                if (from.left != null && from.right != null) {
-                    from.right?.let {
-                        from.value = minValue(it)
-
-                        return remove(it, from, from.value)
-                    }
-                } else if (parent?.left == from) {
-                    parent.left = from.left ?: from.right
-                    return true
-
-                } else if (parent?.right == from) {
-                    parent.right = from.left ?: from.right
-                    return true
+        while (true) {
+            when {
+                node.value == element                       -> return false
+                comparator.compare(node.value, element) > 0 -> when (node.left) {
+                    null -> { node.left = BstNode(element); return true }
+                    else -> node = node.left!!
+                }
+                else                                        -> when (node.right) {
+                    null -> { node.right = BstNode(element); return true }
+                    else -> node = node.right!!
                 }
             }
         }
-
-        return false
     }
 
-    private fun minValue(from: BstNode<E>): E = from.left?.let {
-        minValue(it)
-    } ?: from.value
+    @Suppress("NAME_SHADOWING")
+    private fun remove(from: BstNode<E>, parent: BstNode<E>?, element: E): Boolean {
+        var from   = from
+        var parent = parent
+        var element = element
 
+        while (true) {
+            val comparison = comparator.compare(element, from.value)
 
-    private fun contains(node: BstNode<E>?, element: E): Boolean = when {
-        node == null                  -> false
-        node.value == element         -> true
-        contains(node.left,  element) -> true
-        contains(node.right, element) -> true
-        else                          -> false
+            when {
+                comparison < 0                              -> if (from.left  != null) { parent = from; from = from.left!!  } else return false
+                comparison > 0                              -> if (from.right != null) { parent = from; from = from.right!! } else return false
+                else                                        -> when {
+                    from.left != null && from.right != null -> {
+                        from.right!!.let {
+                            from.value = minValue(it)
+
+                            parent  = from
+                            from    = it
+                            element = parent!!.value
+                        }
+                    }
+                    parent?.left  == from                   -> { parent!!.left  = from.left ?: from.right; return true }
+                    parent?.right == from                   -> { parent!!.right = from.left ?: from.right; return true }
+                    else                                    -> return false
+                }
+            }
+        }
+    }
+
+    private fun minValue(from: BstNode<E>): E {
+        @Suppress("NAME_SHADOWING") var from = from
+
+        while (true) {
+            from.left?.let {
+                from = it
+            } ?: return from.value
+        }
+    }
+
+    private fun contains(node: BstNode<E>?, element: E): Boolean {
+        @Suppress("NAME_SHADOWING") var node = node
+
+        while (true) {
+            when (node) {
+                null -> return false
+                else -> {
+                    val comparison = comparator.compare(element, node.value)
+
+                    node = when {
+                        comparison < 0 -> node.left
+                        comparison > 0 -> node.right
+                        else           -> return node.value == element
+                    }
+                }
+            }
+        }
     }
 
     protected inner class BstIterator: MutableIterator<E> {
