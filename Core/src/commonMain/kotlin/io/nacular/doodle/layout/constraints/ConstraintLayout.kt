@@ -290,7 +290,10 @@ public class DuplicateConstraintException(public val constraint: Constraint): Co
 /**
  * Indicates a [Constraint] is unsatisfiable.
  */
-public class UnsatisfiableConstraintException(public val constraint: Constraint): ConstraintException(constraint.toString())
+public class UnsatisfiableConstraintException(
+    public val constraint: Constraint,
+    public val existingConstraints: Collection<Constraint>
+): ConstraintException("constraint: $constraint\nexisting constraints: $existingConstraints")
 
 /**
  * Block within which constraints can be defined and captured.
@@ -310,7 +313,7 @@ public open class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
     private fun add(constraint: Constraint) = when {
-        constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint))
+        constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
         else                             -> Result.success(constraint).also { constraints += constraint }
     }
 
@@ -783,10 +786,10 @@ public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(
 
     var parentSize by observable(Size.Empty) {_,new ->
         context.parent = ImmutableSizeBounds(width_ = new::width, height_ = new::height, context)
-        setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { throw it }
+        setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
     }
 
-    setupSolver(solver, context, updatedBounds, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { throw it }
+    setupSolver(solver, context, updatedBounds, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
 
     boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
 

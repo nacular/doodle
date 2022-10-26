@@ -1,6 +1,5 @@
 package io.nacular.doodle.layout.constraints.impl
 
-import io.nacular.doodle.layout.constraints.ConstTerm
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintException
 import io.nacular.doodle.layout.constraints.DuplicateConstraintException
@@ -94,7 +93,7 @@ internal class Solver {
             }
         }
         var cells   = fastMutableMapOf<Symbol, Double>(); private set
-        var constant: Double; private set
+        var constant: Double
 
         constructor(constant: Double = 0.0) {
             this.constant = constant
@@ -263,14 +262,14 @@ internal class Solver {
 
         if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
             subject = when {
-                !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint)
+                !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
                 else                    -> tag.marker
             }
         }
 
         when (subject.type) {
             Invalid -> if (!addWithArtificialVariable(row)) {
-                throw UnsatisfiableConstraintException(constraint)
+                throw UnsatisfiableConstraintException(constraint, constraints.keys)
             }
             else    -> {
                 registerRow(subject, row)
@@ -339,6 +338,48 @@ internal class Solver {
         removeConstraint(edit.constraint)
 
         edits.remove(variable)
+    }
+
+    fun updateConstant(old: Constraint, new: Constraint) {
+        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
+        constraints[new] = tag
+        var row   = rows[tag.marker]
+        val delta = new.expression.constant - old.expression.constant
+
+        if (row != null) {
+            if (row.add(-delta) < 0.0) {
+                infeasibleRows.add(tag.marker)
+            }
+            dualOptimize()
+            return
+        }
+        row = rows[tag.other]
+
+        if (row != null) {
+            if (row.add(delta) < 0.0) {
+                infeasibleRows.add(tag.other)
+            }
+            dualOptimize()
+            return
+        }
+
+        rowsWithSymbol[tag.marker]?.iterator()?.let {
+            while (it.hasNext()) {
+                val currentRow = it.next()
+
+                when {
+                    currentRow.symbol != null -> {
+                        val coefficient = currentRow.coefficientFor(tag.marker)
+                        if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && currentRow.symbol!!.type != External) {
+                            infeasibleRows.add(currentRow.symbol!!)
+                        }
+                    }
+                    else                      -> it.remove()
+                }
+            }
+        }
+
+        dualOptimize()
     }
 
     fun suggestValue(variable: Variable, value: Double) {
@@ -463,9 +504,9 @@ internal class Solver {
      */
     private fun createRow(constraint: Constraint, tag: Tag): Row {
         val expression = constraint.expression.reduce()
-        val row        = Row(expression.terms.filterIsInstance<ConstTerm>().sumOf { it.value } + expression.constant)
+        val row        = Row(expression.constant)
 
-        for (term in expression.terms.filterIsInstance<VariableTerm>()) {
+        for (term in expression.terms) {
             if (!nearZero(term.coefficient)) {
                 val symbol = getVarSymbol(term.variable)
 

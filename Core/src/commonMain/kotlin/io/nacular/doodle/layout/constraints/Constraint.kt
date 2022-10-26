@@ -124,4 +124,9 @@ public class Constraint internal constructor(internal val expression: Expression
     }
 
     override fun hashCode(): Int = hashCode
+
+    internal fun differsByConstantOnly(other: Constraint): Boolean =
+        operator == other.operator &&
+        strength == other.strength &&
+        expression.differsByConstantOnly(other.expression)
 }

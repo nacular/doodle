@@ -43,7 +43,10 @@ import kotlin.math.abs
  * @property terms (or variable-coefficient pairs) within the expression
  * @property constant value for the expression
  */
-public open class Expression internal constructor(internal vararg val terms: Term, internal val constant: Double = 0.0) {
+public open class Expression internal constructor(vararg terms: Term, constant: Double = 0.0) {
+    internal val constant = constant + terms.filterIsInstance<ConstTerm>().sumOf { it.value }
+
+    internal val terms = terms.filterIsInstance<VariableTerm>().toTypedArray()
     /**
      * Computed value of this expression
      */
@@ -52,7 +55,7 @@ public open class Expression internal constructor(internal vararg val terms: Ter
     /**
      * `true` if the expression has no terms
      */
-    internal open val isConstant: Boolean by lazy { terms.filterIsInstance<VariableTerm>().isEmpty() }
+    internal open val isConstant: Boolean by lazy { terms.isEmpty() }
 
     /**
      * Provides the Expression's value directly, and does not treat its contents as
@@ -102,7 +105,7 @@ public open class Expression internal constructor(internal vararg val terms: Ter
 
     internal fun reduce(): Expression {
         val vars = fastMutableMapOf<Variable, Double>()
-        for (term in terms.filterIsInstance<VariableTerm>()) {
+        for (term in terms) {
             var value = vars[term.variable]
             if (value == null) {
                 value = 0.0
@@ -114,8 +117,10 @@ public open class Expression internal constructor(internal vararg val terms: Ter
         for (variable in vars.keys) {
             reducedTerms.add(VariableTerm(variable, vars[variable]!!))
         }
-        return Expression(*reducedTerms.toTypedArray() + terms.filterIsInstance<ConstTerm>(), constant = constant)
+        return Expression(*reducedTerms.toTypedArray(), constant = constant)
     }
+
+    internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
 }
 
 /**
@@ -135,7 +140,7 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 }
 
 internal class ConstTerm(val property: Property, override val coefficient: Double = 1.0): Term(coefficient) {
-    override val value: Double get() = coefficient * property.readOnly //block()
+    override val value: Double get() = coefficient * property.readOnly
 
     override fun times(value: Number) = ConstTerm(property, coefficient * value.toDouble())
 

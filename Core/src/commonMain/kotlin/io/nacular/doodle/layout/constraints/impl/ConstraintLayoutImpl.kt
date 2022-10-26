@@ -34,6 +34,7 @@ import io.nacular.doodle.utils._removeAll
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.diff.compare
+import io.nacular.doodle.utils.ifNull
 import kotlin.math.max
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty0
@@ -101,6 +102,7 @@ internal class ReflectionVariable(
     private val term    : ReflectionVariable.() -> Term = { VariableTerm(this) },
     private val mapper  : (Double) -> Double = { it }
 ): Property(), Variable {
+    @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy {
         var result = target?.hashCode() ?: 0
         result = 31 * result + id
@@ -245,13 +247,75 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
     }
 
     internal companion object {
+        private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
+            previousDelete?.let {
+                it.items.forEach { constraint ->
+                    handleDelete(solver, constraint)
+                }
+            }
+        }
+
+        private fun handleInsert(
+            solver            : Solver,
+            context           : ConstraintDslContext,
+            updatedBounds     : MutableSet<ReflectionVariable>,
+            insertedConstraint: Constraint,
+            errorHandler      : (ConstraintException) -> Unit
+        ) {
+            try {
+                solver.addConstraint(insertedConstraint)
+            } catch (exception: ConstraintException) {
+                errorHandler(exception)
+            }
+
+            insertedConstraint.expression.terms.map { it.variable }.toSet().forEach { variable ->
+
+                if (variable.name == "width" || variable.name == "height") {
+                    // Add synthetic constraints that keep width and height positive
+                    try {
+                        solver.addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
+                    } catch (ignore: Exception) { }
+                }
+
+                val strength = when {
+                    variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
+                    variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
+                    else                                                                  -> Weak
+                }
+
+                try {
+                    solver.addEditVariable(variable, strength)
+                } catch (ignore: Exception) { }
+
+                if (variable() != 0.0) {
+                    try {
+                        solver.suggestValue(variable, variable())
+                    } catch (exception: ConstraintException) {
+                        errorHandler(exception)
+                    } catch (ignore: UnknownEditVariableException) { }
+                }
+            }
+        }
+
+        private fun handleDelete(solver: Solver, constraint: Constraint) {
+            try {
+                solver.removeConstraint(constraint)
+            } catch (ignore: Exception) {}
+
+            constraint.expression.terms.map { it.variable }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
+                // Remove synthetic constraints that keep width and height positive
+                try {
+                    solver.removeConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
+                } catch (ignore: Exception) {}
+            }
+        }
 
         fun setupSolver(
-            solver: Solver,
-            context: ConstraintDslContext,
+            solver       : Solver,
+            context      : ConstraintDslContext,
             updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
-            blocks: List<BlockInfo>,
-            errorHandler: (ConstraintException) -> Unit
+            blocks       : List<BlockInfo>,
+            errorHandler : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
             context.constraints = mutableListOf()
@@ -260,68 +324,45 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 it.block(context, it.constraints)
             }
 
-            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach {
-                when (it) {
-                    is Delete -> {
-                        it.items.forEach {
-                            try {
-                                solver.removeConstraint(it)
-                            } catch (ignore: Exception) {}
-                        }
+            var previousDelete: Delete<Constraint>? = null
 
-                        it.items.flatMap {
-                            it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable }
-                        }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
-                            // Remove synthetic constraints that keep width and height positive
-                            try {
-                                val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
-                                solver.removeConstraint(constraint)
-                            } catch (ignore: Exception) {}
-                        }
+            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach { difference ->
+                when (difference) {
+                    is Delete -> {
+                        handlePreviousDelete(solver, previousDelete)
+                        previousDelete = difference
                     }
                     is Insert -> {
-                        it.items.forEach {
-                            try {
-                                solver.addConstraint(it)
-                            } catch (exception: ConstraintException) {
-                                errorHandler(exception)
+                        difference.items.forEachIndexed { index, insertedConstraint ->
+                            previousDelete?.let {
+                                val deletedConstraint = it.items[index]
+
+                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(deletedConstraint)) {
+                                    // update constraint
+                                    try {
+                                        solver.updateConstant(deletedConstraint, insertedConstraint)
+                                    } catch (exception: ConstraintException) {
+                                        errorHandler(exception)
+                                    } catch (ignore: UnknownConstraintException) {}
+                                } else {
+                                    // handle delete
+                                    handleDelete(solver, deletedConstraint)
+                                    // handle insert
+                                    handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
+                                }
+                            }.ifNull {
+                                // handle insert
+                                handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
                             }
                         }
 
-                        val addedVariables = it.items.flatMap { it.expression.terms.filterIsInstance<VariableTerm>().map { it.variable } }.toSet()
-
-                        addedVariables.forEach { variable ->
-
-                            if (variable.name == "width" || variable.name == "height") {
-                                // Add synthetic constraints that keep width and height positive
-                                try {
-                                    val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
-                                    solver.addConstraint(constraint)
-                                } catch (ignore: Exception) {}
-                            }
-
-                            val strength = when {
-                                variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
-                                variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
-                                else                                                                  -> Weak
-                            }
-
-                            try {
-                                solver.addEditVariable(variable, strength)
-                            } catch (ignore: Exception) {}
-
-                            if (variable() != 0.0) {
-                                try {
-                                    solver.suggestValue(variable, variable())
-                                } catch (exception: ConstraintException) {
-                                    errorHandler(exception)
-                                } catch (ignore: UnknownEditVariableException) {}
-                            }
-                        }
+                        previousDelete = null
                     }
                     else             -> {}
                 }
             }
+
+            handlePreviousDelete(solver, previousDelete)
         }
 
         fun solve(solver       : Solver,
