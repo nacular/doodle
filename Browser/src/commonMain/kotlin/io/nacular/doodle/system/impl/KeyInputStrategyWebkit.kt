@@ -1,11 +1,11 @@
 package io.nacular.doodle.system.impl
 
 import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.event.KeyCode
 import io.nacular.doodle.event.KeyCode.Companion.Space
-import io.nacular.doodle.event.KeyCode.Companion.Tab
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.KeyState.Type.Down
@@ -17,6 +17,7 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceStrategy.EventHandler
+import io.nacular.doodle.utils.ifFalse
 import io.nacular.doodle.utils.ifTrue
 
 /**
@@ -47,13 +48,8 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
     private var previousKeyDownResponse = false
 
-    private fun allowKey(event: KeyboardEvent) = when (KeyCode(event.code)) {
-        Tab  -> false
-        else -> isNativeElement(event.target)
-    }
-
-    private fun keyUp   (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ) || isNativeElement(event.target)
-    private fun keyDown (event: KeyboardEvent) = dispatchKeyEvent(event, Down).also { previousKeyDownResponse = it } || allowKey(event)
+    private fun keyUp   (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ).ifFalse { event.preventBrowserDefault() }
+    private fun keyDown (event: KeyboardEvent) = dispatchKeyEvent(event, Down).also { previousKeyDownResponse = it }.ifFalse { event.preventBrowserDefault() }
     private fun keyPress(event: KeyboardEvent) = when (KeyCode(event.code)) {
         Space -> previousKeyDownResponse || isNativeElement(event.target)
         else  -> true
@@ -79,5 +75,10 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
     private fun unregisterCallbacks(element: HTMLElement) = element.apply {
         onkeyup   = null
         onkeydown = null
+    }
+
+    private fun Event.preventBrowserDefault() {
+        preventDefault ()
+        stopPropagation()
     }
 }
