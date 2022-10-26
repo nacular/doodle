@@ -136,11 +136,11 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
  * HashSet based on [MapWrapper].
  */
 private class FastHashSet<E>: AbstractMutableSet<E>(), MutableSet<E> {
-    private val map = fastMutableMapOf<E, Any>()
+    private val map = fastMutableMapOf<E, Any?>()
 
     override val size: Int get() = map.size
 
-    override fun add     (element: E) = map.put(element, this) == null
+    override fun add     (element: E) = map.put(element, null) == null
     override fun clear   (          ) = map.clear()
     override fun remove  (element: E) = map.remove(element) != null
     override fun isEmpty (          ) = map.isEmpty()

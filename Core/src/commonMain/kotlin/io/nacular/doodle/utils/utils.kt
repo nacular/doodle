@@ -28,6 +28,14 @@ public fun Boolean.ifFalse(block: () -> Unit): Boolean {
     return this
 }
 
+public fun <T> T?.ifNull(block: () -> Unit): T? {
+    if (this == null) {
+        block()
+    }
+
+    return this
+}
+
 /**
  * Ads [value] to the list at the specify index, or at the end of the
  * list if that index exceeds the current list length.

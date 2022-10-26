@@ -380,6 +380,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             val old = field
             field   = new
 
+            generationNumber = field?.generationNumber?.plus(1) ?: 0
+
             (parentChange as PropertyObserversImpl)(old, new)
         }
 
@@ -671,6 +673,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Notifies changes to [children] */
     protected val childrenChanged: Pool<ChildObserver<View>> by lazy { ChildObserversImpl() }
 
+    internal var generationNumber = 0
+
     /**
      * Tells whether this View is an ancestor of the given View.  A View is not considered an ancestor of itself.
      *
@@ -678,7 +682,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return `true` if the given View is a descendant of this one
      */
     protected open infix fun ancestorOf(view: View): Boolean {
-        if (children.isNotEmpty()) {
+        if (generationNumber < view.generationNumber && children.isNotEmpty()) {
             var parent = view.parent
 
             while (parent != null) {
