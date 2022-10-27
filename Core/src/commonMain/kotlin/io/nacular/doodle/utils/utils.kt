@@ -155,7 +155,22 @@ public fun Double.roundToNearest(value: Double): Double = when (value) {
 }
 
 @Internal
-public expect fun <K, V> fastMutableMapOf(): MutableMap<K, V>
+public fun <T> Set<T>.first(): T {
+    val iterator = iterator()
+    if (!iterator.hasNext()) throw NoSuchElementException("Collection is empty.")
+    return iterator.next()
+}
 
 @Internal
-public expect fun <E> fastMutableSetOf(): MutableSet<E>
+public fun <T> Set<T>.firstOrNull(): T? {
+    val iterator = iterator()
+    return if (!iterator.hasNext()) null else iterator.next()
+}
+
+@Internal public expect fun <K, V> fastMutableMapOf(): MutableMap<K, V>
+
+@Internal public expect fun <E> fastSetOf       (): Set<E>
+@Internal public expect fun <E> fastMutableSetOf(): MutableSet<E>
+
+@Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
+@Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>

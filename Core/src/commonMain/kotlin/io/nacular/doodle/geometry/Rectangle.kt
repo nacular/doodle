@@ -252,12 +252,15 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
 
     override fun toString(): String = "[$x,$y,$width,$height]"
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other     ) return true
-        if (other !is Rectangle) return false
+    override fun equals(other: Any?): Boolean = this === other || (other is Rectangle && equal(other))
 
-        if (position != other.position) return false
-        if (size     != other.size    ) return false
+    internal fun fastEqual(other: Rectangle): Boolean = this === other || equal(other)
+
+    private fun equal(other: Rectangle): Boolean {
+        if (x      != other.x     ) return false
+        if (y      != other.y     ) return false
+        if (width  != other.width ) return false
+        if (height != other.height) return false
 
         return true
     }

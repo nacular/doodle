@@ -382,9 +382,7 @@ private fun UInt.toHex(): String {
 }
 
 private fun UInt.toRgb(): RGB {
-    val range = 0u..0xffffffu
-
-    require(this in range) { "hex value must be in $range" }
+    require(this <= 0xffffffu) { "hex value must be in 0 .. 0xffffffu" }
 
     return RGB(
             (this and 0xff0000u shr 16).toUByte(),

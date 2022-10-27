@@ -23,10 +23,10 @@ public class Size(public val width: Double = 0.0, public val height: Double = wi
     }
 
     /** The area represented: [width] * [height] */
-    public val area: Double = width * height
+    public val area: Double by lazy { width * height }
 
     /** `true` IFF [area] == `0` */
-    public val empty: Boolean = area == 0.0
+    public val empty: Boolean by lazy { area == 0.0 }
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { arrayOf(width, height).contentHashCode() }
@@ -41,6 +41,8 @@ public class Size(public val width: Double = 0.0, public val height: Double = wi
     }
 
     override fun hashCode(): Int = hashCode_
+
+    internal fun fastEquals(other: Size): Boolean = this === other || (width == other.width && height == other.height)
 
     public companion object {
         /** The size with [width] and [height] equal to `0` */

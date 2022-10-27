@@ -7,6 +7,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Type
+import io.nacular.doodle.utils.fastSetOf
+import io.nacular.doodle.utils.first
 
 /**
  * Represents a pointing device (Mouse, Pen, Touch, etc.).
@@ -70,10 +72,10 @@ public class PointerEvent internal constructor(
     public val allInteractions: Set<Interaction> by lazy { allInteractions() }
 
     /** Type of the first item in [changedInteractions] */
-    public val type: Type  get() = changedInteractions.first().state
+    public val type: Type by lazy { changedInteractions.first().state }
 
     /** Location of the first item in [changedInteractions] */
-    public val location: Point get() = changedInteractions.first().location
+    public val location: Point by lazy { changedInteractions.first().location }
 
     /**
      * Prevents the OS from handling this event. This does not affect subsequent listeners within the application.
@@ -88,16 +90,17 @@ public class PointerEvent internal constructor(
     public companion object {
         @Internal
         public operator fun invoke(target: View, event: SystemPointerEvent): PointerEvent {
-            val pointers = setOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location), event.location))
+            val pointers = fastSetOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location), event.location))
 
-            return PointerEvent(target,
-                                target,
-                                event.buttons,
-                                event.clickCount,
-                                targetInteractions  = pointers,
-                                changedInteractions = pointers.toSet(),
-                                allInteractions     = { pointers },
-                                modifiers           = event.modifiers)
+            return PointerEvent(
+                source              = target,
+                target              = target,
+                buttons             = event.buttons,
+                clickCount          = event.clickCount,
+                targetInteractions  = pointers,
+                changedInteractions = pointers,
+                allInteractions     = { pointers },
+                modifiers           = event.modifiers)
         }
     }
 }

@@ -207,7 +207,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level.  Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    final override var bounds: Rectangle by observable(Empty, boundsChanged as PropertyObserversImpl) { old, new ->
+    final override var bounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
         boundingBox = getBoundingBox(new)
         renderManager?.boundsChanged(this, old, new)
     }

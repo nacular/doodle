@@ -320,8 +320,8 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
                 }
             }
             while (!done && x < firstLength && y < secondLength && by(first[x], second[y])) {
-                x++
-                y++
+                ++x
+                ++y
                 if (doubleEnd) {
                     footstep = getFootprint(x, y)
                     if (front && (footsteps.containsKey(footstep))) {
@@ -369,8 +369,8 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
                     footsteps[footstep] = d
                 }
                 while (!done && x < firstLength && y < secondLength && by(first[firstLength - x - 1], second[secondLength - y - 1])) {
-                    x++
-                    y++
+                    ++x
+                    ++y
                     footstep = getFootprint(firstLength - x, secondLength - y)
                     if (!front && (footsteps.containsKey(footstep))) {
                         done = true
@@ -584,14 +584,14 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
         while (pointer < diffs.size) {
             when(diffs[pointer]) {
                 is Insert -> {
-                    countInsert++
+                    ++countInsert
                     textInsert = textInsert + diffs[pointer].items
-                    pointer++
+                    ++pointer
                 }
                 is Delete -> {
-                    countDelete++
+                    ++countDelete
                     textDelete = textDelete + diffs[pointer].items
-                    pointer++
+                    ++pointer
                 }
                 is Equal -> {
                     // Upon reaching an equality, check for prior redundancies.
@@ -605,7 +605,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
                                     diff.items = diff.items + textInsert.subListOfSize(0, commonLength)
                                 } else {
                                     diffs.add(0, Equal(textInsert.subListOfSize(0, commonLength)))
-                                    pointer++
+                                    ++pointer
                                 }
                                 textInsert = textInsert.subListOfSize(commonLength)
                                 textDelete = textDelete.subListOfSize(commonLength)
@@ -630,7 +630,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
                         diffs[pointer - 1].items = diffs[pointer - 1].items + diffs[pointer].items
                         diffs.removeAt(pointer)
                     } else {
-                        pointer++
+                        ++pointer
                     }
                     countInsert = 0
                     countDelete = 0
@@ -667,7 +667,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
                     changes = true
                 }
             }
-            pointer++
+            ++pointer
         }
         // If shifts were made, the diff needs reordering and another shift sweep.
         if (changes) {

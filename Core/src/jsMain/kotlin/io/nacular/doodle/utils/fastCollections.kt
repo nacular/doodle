@@ -153,7 +153,22 @@ public actual fun <K, V> fastMutableMapOf(): MutableMap<K, V> = when {
     else                              -> mutableMapOf()
 }
 
+public actual fun <E> fastSetOf(): Set<E> = when {
+    window.asDynamic()["Map"] != null -> FastHashSet()
+    else                              -> setOf()
+}
+
 public actual fun <E> fastMutableSetOf(): MutableSet<E> = when {
     window.asDynamic()["Map"] != null -> FastHashSet()
     else                              -> mutableSetOf()
+}
+
+public actual fun <E> fastSetOf(vararg elements: E): Set<E> = when {
+    window.asDynamic()["Map"] != null -> FastHashSet<E>().apply { elements.forEach { add(it) } }
+    else                              -> setOf(*elements)
+}
+
+public actual fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E> = when {
+    window.asDynamic()["Map"] != null -> FastHashSet<E>().apply { elements.forEach { add(it) } }
+    else                              -> mutableSetOf(*elements)
 }

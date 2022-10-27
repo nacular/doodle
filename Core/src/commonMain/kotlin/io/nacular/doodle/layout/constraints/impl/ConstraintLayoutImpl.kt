@@ -193,7 +193,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
         }
 
-        setupSolver(solver, context, updatedBounds, blockTracker.values.toList(), ::notifyOfErrors)
+        setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
         solve      (solver, context, activeBounds, updatedBounds, ::notifyOfErrors)
     }
 
@@ -314,7 +314,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             solver       : Solver,
             context      : ConstraintDslContext,
             updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
-            blocks       : List<BlockInfo>,
+            blocks       : Collection<BlockInfo>,
             errorHandler : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints

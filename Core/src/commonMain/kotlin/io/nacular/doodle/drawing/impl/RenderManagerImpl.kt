@@ -26,6 +26,7 @@ import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
+import io.nacular.doodle.utils.firstOrNull
 import io.nacular.doodle.utils.ifTrue
 
 @Internal
@@ -597,7 +598,7 @@ public open class RenderManagerImpl(
 
         pendingBoundsChange += view
 
-        if (old.size != new.size) {
+        if (!old.size.fastEquals(new.size)) {
             reRender = true
             if (view.children_.isNotEmpty() && view.layout_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true) {
                 when {
@@ -668,7 +669,7 @@ public open class RenderManagerImpl(
 
             updateClipRect(node, view.parent?.let { displayTree[it] })
 
-            if (oldDisplayRect != node.clipRect) {
+            if (!oldDisplayRect.fastEqual(node.clipRect)) {
                 if (view.monitorsDisplayRect) {
                     notifyDisplayRectChange(view, oldDisplayRect, node.clipRect)
                 }
@@ -681,7 +682,7 @@ public open class RenderManagerImpl(
     }
 
     private fun notifyDisplayRectChange(view: View, old: Rectangle, new: Rectangle) {
-        if (old != new) {
+        if (!old.fastEqual(new)) {
             view.handleDisplayRectEvent_(old, new)
         }
     }

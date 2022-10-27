@@ -365,7 +365,15 @@ public fun <S, T> observable(initial: T, onChange: S.(old: T, new: T) ->Unit): R
     onChange(thisRef, old, new)
 }
 
+internal fun <S, T> observable(initial: T, equality: (T, T) -> Boolean, onChange: S.(old: T, new: T) ->Unit): ReadWriteProperty<S, T> = ObservableProperty(initial, equality) { thisRef, old, new ->
+    onChange(thisRef, old, new)
+}
+
 public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial) { thisRef, old, new ->
+    observers.forEach { it(thisRef, old, new) }
+}
+
+internal fun <S, T> observable(initial: T, equality: (T, T) -> Boolean, observers: Iterable<PropertyObserver<S, T>>): ReadWriteProperty<S, T> = ObservableProperty(initial, equality) { thisRef, old, new ->
     observers.forEach { it(thisRef, old, new) }
 }
 
@@ -374,13 +382,18 @@ public fun <S, T> observable(initial: T, observers: Iterable<PropertyObserver<S,
     observers.forEach { it(thisRef, old, new) }
 }
 
-private class ObservableProperty<S, T>(initial: T, private val onChange: (thisRef: S, old: T, new: T) -> Unit): ReadWriteProperty<S, T> {
+internal fun <S, T> observable(initial: T, equality: (T, T) -> Boolean, observers: Iterable<PropertyObserver<S, T>>, onChange: (old: T, new: T) -> Unit): ReadWriteProperty<S, T> = ObservableProperty(initial, equality) { thisRef, old, new ->
+    onChange(old, new)
+    observers.forEach { it(thisRef, old, new) }
+}
+
+private class ObservableProperty<S, T>(initial: T, private val equality: (T, T) -> Boolean = { a, b -> a == b }, private val onChange: (thisRef: S, old: T, new: T) -> Unit): ReadWriteProperty<S, T> {
     private var value: T = initial
 
     override operator fun getValue(thisRef: S, property: KProperty<*>): T = value
 
     override operator fun setValue(thisRef: S, property: KProperty<*>, value: T) {
-        if (value != this.value) {
+        if (!equality(value, this.value)) { //value != this.value) {
             val old = this.value
 
             this.value = value
