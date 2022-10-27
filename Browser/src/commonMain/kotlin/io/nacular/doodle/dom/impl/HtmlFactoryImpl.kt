@@ -5,7 +5,6 @@ import io.nacular.doodle.HTMLButtonElement
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLImageElement
 import io.nacular.doodle.HTMLInputElement
-import io.nacular.doodle.Node
 import io.nacular.doodle.dom.HtmlFactory
 
 internal class HtmlFactoryImpl(override val root: HTMLElement, private val document: Document): HtmlFactory {
@@ -18,8 +17,8 @@ internal class HtmlFactoryImpl(override val root: HTMLElement, private val docum
 
     override fun createImage(source: String) = create<HTMLImageElement>("IMG").apply { src = source; draggable = false }
 
-    override fun createOrUse(tag: String, possible: Node?): HTMLElement = when {
-        possible == null || possible !is HTMLElement || possible.parentNode != null && !possible.nodeName.equals(tag, ignoreCase = true) -> create(tag)
+    override fun createOrUse(tag: String, possible: HTMLElement?): HTMLElement = when {
+        possible == null || possible.parentNode != null && !possible.nodeName.equals(tag, ignoreCase = true) -> create(tag)
         else -> possible
     }
 

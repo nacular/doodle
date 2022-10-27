@@ -58,6 +58,8 @@ import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.math.max
 
 internal open class CanvasImpl(
@@ -303,7 +305,7 @@ internal open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    protected open fun isSimple(fill: Paint) = when {
+    private fun isSimple(fill: Paint): Boolean = when {
         !fill.visible                               -> true
         fill is ColorPaint && innerShadowCount == 0 -> true
         else                                        -> false
@@ -354,20 +356,33 @@ internal open class CanvasImpl(
     }
 
     private fun present(fill: Paint?, block: () -> HTMLElement?) {
-        if (fill?.visible == true) {
+        if (isVisibleColorPaint(fill)) {
             updateRenderPosition()
 
             block()?.let {
-                when (fill) {
-                    is ColorPaint -> it.style.setBackgroundColor(fill.color)
-                }
+                it.style.setBackgroundColor(fill.color)
 
                 completeOperation(it)
             }
         }
     }
 
-    private fun getRectElement(clear: Boolean = true): HTMLElement = htmlFactory.createOrUse("B", renderPosition).also {
+    /**
+     * Must only be called on Paints that have been considered simple via isSimple
+     */
+    @OptIn(ExperimentalContracts::class)
+    private fun isVisibleColorPaint(fill: Paint?): Boolean {
+        contract {
+            // This works b/c isSimple is used before all calls to present, and only Paints that are
+            // !visible || ColorPaint pass that test. So a visible Paint at this point must be
+            // a ColorPaint
+            returns(true) implies (fill is ColorPaint)
+        }
+
+        return fill?.visible == true
+    }
+
+    private fun getRectElement(clear: Boolean = true): HTMLElement = htmlFactory.createOrUse("B", renderPosition as? HTMLElement).also {
         if (clear) {
             it.clear()
         }

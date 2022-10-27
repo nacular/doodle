@@ -154,7 +154,7 @@ internal inline fun Style.setBorderStyle (style: BorderStyle      ) { borderStyl
 
 internal inline fun Style.setMargin      (value: Double           ) { margin       = "$value" }
 
-internal fun Style.translate(to: Point) = translate(to.x, to.y)
+internal inline fun Style.translate(to: Point) = translate(to.x, to.y)
 internal fun Style.translate(x: Double, y: Double) {
     // FIXME: Handle case when transform is already set?
     transform = when {
