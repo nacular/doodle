@@ -10,6 +10,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
@@ -454,6 +455,25 @@ class RenderManagerImplTests {
         view.visible = true
 
         verifyChildAddedProperly(renderManager, display, view)
+    }
+
+    @Test fun `addedToDisplay called in correct order`() {
+        val child       = spyk<View>     ().apply { bounds = Rectangle(size = Size(100, 100))                     }
+        val parent      = spyk<Container>().apply { bounds = Rectangle(size = Size(100, 100)); children += child  }
+        val grandParent = spyk<Container>().apply { bounds = Rectangle(size = Size( 10,  10)); children += parent }
+        val display     = display(grandParent)
+
+        val renderManager = renderManager(display)
+
+        verifyOrder {
+            grandParent.addedToDisplay(display, renderManager.first, any())
+            parent.addedToDisplay     (display, renderManager.first, any())
+            child.addedToDisplay      (display, renderManager.first, any())
+
+            grandParent.render(any())
+            parent.render(any())
+            child.render(any())
+        }
     }
 
     @Test @JsName("doesNotRerenderOnBoundsZeroed")

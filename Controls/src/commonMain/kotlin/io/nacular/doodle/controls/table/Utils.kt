@@ -24,7 +24,7 @@ internal class TableHeader(columns: List<InternalColumn<*,*,*,*>>, private val r
                     totalWidth += view.width
                 }
 
-                width = totalWidth + (columns.getOrNull(columns.size - 1)?.width ?: 0.0)
+//                width = totalWidth + (columns.getOrNull(columns.size - 1)?.width ?: 0.0)
             }
         }
     }

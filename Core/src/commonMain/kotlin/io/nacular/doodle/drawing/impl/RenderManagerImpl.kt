@@ -41,13 +41,21 @@ public open class RenderManagerImpl(
     private var layingOut = null as View?
     private var paintTask = null as Task?
 
-    protected val ancestorComparator: (View, View) -> Int = { a: View, b: View -> a.generationNumber - b.generationNumber }
+    protected object AncestorComparator: Comparator<View> {
+        override fun compare(a: View, b: View): Int = when {
+            a == b          ->  0
+            b ancestorOf_ a ->  1
+            else            -> -1
+        }
+    }
+
+    private val generationComparator: (View, View) -> Int = { a: View, b: View -> a.generationNumber - b.generationNumber }
 
     protected open val views              : MutableSet<View>                   = fastMutableSetOf()
     protected open val dirtyViews         : MutableSet<View>                   = fastMutableSetOf()
     protected open val displayTree        : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
     protected open val neverRendered      : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingLayout      : MutableSet<View>                   = MutableTreeSet(ancestorComparator)
+    protected open val pendingLayout      : MutableSet<View>                   = MutableTreeSet(generationComparator)
     protected open val pendingRender      : MutableSet<View>                   = LinkedHashSet()
     protected open val pendingCleanup     : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
     protected open val addedInvisible     : MutableSet<View>                   = fastMutableSetOf()

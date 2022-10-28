@@ -380,8 +380,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             val old = field
             field   = new
 
-            generationNumber = field?.generationNumber?.plus(1) ?: 0
-
             (parentChange as PropertyObserversImpl)(old, new)
         }
 
@@ -1039,6 +1037,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityRole?.let {
             accessibilityManager?.roleAdopted(this)
         }
+
+        generationNumber = parent?.generationNumber?.plus(1) ?: 0
 
         addedToDisplay()
 

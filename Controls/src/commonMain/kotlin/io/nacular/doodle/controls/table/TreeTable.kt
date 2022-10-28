@@ -35,6 +35,7 @@ import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Equal
 import io.nacular.doodle.utils.diff.Insert
 import kotlin.Result.Companion.failure
+import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 5/5/19.
@@ -478,6 +479,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
                         header.height eq height
                     }
 
+                    header.width eq parent.width
+
                     panel.top    eq header.bottom
                     panel.left   eq 0
                     panel.right  eq parent.right
@@ -486,72 +489,6 @@ public open class TreeTable<T, M: TreeModel<T>>(
             }
         }
     )
-
-//    public var behavior: TreeTableBehavior<T>? = null
-//        set(new) {
-//            if (new == behavior) { return }
-//
-//            field?.let {
-//                it.bodyDirty   = null
-//                it.headerDirty = null
-//                it.columnDirty = null
-//
-//                it.uninstall(this)
-//            }
-//
-//            field = new
-//
-//            new?.also { behavior ->
-//                block?.let {
-//                    factory.apply(it)
-//
-//                    // Last, unusable column
-//                    internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
-//
-//                    children += listOf(header, panel)
-//
-//                    block = null
-//                }
-//
-//                behavior.bodyDirty   = bodyDirty
-//                behavior.headerDirty = headerDirty
-//                behavior.columnDirty = columnDirty
-//
-//                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, *>>).forEach {
-//                    it.behavior(TableLikeBehaviorWrapper())
-//                }
-//
-//                behavior.install(this)
-//
-//                header.children.batch {
-//                    clear()
-//
-//                    headerItemsToColumns.clear()
-//
-//                    addAll(internalColumns.dropLast(1).map { column ->
-//                        behavior.headerCellGenerator(this@TreeTable, column).also {
-//                            headerItemsToColumns[it] = column
-//                        }
-//                    })
-//                }
-//
-//                behavior.headerPositioner.invoke(this@TreeTable).apply {
-//                    header.height = height
-//                }
-//
-//                layout = constrain(header, panel) { header, panel ->
-//                    behavior.headerPositioner.invoke(this@TreeTable).apply {
-//                        header.top    = header.parent.top + y
-//                        header.height = constant(height)
-//                    }
-//
-//                    panel.top    = header.bottom
-//                    panel.left   = panel.parent.left
-//                    panel.right  = panel.parent.right
-//                    panel.bottom = panel.parent.bottom
-//                }
-//            }
-//        }
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
@@ -583,7 +520,11 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     header.x = new.x
                 }
             }
-        })
+        }).apply {
+            scrollBarDimensionsChanged += {
+                doLayout()
+            }
+        }
     }
 
     protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
@@ -616,7 +557,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
+        width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
+//        width       = columnSizePolicy.layout(this.width, this.internalColumns, resizingCol ?: 0)
         resizingCol = null
 
         super.doLayout()

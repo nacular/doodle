@@ -17,6 +17,8 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.utils.ChangeObservers
+import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -75,8 +77,11 @@ public open class ScrollPanel(content: View? = null): View() {
         if (matchContentIdealSize) idealSize = new.idealSize
     }
 
-    private var verticalScrollBarSize  : Double by observable(0.0) { _,_ -> relayout() }
-    private var horizontalScrollBarSize: Double by observable(0.0) { _,_ -> relayout() }
+    public var verticalScrollBarWidth   : Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
+    public var horizontalScrollBarHeight: Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
+
+    private val scrollBarDimensionsChanged_ by lazy { ChangeObserversImpl(this) }
+    public val scrollBarDimensionsChanged: ChangeObservers<ScrollPanel> get() = scrollBarDimensionsChanged_
 
     /** The content being shown within the panel */
     public var content: View? = null
@@ -113,7 +118,7 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ScrollPanelConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.width ?: it.width.readOnly }
+    public var contentWidthConstraints: ConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.width ?: it.width.readOnly }
         set(new) {
             field = new
 
@@ -121,7 +126,7 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ScrollPanelConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.height ?: it.height.readOnly }
+    public var contentHeightConstraints: ConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.height ?: it.height.readOnly }
         set(new) {
             field = new
 
@@ -144,8 +149,8 @@ public open class ScrollPanel(content: View? = null): View() {
         }
         new?.scrollBarSizeChanged = { type, size ->
             when (type) {
-                Horizontal -> horizontalScrollBarSize = size
-                else       -> verticalScrollBarSize   = size
+                Horizontal -> horizontalScrollBarHeight = size
+                else       -> verticalScrollBarWidth   = size
             }
         }
     }
@@ -162,20 +167,9 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _layout           get() = layout; set(new) { layout = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
-    public inner class ScrollPanelConstraintDslContext internal constructor(delegate: ConstraintDslContext): ConstraintDslContext() {
-        public val scrollBarWidth : Double get() = this@ScrollPanel.verticalScrollBarSize
-        public val scrollBarHeight: Double get() = this@ScrollPanel.horizontalScrollBarSize
-
-        init {
-            parent      = delegate.parent
-            parent_     = delegate.parent_
-            constraints = delegate.constraints
-        }
-    }
-
     private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
-        it.width  eq max(0.0, contentWidthConstraints (ScrollPanelConstraintDslContext(this), it))
-        it.height eq max(0.0, contentHeightConstraints(ScrollPanelConstraintDslContext(this), it))
+        it.width  eq max(0.0, contentWidthConstraints (it))
+        it.height eq max(0.0, contentHeightConstraints(it))
     }
 
     private var ignoreLayout = false

@@ -203,21 +203,22 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         column.list.behavior = object: ListBehavior<T> {
             override val generator = object: ListBehavior.ItemGenerator<T> {
                 override fun invoke(list: List<T, *>, item: T, index: Int, current: View?) = behavior.generator(
-                        this@TreeColumns,
-                        item,
-                        column.path + index,
-                        index
+                    this@TreeColumns,
+                    item,
+                    column.path + index,
+                    index,
+                    current
                 )
             }
 
             override val positioner = object: ListBehavior.ItemPositioner<T> {
                 override fun itemBounds(of: List<T, *>, item: T, index: Int, view: View?) = behavior.positioner.rowBounds(
-                        this@TreeColumns,
-                        of.width,
-                        column.path + index,
-                        item,
-                        index,
-                        view
+                    this@TreeColumns,
+                    of.width,
+                    column.path + index,
+                    item,
+                    index,
+                    view
                 )
 
                 override fun item(of: List<T, *>, at: Point) = behavior.positioner.row(this@TreeColumns, column.path, at)
@@ -374,8 +375,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
-        contentWidthConstraints  = { parent.width.readOnly }
-        contentHeightConstraints = { max(content?.minimumSize?.height ?: 0.0, parent.height.readOnly) }
+        contentWidthConstraints  = { width - verticalScrollBarWidth }
+        contentHeightConstraints = { max(content?.minimumSize?.height ?: 0.0, height) }
 
 //        sizePreferencesChanged += { _,_,_ ->
 //            idealSize?.let { width = it.width }

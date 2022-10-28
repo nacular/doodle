@@ -192,6 +192,8 @@ public open class Table<T, M: ListModel<T>>(
                         header.height eq height
                     }
 
+                    header.width eq parent.width
+
                     panel.top    eq header.bottom
                     panel.left   eq 0
                     panel.right  eq parent.right
@@ -234,8 +236,12 @@ public open class Table<T, M: ListModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints  = { max(content?.idealSize?.width  ?: it.width.readOnly,  parent.width.readOnly ) }
-            contentHeightConstraints = { max(content?.idealSize?.height ?: it.height.readOnly, parent.height.readOnly) }
+            contentWidthConstraints  = { max(content?.idealSize?.width  ?: it.width.readOnly,  width ) - verticalScrollBarWidth }
+            contentHeightConstraints = { max(content?.idealSize?.height ?: it.height.readOnly, height) }
+
+            scrollBarDimensionsChanged += {
+                doLayout()
+            }
         }
     }
 
@@ -271,7 +277,7 @@ public open class Table<T, M: ListModel<T>>(
 
     override fun doLayout() {
         resizingCol = resizingCol ?: 0
-        width       = columnSizePolicy.layout(width, internalColumns, resizingCol?.let { it + 1 } ?: 0)
+        width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
         resizingCol = null
 
         super.doLayout()
