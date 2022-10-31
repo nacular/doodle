@@ -71,7 +71,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                         diff.items.forEach { item ->
                             if (diff.origin(of = item) == null) {
                                 // Avoid duplicating View
-                                filterIndexed { i, view -> i != index && view == item }.forEach { remove(item); --index }
+                                repeat(filterIndexed { i, view -> i != index && view == item }.size) { remove(item); --index }
                             }
 
                             ++index

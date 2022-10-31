@@ -645,8 +645,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                     when (diff) {
                         is Delete -> diff.items.forEach {
                             if (diff.destination(of = it) == null) {
-                                it.parent = null
-                                it.zOrder = 0
+                                it.parent   = null
+                                it.zOrder   = 0
                                 it.position = Origin
                             }
                         }
