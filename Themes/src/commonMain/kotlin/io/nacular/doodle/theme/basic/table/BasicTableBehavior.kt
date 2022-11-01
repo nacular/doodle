@@ -100,7 +100,7 @@ public open class BasicTableBehavior<T>(
         private   val focusManager         : FocusManager?,
         protected val rowHeight            : Double = 20.0,
         protected val headerColor          : Color? = Lightgray,
-        protected val footerColor          : Color? = Lightgray,
+        protected val footerColor          : Color? = headerColor,
                       evenRowColor         : Color? = White,
                       oddRowColor          : Color? = Lightgray.lighter().lighter(),
         protected val selectionColor       : Color? = Blue,
@@ -271,10 +271,11 @@ public open class BasicMutableTableBehavior<T>(
         focusManager         : FocusManager?,
         rowHeight            : Double = 20.0,
         headerColor          : Color? = Lightgray,
+        footerColor          : Color? = headerColor,
         evenRowColor         : Color? = White,
         oddRowColor          : Color? = Lightgray.lighter().lighter(),
         selectionColor       : Color? = Blue,
-        selectionBlurredColor: Color? = Lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
+        selectionBlurredColor: Color? = Lightgray): BasicTableBehavior<T>(focusManager, rowHeight, headerColor, footerColor, evenRowColor, oddRowColor, selectionColor, selectionBlurredColor) {
 
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {

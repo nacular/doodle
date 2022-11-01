@@ -23,7 +23,8 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         private val textMetrics        : TextMetrics,
         private val textColor          : Color,
         private val icon               : Icon<T>,
-        private val spacing            : Double = 2.0,
+        private val iconTextSpacing    : Double = 2.0,
+        private val iconInset          : Double = 2.0,
         private val disabledColorMapper: (Color) -> Color = { it.lighter() },
                     focusManager       : FocusManager? = null): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
 
@@ -57,17 +58,17 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
     override fun install(view: T) {
         super.install(view)
 
-        val iconSize   = icon.size(view)
-        val textSize   = textMetrics.size(view.text, font(view))
-        val idealWidth = iconSize.width + if (textSize.width > 0) spacing + textSize.width else 0.0
+        val iconSize    = icon.size(view)
+        val textSize    = textMetrics.size(view.text, font(view))
+        val idealWidth  = iconSize.width + 2 * iconInset + if (textSize.width  > 0) iconTextSpacing + textSize.width  else 0.0
 
         view.icon                     = icon as Icon<Button>
         view.iconAnchor               = Anchor.Left
-        view.iconTextSpacing          = spacing
+        view.iconTextSpacing          = iconTextSpacing
         view.horizontalAlignment      = Left
         view.contentDirectionChanged += contentDirectionChanged
 
-        Size(idealWidth, max(iconSize.height, if (!textSize.empty) textSize.height else 0.0)).let {
+        Size(idealWidth, max(iconSize.height + 2 * iconInset, if (!textSize.empty) textSize.height else 0.0)).let {
             view.size        = it
             view.idealSize   = it
             view.minimumSize = it

@@ -64,9 +64,10 @@ public class BasicRadioBehavior(
         foregroundColor    : Color                   = Black,
         backgroundColor    : Color                   = Lightgray,
         darkBackgroundColor: Color                   = backgroundColor.darker(),
-        iconSpacing        : Double                  = 8.0,
+        iconTextSpacing    : Double                  = 8.0,
+        iconInset          : Double                  = 1.0,
         innerCircleInset   : (RadioButton) -> Double = { 4.0 },
-        iconSize           : (RadioButton) -> Size   = { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+        iconSize           : (RadioButton) -> Size   = { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInset, it.width - 2 * iconInset))) },
         hoverColorMapper   : ColorMapper             = { it.darker(0.1f) },
         disabledColorMapper: ColorMapper             = { it.lighter()    },
         focusManager       : FocusManager?           = null,
@@ -82,7 +83,8 @@ public class BasicRadioBehavior(
                 hoverColorMapper    = hoverColorMapper,
                 disabledColorMapper = disabledColorMapper
         ),
-        iconSpacing,
+        iconTextSpacing,
+        iconInset,
         disabledColorMapper,
         focusManager
 )

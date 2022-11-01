@@ -30,8 +30,8 @@ import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
+import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.table.MutableTable
@@ -144,6 +144,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public val lightBackgroundColor  : Color  get() = Color(0xf3f4f5u)
         public val defaultBackgroundColor: Color  get() = backgroundColor
         public val cornerRadius          : Double get() = 6.0
+        public val checkBoxCornerRadius  : Double get() = 4.0
         public val hoverColorMapper      : ColorMapper get() = { it.darker(0.1f) }
         public val disabledColorMapper   : ColorMapper get() = { it.lighter()    }
         public val disabledPaintMapper   : PaintMapper get() = defaultDisabledPaintMapper
@@ -355,6 +356,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public fun basicMutableTableBehavior(
                 rowHeight            : Double? = null,
                 headerColor          : Color?  = null,
+                footerColor          : Color? = null,
                 evenRowColor         : Color?  = null,
                 oddRowColor          : Color?  = null,
                 selectionColor       : Color?  = null,
@@ -364,6 +366,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
                         headerColor           = headerColor           ?: this.backgroundColor,
+                        footerColor           = footerColor           ?: this.backgroundColor,
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
@@ -529,48 +532,54 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicCheckBoxBehavior(
-                foregroundColor    : Color?  = null,
-                backgroundColor    : Color?  = null,
-                darkBackgroundColor: Color?  = null,
-                cornerRadius       : Double? = null,
-                iconSpacing        : Double? = null,
-                checkInset         : ((CheckBox) -> Float)? = null,
-                iconSize           : ((CheckBox) -> Size)? = null
+            foregroundColor    : Color?  = null,
+            backgroundColor    : Color?  = null,
+            darkBackgroundColor: Color?  = null,
+            cornerRadius       : Double? = null,
+            iconTextSpacing    : Double? = null,
+            iconInset          : Double? = null,
+            checkInset         : ((CheckBox) -> Float)? = null,
+            iconSize           : ((CheckBox) -> Size)? = null
         ): Module = basicThemeModule(name = "BasicCheckBoxBehavior") {
             bindBehavior<CheckBox>(BTheme::class) {
-                it.behavior = instance<BasicThemeConfig>().run {
-                    BasicCheckBoxBehavior(
-                        instance(),
-                        iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
-                        checkInset          = checkInset          ?: { 0.5f },
-                        iconSpacing         = iconSpacing         ?: 8.0,
-                        cornerRadius        = cornerRadius        ?: this.cornerRadius,
-                        backgroundColor     = backgroundColor     ?: this.backgroundColor,
-                        foregroundColor     = foregroundColor     ?: this.foregroundColor,
-                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
-                        hoverColorMapper    = this@run.hoverColorMapper,
-                        disabledColorMapper = this@run.disabledColorMapper,
-                        focusManager        = instanceOrNull()
-                    ) as Behavior<Button>
-                }
+                val iconInsets = iconInset ?: 1.0
+
+                it.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(
+                    instance(),
+                    iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInsets, it.width - 2 * iconInsets))) },
+                    checkInset          = checkInset          ?: { 0.5f },
+                    iconTextSpacing     = iconTextSpacing     ?: 8.0,
+                    iconInset           = iconInsets,
+                    cornerRadius        = cornerRadius        ?: this.checkBoxCornerRadius,
+                    backgroundColor     = backgroundColor     ?: this.backgroundColor,
+                    foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                    darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                    hoverColorMapper    = this@run.hoverColorMapper,
+                    disabledColorMapper = this@run.disabledColorMapper,
+                    focusManager        = instanceOrNull()
+                ) as Behavior<Button> }
             }
         }
 
         public fun basicRadioButtonBehavior(
-                foregroundColor    : Color?                     = null,
-                backgroundColor    : Color?                     = null,
-                darkBackgroundColor: Color?                     = null,
-                iconSpacing        : Double?                    = null,
-                innerCircleInset   : ((RadioButton) -> Double)? = null,
-                iconSize           : ((RadioButton) -> Size  )? = null,
+            foregroundColor    : Color?                     = null,
+            backgroundColor    : Color?                     = null,
+            darkBackgroundColor: Color?                     = null,
+            iconSpacing        : Double?                    = null,
+            iconInset          : Double?                    = null,
+            innerCircleInset   : ((RadioButton) -> Double)? = null,
+            iconSize           : ((RadioButton) -> Size  )? = null,
         ): Module = basicThemeModule(name = "BasicRadioButtonBehavior") {
             bindBehavior<RadioButton>(BTheme::class) {
+                val iconInsets = iconInset ?: 1.0
+
                 it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
                     instance(),
-                    iconSpacing         = iconSpacing         ?: 8.0,
-                    iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2.0, it.width - 2.0))) },
+                    iconTextSpacing     = iconSpacing         ?: 8.0,
+                    iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInsets, it.width - 2 * iconInsets))) },
                     backgroundColor     = backgroundColor     ?: this.backgroundColor,
                     foregroundColor     = foregroundColor     ?: this.foregroundColor,
+                    iconInset           = iconInsets,
                     innerCircleInset    = innerCircleInset    ?: { 4.0 },
                     darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
                     hoverColorMapper    = this@run.hoverColorMapper,
