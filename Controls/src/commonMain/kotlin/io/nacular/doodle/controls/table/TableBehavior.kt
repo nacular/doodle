@@ -15,18 +15,18 @@ import io.nacular.doodle.utils.Path
 /**
  * Indicates the y-offset and height of a table's header.
  */
-public class HeaderGeometry(public val y: Double, public val height: Double)
+public class MetaRowGeometry(public val insetTop: Double, public val insetBottom: Double, public val height: Double)
 
 public interface AbstractTableBehavior<T: View>: Behavior<T> {
     /**
-     * Provides the [HeaderGeometry] for a given Table
+     * Provides the [MetaRowGeometry] for a given Table
      */
-    public interface HeaderPositioner<T> {
+    public interface MetaRowPositioner<T> {
         /**
          * @param table
          * @return the location of [table]'s header
          */
-        public operator fun invoke(table: T): HeaderGeometry
+        public operator fun invoke(table: T): MetaRowGeometry
     }
 
     /**
@@ -37,6 +37,18 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
          * @param table in question
          * @param column in [table]
          * @return the header for [column]
+         */
+        public operator fun <A> invoke(table: T, column: Column<A>): View
+    }
+
+    /**
+     * Creates the Views used for a Table's column footer.
+     */
+    public interface FooterCellGenerator<T> {
+        /**
+         * @param table in question
+         * @param column in [table]
+         * @return the footer for [column]
          */
         public operator fun <A> invoke(table: T, column: Column<A>): View
     }
@@ -60,8 +72,10 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
         public fun body  (table: T): View? = null
     }
 
-    public val headerPositioner    : HeaderPositioner<T>
+    public val headerPositioner    : MetaRowPositioner<T>
+    public val footerPositioner    : MetaRowPositioner<T>
     public val headerCellGenerator : HeaderCellGenerator<T>
+    public val footerCellGenerator : FooterCellGenerator<T>
     public val overflowColumnConfig: OverflowColumnConfig<T>?
 
     /**
@@ -110,6 +124,14 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
      * @param canvas of [table]'s header
      */
     public fun renderHeader(table: T, canvas: Canvas) {}
+
+    /**
+     * Used to render the Table's footer background.
+     *
+     * @param table in question
+     * @param canvas of [table]'s footer
+     */
+    public fun renderFooter(table: T, canvas: Canvas) {}
 
     /**
      * Used to render the Table's body background.
@@ -204,6 +226,11 @@ public abstract class TableBehavior<T>: AbstractTableBehavior<Table<T, *>> {
      * Requests that the Table repaint its header. This will result in a call to [renderHeader].
      */
     protected fun Table<T, *>.headerDirty(): Unit = headerDirty()
+
+    /**
+     * Requests that the Table repaint its footer. This will result in a call to [renderFooter].
+     */
+    protected fun Table<T, *>.footerDirty(): Unit = footerDirty()
 
     /**
      * Requests that the Table repaint a column. This will result in a call to [renderColumnBody].
@@ -318,6 +345,11 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
      * Requests that the TreeTable repaint its header. This will result in a call to [renderHeader].
      */
     protected fun TreeTable<T, *>.headerDirty(): Unit = headerDirty()
+
+    /**
+     * Requests that the TreeTable repaint its footer. This will result in a call to [renderFooter].
+     */
+    protected fun TreeTable<T, *>.footerDirty(): Unit = footerDirty()
 
     /**
      * Requests that the TreeTable repaint a column. This will result in a call to [renderColumnBody].

@@ -8,6 +8,7 @@ import io.nacular.doodle.utils.Pool
 
 public interface Column<T> {
     public val header         : View?
+    public val footer         : View?
     public val width          : Double
 
     public var minWidth       : Double
@@ -15,6 +16,7 @@ public interface Column<T> {
     public var preferredWidth : Double?
     public var cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)?
     public var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)?
+    public var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)?
 
     public fun moveBy(x: Double)
     public fun resetPosition()

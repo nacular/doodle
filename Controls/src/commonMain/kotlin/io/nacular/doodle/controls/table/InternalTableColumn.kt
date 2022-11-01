@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.table
 
+import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
@@ -29,6 +30,7 @@ internal interface TableLike {
     val internalColumns : MutableList<InternalColumn<*, *, *, *>>
     val columnSizePolicy: ColumnSizePolicy
     val header          : Container
+    val footer          : Container
 
     val panel: ScrollPanel
 
@@ -40,6 +42,8 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
         private   val behavior       : B?,
         override  val header         : View?,
                       headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+        override  val footer         : View?,
+                      footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
         protected val cellGenerator  : CellVisualizer<F, R>,
                       cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
                       preferredWidth : Double? = null,
@@ -49,7 +53,13 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
 
     override val alignmentChanged = ChangeObserversImpl(this)
 
-    override  var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = headerAlignment
+    override var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = headerAlignment
+        set(value) {
+            field = value
+            alignmentChanged.forEach { it(this) }
+        }
+
+    override var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = footerAlignment
         set(value) {
             field = value
             alignmentChanged.forEach { it(this) }
@@ -96,10 +106,16 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
             val index = this.index
 
             table.header.children.batch {
-                if (new < size) {
-                    add(new, removeAt(index))
-                } else {
-                    add(removeAt(index))
+                when {
+                    new < size -> add(new, removeAt(index))
+                    else       -> add(removeAt(index))
+                }
+            }
+
+            table.footer.children.batch {
+                when {
+                    new < size -> add(new, removeAt(index))
+                    else       -> add(removeAt(index))
                 }
             }
 
@@ -117,13 +133,15 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
     private var transform get() = view.transform
         set(new) {
             table.header.children.getOrNull(index)?.transform = new
-            view.transform                                             = new
+            table.footer.children.getOrNull(index)?.transform = new
+            view.transform                                    = new
         }
 
     private var zOrder get() = view.zOrder
         set(new) {
             table.header.children.getOrNull(index)?.zOrder = new
-            view.zOrder                                             = new
+            table.footer.children.getOrNull(index)?.zOrder = new
+            view.zOrder                                    = new
         }
 
     private var animation: Completable? = null
@@ -211,6 +229,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
                     // Force refresh here to avoid jitter since transform takes affect right away, while layout is deferred
                     // TODO: Can this refresh be more efficient?
                     table.header.children.forEach { it.rerenderNow() }
+                    table.footer.children.forEach { it.rerenderNow() }
                     (table.panel.content as Container).children.forEach { it.rerenderNow() }
                 }
 
@@ -224,9 +243,18 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
     abstract fun behavior(behavior: B?)
 }
 
-internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit, Unit>(table, null, null, null, object: CellVisualizer<Unit, Unit> {
-    override fun invoke(item: Unit, previous: View?, context: CellInfo<Unit, Unit>) = previous ?: object: View() {}
-}, null, null, 0.0, null) {
+internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view: View? = null): InternalColumn<T, B, Unit, Unit>(
+    table           = table,
+    behavior        = null,
+    header          = null,
+    footer          = null,
+    headerAlignment = null,
+    cellGenerator   = itemVisualizer { _: Unit, previous: View?, _: CellInfo<Unit, Unit> -> previous ?: object: View() {}  },
+    cellAlignment   = null,
+    preferredWidth  = null,
+    minWidth        = 0.0,
+    maxWidth        = null
+) {
     override val view = view ?: object: View() {
         override fun contains(point: Point) = false
     }

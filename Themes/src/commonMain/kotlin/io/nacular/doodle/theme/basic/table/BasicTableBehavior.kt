@@ -6,18 +6,18 @@ import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.list.ListLike
+import io.nacular.doodle.controls.table.AbstractTableBehavior.FooterCellGenerator
 import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderCellGenerator
-import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.AbstractTableBehavior.MetaRowPositioner
 import io.nacular.doodle.controls.table.AbstractTableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.Column
-import io.nacular.doodle.controls.table.HeaderGeometry
+import io.nacular.doodle.controls.table.MetaRowGeometry
 import io.nacular.doodle.controls.table.MutableColumn
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -47,6 +47,7 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
 import io.nacular.doodle.theme.basic.VerticalListPositioner
+import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.PassThroughEncoder
@@ -99,6 +100,7 @@ public open class BasicTableBehavior<T>(
         private   val focusManager         : FocusManager?,
         protected val rowHeight            : Double = 20.0,
         protected val headerColor          : Color? = Lightgray,
+        protected val footerColor          : Color? = Lightgray,
                       evenRowColor         : Color? = White,
                       oddRowColor          : Color? = Lightgray.lighter().lighter(),
         protected val selectionColor       : Color? = Blue,
@@ -116,8 +118,12 @@ public open class BasicTableBehavior<T>(
     private  val movingColumns = mutableSetOf<Column<*>>()
     override val cellGenerator: BasicCellGenerator<T> = BasicCellGenerator()
 
-    override val headerPositioner: HeaderPositioner<Table<T, *>> = object: HeaderPositioner<Table<T, *>> {
-        override fun invoke(table: Table<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
+    override val headerPositioner: MetaRowPositioner<Table<T, *>> = object: MetaRowPositioner<Table<T, *>> {
+        override fun invoke(table: Table<T, *>) = MetaRowGeometry(0.0, 0.0, 1.1 * rowHeight)
+    }
+
+    override val footerPositioner: MetaRowPositioner<Table<T, *>> = object: MetaRowPositioner<Table<T, *>> {
+        override fun invoke(table: Table<T, *>) = MetaRowGeometry(0.0, 0.0, 1.1 * rowHeight)
     }
 
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T> {
@@ -130,6 +136,10 @@ public open class BasicTableBehavior<T>(
 
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
+    }
+
+    override val footerCellGenerator: FooterCellGenerator<Table<T, *>> = object: FooterCellGenerator<Table<T, *>> {
+        override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableFooterCell(column, headerColor)
     }
 
     override val overflowColumnConfig: OverflowColumnConfig<Table<T, *>> = object: OverflowColumnConfig<Table<T, *>> {
@@ -184,6 +194,10 @@ public open class BasicTableBehavior<T>(
         headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
     }
 
+    override fun renderFooter(table: Table<T, *>, canvas: Canvas) {
+        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+    }
+
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
         canvas.rect(Rectangle(size = canvas.size), patternFill)
 
@@ -214,6 +228,7 @@ public open class BasicTableBehavior<T>(
 
         view.bodyDirty  ()
         view.headerDirty()
+        view.footerDirty()
     }
 
     override fun uninstall(view: Table<T, *>) {

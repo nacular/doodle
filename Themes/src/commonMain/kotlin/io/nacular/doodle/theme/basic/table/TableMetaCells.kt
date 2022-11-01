@@ -12,6 +12,7 @@ import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
+import io.nacular.doodle.event.PointerMotionListener.Companion.on
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -29,9 +30,161 @@ import io.nacular.doodle.utils.Pool
 /**
  * Created by Nicholas Eddy on 5/10/19.
  */
-public class TableHeaderCell(private val column: Column<*>, private val headerColor: Color?): View() {
+public class TableHeaderCell(private val column: Column<*>, private val fillColor: Color?): View() {
 
-    private var positioner: ConstraintDslContext.(Bounds) -> Unit = column.headerAlignment ?: center
+    private var positioner: ConstraintDslContext.(Bounds) -> Unit = column.headerAlignment ?: center; set(new) {
+        if (field == new) {
+            return
+        }
+
+        field = new
+
+        layout = constrain(children[0]) {
+            positioner(it)
+        }
+    }
+
+    private val alignmentChanged: (Column<*>) -> Unit = {
+        it.headerAlignment?.let { positioner = it }
+    }
+
+    private var disabledColorMapper: ColorMapper = { it.lighter() }
+
+    init {
+        var resizing        = false
+        var pointerDown     = false
+        var initialWidth    = column.width
+        var initialPosition = null as Point?
+        var moved           = false
+
+        styleChanged += {
+            rerender()
+        }
+
+        fun newCursor() = when {
+            column.width > column.minWidth && column.width < (column.maxWidth ?: Double.MAX_VALUE) -> EWResize
+            column.width < (column.maxWidth ?: Double.MAX_VALUE)                                   -> EResize
+            else                                                                                   -> WResize
+        }
+
+        fun overHandle(pointerLocation: Point) = pointerLocation.x in width - 5.0..width
+
+        fun updateCursor(event: PointerEvent) {
+            cursor = when {
+                overHandle(toLocal(event.location, event.target)) -> newCursor()
+                else                                              -> null
+            }
+        }
+
+        pointerChanged += PointerListener.on(
+            entered  = {
+                if (!pointerDown) {
+                    updateCursor(it)
+                }
+            },
+
+            pressed  = {
+                pointerDown     = true
+                initialPosition = toLocal(it.location, it.target)
+
+                when {
+                    overHandle(initialPosition!!) -> {
+                        resizing     = true
+                        initialWidth = column.width
+                    }
+                    else                          -> backgroundColor = fillColor?.darker()
+                }
+
+                it.consume()
+            },
+
+            released = {
+                initialPosition = null
+
+                updateCursor(it)
+
+                backgroundColor = null
+
+                if (pointerDown && !resizing) {
+                    column.resetPosition()
+                }
+
+                if (pointerDown && !(resizing || moved)) {
+                    (toggled as ChangeObserversImpl).forEach { it(this@TableHeaderCell) }
+                }
+
+                moved     = false
+                resizing  = false
+                pointerDown = false
+            }
+        )
+
+        pointerMotionChanged += on (
+            moved   = { updateCursor(it) },
+            dragged = { event ->
+                initialPosition?.let {
+                    moved     = true
+                    val delta = (toLocal(event.location, event.target) - it).x
+
+                    cursor = if (resizing) {
+                        column.preferredWidth = initialWidth + delta
+
+                        newCursor()
+                    } else {
+                        column.moveBy(delta)
+
+                        Grabbing
+                    }
+
+                    event.consume()
+                }
+            }
+        )
+
+        column.header?.let { header ->
+            children += header
+
+            layout = constrain(children[0]) {
+                positioner(it)
+            }
+        }
+    }
+
+    public val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
+
+    override fun addedToDisplay() {
+        super.addedToDisplay()
+
+        column.alignmentChanged += alignmentChanged
+    }
+
+    override fun removedFromDisplay() {
+        super.removedFromDisplay()
+
+        column.alignmentChanged -= alignmentChanged
+    }
+
+    override fun render(canvas: Canvas) {
+        val x = width - lineThickness / 2
+
+        backgroundColor?.let {
+            canvas.rect(bounds.atOrigin, (if (enabled) it else disabledColorMapper(it)).paint)
+        }
+
+        val strokeColor = (fillColor?.inverted ?: Gray).let { if (enabled) it else disabledColorMapper(it) }
+
+        canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(strokeColor, lineThickness))
+    }
+
+    private companion object {
+        private const val lineIndent    = 3.0
+        private const val lineThickness = 1.0
+    }
+}
+
+public class TableFooterCell(private val column: Column<*>, private val fillColor: Color?): View() {
+
+    private var positioner: ConstraintDslContext.(Bounds) -> Unit = column.footerAlignment ?: center
         set(new) {
             if (field == new) {
                 return
@@ -45,7 +198,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
         }
 
     private val alignmentChanged: (Column<*>) -> Unit = {
-        it.headerAlignment?.let { positioner = it }
+        it.footerAlignment?.let { positioner = it }
     }
 
     private var disabledColorMapper: ColorMapper = { it.lighter() }
@@ -91,7 +244,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
                     resizing     = true
                     initialWidth = column.width
                 } else {
-                    backgroundColor = headerColor?.darker()
+                    backgroundColor = fillColor?.darker()
                 }
 
                 event.consume()
@@ -109,7 +262,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
                 }
 
                 if (pointerDown && !(resizing || moved)) {
-                    (toggled as ChangeObserversImpl).forEach { it(this@TableHeaderCell) }
+                    (toggled as ChangeObserversImpl).forEach { it(this@TableFooterCell) }
                 }
 
                 moved     = false
@@ -143,8 +296,8 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
             }
         }
 
-        column.header?.let { header ->
-            children += header
+        column.footer?.let { footer ->
+            children += footer
 
             layout = constrain(children[0]) {
                 positioner(it)
@@ -152,7 +305,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
         }
     }
 
-    public val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
+    public val toggled: Pool<ChangeObserver<TableFooterCell>> by lazy { ChangeObserversImpl(this) }
 
     override fun addedToDisplay() {
         super.addedToDisplay()
@@ -173,7 +326,7 @@ public class TableHeaderCell(private val column: Column<*>, private val headerCo
             canvas.rect(bounds.atOrigin, (if (enabled) it else disabledColorMapper(it)).paint)
         }
 
-        val strokeColor = (headerColor?.inverted ?: Gray).let { if (enabled) it else disabledColorMapper(it) }
+        val strokeColor = (fillColor?.inverted ?: Gray).let { if (enabled) it else disabledColorMapper(it) }
 
         canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(strokeColor, lineThickness))
     }

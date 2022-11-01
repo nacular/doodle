@@ -12,6 +12,8 @@ import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.controls.list.itemGenerator
 import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.controls.table.MetaRowVisibility.Always
+import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -21,12 +23,12 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.observable
 import kotlin.math.max
 
 public open class Table<T, M: ListModel<T>>(
@@ -36,10 +38,10 @@ public open class Table<T, M: ListModel<T>>(
                       block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
-        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
+        override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, footer: View?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
+            InternalListColumn(header, headerAlignment, footer, footerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor).also { internalColumns += it }
         }
     }
 
@@ -51,6 +53,7 @@ public open class Table<T, M: ListModel<T>>(
         override val internalColumns  get() = this@Table.internalColumns
         override val columnSizePolicy get() = this@Table.columnSizePolicy
         override val header           get() = this@Table.header as Container
+        override val footer           get() = this@Table.footer as Container
         override val panel            get() = this@Table.panel
 
         override var resizingCol get() = this@Table.resizingCol
@@ -82,12 +85,14 @@ public open class Table<T, M: ListModel<T>>(
     internal open inner class InternalListColumn<R>(
             header         : View?,
             headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+            footer         : View?,
+            footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
             itemVisualizer : CellVisualizer<T, R>,
             cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
             preferredWidth : Double?                   = null,
             minWidth       : Double                    = 0.0,
             maxWidth       : Double?                   = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
+            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, footer, footerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
@@ -158,7 +163,7 @@ public open class Table<T, M: ListModel<T>>(
                     // Last, unusable column
                     internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                    children += listOf(header, panel)
+                    children += listOf(header, panel, footer)
 
                     this.block = null
                 }
@@ -170,35 +175,47 @@ public open class Table<T, M: ListModel<T>>(
                     it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
+                val usableColumns = internalColumns.dropLast(1)
+
                 header.children.batch {
                     clear()
 
                     headerItemsToColumns.clear()
 
-                    addAll(internalColumns.dropLast(1).map { column ->
-                        behavior.headerCellGenerator(this@Table, column).also {
-                            headerItemsToColumns[it] = column
-                        }
-                    })
+                    if (usableColumns.any { it.header != null }) {
+                        addAll(usableColumns.map { column ->
+                            behavior.headerCellGenerator(this@Table, column).also {
+                                headerItemsToColumns[it] = column
+                            }
+                        })
+                    }
                 }
 
-                behavior.headerPositioner.invoke(this@Table).apply {
+                behavior.headerPositioner(this@Table).apply {
+                    header.y      = insetTop
                     header.height = height
                 }
 
-                layout = constrain(header, panel) { header, panel ->
-                    behavior.headerPositioner.invoke(this@Table).apply {
-                        header.top    eq y
-                        header.height eq height
+                footer.children.batch {
+                    clear()
+
+                    footerItemsToColumns.clear()
+
+                    if (usableColumns.any { it.footer != null }) {
+                        addAll(usableColumns.map { column ->
+                            behavior.footerCellGenerator(this@Table, column).also {
+                                footerItemsToColumns[it] = column
+                            }
+                        })
                     }
-
-                    header.width eq parent.width
-
-                    panel.top    eq header.bottom
-                    panel.left   eq 0
-                    panel.right  eq parent.right
-                    panel.bottom eq parent.bottom
                 }
+
+                behavior.footerPositioner(this@Table).apply {
+                    footer.y      = this@Table.height - insetTop
+                    footer.height = height
+                }
+
+                layout = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { footerVisibility })
             }
         }
     )
@@ -206,6 +223,9 @@ public open class Table<T, M: ListModel<T>>(
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
     public val selectionChanged: Pool<SetObserver<Table<T, M>, Int>> = SetPool()
+
+    public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
+    public var footerVisibility: MetaRowVisibility by observable(HasContents) { _,_ -> doLayout() }
 
     public fun contains(value: T): Boolean = value in model
 
@@ -216,10 +236,17 @@ public open class Table<T, M: ListModel<T>>(
     private var block: (ColumnFactory<T>.() -> Unit)? = block
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
+    private val footerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
 
     private val header by lazy {
-        TableHeader(internalColumns) { canvas ->
+        TableMetaRow(internalColumns) { canvas ->
             behavior?.renderHeader(this@Table, canvas)
+        }
+    }
+
+    private val footer by lazy {
+        TableMetaRow(internalColumns) { canvas ->
+            behavior?.renderFooter(this@Table, canvas)
         }
     }
 
@@ -233,6 +260,7 @@ public open class Table<T, M: ListModel<T>>(
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
                     header.x = new.x
+                    footer.x = new.x
                 }
             }
         }).apply {
@@ -253,6 +281,7 @@ public open class Table<T, M: ListModel<T>>(
 
     internal val bodyDirty  : (         ) -> Unit = { panel.content?.rerender() }
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
+    internal val footerDirty: (         ) -> Unit = { footer.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
 
     public operator fun get(index: Int): Result<T> = model[index]
@@ -284,6 +313,7 @@ public open class Table<T, M: ListModel<T>>(
 
         header.doLayout()
         (panel.content as? TablePanel)?.doLayout()
+        footer.doLayout()
 
         resizingCol = null
     }

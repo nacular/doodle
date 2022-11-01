@@ -37,6 +37,8 @@ public class MutableTable<T, M: MutableListModel<T>>(
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
                         header         : View?,
                         headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                        footer         : View?,
+                        footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
                         cellGenerator  : CellVisualizer<T, R>,
                         cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
                         preferredWidth : Double? = null,
@@ -46,7 +48,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
                         firstColumn    : Boolean,
                         sorter         : Sorter<T, S>?,
                         editor         : TableEditor<T>?
-    ): InternalListColumn<R>(header, headerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
+    ): InternalListColumn<R>(header, headerAlignment, footer, footerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
 
         private inner class FieldModel<A>(model: M, extractor: Extractor<T, A>): InternalListColumn<R>.FieldModel<A>(model, extractor), MutableListModel<A> {
             override fun set        (index  : Int, value : A            ): Result<A> = this[index] // This is essential to allow MutableList to handle edits that result in the content being unchanged
@@ -103,10 +105,10 @@ public class MutableTable<T, M: MutableListModel<T>>(
     }
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
+        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, footer: View?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
             builder(this)
 
-            MutableInternalListColumn(header, headerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {
+            MutableInternalListColumn(header, headerAlignment, footer, footerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {
                 internalColumns += it
             }
         }

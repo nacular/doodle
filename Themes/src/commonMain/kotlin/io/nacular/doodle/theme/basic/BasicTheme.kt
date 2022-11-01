@@ -333,6 +333,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public fun basicTableBehavior(
                 rowHeight            : Double? = null,
                 headerColor          : Color?  = null,
+                footerColor          : Color?  = null,
                 evenRowColor         : Color?  = null,
                 oddRowColor          : Color?  = null,
                 selectionColor       : Color?  = null,
@@ -342,6 +343,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
                         headerColor           = headerColor           ?: this.backgroundColor,
+                        footerColor           = footerColor           ?: this.backgroundColor,
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,

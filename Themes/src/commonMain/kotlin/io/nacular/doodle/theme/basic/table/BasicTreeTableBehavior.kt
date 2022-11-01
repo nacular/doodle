@@ -3,12 +3,13 @@ package io.nacular.doodle.theme.basic.table
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.list.ListLike
+import io.nacular.doodle.controls.table.AbstractTableBehavior.FooterCellGenerator
 import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderCellGenerator
-import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderPositioner
+import io.nacular.doodle.controls.table.AbstractTableBehavior.MetaRowPositioner
 import io.nacular.doodle.controls.table.AbstractTableBehavior.OverflowColumnConfig
 import io.nacular.doodle.controls.table.Column
 import io.nacular.doodle.controls.table.ExpansionObserver
-import io.nacular.doodle.controls.table.HeaderGeometry
+import io.nacular.doodle.controls.table.MetaRowGeometry
 import io.nacular.doodle.controls.table.TreeTable
 import io.nacular.doodle.controls.table.TreeTableBehavior
 import io.nacular.doodle.controls.tree.TreeLike
@@ -34,11 +35,11 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
-import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
+import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetObserver
@@ -75,6 +76,7 @@ public open class BasicTreeTableBehavior<T>(
         private val focusManager         : FocusManager?,
         private val rowHeight            : Double = 20.0,
         private val headerColor          : Color? = Lightgray,
+        private val footerColor          : Color? = Lightgray,
                     evenRowColor         : Color? = White,
                     oddRowColor          : Color? = Lightgray.lighter().lighter(),
                     iconColor            : Color  = Black,
@@ -115,8 +117,12 @@ public open class BasicTreeTableBehavior<T>(
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
-    override val headerPositioner: HeaderPositioner<TreeTable<T, *>> = object: HeaderPositioner<TreeTable<T, *>> {
-        override fun invoke(table: TreeTable<T, *>) = HeaderGeometry(0.0, 1.1 * rowHeight)
+    override val headerPositioner: MetaRowPositioner<TreeTable<T, *>> = object: MetaRowPositioner<TreeTable<T, *>> {
+        override fun invoke(table: TreeTable<T, *>) = MetaRowGeometry(0.0, 0.0, 1.1 * rowHeight)
+    }
+
+    override val footerPositioner: MetaRowPositioner<TreeTable<T, *>> = object: MetaRowPositioner<TreeTable<T, *>> {
+        override fun invoke(table: TreeTable<T, *>) = MetaRowGeometry(0.0, 0.0, 1.1 * rowHeight)
     }
 
     override val rowPositioner: RowPositioner<T> = object: RowPositioner<T>() {
@@ -131,8 +137,12 @@ public open class BasicTreeTableBehavior<T>(
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor)
     }
 
+    override val footerCellGenerator: FooterCellGenerator<TreeTable<T, *>> = object: FooterCellGenerator<TreeTable<T, *>> {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableFooterCell(column, headerColor)
+    }
+
     override val overflowColumnConfig: OverflowColumnConfig<TreeTable<T, *>> = object: OverflowColumnConfig<TreeTable<T, *>> {
-        override fun body(table: TreeTable<T, *>): View? = object: View() {
+        override fun body(table: TreeTable<T, *>): View = object: View() {
             init {
                 pointerChanged += object: PointerListener {
                     private var pointerOver    = false
@@ -181,6 +191,10 @@ public open class BasicTreeTableBehavior<T>(
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
         headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+    }
+
+    override fun renderFooter(table: TreeTable<T, *>, canvas: Canvas) {
+        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
     }
 
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
