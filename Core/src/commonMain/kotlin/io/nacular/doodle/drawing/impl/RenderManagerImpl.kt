@@ -253,13 +253,12 @@ public open class RenderManagerImpl(
 
             pendingRender.iterator().let {
                 while (it.hasNext()) {
-                    val item = it.next()
+                    val item         = it.next()
                     val renderResult = performRender(item)
 
-                    if (renderResult.rendered || item !in views) {
-                        it.remove()
-                    } else if (renderResult.renderable && !item.bounds.empty && item in dirtyViews) {
-                        newRenders += item
+                    when {
+                        renderResult.rendered || item !in views                             -> it.remove()
+                        renderResult.renderable && !item.bounds.empty && item in dirtyViews -> newRenders += item
                     }
                 }
             }
