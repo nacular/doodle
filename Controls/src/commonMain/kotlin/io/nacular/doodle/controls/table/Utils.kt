@@ -10,6 +10,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import kotlin.math.max
 
@@ -18,6 +19,8 @@ public enum class MetaRowVisibility {
 }
 
 internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
+    var hasContent: Boolean = false
+
     init {
         focusable = false
         layout    = Layout.simpleLayout { container ->
@@ -104,7 +107,7 @@ internal fun <T: View> tableLayout(
 
         footer_.width  eq parent.width
         footer_.height eq footerHeight
-        footer_.bottom eq parent.bottom - insetTop
+        (footer_.bottom eq parent.bottom - insetTop) .. Strong
     }
 
     panel.top    eq header_.bottom + if (headerHeight > 0.0) headerPadding else 0.0
@@ -114,6 +117,6 @@ internal fun <T: View> tableLayout(
 }
 
 private fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {
-    visibility == Always || (visibility == HasContents && row.children.isNotEmpty()) -> targetHeight
-    else                                                                             -> 0.0
+    visibility == Always || (visibility == HasContents && row.hasContent) -> targetHeight
+    else                                                                  -> 0.0
 }

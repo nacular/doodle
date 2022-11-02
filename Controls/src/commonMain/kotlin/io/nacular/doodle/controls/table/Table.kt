@@ -182,13 +182,13 @@ public open class Table<T, M: ListModel<T>>(
 
                     headerItemsToColumns.clear()
 
-                    if (usableColumns.any { it.header != null }) {
-                        addAll(usableColumns.map { column ->
-                            behavior.headerCellGenerator(this@Table, column).also {
-                                headerItemsToColumns[it] = column
-                            }
-                        })
-                    }
+                    addAll(usableColumns.map { column ->
+                        if (column.header != null) { header.hasContent = true }
+
+                        behavior.headerCellGenerator(this@Table, column).also {
+                            headerItemsToColumns[it] = column
+                        }
+                    })
                 }
 
                 behavior.headerPositioner(this@Table).apply {
@@ -201,13 +201,13 @@ public open class Table<T, M: ListModel<T>>(
 
                     footerItemsToColumns.clear()
 
-                    if (usableColumns.any { it.footer != null }) {
-                        addAll(usableColumns.map { column ->
-                            behavior.footerCellGenerator(this@Table, column).also {
-                                footerItemsToColumns[it] = column
-                            }
-                        })
-                    }
+                    addAll(usableColumns.map { column ->
+                        if (column.footer != null) { footer.hasContent = true }
+
+                        behavior.footerCellGenerator(this@Table, column).also {
+                            footerItemsToColumns[it] = column
+                        }
+                    })
                 }
 
                 behavior.footerPositioner(this@Table).apply {

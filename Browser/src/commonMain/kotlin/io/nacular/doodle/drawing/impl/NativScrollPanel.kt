@@ -14,12 +14,14 @@ import io.nacular.doodle.dom.Overflow.Auto
 import io.nacular.doodle.dom.Overflow.Hidden
 import io.nacular.doodle.dom.Overflow.Scroll
 import io.nacular.doodle.dom.add
+import io.nacular.doodle.dom.height
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.scrollTo
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setOverflowX
 import io.nacular.doodle.dom.setSize
+import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -145,8 +147,14 @@ internal class NativeScrollPanel internal constructor(
 
     private val observer = ResizeObserver { updates,_ ->
         try {
-            barChanged(Vertical,   updates.first().run { panel.width  - contentRect.width  }.also { barWidth  = it })
-            barChanged(Horizontal, updates.first().run { panel.height - contentRect.height }.also { barHeight = it })
+            val entry = updates.first()
+
+            if (entry.contentRect.width > 0 && rootElement.width > 0) {
+                barChanged(Vertical, entry.run { panel.width - contentRect.width }.also { barWidth = it })
+            }
+            if (entry.contentRect.height > 0 && rootElement.height > 0) {
+                barChanged(Horizontal, entry.run { panel.height - contentRect.height }.also { barHeight = it })
+            }
         } catch (ignored: Throwable) {
             barWidth  = scrollBarSize
             barHeight = barWidth

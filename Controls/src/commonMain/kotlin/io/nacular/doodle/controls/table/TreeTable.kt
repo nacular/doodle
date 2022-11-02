@@ -471,13 +471,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     headerItemsToColumns.clear()
 
-                    if (usableColumns.any { it.header != null }) {
-                        addAll(usableColumns.map { column ->
-                            behavior.headerCellGenerator(this@TreeTable, column).also {
-                                headerItemsToColumns[it] = column
-                            }
-                        })
-                    }
+                    addAll(usableColumns.map { column ->
+                        if (column.header != null) { header.hasContent = true }
+
+                        behavior.headerCellGenerator(this@TreeTable, column).also {
+                            headerItemsToColumns[it] = column
+                        }
+                    })
                 }
 
                 behavior.headerPositioner.invoke(this@TreeTable).apply {
@@ -490,13 +490,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     footerItemsToColumns.clear()
 
-                    if (usableColumns.any { it.footer != null }) {
-                        addAll(usableColumns.map { column ->
-                            behavior.footerCellGenerator(this@TreeTable, column).also {
-                                footerItemsToColumns[it] = column
-                            }
-                        })
-                    }
+                    addAll(usableColumns.map { column ->
+                        if (column.footer != null) { footer.hasContent = true }
+
+                        behavior.footerCellGenerator(this@TreeTable, column).also {
+                            footerItemsToColumns[it] = column
+                        }
+                    })
                 }
 
                 behavior.headerPositioner.invoke(this@TreeTable).apply {
