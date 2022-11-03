@@ -89,9 +89,9 @@ public open class Table<T, M: ListModel<T>>(
             footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
             itemVisualizer : CellVisualizer<T, R>,
             cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            preferredWidth : Double?                   = null,
-            minWidth       : Double                    = 0.0,
-            maxWidth       : Double?                   = null,
+            preferredWidth : Double?                                  = null,
+            minWidth       : Double                                   = 0.0,
+            maxWidth       : Double?                                  = null,
             extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, footer, footerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {

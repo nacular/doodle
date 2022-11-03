@@ -7,6 +7,7 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
+import kotlin.jvm.JvmName
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.min
@@ -136,8 +137,41 @@ public abstract class ConvexPolygon: Polygon() {
  */
 public fun ConvexPolygon.reversed(): ConvexPolygon = ConvexPolygonImpl(points.reversed())
 
+/**
+ * Create a new [ConvexPolygon] with each point transformed by [transform].
+ *
+ * @param transform to apply to each point
+ */
+public fun ConvexPolygon.map(transform: (Point) -> Point): ConvexPolygon = ConvexPolygonImpl(points.map(transform))
+
 private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon() {
     constructor(first: Point, second: Point, third: Point, vararg remaining: Point): this(listOf(first, second, third) + remaining)
+}
+
+/**
+ * Creates a [Regular polygon](https://en.wikipedia.org/wiki/Regular_polygon) by inscribing it within the circle.
+ *
+ * @param sides the polygon should have
+ * @param rotation of the polygon's first point around the circle
+ * @return the polygon
+ */
+public fun Circle.inscribed(sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
+    if (sides < 3) return null
+
+    val interPointSweep = 360 / sides * degrees
+    val topOfCircle     = center - Point(0.0, radius)
+
+    val points = mutableListOf(Point(topOfCircle.x + radius * sin(rotation), topOfCircle.y + radius * (1 - cos(rotation))))
+
+    var current: Point
+
+    repeat(sides - 1) {
+        val angle = interPointSweep * (it + 1) + rotation
+        current = Point(topOfCircle.x + radius * sin(angle), topOfCircle.y + radius * (1 - cos(angle)))
+        points += current
+    }
+
+    return ConvexPolygonImpl(points)
 }
 
 /**
@@ -148,24 +182,9 @@ private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon
  * @param rotation of the polygon's first point around the circle
  * @return the polygon
  */
-public fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
-    if (sides < 3) return null
-
-    val interPointSweep = 360 / sides * degrees
-    val topOfCircle     = circle.center - Point(0.0, circle.radius)
-
-    val points = mutableListOf(Point(topOfCircle.x + circle.radius * sin(rotation), topOfCircle.y + circle.radius * (1 - cos(rotation))))
-
-    var current: Point
-
-    repeat(sides - 1) {
-        val angle = interPointSweep * (it + 1) + rotation
-        current = Point(topOfCircle.x + circle.radius * sin(angle), topOfCircle.y + circle.radius * (1 - cos(angle)))
-        points += current
-    }
-
-    return ConvexPolygonImpl(points)
-}
+@Deprecated(message = "Use Circle.inscribe instead")
+@JvmName("circleInscribed")
+public fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? = circle.inscribed(sides, rotation)
 
 /**
  * Creates a [Star](https://math.stackexchange.com/questions/2135982/math-behind-creating-a-perfect-star) with n points
@@ -178,11 +197,11 @@ public fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * 
  * @return a star shaped polygon
  */
 public fun star(circle     : Circle,
-         points     : Int            = 5,
-         rotation   : Measure<Angle> = 0 * degrees,
-         innerCircle: Circle         = Circle(center = circle.center, radius = circle.radius * 2 / (3 + sqrt(5.0)))
-): Polygon? = inscribed(circle, points, rotation)?.let { outerPoly ->
-    inscribed(innerCircle, points, rotation + 360 / (2 * points) * degrees)?.let { innerPoly ->
+                points     : Int            = 5,
+                rotation   : Measure<Angle> = 0 * degrees,
+                innerCircle: Circle         = Circle(center = circle.center, radius = circle.radius * 2 / (3 + sqrt(5.0)))
+): Polygon? = circle.inscribed(points, rotation)?.let { outerPoly ->
+    innerCircle.inscribed(points, rotation + 360 / (2 * points) * degrees)?.let { innerPoly ->
         ConvexPolygonImpl(outerPoly.points.zip(innerPoly.points).flatMap { (f, s) -> listOf(f, s) })
     }
 }
@@ -260,7 +279,6 @@ private class PointRelationShip(
 
 internal val Vector2D.magnitude: Double get() =  sqrt(x*x + y*y)
 internal operator fun Vector2D.times(other: Vector2D) = x * other.x + y * other.y
-
 
 private fun colinearPoint(
         previous        : Point,

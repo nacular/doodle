@@ -16,21 +16,21 @@ public interface ColumnBuilder {
     public var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)?
 }
 
-public interface MutableColumnBuilder<T>: ColumnBuilder {
-    public var editor: TableEditor<T>?
+public interface MutableColumnBuilder<T, R>: ColumnBuilder {
+    public var editor: TableCellEditor<T, R>?
 }
 
 internal open class ColumnBuilderImpl: ColumnBuilder {
-    override var width          : Double?                   = null
-    override var minWidth       : Double                    = 0.0
-    override var maxWidth       : Double?                   = null
+    override var width          : Double?                                  = null
+    override var minWidth       : Double                                   = 0.0
+    override var maxWidth       : Double?                                  = null
     override var cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null
     override var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null
     override var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null
 }
 
-internal class MutableColumnBuilderImpl<T>: ColumnBuilderImpl(), MutableColumnBuilder<T> {
-    override var editor: TableEditor<T>? = null
+internal class MutableColumnBuilderImpl<T, R>: ColumnBuilderImpl(), MutableColumnBuilder<T, R> {
+    override var editor: TableCellEditor<T, R>? = null
 }
 
 public interface CellInfo<T, R>: IndexedItem {
@@ -63,31 +63,31 @@ public interface MutableColumnFactory<T> {
         header       : View?,
         cellGenerator: CellVisualizer<T, Unit>,
         footer       : View? = null,
-        builder      : MutableColumnBuilder<T>.() -> Unit): Column<Unit> = column(header = header, footer = footer, extractor = {}, cellVisualizer = cellGenerator, builder = builder)
+        builder      : MutableColumnBuilder<T, Unit>.() -> Unit): Column<Unit> = column(header = header, footer = footer, extractor = {}, cellVisualizer = cellGenerator, builder = builder)
 
 
     public fun <R, C: Comparable<C>> column(
         header        : View?,
         extractor     : Extractor<T, R>,
         cellVisualizer: CellVisualizer<T, R>,
-        editor        : TableEditor<T>? = null,
-        sorter        : Sorter<T, C>?   = null,
-        footer        : View?           = null,
-        builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R>
+        editor        : TableCellEditor<T, R>? = null,
+        sorter        : Sorter<T, C>? = null,
+        footer        : View? = null,
+        builder       : MutableColumnBuilder<T, R>.() -> Unit): MutableColumn<T, R>
 
     public fun <R> column(
         header        : View?,
         extractor     : Extractor<T, R>,
         cellVisualizer: CellVisualizer<T, R>,
         footer        : View? = null,
-        builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header = header, footer = footer, extractor = extractor, cellVisualizer = cellVisualizer, editor = null, sorter = null as Sorter<T, Int>?, builder = builder)
+        builder       : MutableColumnBuilder<T, R>.() -> Unit): MutableColumn<T, R> = column(header = header, footer = footer, extractor = extractor, cellVisualizer = cellVisualizer, editor = null, sorter = null as Sorter<T, Int>?, builder = builder)
 
     public fun <R: Comparable<R>> column(
         header        : View?,
         extractor     : Extractor<T, R>,
         cellVisualizer: CellVisualizer<T, R>,
-        editor        : TableEditor<T>? = null,
-        sortable      : Boolean         = false,
-        footer        : View?           = null,
-        builder       : MutableColumnBuilder<T>.() -> Unit): MutableColumn<T, R> = column(header = header, footer = footer, extractor = extractor, cellVisualizer = cellVisualizer, editor = editor, sorter = if (sortable) extractor else null, builder = builder)
+        editor        : TableCellEditor<T, R>? = null,
+        sortable      : Boolean = false,
+        footer        : View? = null,
+        builder       : MutableColumnBuilder<T, R>.() -> Unit): MutableColumn<T, R> = column(header = header, footer = footer, extractor = extractor, cellVisualizer = cellVisualizer, editor = editor, sorter = if (sortable) extractor else null, builder = builder)
 }

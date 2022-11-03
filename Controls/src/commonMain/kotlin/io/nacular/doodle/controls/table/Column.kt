@@ -25,6 +25,6 @@ public interface Column<T> {
 }
 
 public interface MutableColumn<T, R>: Column<R> {
-    public var editor    : TableEditor<T>?
+    public var editor    : TableCellEditor<T, R>?
     public var comparator: Comparator<T>?
 }

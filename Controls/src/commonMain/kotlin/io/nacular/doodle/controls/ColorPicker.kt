@@ -170,7 +170,7 @@ public class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    eq min(parent.right - handle.width, max(0.0, parent.width * this@Strip.ratio - handle.width / 2))
+                it.left    eq min(parent.right.readOnly - handle.width, max(0.0, parent.width.readOnly * this@Strip.ratio - handle.width / 2))
                 it.centerY eq parent.centerY
                 it.height  eq parent.height
             }
@@ -222,17 +222,16 @@ public class ColorPicker(color: Color): View() {
     private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {
         private lateinit var fill: LinearGradientPaint
 
-        var hue = hue
-            set(new) {
-                if (field == new) { return }
+        var hue = hue; set(new) {
+            if (field == new) { return }
 
-                val old = field
-                field = new
+            val old = field
+            field = new
 
-                ratio = (new / (360 * degrees)).toFloat()
+            ratio = (new / (360 * degrees)).toFloat()
 
-                (changed as PropertyObserversImpl).forEach { it(this@HueStrip, old, field) }
-            }
+            (changed as PropertyObserversImpl).forEach { it(this@HueStrip, old, field) }
+        }
 
         init {
             changed_ += { _,_,new ->
@@ -264,27 +263,25 @@ public class ColorPicker(color: Color): View() {
 
         private lateinit var fill: LinearGradientPaint
 
-        var color = color
-            set(new) {
-                if (field == new) { return }
-                field   = new
-                updateFill()
-                value = color.opacity
+        var color = color; set(new) {
+            if (field == new) { return }
+            field   = new
+            updateFill()
+            value = color.opacity
 
-                rerender()
-            }
+            rerender()
+        }
 
-        var value = color.opacity
-            set(new) {
-                if (field == new) { return }
+        var value = color.opacity; set(new) {
+            if (field == new) { return }
 
-                val old = field
-                field = new
+            val old = field
+            field = new
 
-                ratio = new
+            ratio = new
 
-                (changed as PropertyObserversImpl).forEach { it(this@OpacityStrip, old, field) }
-            }
+            (changed as PropertyObserversImpl).forEach { it(this@OpacityStrip, old, field) }
+        }
 
         init {
             changed_ += { _,_,new ->

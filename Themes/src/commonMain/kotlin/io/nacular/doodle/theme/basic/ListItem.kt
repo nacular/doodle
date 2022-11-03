@@ -62,7 +62,7 @@ public open class ListItem<T>(
     public var insetTop : Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
     public var insetLeft: Double = 0.0
 
-    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = defaultPositioner
         set(new) {
             if (field == new) {
                 return
@@ -132,6 +132,7 @@ public open class ListItem<T>(
         }
 
         update(list, item, index)
+        layout = constrainLayout(children[0])
     }
 
     public fun update(list: ListLike, item: T, index: Int) {
@@ -162,6 +163,10 @@ public open class ListItem<T>(
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
         positioner(content.withOffset(left = insetLeft, top = insetTop))
+    }
+
+    protected companion object {
+        public val defaultPositioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
     }
 }
 

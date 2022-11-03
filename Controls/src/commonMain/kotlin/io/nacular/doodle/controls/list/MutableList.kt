@@ -153,6 +153,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
      */
     public override fun cancelEditing() {
         // FIXME: Cancel editing on selection/focus change
+        editOperation?.cancel()
         cleanupEditing()?.let { update(children, it) }
     }
 
@@ -175,7 +176,6 @@ public open class MutableList<T, M: MutableListModel<T>>(
     }
 
     private fun cleanupEditing(): Int? {
-        editOperation?.cancel()
         val result    = editingItem
         editOperation = null
         editingItem   = null

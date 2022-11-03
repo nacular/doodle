@@ -20,11 +20,11 @@ import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.container
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
-import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
@@ -32,6 +32,7 @@ import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyListener.Companion.released
 import io.nacular.doodle.event.KeyText.Companion.Enter
 import io.nacular.doodle.event.KeyText.Companion.Escape
 import io.nacular.doodle.event.PointerEvent
@@ -69,7 +70,10 @@ private class TableListRow<T>(
                     selectionBlurredColor: Color? = selectionColor): ListItem<T>(list, row, index, itemVisualizer, backgroundSelectionColor = selectionColor, backgroundSelectionBlurredColor = selectionBlurredColor) {
 
     private val alignmentChanged: (Column<*>) -> Unit = {
-        it.cellAlignment?.let { positioner = it }
+        positioner = when (val alignment = it.cellAlignment) {
+            null -> defaultPositioner
+            else -> alignment
+        }
     }
 
     init {
@@ -280,7 +284,11 @@ public open class BasicMutableTableBehavior<T>(
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
             toggled += {
-                if (table is MutableTable && column is MutableColumn<*,*>) {
+                if (table is MutableTable && column is MutableColumn<*,*> && column.comparator != null) {
+                    table.sortingChanged += { _,_,new ->
+                        sortOrder = if (new.size == 1 && new.first().column == column) new.first().order else null
+                    }
+
                     table.toggleSort(by = column as MutableColumn<T, *>)
                 }
             }
@@ -308,6 +316,7 @@ public open class TextEditOperation<T>(
         private val focusManager: FocusManager?,
         private val encoder     : Encoder<T, String>,
         private val table       : MutableTable<*, *>,
+        private val column      : Column<*>,
                     row         : T,
         private var index       : Int,
                     current     : View): TextField(), EditOperation<T> {
@@ -321,8 +330,9 @@ public open class TextEditOperation<T>(
         fitText             = setOf(Dimension.Width, Dimension.Height)
         borderVisible       = false
         foregroundColor     = current.foregroundColor
-        backgroundColor     = Transparent
+//        backgroundColor     = Transparent
         horizontalAlignment = HorizontalAlignment.Left
+        selectAll()
 
         styleChanged += { rerender() }
 
@@ -332,12 +342,10 @@ public open class TextEditOperation<T>(
             }
         }
 
-        keyChanged += object: KeyListener {
-            override fun released(event: KeyEvent) {
-                when (event.key) {
-                    Enter  -> { table.completeEditing(); focusManager?.requestFocus(table) }
-                    Escape -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
-                }
+        keyChanged += released {
+            when (it.key) {
+                Enter  -> { table.completeEditing(); focusManager?.requestFocus(table) }
+                Escape -> { table.cancelEditing  (); focusManager?.requestFocus(table) }
             }
         }
 
@@ -349,17 +357,15 @@ public open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke(): View = object: View() {
-        init {
-            children += this@TextEditOperation
+    override fun invoke(): View = container {
+        children += this@TextEditOperation
 
-            layout = constrain(this@TextEditOperation) {
-                it.centerY eq parent.centerY
-            }
+        layout = constrain(this@TextEditOperation) {
+            column.cellAlignment?.let { alignment -> alignment(it) }
         }
 
-        override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorPaint(it)) }
+        render = {
+            this@TextEditOperation.backgroundColor?.let { rect(bounds.atOrigin, ColorPaint(it)) }
         }
     }
 
@@ -370,11 +376,13 @@ public open class TextEditOperation<T>(
     }
 
     public companion object {
-        public operator fun invoke(focusManager: FocusManager?,
-                            table       : MutableTable<*, *>,
-                            row         : String,
-                            index       : Int,
-                            current     : View): TextEditOperation<String> = TextEditOperation(focusManager, PassThroughEncoder(), table, row, index, current)
+        public operator fun invoke(
+            focusManager: FocusManager?,
+            table       : MutableTable<*, *>,
+            column      : Column<*>,
+            row         : String,
+            index       : Int,
+            current     : View): TextEditOperation<String> = TextEditOperation(focusManager, PassThroughEncoder(), table, column, row, index, current)
     }
 }
 
@@ -383,7 +391,7 @@ public open class ColorEditOperation<T>(
         private val focusManager: FocusManager,
         private val table       : MutableTable<T, *>,
         private val index       : Int,
-                    value       : Color,
+        private val original    : Color,
         private val generator   : (Color) -> T,
         private val colorPicker : ColorPicker): EditOperation<Color>, KeyListener {
 
@@ -396,7 +404,7 @@ public open class ColorEditOperation<T>(
     }
 
     init {
-        colorPicker.color      = value
+        colorPicker.color      = original
         colorPicker.changed    += listener
         colorPicker.keyChanged += this
     }
@@ -412,10 +420,15 @@ public open class ColorEditOperation<T>(
     }
 
     override fun complete(): Result<Color> = success(colorPicker.color).also {
-        cancel()
+        cleanUp()
     }
 
     override fun cancel() {
+        cleanUp()
+        table[index] = generator(original)
+    }
+
+    private fun cleanUp() {
         colorPicker.keyChanged   -= this
         colorPicker.changed      -= listener
         display.children         -= colorPicker

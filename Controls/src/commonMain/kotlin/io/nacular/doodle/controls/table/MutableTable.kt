@@ -23,8 +23,30 @@ import kotlin.Result.Companion.failure
  * Created by Nicholas Eddy on 5/19/19.
  */
 
-public interface TableEditor<T> {
-    public operator fun <R> invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T>
+public interface TableCellEditor<T, R> {
+    public operator fun invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T>
+}
+
+/**
+ * Creates a [TableCellEditor] that modifies a single cell [R] within a row [T].
+ *
+ * @param cell extracts the cell within the row to be edited
+ * @param result constructs the new row based on the updated cell
+ * @param cellEditor an [EditOperation] for the cell
+ * @return a TableEditor
+ */
+public fun <T, R> simpleTableCellEditor(
+    cell      : T.(              ) -> R,
+    result    : T.(updatedCell: R) -> T,
+    cellEditor: (table: MutableTable<T, *>, column: MutableColumn<T, R>, cell: R, index: Int, current: View, result: (R) -> T) -> EditOperation<R>
+): TableCellEditor<T, R> = object: TableCellEditor<T, R> {
+    override fun invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T> = object: EditOperation<T> {
+        val delegate = cellEditor(table, column, cell(row), index, current) { result(row, it) }
+
+        override fun invoke  () = delegate()
+        override fun complete() = delegate.complete().map { result(row, it) }
+        override fun cancel  () = delegate.cancel()
+    }
 }
 
 public class MutableTable<T, M: MutableListModel<T>>(
@@ -47,7 +69,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
             private val extractor      : Extractor<T, R>,
                         firstColumn    : Boolean,
                         sorter         : Sorter<T, S>?,
-                        editor         : TableEditor<T>?
+                        editor         : TableCellEditor<T, R>?
     ): InternalListColumn<R>(header, headerAlignment, footer, footerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
 
         private inner class FieldModel<A>(model: M, extractor: Extractor<T, A>): InternalListColumn<R>.FieldModel<A>(model, extractor), MutableListModel<A> {
@@ -72,7 +94,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
             override fun                    sortWithDescending(comparator: Comparator<in A>) { /*NO-OP*/ }
         }
 
-        private inner class ListEditorAdapter(private val editor: TableEditor<T>): ListEditor<R> {
+        private inner class ListEditorAdapter(private val editor: TableCellEditor<T, R>): ListEditor<R> {
             override fun edit(list: MutableList<R, *>, item: R, index: Int, current: View): EditOperation<R> = editor(this@MutableTable, model[index].getOrNull()!!, this@MutableInternalListColumn, index, current).let {
                 object: EditOperation<R> {
                     override fun invoke  () = it.invoke  ()
@@ -105,7 +127,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     }
 
     private inner class MutableColumnFactoryImpl: MutableColumnFactory<T> {
-        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableEditor<T>?, sorter: Sorter<T, S>?, footer: View?, builder: MutableColumnBuilder<T>.() -> Unit) = MutableColumnBuilderImpl<T>().run {
+        override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableCellEditor<T, R>?, sorter: Sorter<T, S>?, footer: View?, builder: MutableColumnBuilder<T, R>.() -> Unit) = MutableColumnBuilderImpl<T, R>().run {
             builder(this)
 
             MutableInternalListColumn(header, headerAlignment, footer, footerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {
@@ -116,12 +138,16 @@ public class MutableTable<T, M: MutableListModel<T>>(
 
     init {
         MutableColumnFactoryImpl().apply(block)
+
+        model.changed += { _,diffs ->
+            updateSort()
+        }
     }
 
     public class Sorting<T>(public val column: MutableColumn<T, *>, public val order: SortOrder)
 
     /** Notifies changes to [sorting] */
-    public val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>(this) }
+    public val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl(this) }
 
     /** current sorting for the table default is ```emptyList()```.  */
     public var sorting: List<Sorting<T>> by observable(emptyList(), sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) { _,_ ->

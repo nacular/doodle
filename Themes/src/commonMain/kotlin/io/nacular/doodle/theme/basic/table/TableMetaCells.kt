@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.basic.table
 
 import io.nacular.doodle.controls.table.Column
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Gray
@@ -11,9 +12,13 @@ import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerListener.Companion.on
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.event.PointerMotionListener.Companion.on
+import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.inscribed
+import io.nacular.doodle.geometry.map
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.center
@@ -26,6 +31,11 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.SortOrder
+import io.nacular.doodle.utils.SortOrder.Ascending
+import io.nacular.doodle.utils.SortOrder.Descending
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 5/10/19.
@@ -76,7 +86,7 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
             }
         }
 
-        pointerChanged += PointerListener.on(
+        pointerChanged += on(
             entered  = {
                 if (!pointerDown) {
                     updateCursor(it)
@@ -152,6 +162,8 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
 
     public val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
 
+    internal var sortOrder: SortOrder? by renderProperty(null)
+
     override fun addedToDisplay() {
         super.addedToDisplay()
 
@@ -174,11 +186,25 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         val strokeColor = (fillColor?.inverted ?: Gray).let { if (enabled) it else disabledColorMapper(it) }
 
         canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(strokeColor, lineThickness))
+
+        when (sortOrder) {
+            Ascending  -> canvas.poly(ascending.map  { it + Point(width - iconCircle.radius - iconHeight, (height - iconHeight) / 2) - Point(iconCircle.center.x, ascendingTop    ) },  fill = strokeColor.paint) //canvas.text("+", at = Point(width - 10), color = strokeColor)
+            Descending -> canvas.poly(descending.map { it + Point(width - iconCircle.radius - iconHeight, (height + iconHeight) / 2) - Point(iconCircle.center.x, descendingBottom) }, fill = strokeColor.paint) //canvas.text("-", at = Point(width - 10), color = strokeColor)
+            else       -> {}
+        }
     }
 
     private companion object {
         private const val lineIndent    = 3.0
         private const val lineThickness = 1.0
+
+        private val iconCircle = Circle(center = Point(10, 10), radius = 5.0)
+
+        private val ascending        = iconCircle.inscribed(3)!!
+        private val descending       = iconCircle.inscribed(3, rotation = 180 * degrees)!!
+        private val ascendingTop     = ascending.points.minBy  { it.y }.y
+        private val descendingBottom = descending.points.maxBy { it.y }.y
+        private val iconHeight       = ascending.points.maxBy  { it.y }.y - ascendingTop
     }
 }
 
