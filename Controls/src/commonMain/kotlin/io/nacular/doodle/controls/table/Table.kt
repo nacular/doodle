@@ -145,14 +145,13 @@ public open class Table<T, M: ListModel<T>>(
     override val numItems: Int   get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
-    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
-        set(new) {
-            field = new
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy(); set(new) {
+        field = new
 
-            if (behavior != null) {
-                doLayout()
-            }
+        if (behavior != null) {
+            doLayout()
         }
+    }
 
     public var behavior: TableBehavior<T>? by behavior(
         beforeChange = { _, new ->

@@ -423,8 +423,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
         }
     }
 
-    public var model: M = model
-        private set
+    public var model: M = model; private set
 
     override val numRows: Int get() = tree.numRows
 
@@ -436,12 +435,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     override fun rowFromPath(path: Path<Int>): Int? = tree.rowFromPath(path)
 
-    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy()
-        set(new) {
-            field = new
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy(); set(new) {
+        field = new
 
-            relayout()
+        if (behavior != null) {
+            doLayout()
         }
+    }
 
     public var behavior: TreeTableBehavior<T>? by behavior(
         beforeChange = { _, new ->
