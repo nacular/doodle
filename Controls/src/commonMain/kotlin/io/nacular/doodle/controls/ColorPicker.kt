@@ -170,7 +170,7 @@ public class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    eq min(parent.right.readOnly - handle.width, max(0.0, parent.width.readOnly * this@Strip.ratio - handle.width / 2))
+                it.left    eq min(parent.right - handle.width, max(0.0, parent.width * this@Strip.ratio - handle.width / 2))
                 it.centerY eq parent.centerY
                 it.height  eq parent.height
             }

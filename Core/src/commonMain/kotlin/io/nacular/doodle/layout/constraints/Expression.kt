@@ -43,10 +43,11 @@ import kotlin.math.abs
  * @property terms (or variable-coefficient pairs) within the expression
  * @property constant value for the expression
  */
-public open class Expression internal constructor(vararg terms: Term, constant: Double = 0.0) {
-    internal val constant = constant + terms.filterIsInstance<ConstTerm>().sumOf { it.value }
+public open class Expression internal constructor(terms: Array<out Term>, constant: Double = 0.0) {
+    internal val constant = constant + terms.asSequence().filter { it.isConst }.sumOf { it.value }
 
     internal val terms = terms.filterIsInstance<VariableTerm>().toTypedArray()
+
     /**
      * Computed value of this expression
      */
@@ -121,6 +122,10 @@ public open class Expression internal constructor(vararg terms: Term, constant: 
     }
 
     internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
+
+    internal companion object {
+        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = Expression(terms, constant)
+    }
 }
 
 /**
@@ -128,11 +133,13 @@ public open class Expression internal constructor(vararg terms: Term, constant: 
  */
 public abstract class Term internal constructor(internal open val coefficient: Double = 1.0) {
     internal abstract val value: Double
+    internal abstract val isConst: Boolean
     internal abstract operator fun times(value: Number): Term
 }
 
 internal data class VariableTerm(val variable: Variable, override val coefficient: Double = 1.0): Term(coefficient) {
     override val value: Double get() = coefficient * variable()
+    override val isConst = false
 
     override fun times(value: Number) = VariableTerm(variable, coefficient * value.toDouble())
 
@@ -141,6 +148,7 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 
 internal class ConstTerm(val property: Property, override val coefficient: Double = 1.0): Term(coefficient) {
     override val value: Double get() = coefficient * property.readOnly
+    override val isConst = true
 
     override fun times(value: Number) = ConstTerm(property, coefficient * value.toDouble())
 

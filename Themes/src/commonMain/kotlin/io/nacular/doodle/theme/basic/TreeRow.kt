@@ -139,7 +139,7 @@ public class TreeRow<T>(
     private val iconConstraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { icon, content ->
         icon.width.preserve
         icon.right   eq iconWidth * (1 + depth)
-        icon.centerY eq parent.centerY.readOnly
+        icon.centerY eq parent.centerY
     }
 
     init {

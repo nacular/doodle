@@ -206,14 +206,14 @@ private fun <T> compareInternal(first: List<T>, second: List<T>, dualThreshold: 
     }
 
     // Trim off common prefix (speedup)
-    var commonLength = getCommonPrefix(first, second)
+    var commonLength = getCommonPrefix(first, second, by)
     val commonPrefix = first.subListOfSize(0, commonLength)
 
     var text1 = first.subListOfSize(commonLength)
     var text2 = second.subListOfSize(commonLength)
 
     // Trim off common suffix (speedup)
-    commonLength = getCommonSuffix(text1, text2)
+    commonLength = getCommonSuffix(text1, text2, by)
 
     val commonSuffix = text1.subListOfSize(text1.size - commonLength)
 
@@ -231,7 +231,7 @@ private fun <T> compareInternal(first: List<T>, second: List<T>, dualThreshold: 
         diffs.add(Equal(commonSuffix))
     }
 
-    cleanupMerge(diffs)
+    cleanupMerge(diffs, by)
     return diffs
 }
 
@@ -491,12 +491,12 @@ internal fun getFootprint(x: Int, y: Int): Long {
     return result
 }
 
-internal fun <T> getCommonPrefix(first: List<T>, second: List<T>): Int {
+internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> Boolean): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
     for (i in 0 until n) {
-        if (first[i] != second[i]) {
+        if (!by(first[i], second[i])) {
             return i
         }
     }
@@ -504,12 +504,12 @@ internal fun <T> getCommonPrefix(first: List<T>, second: List<T>): Int {
     return n
 }
 
-internal fun <T> getCommonSuffix(first: List<T>, second: List<T>): Int {
+internal fun <T> getCommonSuffix(first: List<T>, second: List<T>, by: (T, T) -> Boolean): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
     for (i in 1 .. n) {
-        if (first[first.size - i] != second[second.size - i]) {
+        if (!by(first[first.size - i], second[second.size - i])) {
             return i - 1
         }
     }
@@ -552,8 +552,8 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     var bestShortTextB = emptyList<T>()
 
     while (j < shortList.size && j != -1) {
-        val prefixLength = getCommonPrefix(longList.subListOfSize(index), shortList.subListOfSize(j))
-        val suffixLength = getCommonSuffix(longList.subListOfSize(0, index), shortList.subListOfSize(0, j))
+        val prefixLength = getCommonPrefix(longList.subListOfSize(   index), shortList.subListOfSize(   j), by)
+        val suffixLength = getCommonSuffix(longList.subListOfSize(0, index), shortList.subListOfSize(0, j), by)
 
         if (bestCommon.size < suffixLength + prefixLength) {
             bestCommon     = shortList.subListOfSize(j - suffixLength, suffixLength) + shortList.subListOfSize(j, prefixLength)
@@ -572,7 +572,7 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     }
 }
 
-internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
+internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>, by: (T, T) -> Boolean) {
     while (true) {
         diffs.add(Equal(emptyList())) // Add a dummy entry at the end.
         var pointer = 0
@@ -598,7 +598,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
                     if (countDelete != 0 || countInsert != 0) {
                         if (countDelete != 0 && countInsert != 0) {
                             // Factor out any common prefixes.
-                            var commonLength = getCommonPrefix(textInsert, textDelete)
+                            var commonLength = getCommonPrefix(textInsert, textDelete, by)
                             if (commonLength != 0) {
                                 if ((pointer - countDelete - countInsert) > 0 && diffs[pointer - countDelete - countInsert - 1] is Equal) {
                                     val diff = diffs[pointer - countDelete - countInsert - 1]
@@ -611,7 +611,7 @@ internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>) {
                                 textDelete = textDelete.subListOfSize(commonLength)
                             }
                             // Factor out any common suffixes.
-                            commonLength = getCommonSuffix(textInsert, textDelete)
+                            commonLength = getCommonSuffix(textInsert, textDelete, by)
                             if (commonLength != 0) {
                                 diffs[pointer].items = textInsert.subListOfSize(textInsert.size - commonLength) + diffs[pointer].items
                                 textInsert = textInsert.subListOfSize(0, textInsert.size - commonLength)

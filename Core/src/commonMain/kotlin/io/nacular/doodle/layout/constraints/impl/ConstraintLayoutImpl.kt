@@ -15,6 +15,10 @@ import io.nacular.doodle.layout.constraints.Edges
 import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
+import io.nacular.doodle.layout.constraints.ConstEdges
+import io.nacular.doodle.layout.constraints.ConstExpression
+import io.nacular.doodle.layout.constraints.ConstPosition
+import io.nacular.doodle.layout.constraints.ConstProperty
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.PropertyWrapper
@@ -40,28 +44,34 @@ import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty0
 
 private open class ParentBoundsImpl(val target: View, private val context: ConstraintDslContext): ParentBounds {
-    override val height  by lazy { ReflectionVariable(target, target::height, id = heightId) { max(0.0, it) } }
-    override val bottom  by lazy { with(context) { 0 + height     } }
-    override val centerY by lazy { with(context) { 0 + height / 2 } }
+    private val width_  by lazy { ReflectionVariable(target, target::width,  id = widthId ) { max(0.0, it) } }
+    private val height_ by lazy { ReflectionVariable(target, target::height, id = heightId) { max(0.0, it) } }
 
-    override val width   by lazy { ReflectionVariable(target, target::width, id = widthId) { max(0.0, it) } }
-    override val right   by lazy { with(context) { 0 + width     } }
-    override val centerX by lazy { with(context) { 0 + width / 2 } }
+    override val height  by lazy { ConstProperty  (height_)                           }
+    override val bottom  by lazy { ConstExpression(with(context) { 0 + height_     }) }
+    override val centerY by lazy { ConstExpression(with(context) { 0 + height_ / 2 }) }
 
-    override val center by lazy { Position(centerX, centerY) }
-    override val edges  by lazy { Edges(right = right, bottom = bottom) }
+    override val width   by lazy { ConstProperty  (width_)                           }
+    override val right   by lazy { ConstExpression(with(context) { 0 + width_     }) }
+    override val centerX by lazy { ConstExpression(with(context) { 0 + width_ / 2 }) }
+
+    override val center by lazy { ConstPosition(Position(centerX.writable, centerY.writable)) }
+    override val edges  by lazy { ConstEdges(Edges(right = right.writable, bottom = bottom.writable)) }
 }
 
-internal class ImmutableSizeBounds(width_: KProperty0<Double>, height_: KProperty0<Double>, private val context: ConstraintDslContext): ParentBounds {
-    override val width   = ReadOnlyProperty(width_ )
-    override val height  = ReadOnlyProperty(height_)
-    override val right   by lazy { with(context) { 0 + width      } }
-    override val bottom  by lazy { with(context) { 0 + height     } }
-    override val centerX by lazy { with(context) { 0 + width  / 2 } }
-    override val centerY by lazy { with(context) { 0 + height / 2 } }
+internal class ImmutableSizeBounds(widthProperty: KProperty0<Double>, heightProperty: KProperty0<Double>, private val context: ConstraintDslContext): ParentBounds {
+    private val width_   = ReadOnlyProperty(widthProperty )
+    private val height_  = ReadOnlyProperty(heightProperty)
 
-    override val center  by lazy { Position(centerX, centerY) }
-    override val edges   by lazy { Edges(right = right, bottom = bottom) }
+    override val width   = ConstProperty(width_ )
+    override val height  = ConstProperty(height_)
+    override val right   by lazy { ConstExpression(with(context) { 0 + width_      }) }
+    override val bottom  by lazy { ConstExpression(with(context) { 0 + height_     }) }
+    override val centerX by lazy { ConstExpression(with(context) { 0 + width_  / 2 }) }
+    override val centerY by lazy { ConstExpression(with(context) { 0 + height_ / 2 }) }
+
+    override val center  by lazy { ConstPosition(Position(centerX.writable, centerY.writable)) }
+    override val edges   by lazy { ConstEdges(Edges(right = right.writable, bottom = bottom.writable)) }
 }
 
 internal open class BoundsImpl(private val target: View, private val context: ConstraintDslContext): Bounds {
@@ -189,7 +199,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             parent = when (container) {
                 is View                         -> ParentBoundsImpl   (container,      this                                        ).also { parent_ = container      }
                 is PositionableContainerWrapper -> ParentBoundsImpl   (container.view, this                                        ).also { parent_ = container.view }
-                else                            -> ImmutableSizeBounds(width_ = container::width, height_ = container::height, this)
+                else                            -> ImmutableSizeBounds(widthProperty = container::width, heightProperty = container::height, this)
             }
         }
 
@@ -278,9 +288,9 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 }
 
                 val strength = when {
-                    variable == context.parent.width || variable == context.parent.height -> Strength(Required.value - 1)
-                    variable is ReflectionVariable && variable.target in updatedBounds    -> Strength(100)
-                    else                                                                  -> Weak
+                    variable == context.parent.width.writable || variable == context.parent.height.writable -> Strength(Required.value - 1).also { println("parent property: $variable") }
+                    variable is ReflectionVariable && variable.target in updatedBounds                      -> Strength(100)
+                    else                                                                                    -> Weak
                 }
 
                 try {
@@ -402,18 +412,18 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
 
             activeBounds.addAll(updatedBounds)
 
-            (context.parent.width as? Variable)?.let {
+            (context.parent.width.writable as? Variable)?.let {
                 try {
                     if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.width.readOnly)
+                        solver.suggestValue(it, context.parent.width.writable.readOnly)
                     }
                 } catch (ignore: Exception) {}
             }
 
-            (context.parent.height as? Variable)?.let {
+            (context.parent.height.writable as? Variable)?.let {
                 try {
                     if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.height.readOnly)
+                        solver.suggestValue(it, context.parent.height.writable.readOnly)
                     }
                 } catch (ignore: Exception) {}
             }

@@ -307,6 +307,23 @@ class ConstraintLayoutTests {
         expect(listOf(Rectangle(0, 0, 100, 100), Rectangle(1, 1, 100, 100), Rectangle(2, 2, 100, 100))) { listOf(view1, view2, view3).map { it.bounds } }
     }
 
+    @Test fun `mutable works`() {
+        val view = view {}
+
+        val container = container {
+            this   += view
+            width   = 100.0
+            height  = 100.0
+            layout  = constrain(view) {
+                it.width eq parent.width.writable
+            }
+        }
+
+        container.doLayout_()
+
+        expect(100.0) { view.width }
+    }
+
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
     }
