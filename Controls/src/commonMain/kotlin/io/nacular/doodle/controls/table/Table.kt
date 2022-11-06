@@ -263,8 +263,8 @@ public open class Table<T, M: ListModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints  = { max(content?.idealSize?.width  ?: it.width.readOnly,  width ) - verticalScrollBarWidth }
-            contentHeightConstraints = { max(content?.idealSize?.height ?: it.height.readOnly, height) }
+            contentWidthConstraints  = { it eq max(content?.idealSize?.width  ?: it.readOnly, width ) - verticalScrollBarWidth }
+            contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
 
             scrollBarDimensionsChanged += {
                 doLayout()

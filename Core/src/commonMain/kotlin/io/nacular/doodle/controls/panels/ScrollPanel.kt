@@ -14,8 +14,10 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -118,7 +120,7 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.width ?: it.width.readOnly }
+    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.width ?: it.readOnly) }
         set(new) {
             field = new
 
@@ -126,7 +128,7 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ConstraintDslContext.(Bounds) -> Double = { content?.idealSize?.height ?: it.height.readOnly }
+    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.height ?: it.readOnly) }
         set(new) {
             field = new
 
@@ -168,8 +170,8 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
-        it.width  eq max(0.0, contentWidthConstraints (it))
-        it.height eq max(0.0, contentHeightConstraints(it))
+        contentWidthConstraints (it.width )
+        contentHeightConstraints(it.height)
     }
 
     private var ignoreLayout = false

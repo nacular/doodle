@@ -375,8 +375,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
-        contentWidthConstraints  = { width - verticalScrollBarWidth }
-        contentHeightConstraints = { max(content?.minimumSize?.height ?: 0.0, height) }
+        contentWidthConstraints  = { it eq width - verticalScrollBarWidth                   }
+        contentHeightConstraints = { it eq max(content?.minimumSize?.height ?: 0.0, height) }
 
 //        sizePreferencesChanged += { _,_,_ ->
 //            idealSize?.let { width = it.width }

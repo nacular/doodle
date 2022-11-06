@@ -491,7 +491,7 @@ internal fun getFootprint(x: Int, y: Int): Long {
     return result
 }
 
-internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> Boolean): Int {
+internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
@@ -504,7 +504,7 @@ internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> 
     return n
 }
 
-internal fun <T> getCommonSuffix(first: List<T>, second: List<T>, by: (T, T) -> Boolean): Int {
+internal fun <T> getCommonSuffix(first: List<T>, second: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
@@ -572,7 +572,7 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     }
 }
 
-internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>, by: (T, T) -> Boolean) {
+internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>, by: (T, T) -> Boolean = { a, b -> a == b }) {
     while (true) {
         diffs.add(Equal(emptyList())) // Add a dummy entry at the end.
         var pointer = 0

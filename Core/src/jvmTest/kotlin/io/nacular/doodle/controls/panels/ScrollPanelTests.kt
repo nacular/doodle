@@ -226,7 +226,7 @@ class ScrollPanelTests {
     fun `width constraints work`() {
         val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
-            contentWidthConstraints = { parent.width.writable.readOnly }
+            contentWidthConstraints = { it eq parent.width }
         }
 
         panel.width = 300.0
@@ -239,7 +239,7 @@ class ScrollPanelTests {
     fun `height constraints work`() {
         val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
-            contentHeightConstraints = { parent.height.writable.readOnly / 2 }
+            contentHeightConstraints = { it eq parent.height / 2 }
         }
 
         panel.height = 650.0
