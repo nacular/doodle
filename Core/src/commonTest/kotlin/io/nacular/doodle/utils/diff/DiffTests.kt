@@ -63,13 +63,17 @@ class DiffTests {
         cleanupMerge(diffs)
         expect(listOf(makeDiff(Insert, "abc"))) { diffs }
 
+        diffs = mutableListOf(makeDiff(Delete, "0"), makeDiff(Equal, "1"), makeDiff(Insert, "11"), makeDiff(Delete, "0"))
+        cleanupMerge(diffs)
+        expect(listOf(makeDiff(Delete, "0"), makeDiff(Equal, "1"), makeDiff(Delete, "0"), makeDiff(Insert, "11"))) { diffs }
+
         diffs = mutableListOf(makeDiff(Delete, "a"), makeDiff(Insert, "b"), makeDiff(Delete, "c"), makeDiff(Insert, "d"), makeDiff(Equal, "e"), makeDiff(Equal, "f"))
         cleanupMerge(diffs)
         expect(listOf(makeDiff(Delete, "ac"), makeDiff(Insert, "bd"), makeDiff(Equal, "ef"))) { diffs }
 
         diffs = mutableListOf(makeDiff(Delete, "a"), makeDiff(Insert, "abc"), makeDiff(Delete, "dc"))
         cleanupMerge(diffs)
-        expect(listOf(makeDiff(Equal, "a"), makeDiff(Delete, "d"), makeDiff(Insert, "b"), makeDiff(Equal, "c"))) { diffs }
+        expect(listOf(makeDiff(Equal, "a"), makeDiff(Delete, "dc"), makeDiff(Insert, "bc"))) { diffs }
 
         diffs = mutableListOf(makeDiff(Equal, "a"), makeDiff(Insert, "ba"), makeDiff(Equal, "c"))
         cleanupMerge(diffs)
@@ -240,6 +244,12 @@ class DiffTests {
             Equal ('C'    ),
             Delete('D','E').apply { setDestination('D', 1); setDestination('E', 3) },
         ))) { differences.computeMoves() }
+    }
+
+    @Test @JsName("computesMiddleUnchanged") fun `computes middle unchanged`() {
+        val differences = compare("010".toList(), "111".toList())
+
+        expect(Differences(listOf(Delete('0'), Equal('1'), Delete('0'), Insert('1','1')))) { differences }
     }
 
     private fun makeDiff(operation: Operation, string: String) = when(operation) {

@@ -410,6 +410,18 @@ class ObservableListTests {
         }
     }
 
+    @Test fun `change keep middle works`() {
+        validateChanges(ObservableList(listOf(0, 1, 0))) { list, changed ->
+            list.batch {
+                this[0] = 1
+                this[2] = 1
+            }
+
+            expect(listOf(1,1,1)) { list }
+            verify(exactly = 1) { changed(list, Differences(listOf(Delete(0), Equal(1), Delete(0), Insert(1, 1)))) }
+        }
+    }
+
     private fun <T> validateChanges(list: ObservableList<T>, block: (ObservableList<T>, ListObserver<ObservableList<T>, T>) -> Unit) {
         val changed = mockk<ListObserver<ObservableList<T>, T>>()
 

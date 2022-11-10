@@ -48,6 +48,8 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                 val removes         = mutableListOf<Int>()
                 val filteredChanges = mutableListOf<Difference<E>>()
 
+                var previous = diffs.firstOrNull()
+
                 diffs.forEach { difference ->
 
                     // Compute filtered differences
@@ -80,20 +82,25 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                     // Compute adds/removes to adjust source-index mapping
                     when (difference) {
                         is Delete -> {
-                            removes += List(difference.items.size) { i -> indexInSource + i }
-                            indexInSource   += difference.items.size
+                            removes       += List(difference.items.size) { i -> indexInSource + i }
+                            indexInSource += difference.items.size
                         }
 
                         is Insert -> {
                             difference.items.indices.forEach { itemIndex ->
-                                adds += indexInSource + itemIndex - removes.size
+                                adds += indexInSource - removes.size
 
                                 ++indexInSource
+                            }
+                            (previous as? Delete)?.let{
+                                indexInSource -= it.items.size
                             }
                         }
 
                         else      -> indexInSource += difference.items.size
                     }
+
+                    previous = difference
                 }
 
                 filteredDiffs = Differences(filteredChanges)
@@ -110,6 +117,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
     }
 
     override val size: Int get() = indexToSource.size
+    override fun isEmpty(): Boolean = size == 0
 
     override fun get(index: Int): E = source[indexToSource[index]]
 
@@ -284,7 +292,9 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         }
 
         while(j >= 0) {
-            indexToSource.addOrAppend(insertionIndex(added[j]), added[j])
+            if (filter?.invoke(source[added[j]]) != false) {
+                indexToSource.addOrAppend(insertionIndex(added[j]), added[j])
+            }
             --j
         }
     }

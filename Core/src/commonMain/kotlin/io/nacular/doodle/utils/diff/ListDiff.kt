@@ -5,7 +5,8 @@ import io.nacular.doodle.utils.fastMutableMapOf
 import kotlin.math.min
 
 /**
- * Classes are derived works from [https://github.com/danielearwicker/ListDiff]
+ * Classes are derived works from [https://github.com/danielearwicker/ListDiff] and
+ * [https://github.com/google/diff-match-patch/blob/master/java/src/name/fraser/neil/plaintext/diff_match_patch.java]
  */
 
 /**
@@ -283,7 +284,7 @@ private fun <T> compute(first: List<T>, second: List<T>, dualThreshold: Int, equ
     return getMap(first, second, dualThreshold, equality) ?: mutableListOf(Delete(first), Insert(second))
 }
 
-private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: (T, T) -> Boolean): MutableList<Difference<T>>? {
+private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, equal: (T, T) -> Boolean): MutableList<Difference<T>>? {
     // Cache the Items lengths to prevent multiple calls.
     val firstLength  = first.size
     val secondLength = second.size
@@ -319,7 +320,7 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
                     footsteps[footstep] = d
                 }
             }
-            while (!done && x < firstLength && y < secondLength && by(first[x], second[y])) {
+            while (!done && x < firstLength && y < secondLength && equal(first[x], second[y])) {
                 ++x
                 ++y
                 if (doubleEnd) {
@@ -368,7 +369,7 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, by: 
                 if (front) {
                     footsteps[footstep] = d
                 }
-                while (!done && x < firstLength && y < secondLength && by(first[firstLength - x - 1], second[secondLength - y - 1])) {
+                while (!done && x < firstLength && y < secondLength && equal(first[firstLength - x - 1], second[secondLength - y - 1])) {
                     ++x
                     ++y
                     footstep = getFootprint(firstLength - x, secondLength - y)
@@ -491,12 +492,12 @@ internal fun getFootprint(x: Int, y: Int): Long {
     return result
 }
 
-internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Int {
+internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, equal: (T, T) -> Boolean = { a, b -> a == b }): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
     for (i in 0 until n) {
-        if (!by(first[i], second[i])) {
+        if (!equal(first[i], second[i])) {
             return i
         }
     }
@@ -504,19 +505,19 @@ internal fun <T> getCommonPrefix(first: List<T>, second: List<T>, by: (T, T) -> 
     return n
 }
 
-internal fun <T> getCommonSuffix(first: List<T>, second: List<T>, by: (T, T) -> Boolean = { a, b -> a == b }): Int {
+internal fun <T> getCommonSuffix(first: List<T>, second: List<T>, equal: (T, T) -> Boolean = { a, b -> a == b }): Int {
     // Performance analysis: http://neil.fraser.name/news/2007/10/09/
     val n = min(first.size, second.size)
 
     for (i in 1 .. n) {
-        if (!by(first[first.size - i], second[second.size - i])) {
+        if (!equal(first[first.size - i], second[second.size - i])) {
             return i - 1
         }
     }
     return n
 }
 
-internal fun <T> getHalfMatch(first: List<T>, second: List<T>, by: (T, T) -> Boolean): Array<List<T>>? {
+internal fun <T> getHalfMatch(first: List<T>, second: List<T>, equal: (T, T) -> Boolean): Array<List<T>>? {
     val longText  = if (first.size > second.size) first else second
     val shortText = if (first.size > second.size) second else first
 
@@ -525,10 +526,10 @@ internal fun <T> getHalfMatch(first: List<T>, second: List<T>, by: (T, T) -> Boo
     }
 
     // First check if the second quarter is the seed for a half-match.
-    val hm1 = getHalfMatchI(longText, shortText, (longText.size + 3) / 4, by)
+    val hm1 = getHalfMatchI(longText, shortText, (longText.size + 3) / 4, equal)
 
     // Check again based on the third quarter.
-    val hm2 = getHalfMatchI(longText, shortText, (longText.size + 1) / 2, by)
+    val hm2 = getHalfMatchI(longText, shortText, (longText.size + 1) / 2, equal)
 
     val hm = when {
         hm1 == null && hm2 == null -> return null
@@ -541,10 +542,10 @@ internal fun <T> getHalfMatch(first: List<T>, second: List<T>, by: (T, T) -> Boo
     return if (first.size > second.size) hm else arrayOf(hm[2], hm[3], hm[0], hm[1], hm[4])
 }
 
-private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int, by: (T, T) -> Boolean): Array<List<T>>? {
+private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int, equal: (T, T) -> Boolean): Array<List<T>>? {
     // Start with a 1/4 length Substring at position i as a seed.
     val seed = longList.subListOfSize(index, longList.size / 4)
-    var j = shortList.indexOf(seed, 0, by)
+    var j = shortList.indexOf(seed, 0, equal)
     var bestCommon     = emptyList<T>()
     var bestLongTextA  = emptyList<T>()
     var bestLongTextB  = emptyList<T>()
@@ -552,8 +553,8 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     var bestShortTextB = emptyList<T>()
 
     while (j < shortList.size && j != -1) {
-        val prefixLength = getCommonPrefix(longList.subListOfSize(   index), shortList.subListOfSize(   j), by)
-        val suffixLength = getCommonSuffix(longList.subListOfSize(0, index), shortList.subListOfSize(0, j), by)
+        val prefixLength = getCommonPrefix(longList.subListOfSize(   index), shortList.subListOfSize(   j), equal)
+        val suffixLength = getCommonSuffix(longList.subListOfSize(0, index), shortList.subListOfSize(0, j), equal)
 
         if (bestCommon.size < suffixLength + prefixLength) {
             bestCommon     = shortList.subListOfSize(j - suffixLength, suffixLength) + shortList.subListOfSize(j, prefixLength)
@@ -563,7 +564,7 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
             bestShortTextB = shortList.subListOfSize(j + prefixLength)
         }
 
-        j = shortList.indexOf(seed, j + 1, by)
+        j = shortList.indexOf(seed, j + 1, equal)
     }
 
     return when {
@@ -572,108 +573,148 @@ private fun <T> getHalfMatchI(longList: List<T>, shortList: List<T>, index: Int,
     }
 }
 
-internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>, by: (T, T) -> Boolean = { a, b -> a == b }) {
-    while (true) {
-        diffs.add(Equal(emptyList())) // Add a dummy entry at the end.
-        var pointer = 0
-        var countDelete = 0
-        var countInsert = 0
-        var textDelete = emptyList<T>()
-        var textInsert = emptyList<T>()
+internal fun <T> cleanupMerge(diffs: MutableList<Difference<T>>, equal: (T, T) -> Boolean = { a, b -> a == b }) {
+    diffs.add(Equal(emptyList())) // Add a dummy entry at the end.
+    var pointer     = diffs.listIterator()
+    var countDelete = 0
+    var countInsert = 0
+    var itemsDelete = emptyList<T>()
+    var itemsInsert = emptyList<T>()
+    var thisDiff    = pointer.next() as Difference<T>?
+    var prevEqual   = null as Difference<T>?
+    var commonLength: Int
 
-        while (pointer < diffs.size) {
-            when(diffs[pointer]) {
-                is Insert -> {
-                    ++countInsert
-                    textInsert = textInsert + diffs[pointer].items
-                    ++pointer
-                }
-                is Delete -> {
-                    ++countDelete
-                    textDelete = textDelete + diffs[pointer].items
-                    ++pointer
-                }
-                is Equal -> {
-                    // Upon reaching an equality, check for prior redundancies.
-                    if (countDelete != 0 || countInsert != 0) {
-                        if (countDelete != 0 && countInsert != 0) {
-                            // Factor out any common prefixes.
-                            var commonLength = getCommonPrefix(textInsert, textDelete, by)
-                            if (commonLength != 0) {
-                                if ((pointer - countDelete - countInsert) > 0 && diffs[pointer - countDelete - countInsert - 1] is Equal) {
-                                    val diff = diffs[pointer - countDelete - countInsert - 1]
-                                    diff.items = diff.items + textInsert.subListOfSize(0, commonLength)
-                                } else {
-                                    diffs.add(0, Equal(textInsert.subListOfSize(0, commonLength)))
-                                    ++pointer
-                                }
-                                textInsert = textInsert.subListOfSize(commonLength)
-                                textDelete = textDelete.subListOfSize(commonLength)
-                            }
-                            // Factor out any common suffixes.
-                            commonLength = getCommonSuffix(textInsert, textDelete, by)
-                            if (commonLength != 0) {
-                                diffs[pointer].items = textInsert.subListOfSize(textInsert.size - commonLength) + diffs[pointer].items
-                                textInsert = textInsert.subListOfSize(0, textInsert.size - commonLength)
-                                textDelete = textDelete.subListOfSize(0, textDelete.size - commonLength)
-                            }
-                        }
-                        // Delete the offending records and add the merged ones.
-                        when {
-                            countDelete == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Insert(textInsert))
-                            countInsert == 0 -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Delete(textDelete))
-                            else             -> diffs.splice(pointer - countDelete - countInsert, countDelete + countInsert, Delete(textDelete), Insert(textInsert))
-                        }
-                        pointer = pointer - countDelete - countInsert + if(countDelete != 0)  1 else 0 + if(countInsert != 0)  1 else 0 + 1
-                    } else if (pointer != 0 && diffs[pointer - 1] is Equal) {
-                        // Merge this equality with the previous one.
-                        diffs[pointer - 1].items = diffs[pointer - 1].items + diffs[pointer].items
-                        diffs.removeAt(pointer)
-                    } else {
-                        ++pointer
+    while (thisDiff != null) {
+        when (thisDiff) {
+            is Insert -> {
+                countInsert++
+                itemsInsert = itemsInsert + thisDiff.items
+                prevEqual = null
+            }
+
+            is Delete -> {
+                countDelete++
+                itemsDelete = itemsDelete + thisDiff.items
+                prevEqual = null
+            }
+
+            else -> {
+                if (countDelete + countInsert > 1) {
+                    val bothTypes = countDelete != 0 && countInsert != 0
+                    // Delete the offending records.
+                    pointer.previous() // Reverse direction.
+                    while (countDelete-- > 0) {
+                        pointer.previous()
+                        pointer.remove()
                     }
-                    countInsert = 0
-                    countDelete = 0
-                    textDelete = emptyList()
-                    textInsert = emptyList()
+                    while (countInsert-- > 0) {
+                        pointer.previous()
+                        pointer.remove()
+                    }
+                    if (bothTypes) {
+                        // Factor out any common prefixies.
+                        commonLength = getCommonPrefix(itemsInsert, itemsDelete, equal)
+                        if (commonLength != 0) {
+                            when {
+                                pointer.hasPrevious() -> {
+                                    thisDiff = pointer.previous()
+//                                    require(thisDiff is Equal) { "Previous diff should have been an equality." }
+                                    thisDiff.items += itemsInsert.subListOfSize(0, commonLength)
+                                    pointer.next()
+                                }
+                                else                  -> pointer.add(Equal(itemsInsert.subListOfSize(0, commonLength)))
+                            }
+                            itemsInsert = itemsInsert.subListOfSize(commonLength)
+                            itemsDelete = itemsDelete.subListOfSize(commonLength)
+                        }
+                        // Factor out any common suffixies.
+                        commonLength = getCommonPrefix(itemsInsert, itemsDelete, equal)
+                        if (commonLength != 0) {
+                            thisDiff       = pointer.next()
+                            thisDiff.items = itemsInsert.subListOfSize(itemsInsert.size - commonLength) + thisDiff.items
+                            itemsInsert    = itemsInsert.subListOfSize(0, (itemsInsert.size - commonLength))
+                            itemsDelete    = itemsDelete.subListOfSize(0, (itemsDelete.size - commonLength))
+                            pointer.previous()
+                        }
+                    }
+                    // Insert the merged records.
+                    if (itemsDelete.isNotEmpty()) {
+                        pointer.add(Delete(itemsDelete))
+                    }
+                    if (itemsInsert.isNotEmpty()) {
+                        pointer.add(Insert(itemsInsert))
+                    }
+                    // Step forward to the equality.
+                    thisDiff = if (pointer.hasNext()) pointer.next() else null
+                } else if (prevEqual != null) {
+                    // Merge this equality with the previous one.
+                    prevEqual.items += thisDiff.items
+                    pointer.remove()
+                    thisDiff = pointer.previous()
+                    pointer.next() // Forward direction
                 }
+
+                countInsert = 0
+                countDelete = 0
+                itemsDelete = emptyList()
+                itemsInsert = emptyList()
+                prevEqual   = thisDiff
             }
         }
 
-        if (diffs[diffs.size - 1].items.isEmpty()) {
-            diffs.removeAt(diffs.size - 1) // Remove the dummy entry at the end.
-        }
+        thisDiff = if (pointer.hasNext()) pointer.next() else null
+    }
 
-        // Second pass: look for single edits surrounded on both sides by equalities
-        // which can be shifted sideways to eliminate an equality.
-        // e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
-        var changes = false
-        pointer = 1
-        // Intentionally ignore the first and last element (don't need checking).
-        while (pointer < (diffs.size - 1)) {
-            if (diffs[pointer - 1] is Equal && diffs[pointer + 1] is Equal) {
-                // This is a single edit surrounded by equalities.
-                if (diffs[pointer].items.endsWith(diffs[pointer - 1].items)) {
-                    // Shift the edit over the previous equality.
-                    diffs[pointer].items = diffs[pointer - 1].items + diffs[pointer].items.subListOfSize(0, diffs[pointer].items.size - diffs[pointer - 1].items.size)
-                    diffs[pointer + 1].items = diffs[pointer - 1].items + diffs[pointer + 1].items
-                    diffs.splice(pointer - 1, 1)
-                    changes = true
-                } else if (diffs[pointer].items.startsWith(diffs[pointer + 1].items)) {
-                    // Shift the edit over the next equality.
-                    diffs[pointer - 1].items = diffs[pointer - 1].items + diffs[pointer + 1].items
-                    diffs[pointer].items = diffs[pointer].items.subListOfSize(diffs[pointer + 1].items.size) + diffs[pointer + 1].items
-                    diffs.splice(pointer + 1, 1)
-                    changes = true
-                }
+    if (diffs.lastOrNull()?.items?.isEmpty() == true) {
+        diffs.removeLast() // Remove the dummy entry at the end.
+    }
+
+    /*
+     * Second pass: look for single edits surrounded on both sides by equalities
+     * which can be shifted sideways to eliminate an equality.
+     * e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
+     */
+    var changes = false
+
+    // Create a new iterator at the start. (As opposed to walking the current one back.)
+    pointer      = diffs.listIterator()
+    var prevDiff = if (pointer.hasNext()) pointer.next() else null
+    thisDiff     = if (pointer.hasNext()) pointer.next() else null
+    var nextDiff = if (pointer.hasNext()) pointer.next() else null
+
+    // Intentionally ignore the first and last element (don't need checking).
+    while (nextDiff != null) {
+        if (prevDiff is Equal && nextDiff is Equal) {
+            // This is a single edit surrounded by equalities.
+            if (thisDiff?.items?.endsWith(prevDiff.items) == true) {
+                // Shift the edit over the previous equality.
+                thisDiff.items = (prevDiff.items + thisDiff.items.subListOfSize(0, thisDiff.items.size - prevDiff.items.size))
+                nextDiff.items = prevDiff.items + nextDiff.items
+                pointer.previous() // Walk past nextDiff.
+                pointer.previous() // Walk past thisDiff.
+                pointer.previous() // Walk past prevDiff.
+                pointer.remove  () // Delete prevDiff.
+                pointer.next    () // Walk past thisDiff.
+                thisDiff = pointer.next() // Walk past nextDiff.
+                nextDiff = if (pointer.hasNext()) pointer.next() else null
+                changes = true
+            } else if (thisDiff?.items?.startsWith(nextDiff.items) == true) {
+                // Shift the edit over the next equality.
+                prevDiff.items += nextDiff.items
+                thisDiff.items = (thisDiff.items.subListOfSize(nextDiff.items.size) + nextDiff.items)
+                pointer.remove() // Delete nextDiff.
+                nextDiff = if (pointer.hasNext()) pointer.next() else null
+                changes = true
             }
-            ++pointer
         }
-        // If shifts were made, the diff needs reordering and another shift sweep.
-        if (changes) {
-            continue
-        }
-        break
+        prevDiff = thisDiff
+        thisDiff = nextDiff
+        nextDiff = if (pointer.hasNext()) pointer.next() else null
+    }
+
+    // If shifts were made, the diff needs reordering and another shift sweep.
+    if (changes) {
+        cleanupMerge(diffs, equal)
     }
 }
 
@@ -685,13 +726,6 @@ private fun <T> List<T>.isEqual(other: List<T>, by: (T, T) -> Boolean = { a, b -
     }
 
     return true
-}
-
-private fun <T> MutableList<T>.splice(start: Int, count: Int, vararg items: T): MutableList<T> {
-    val deletedRange = subList(start, start + count)
-    removeAll(deletedRange)
-    addAll(start, items.toList())
-    return deletedRange
 }
 
 private fun <T> List<T>.startsWith(other: List<T>) = size >= other.size && take(other.size) == other

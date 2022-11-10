@@ -311,6 +311,42 @@ class FilteredListTests {
         verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,2,4), Insert(6)))) }
 
         expect(listOf(1,3,5,6)) { source }
+        expect(1) { filteredList.size }
+    }
+
+    @Test fun `first becomes filtered when not filtered works`() {
+        val source   = ObservableList(listOf(0,2,4))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+            changed += listener
+        }
+
+        source[0] = 1
+
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0), Equal(2,4)))) }
+
+        expect(listOf(2,4)) { filteredList.toList() }
+        expect(2) { filteredList.size }
+    }
+
+    @Test fun `change first when filtered works`() {
+        val source   = ObservableList(listOf(0,1,2,3,4,5))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            changed += listener
+        }
+
+        source.batch {
+            clear()
+            addAll(listOf(6,7,8,9))
+        }
+
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0,1,2,3,4,5), Insert(6,7,8,9)))) }
+
+        expect(listOf(6,7,8,9)) { source }
     }
 
     @Test fun `index out of bounds for get`() {
@@ -323,5 +359,45 @@ class FilteredListTests {
         assertThrows<IndexOutOfBoundsException> {
             filteredList[3]
         }
+    }
+
+    @Test fun `change ends when filtered works`() {
+        val source  = ObservableList(listOf(0, 1, 2))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+            changed += listener
+        }
+
+        source.batch {
+            this[0] = 3
+            this[2] = 5
+        }
+
+        expect(listOf(3,1,5)) { source }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0, 2)))) }
+        expect(0) { filteredList.size }
+        expect(true) { filteredList.isEmpty() }
+    }
+
+    @Test fun `change same ends when filtered works`() {
+        val source   = ObservableList(listOf(0, 1, 0))
+        val listener = mockk<ListObserver<ObservableList<Int>, Int>>()
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+            changed += listener
+        }
+
+        source.batch {
+            this[0] = 1
+            this[2] = 1
+        }
+
+        expect(listOf(1,1,1)) { source }
+        verify(exactly = 1) { listener(filteredList, Differences(listOf(Delete(0, 0)))) }
+        expect(0) { filteredList.size }
+        expect(true) { filteredList.isEmpty() }
     }
 }
