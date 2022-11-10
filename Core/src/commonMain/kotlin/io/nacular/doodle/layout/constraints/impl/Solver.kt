@@ -340,11 +340,34 @@ internal class Solver {
         edits.remove(variable)
     }
 
+    fun suggestValue(variable: Variable, value: Double) {
+        val info      = edits[variable] ?: throw UnknownEditVariableException()
+        val delta     = value - info.constant
+        info.constant = value
+
+        if (delta != 0.0) {
+            updateRow(rows[info.tag.marker], info.tag, delta)
+        }
+    }
+
     fun updateConstant(old: Constraint, new: Constraint) {
-        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
-        constraints[new] = tag
-        var row   = rows[tag.marker]
-        val delta = new.expression.constant - old.expression.constant
+        if (old.strength < Required) {
+            // FIXME: Need to figure out how to do an update on such a constraint
+            removeConstraint(old)
+            addConstraint   (new)
+        } else {
+            val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
+            val delta = new.expression.constant - old.expression.constant
+            constraints[new] = tag
+
+            if (delta != 0.0) {
+                updateRow(rows[tag.marker], tag, delta)
+            }
+        }
+    }
+
+    private fun updateRow(row: Row?, tag: Tag, delta: Double) {
+        @Suppress("NAME_SHADOWING") var row = row
 
         if (row != null) {
             if (row.add(-delta) < 0.0) {
@@ -370,48 +393,6 @@ internal class Solver {
                 when {
                     currentRow.symbol != null -> {
                         val coefficient = currentRow.coefficientFor(tag.marker)
-                        if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && currentRow.symbol!!.type != External) {
-                            infeasibleRows.add(currentRow.symbol!!)
-                        }
-                    }
-                    else                      -> it.remove()
-                }
-            }
-        }
-
-        dualOptimize()
-    }
-
-    fun suggestValue(variable: Variable, value: Double) {
-        val info  = edits[variable] ?: throw UnknownEditVariableException()
-        val delta = value - info.constant
-        info.constant = value
-        var row = rows[info.tag.marker]
-
-        if (row != null) {
-            if (row.add(-delta) < 0.0) {
-                infeasibleRows.add(info.tag.marker)
-            }
-            dualOptimize()
-            return
-        }
-        row = rows[info.tag.other]
-
-        if (row != null) {
-            if (row.add(delta) < 0.0) {
-                infeasibleRows.add(info.tag.other)
-            }
-            dualOptimize()
-            return
-        }
-
-        rowsWithSymbol[info.tag.marker]?.iterator()?.let {
-            while (it.hasNext()) {
-                val currentRow = it.next()
-
-                when {
-                    currentRow.symbol != null -> {
-                        val coefficient = currentRow.coefficientFor(info.tag.marker)
                         if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && currentRow.symbol!!.type != External) {
                             infeasibleRows.add(currentRow.symbol!!)
                         }

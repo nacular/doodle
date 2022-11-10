@@ -21,6 +21,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
@@ -322,6 +323,54 @@ class ConstraintLayoutTests {
         container.doLayout_()
 
         expect(100.0) { view.width }
+    }
+
+    @Test fun `non-required const updates`() {
+        val header = view {}.apply { height = 117.0 }
+        val main   = view {}.apply { height = 186.0 }
+        val footer = view {}.apply { height =  56.0 }
+        var targetHeight = 174
+
+        val container = container {
+            this += listOf(header, main, footer)
+        }
+
+        val minHeight = 106.0
+
+        container.layout = constrain(header, main, footer) { header, main, footer ->
+            listOf(header, main, footer).forEach { it.centerX eq parent.centerX }
+            header.top    eq       9
+            header.height.preserve
+
+            main.top     eq        header.bottom + 5
+            main.height  greaterEq minHeight
+            (main.height eq        minHeight + targetHeight) .. Medium
+
+            footer.top   eq        main.bottom + 65
+            footer.height.preserve
+            (footer.bottom lessEq parent.bottom) .. Strong
+        }
+
+        container.height = 9 + header.height + 5 + minHeight + targetHeight + 65 + footer.height
+        container.layout?.layout(container)
+
+        expect(minHeight + targetHeight) { main.height }
+
+        targetHeight = 0
+        container.layout?.layout(container)
+
+        expect(minHeight + targetHeight) { main.height }
+
+        targetHeight = 174
+        container.height -= 1
+        container.layout?.layout(container)
+
+        expect(container.height - (main.y + footer.height + 65)) { main.height }
+
+        container.height = 100.0
+        container.layout?.layout(container)
+
+        expect(minHeight) { main.height }
     }
 
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
