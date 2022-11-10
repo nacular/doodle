@@ -127,7 +127,7 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
 }
 
 public open class TreeTable<T, M: TreeModel<T>>(
-                   model        : M,
+                  model         : M,
     protected val selectionModel: SelectionModel<Path<Int>>? = null,
     private   val scrollCache   : Int                        = 0,
                   block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
@@ -222,15 +222,15 @@ public open class TreeTable<T, M: TreeModel<T>>(
     }
 
     private inner class TableLikeBehaviorWrapper(val delegate: TreeTableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveStart(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveStart(table.delegate, internalColumn)
         }
 
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoveEnd(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoveEnd(table.delegate, internalColumn)
         }
 
-        override fun <B : TableLikeBehavior<TableLikeWrapper>, T, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
+        override fun <B: TableLikeBehavior<TableLikeWrapper>, T, R> columnMoved(table: TableLikeWrapper, internalColumn: InternalColumn<TableLikeWrapper, B, T, R>) {
             behavior?.columnMoved(table.delegate, internalColumn)
         }
 

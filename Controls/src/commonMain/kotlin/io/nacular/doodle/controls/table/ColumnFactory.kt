@@ -41,8 +41,6 @@ public interface CellInfo<T, R>: IndexedItem {
 
 public typealias CellVisualizer<Item, Field> = ItemVisualizer<Field, CellInfo<Item, Field>>
 
-public typealias Sorter<T, S>     = Extractor<T, S> //T.() -> S
-
 public interface ColumnFactory<T> {
     public fun <R> column(
         header        : View?,
@@ -57,6 +55,8 @@ public interface ColumnFactory<T> {
         footer       : View? = null,
         builder      : ColumnBuilder.() -> Unit): Column<Unit> = column(header = header, footer = footer, extractor = {}, cellVisualizer = cellGenerator, builder = builder)
 }
+
+public typealias Sorter<T, S> = Extractor<T, S> //T.() -> S
 
 public interface MutableColumnFactory<T> {
     public fun column(

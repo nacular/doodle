@@ -86,58 +86,54 @@ public open class ScrollPanel(content: View? = null): View() {
     public val scrollBarDimensionsChanged: ChangeObservers<ScrollPanel> get() = scrollBarDimensionsChanged_
 
     /** The content being shown within the panel */
-    public var content: View? = null
-        set(new) {
-            if (new == this) {
-                throw IllegalArgumentException("ScrollPanel cannot be added to its self")
-            }
-
-            if (field == new) {
-                return
-            }
-
-            field?.let {
-                it.parentChange           -= parentChanged
-                it.sizePreferencesChanged -= sizePreferencesListener
-                children -= it
-                (layout as? ViewLayout)?.clearConstrains()
-            }
-
-            val old = field
-            field   = new
-
-            field?.let {
-                children += it
-                it.parentChange           +=  parentChanged
-                it.sizePreferencesChanged += sizePreferencesListener
-                (layout as? ViewLayout)?.updateConstraints()
-            }
-
-            (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+    public var content: View? = null; set(new) {
+        if (new == this) {
+            throw IllegalArgumentException("ScrollPanel cannot be added to its self")
         }
+
+        if (field == new) {
+            return
+        }
+
+        field?.let {
+            it.parentChange           -= parentChanged
+            it.sizePreferencesChanged -= sizePreferencesListener
+            children -= it
+            (layout as? ViewLayout)?.clearConstrains()
+        }
+
+        val old = field
+        field   = new
+
+        field?.let {
+            children += it
+            it.parentChange           +=  parentChanged
+            it.sizePreferencesChanged += sizePreferencesListener
+            (layout as? ViewLayout)?.updateConstraints()
+        }
+
+        (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+    }
 
     /** Notifies of changes to [content]. */
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.width ?: it.readOnly) }
-        set(new) {
-            field = new
+    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.width ?: it.readOnly) }; set(new) {
+        field = new
 
-            (layout as? ViewLayout)?.updateConstraints()
-        }
+        (layout as? ViewLayout)?.updateConstraints()
+    }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.height ?: it.readOnly) }
-        set(new) {
-            field = new
+    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.height ?: it.readOnly) }; set(new) {
+        field = new
 
-            (layout as? ViewLayout)?.updateConstraints()
-        }
+        (layout as? ViewLayout)?.updateConstraints()
+    }
 
     /** The current scroll offset. */
-    public var scroll: Point = Origin
-        private set
+    public var scroll: Point = Origin; private set
 
     /** Behavior governing how the panel works */
     public var behavior: ScrollPanelBehavior? by behavior { old, new ->

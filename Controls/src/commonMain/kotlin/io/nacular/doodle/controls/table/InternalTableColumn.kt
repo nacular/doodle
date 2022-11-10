@@ -49,7 +49,8 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
                       preferredWidth : Double? = null,
                       minWidth       : Double  = 0.0,
                       maxWidth       : Double? = null,
-        private   val numFixedColumns: Int     = 0): Column<R>, ColumnSizePolicy.Column {
+        private   val numFixedColumns: Int     = 0
+): Column<R>, ColumnSizePolicy.Column {
 
     override val alignmentChanged = ChangeObserversImpl(this)
 
