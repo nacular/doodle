@@ -1222,6 +1222,10 @@ public fun View.scrollTo(rectangle: Rectangle) {
     ancestor?.let {
         val pointInAncestor = it.toLocal(rectangle.position, from = this)
 
-        (it.parent as? ScrollPanel)?.scrollToVisible(rectangle.at(pointInAncestor))
+        (it.parent as? ScrollPanel)?.let {
+            val rectInParent = rectangle.at(pointInAncestor)
+            it.scrollToVisible(rectInParent)
+            it.scrollTo(rectInParent) // handle nested ScrollPanel case
+        }
     }
 }

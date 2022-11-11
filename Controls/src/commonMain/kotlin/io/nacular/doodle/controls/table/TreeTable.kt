@@ -435,7 +435,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     override fun rowFromPath(path: Path<Int>): Int? = tree.rowFromPath(path)
 
-    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy(); set(new) {
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy; set(new) {
         field = new
 
         if (behavior != null) {
@@ -452,7 +452,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     // Last, unusable column
                     internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                    children += listOf(header, panel, footer)
+                    children += listOf(panel, footer, header)
 
                     this.block = null
                 }
@@ -460,7 +460,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
         },
         afterChange = { _, new ->
             new?.also { behavior ->
-                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
+                (internalColumns as List<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
                     it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
@@ -504,7 +504,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     footer.height = height
                 }
 
-                layout = tableLayout(this@TreeTable, header, panel, footer, behavior, { headerVisibility }, { footerVisibility })
+                layout = tableLayout(this@TreeTable, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
             }
         }
     )
@@ -514,7 +514,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
     public val selectionChanged: Pool<SetObserver<TreeTable<T, M>, Path<Int>>> = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
+    public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
     public var footerVisibility: MetaRowVisibility by observable(HasContents) { _,_ -> doLayout() }
+    public var footerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
 
     private val internalColumns = mutableListOf<InternalColumn<*,*,*,*>>()
 
@@ -567,6 +569,21 @@ public open class TreeTable<T, M: TreeModel<T>>(
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val footerDirty: (         ) -> Unit = { footer.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
+
+    init {
+        parentChange += { _,_,new ->
+            monitorsDisplayRect = when (new) {
+                is ScrollPanel -> true
+                else           -> false
+            }
+        }
+    }
+
+    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+        if ((old.y != new.y || old.height != new.height) && header.height > 0.0 || footer.height > 0.0) {
+            relayout()
+        }
+    }
 
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }

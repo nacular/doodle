@@ -132,10 +132,7 @@ public inline fun <T> itemGenerator(crossinline block: (list: List<T, *>, item: 
  * @property model that holds the data for this List
  * @property itemVisualizer that maps [T] to [View] for each item in the List
  * @property selectionModel that manages the List's selection state
- * @property fitContent determines whether the List scales to fit its items' width or total height
- * @property scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
  * only visible items are rendered, but quick scrolling is more likely to show blank areas.
-
  */
 @Suppress("LeakingThis")
 public open class List<T, out M: ListModel<T>>(

@@ -31,11 +31,31 @@ import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 
+/**
+ * A visual component that renders an immutable list of items of type [T] using a [TableBehavior]. Items are obtained via
+ * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
+ * efficiently, since Table recycles the Views generated to render its items.
+ *
+ * Note that this class assumes the given [ListModel] is immutable and will not automatically respond
+ * to changes in the model. See [DynamicTable] or [MutableTable] if this behavior is desirable.
+ *
+ * Table provides vertical scrolling internally, so it does not need to be embedded in a [ScrollPanel] or similar component,
+ * unless horizontal scrolling is desired.
+ *
+ * @param model that holds the data for the Table
+ * @param selectionModel that manages the Table's selection state
+ * @param scrollCache determining how many "hidden" items are rendered above and below the Table's view-port. A value of 0 means
+ * only visible items are rendered, but quick scrolling is more likely to show blank areas.
+ * @param columns factory to define the set of columns for the Table
+ *
+ * @property model that holds the data for the Table
+ * @property selectionModel that manages the Table's selection state
+ */
 public open class Table<T, M: ListModel<T>>(
         protected val model         : M,
         protected val selectionModel: SelectionModel<Int>? = null,
         private   val scrollCache   : Int                  = 0,
-                      block         : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+                      columns       : ColumnFactory<T>.() -> Unit): View(), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
         override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, footer: View?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
@@ -145,7 +165,7 @@ public open class Table<T, M: ListModel<T>>(
     override val numItems: Int   get() = model.size
     public val isEmpty: Boolean get() = model.isEmpty
 
-    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy(); set(new) {
+    public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy; set(new) {
         field = new
 
         if (behavior != null) {
@@ -162,7 +182,7 @@ public open class Table<T, M: ListModel<T>>(
                     // Last, unusable column
                     internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                    children += listOf(header, panel, footer)
+                    children += listOf(panel, footer, header)
 
                     this.block = null
                 }
@@ -170,7 +190,7 @@ public open class Table<T, M: ListModel<T>>(
         },
         afterChange = { _, new ->
             new?.also { behavior ->
-                (internalColumns as MutableList<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
+                (internalColumns as List<InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, *>>).forEach {
                     it.behavior(TableLikeBehaviorWrapper(behavior))
                 }
 
@@ -214,7 +234,7 @@ public open class Table<T, M: ListModel<T>>(
                     footer.height = height
                 }
 
-                layout = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { footerVisibility })
+                layout = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
             }
         }
     )
@@ -224,7 +244,9 @@ public open class Table<T, M: ListModel<T>>(
     public val selectionChanged: Pool<SetObserver<Table<T, M>, Int>> = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
+    public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
     public var footerVisibility: MetaRowVisibility by observable(HasContents) { _,_ -> doLayout() }
+    public var footerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
 
     public fun contains(value: T): Boolean = value in model
 
@@ -232,7 +254,7 @@ public open class Table<T, M: ListModel<T>>(
 
     protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
-    private var block: (ColumnFactory<T>.() -> Unit)? = block
+    private var block: (ColumnFactory<T>.() -> Unit)? = columns
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
     private val footerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
@@ -282,6 +304,21 @@ public open class Table<T, M: ListModel<T>>(
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val footerDirty: (         ) -> Unit = { footer.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
+
+    init {
+        parentChange += { _,_,new ->
+            monitorsDisplayRect = when (new) {
+                is ScrollPanel -> true
+                else           -> false
+            }
+        }
+    }
+
+    override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
+        if ((old.y != new.y || old.height != new.height) && header.height > 0.0 || footer.height > 0.0) {
+            relayout()
+        }
+    }
 
     public operator fun get(index: Int): Result<T> = model[index]
 

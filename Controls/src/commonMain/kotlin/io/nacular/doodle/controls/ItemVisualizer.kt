@@ -84,6 +84,15 @@ public fun <T, C> toString(delegate: ItemVisualizer<String, C>, mapper: (T) -> S
 }
 
 /**
+ * Creates a visualizer for [T] using a visualizer for [R] by mapping T -> R.
+ *
+ * @param mapper function
+ */
+public fun <T, R, C> ItemVisualizer<R, C>.after(mapper: (T) -> R): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
+    override fun invoke(item: T, previous: View?, context: C) = this@after(mapper(item), previous, context)
+}
+
+/**
  * A selectable item with an index that is often used as the context with [ItemVisualizer].
  * @property index of the item
  * @property selected is `true` for selected items
