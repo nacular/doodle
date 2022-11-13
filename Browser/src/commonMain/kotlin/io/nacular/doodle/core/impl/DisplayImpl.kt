@@ -68,7 +68,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             differences.forEach { diff ->
                 when (diff) {
                     is Insert -> {
-                        diff.items.forEach { item ->
+                        // items copy needed b/c diff.items might be a view into the children list,
+                        // which could be modified when we remove duplicates below
+                        diff.items.toMutableList().forEach { item ->
                             if (diff.origin(of = item) == null) {
                                 // Avoid duplicating View
                                 repeat(filterIndexed { i, view -> i != index && view == item }.size) { remove(item); --index }

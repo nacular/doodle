@@ -26,7 +26,6 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.PropertyObserver
-import JsName
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.minusAssign
@@ -43,7 +42,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 8/10/19.
  */
 class DisplayImplTests {
-    @Test @JsName("defaultsValid") fun `defaults valid`() {
+    @Test fun `defaults valid`() {
         expect(true, "DisplayImpl::children.isEmpty()") { display().children.isEmpty() }
 
         mapOf(
@@ -57,7 +56,7 @@ class DisplayImplTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test @JsName("registersOnResize") fun `registers onresize`() {
+    @Test fun `registers onresize`() {
         val rootElement = mockk<HTMLElement>()
 
         display(rootElement = rootElement)
@@ -65,7 +64,7 @@ class DisplayImplTests {
         verify(exactly = 1) { rootElement.onresize = any() }
     }
 
-    @Test @JsName("hasInitialWindowSize") fun `has initial window size`() {
+    @Test fun `has initial window size`() {
         val rootElement = mockk<HTMLElement>().apply {
             every { offsetWidth  } returns 100
             every { offsetHeight } returns 150
@@ -74,7 +73,7 @@ class DisplayImplTests {
         expect(Size(100, 150)) { display(rootElement = rootElement).size }
     }
 
-    @Test @JsName("handlesWindowResize") fun `handles window resize`() {
+    @Test fun `handles window resize`() {
         var slot = slot<(Event) -> Unit>()
 
         val rootElement = mockk<HTMLElement>().apply {
@@ -103,7 +102,7 @@ class DisplayImplTests {
         expect(newSize) { display.size }
     }
 
-    @Test @JsName("notifiesCursorChange") fun `notifies cursor change`() {
+    @Test fun `notifies cursor change`() {
         val cursorObserver = mockk<PropertyObserver<Display, Cursor?>>()
 
         val display = display().apply {
@@ -117,7 +116,7 @@ class DisplayImplTests {
         expect(Cursor.Grab) { display.cursor!! }
     }
 
-    @Test @JsName("notifiesChildAdded") fun `notifies child added`() {
+    @Test fun `notifies child added`() {
         val observer = mockk<ChildObserver<Display>>()
 
         val display = display().apply { childrenChanged += observer }
@@ -130,7 +129,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test @JsName("notifiesChildRemoved") fun `notifies child removed`() {
+    @Test fun `notifies child removed`() {
         val observer = mockk<ChildObserver<Display>>()
 
         val display = display()
@@ -147,7 +146,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test @JsName("notifiesChildMoved") fun `notifies child moved`() {
+    @Test fun `notifies child moved`() {
         val observer = mockk<ChildObserver<Display>>()
 
         val display = display()
@@ -167,7 +166,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test @JsName("childAtNoLayoutWorks") fun `child at (no layout) works`() {
+    @Test fun `child at (no layout) works`() {
         val display = display()
         val child0  = view().apply { x += 10.0; y += 12.0 }
         val child1  = view().apply { x += 10.0; y += 12.0 }
@@ -188,7 +187,7 @@ class DisplayImplTests {
         expect(child0) { display.child(at = Point(11.0, 13.0)) }
     }
 
-    @Test @JsName("childAtWorks") fun `child at works`() {
+    @Test fun `child at works`() {
         val at     = Point(11.0, 13.0)
         val result = mockk<View>()
         val layout = mockk<Layout>().apply {
@@ -208,7 +207,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test @JsName("isAncestorWorks") fun `is-ancestor works`() {
+    @Test fun `is-ancestor works`() {
         val display = display()
         val parent  = container {}
         val child   = view {}
@@ -223,7 +222,7 @@ class DisplayImplTests {
         expect(true) { display ancestorOf child  }
     }
 
-    @Test @JsName("layoutWorks") fun `layout works`() {
+    @Test fun `layout works`() {
         val layout = mockk<Layout>()
 
         display().apply {
@@ -239,7 +238,7 @@ class DisplayImplTests {
         }
     }
 
-    @Test @JsName("multiplePlusAssignWork") fun `plus equal child multiple times works`() {
+    @Test fun `plus equal child multiple times works`() {
         val display = display()
         val child0  = view()
         val child1  = view()
@@ -253,7 +252,7 @@ class DisplayImplTests {
         expect(listOf(child1, child2, child0)) { display.children }
     }
 
-    @Test @JsName("repeatedChildAddWork") fun `repeated child add works`() {
+    @Test fun `repeated child add works`() {
         val display = display()
         val child0  = view()
         val child1  = view()
