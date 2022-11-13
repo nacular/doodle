@@ -17,7 +17,7 @@ public class NodeBuilder<T>(public var value: T, public val children: MutableLis
 }
 
 public class MutableNodeBuilder<T>(public var value: T, public val children: MutableList<MutableNodeBuilder<T>> = mutableListOf()) {
-    public fun mutableTreeNode(): MutableTreeNode<T> = MutableTreeNode(value, children.map { it.mutableTreeNode() })
+    public fun mutableTreeNode(): MutableTreeNode<T> = MutableTreeNode(value, children.map { it.mutableTreeNode() }.toMutableList())
 
     public fun node(value: T, block: MutableNodeBuilder<T>.() -> Unit = {}): MutableNodeBuilder<T> {
         val node = MutableNodeBuilder(value).also { block(it) }

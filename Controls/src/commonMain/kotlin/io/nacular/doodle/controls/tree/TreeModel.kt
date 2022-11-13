@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.tree
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.addOrAppend
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 
@@ -32,7 +33,7 @@ public interface DynamicTreeModel<T>: TreeModel<T> {
 public interface MutableTreeModel<T>: DynamicTreeModel<T> {
     public operator fun set(path: Path<Int>, value: T): Result<T>
 
-    public fun add        (path : Path<Int>, values: T            )
+    public fun add        (path : Path<Int>, value : T            )
     public fun removeAt   (path : Path<Int>                       ): Result<T>
     public fun addAll     (path : Path<Int>, values: Collection<T>)
     public fun removeAllAt(paths: Collection<Path<Int>>           )
@@ -44,7 +45,7 @@ public open class TreeNode<T>(public open val value: T, public open val children
     public operator fun get(index: Int): TreeNode<T> = children[index]
 }
 
-public class MutableTreeNode<T>(override var value: T, override var children: List<MutableTreeNode<T>> = emptyList()): TreeNode<T>(value, children)
+public class MutableTreeNode<T>(override var value: T, override var children: MutableList<MutableTreeNode<T>> = mutableListOf()): TreeNode<T>(value, children)
 
 public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): TreeModel<T> {
 
@@ -55,8 +56,6 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
 
         path.forEach { index ->
             node = node.mapCatching { it.children[index] }
-
-//            node = node.onSuccess { it.children.getOrNull(index)?.let { success(it) } ?: failure(IllegalArgumentException()) }
 
             if (node.isFailure) return@forEach
         }
@@ -79,11 +78,7 @@ public open class SimpleTreeModel<T, N: TreeNode<T>>(protected val root: N): Tre
 
 public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeModel<T, MutableTreeNode<T>>(root), MutableTreeModel<T> {
     override operator fun set(path: Path<Int>, value: T): Result<T> {
-        var node = root as MutableTreeNode?
-
-        path.forEach {
-            node = node?.children?.getOrNull(it)
-        }
+        val node = nodeFromPath(path)
 
         val previous = node?.value
 
@@ -98,12 +93,38 @@ public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeMode
         return previous?.let { success(it) } ?: failure(IllegalArgumentException())
     }
 
-    override fun add        (path : Path<Int>, values: T            ) {}
-    override fun removeAt   (path : Path<Int>                       ): Result<T> = failure(UnsupportedOperationException())
-    override fun addAll     (path : Path<Int>, values: Collection<T>) {}
-    override fun removeAllAt(paths: Collection<Path<Int>>           ) {}
+    override fun add   (path: Path<Int>, value : T            ): Unit = addAll(path, listOf(value))
+    override fun addAll(path: Path<Int>, values: Collection<T>) {
+        val parent = path.parent?.let { nodeFromPath(it) }
+
+        path.bottom?.let { index ->
+            parent?.children?.let {
+                if (index <= it.size) {
+                    values.forEach { value ->
+                        it.addOrAppend(index, MutableTreeNode(value))
+                    }
+
+                    (changed as SetPool).forEach {
+                        it(this, emptyMap(), mapOf(*values.map { path to it }.toTypedArray()), emptyMap())
+                    }
+                }
+            }
+        }
+    }
+    override fun removeAt   (path : Path<Int>            ): Result<T> = failure(UnsupportedOperationException())
+    override fun removeAllAt(paths: Collection<Path<Int>>) {}
 
     override fun clear() {}
 
-    override val changed: Pool<ModelObserver<T>> = SetPool<ModelObserver<T>>()
+    override val changed: Pool<ModelObserver<T>> = SetPool()
+
+    private fun nodeFromPath(path: Path<Int>): MutableTreeNode<T>? {
+        var node = root as MutableTreeNode?
+
+        path.forEach {
+            node = node?.children?.getOrNull(it)
+        }
+
+        return node
+    }
 }

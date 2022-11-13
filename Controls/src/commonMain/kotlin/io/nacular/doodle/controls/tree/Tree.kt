@@ -4,10 +4,10 @@ package io.nacular.doodle.controls.tree
 
 import io.nacular.doodle.JvmName
 import io.nacular.doodle.accessibility.TreeRole
-import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.Selectable
 import io.nacular.doodle.controls.SelectionModel
+import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
@@ -76,9 +76,10 @@ public interface TreeLike: Selectable<Path<Int>> {
 
 public open class Tree<T, out M: TreeModel<T>>(
         protected open val model         : M,
-        public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
-        protected      val selectionModel: SelectionModel<Path<Int>>?     = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
-        private        val scrollCache   : Int                            = 0): View(TreeRole()), TreeLike {
+        public         val itemVisualizer: ItemVisualizer<T, ExpandableItem>? = null,
+        protected      val selectionModel: SelectionModel<Path<Int>>?   = null, // TODO: Use filtered SelectionModel to avoid selecting hidden items?
+        private        val scrollCache   : Int                          = 0
+): View(TreeRole()), TreeLike {
 
     override var rootVisible: Boolean = false
         set(new) {
@@ -137,13 +138,13 @@ public open class Tree<T, out M: TreeModel<T>>(
     override val firstSelectable: Path<Int>?     get() = pathFromRow(firstVisibleRow)
     override val lastSelectable : Path<Int>?     get() = pathFromRow(lastVisibleRow)
 
-    private   var generator    : RowGenerator<T>? = null
-    protected var rowPositioner: RowPositioner<T>? = null
-    private   val expandedPaths      = mutableSetOf<Path<Int>>(Path())
-    private   val rowToPath          = mutableMapOf<Int, Path<Int>>()
-    private   var minVisiblePosition = Origin
-    private   var maxVisiblePosition = Origin
-    private   var minHeight          = 0.0
+    private   var generator     : RowGenerator<T>?     = null
+    protected var rowPositioner : RowPositioner<T>?    = null
+    private   val expandedPaths                        = mutableSetOf<Path<Int>>(Path())
+    private   val rowToPath                            = mutableMapOf<Int, Path<Int>>()
+    private   var minVisiblePosition                   = Origin
+    private   var maxVisiblePosition                   = Origin
+    private   var minHeight                            = 0.0
         set(new) {
             field       = new
             height      = field

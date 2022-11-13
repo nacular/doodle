@@ -98,8 +98,16 @@ public fun <T, R, C> ItemVisualizer<R, C>.after(mapper: (T) -> R): ItemVisualize
  * @property selected is `true` for selected items
  */
 public interface IndexedItem {
-    public val index: Int
+    public val index   : Int
     public val selected: Boolean
 }
 
-public class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedItem
+/**
+ * An indexed item with an expanded state that is often used as the context with [ItemVisualizer].
+ * @property expanded is `true` for expanded items
+ */
+public interface ExpandableItem: IndexedItem {
+    public val expanded: Boolean
+}
+
+public open class SimpleIndexedItem(override val index: Int, override val selected: Boolean): IndexedItem

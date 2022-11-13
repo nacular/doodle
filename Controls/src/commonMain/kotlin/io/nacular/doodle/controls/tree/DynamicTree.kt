@@ -1,8 +1,8 @@
 package io.nacular.doodle.controls.tree
 
-import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
+import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
@@ -13,7 +13,7 @@ import io.nacular.doodle.utils.SetPool
 
 public typealias ItemsObserver<T> = (source: Tree<T, *>, removed: Map<Path<Int>, T>, added: Map<Path<Int>, T>, moved: Map<Path<Int>, Pair<Path<Int>, T>>) -> Unit
 
-public open class DynamicTree<T, M: DynamicTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, IndexedItem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
+public open class DynamicTree<T, M: DynamicTreeModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, ExpandableItem>? = null, selectionModel: SelectionModel<Path<Int>>? = null): Tree<T, M>(model, itemVisualizer = itemVisualizer, selectionModel = selectionModel) {
     private val modelChanged: ModelObserver<T> = { _,removed,added,moved ->
         var trueRemoved = removed.filterKeys { it !in added   }
         var trueAdded   = added.filterKeys   { it !in removed }

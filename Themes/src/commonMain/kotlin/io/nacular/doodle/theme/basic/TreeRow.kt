@@ -1,9 +1,9 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.accessibility.TreeItemRole
-import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
+import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -93,11 +93,15 @@ public class TreeRow<T>(
                  node                 : T,
      public  var path                 : Path<Int>,
      private var index                : Int,
-     private val itemVisualizer       : ItemVisualizer<T, IndexedItem>,
+     private val itemVisualizer       : ItemVisualizer<T, ExpandableItem>,
      private val selectionColor       : Color? = Green,
      private val selectionBlurredColor: Color? = selectionColor,
      private val iconFactory          : () -> TreeRowIcon,
      private val role                 : TreeItemRole = TreeItemRole()): View(role) {
+
+    private class SimpleExpandableItem(private val tree: TreeLike, private val path: Path<Int>, index: Int): ExpandableItem, SimpleIndexedItem(index, tree.selected(index)) {
+        override val expanded: Boolean get() = tree.expanded(path)
+    }
 
     public var insetTop: Double = 1.0
 
@@ -114,7 +118,7 @@ public class TreeRow<T>(
 
     private var icon    = null as TreeRowIcon?
     private var depth   = -1
-    public  var content: View = itemVisualizer.invoke(node, context = SimpleIndexedItem(index, tree.selected(path)))
+    public  var content: View = itemVisualizer.invoke(node, context = SimpleExpandableItem(tree, path, index))
         private set(new) {
             if (field != new) {
                 children.batch {
@@ -200,7 +204,7 @@ public class TreeRow<T>(
         this.path  = path
         this.index = index
 
-        update(itemVisualizer.invoke(node, content, SimpleIndexedItem(index, tree.selected(path))), tree)
+        update(itemVisualizer.invoke(node, content, SimpleExpandableItem(tree, path, index)), tree)
     }
 
     public fun update(content: View, tree: TreeLike) {
