@@ -304,7 +304,7 @@ public open class List<T, out M: ListModel<T>>(
                 else                                   -> max(0, findItem(position, firstVisibleItem) - scrollCache)
             }
 
-            position = Point(new.right, new.bottom)
+            position = Point(new.right - 1, new.bottom - 1)
 
             lastVisibleItem = when {
                 position == Point(old.right, old.bottom) && !old.empty -> lastVisibleItem
