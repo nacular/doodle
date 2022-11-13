@@ -70,6 +70,9 @@ kotlin {
                 implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
                 implementation(kotlin("test-junit"))
 
+                implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+
                 implementation("org.slf4j:slf4j-api:$log4jVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("io.mockk:mockk:$mockkVersion")
