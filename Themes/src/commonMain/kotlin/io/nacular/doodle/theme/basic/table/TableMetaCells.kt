@@ -54,8 +54,8 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         }
     }
 
-    private val alignmentChanged: (Column<*>) -> Unit = {
-        it.headerAlignment?.let { positioner = it }
+    private val alignmentChanged: (Column<*>) -> Unit = { col ->
+        col.headerAlignment?.let { positioner = it }
     }
 
     private var disabledColorMapper: ColorMapper = { it.lighter() }
@@ -67,9 +67,8 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         var initialPosition = null as Point?
         var moved           = false
 
-        styleChanged += {
-            rerender()
-        }
+        styleChanged   += {         rerender() }
+        enabledChanged += { _,_,_ ->rerender() }
 
         fun newCursor() = when {
             column.width > column.minWidth && column.width < (column.maxWidth ?: Double.MAX_VALUE) -> EWResize
@@ -102,7 +101,8 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
                         resizing     = true
                         initialWidth = column.width
                     }
-                    else                          -> backgroundColor = fillColor?.darker()
+                    column.movable                -> backgroundColor = fillColor?.darker()
+                    else                          -> {}
                 }
 
                 it.consume()
@@ -136,14 +136,10 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
                     moved     = true
                     val delta = (toLocal(event.location, event.target) - it).x
 
-                    cursor = if (resizing) {
-                        column.preferredWidth = initialWidth + delta
-
-                        newCursor()
-                    } else {
-                        column.moveBy(delta)
-
-                        Grabbing
+                    cursor = when {
+                        resizing       -> newCursor().also { column.preferredWidth = initialWidth + delta }
+                        column.movable -> null.also { column.moveBy(delta) }
+                        else           -> null
                     }
 
                     event.consume()
@@ -188,8 +184,8 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         canvas.line(Point(x, lineIndent), Point(x, height - lineIndent), Stroke(strokeColor, lineThickness))
 
         when (sortOrder) {
-            Ascending  -> canvas.poly(ascending.map  { it + Point(width - iconCircle.radius - iconHeight, (height - iconHeight) / 2) - Point(iconCircle.center.x, ascendingTop    ) },  fill = strokeColor.paint) //canvas.text("+", at = Point(width - 10), color = strokeColor)
-            Descending -> canvas.poly(descending.map { it + Point(width - iconCircle.radius - iconHeight, (height + iconHeight) / 2) - Point(iconCircle.center.x, descendingBottom) }, fill = strokeColor.paint) //canvas.text("-", at = Point(width - 10), color = strokeColor)
+            Ascending  -> canvas.poly(ascending.map  { it + Point(width - iconCircle.radius - iconHeight, (height - iconHeight) / 2) - Point(iconCircle.center.x, ascendingTop    ) }, fill = strokeColor.paint)
+            Descending -> canvas.poly(descending.map { it + Point(width - iconCircle.radius - iconHeight, (height + iconHeight) / 2) - Point(iconCircle.center.x, descendingBottom) }, fill = strokeColor.paint)
             else       -> {}
         }
     }
@@ -223,8 +219,8 @@ public class TableFooterCell(private val column: Column<*>, private val fillColo
             }
         }
 
-    private val alignmentChanged: (Column<*>) -> Unit = {
-        it.footerAlignment?.let { positioner = it }
+    private val alignmentChanged: (Column<*>) -> Unit = { col ->
+        col.footerAlignment?.let { positioner = it }
     }
 
     private var disabledColorMapper: ColorMapper = { it.lighter() }

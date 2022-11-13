@@ -726,10 +726,7 @@ public open class ConstraintDslContext internal constructor() {
         else                      -> withOffset(top = top?.let { OffsetTransformer(it) }, left = left?.let { OffsetTransformer(it) })
     }
 
-    private fun Bounds.withOffset(
-        top : Transformer<Double>? = null,
-        left: Transformer<Double>? = null,
-    ): Bounds = object: Bounds by this {
+    private fun Bounds.withOffset(top: Transformer<Double>? = null, left: Transformer<Double>? = null): Bounds = object: Bounds by this {
         override val top  = adapter(this@withOffset.top  as ReflectionVariable, top )
         override val left = adapter(this@withOffset.left as ReflectionVariable, left)
 
@@ -769,10 +766,7 @@ public class OffsetTransformer(private val offset: Double): Transformer<Double> 
     override fun hashCode(): Int = offset.hashCode()
 }
 
-internal class PropertyWrapper(
-    internal val variable   : ReflectionVariable,
-    private  val transformer: Transformer<Double>,
-): Property(), Variable {
+internal class PropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
     private val isConst      by lazy { variableTerm is ConstTerm }
     private val variableTerm by lazy { variable.toTerm()         }
 
@@ -790,10 +784,7 @@ internal class PropertyWrapper(
     override fun toString(             ) = "$variable [$transformer]"
 }
 
-internal class ConstPropertyWrapper(
-    internal val variable   : ReflectionVariable,
-    private  val transformer: Transformer<Double>,
-): Property(), Variable {
+internal class ConstPropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
     override val name     get() = variable.name
     override val readOnly get() = invoke()
 

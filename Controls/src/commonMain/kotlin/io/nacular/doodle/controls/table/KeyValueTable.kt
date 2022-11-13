@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.table
 
+import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.panels.ScrollPanel
@@ -7,17 +8,15 @@ import io.nacular.doodle.core.View
 
 /**
  * Map based model used with [KeyValueTable].
- *
- * @param map containing underlying data
  */
-public class KeyValueModel<K, V>(private val map: Map<K, V>): SimpleListModel<Pair<K, V>>(map.toList()) {
+public interface KeyValueModel<K, V>: ListModel<Pair<K, V>> {
     /**
      * Tells whether the model contains the given [key].
      *
      * @param key to check
      * @return `true` IFF the key is in the model's data
      */
-    public fun containsKey(key: K): Boolean = map.containsKey(key)
+    public fun containsKey(key: K): Boolean
 
     /**
      * Tells whether the model contains the given [value].
@@ -25,7 +24,12 @@ public class KeyValueModel<K, V>(private val map: Map<K, V>): SimpleListModel<Pa
      * @param value to check
      * @return `true` IFF the key is in the model's data
      */
-    public fun containsValue(value: V): Boolean = map.containsValue(value)
+    public fun containsValue(value: V): Boolean
+}
+
+public class SimpleKeyValueModel<K, V>(private val map: Map<K, V>): KeyValueModel<K, V>, SimpleListModel<Pair<K, V>>(map.toList()) {
+    public override fun containsKey(key: K): Boolean = map.containsKey(key)
+    public override fun containsValue(value: V): Boolean = map.containsValue(value)
 }
 
 /**
@@ -43,8 +47,8 @@ public data class ColumnInfo<K, V, T>(val header: View? = null, val visualizer: 
  * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
  * efficiently, since Table recycles the Views generated to render its items.
  *
- * Note that this class assumes the given [KeyValueModel] is immutable and will not automatically respond
- * to changes in the model. See [DynamicKeyValueTable] or [MutableKeyValueTable] if this behavior is desirable.
+ * Note that this class assumes the given [SimpleKeyValueModel] is immutable and will not automatically respond
+ * to changes in the model.
  *
  * KeyValueTable provides vertical scrolling internally, so it does not need to be embedded in a [ScrollPanel] or similar component,
  * unless horizontal scrolling is desired.
@@ -102,6 +106,6 @@ public class KeyValueTable<K, V>(
             keyColumn     : ColumnInfo<K, V, K>,
             valueColumn   : ColumnInfo<K, V, V>,
             selectionModel: SelectionModel<Int>? = null,
-            scrollCache   : Int                  = 0,): KeyValueTable<K, V> = KeyValueTable(KeyValueModel(values), keyColumn, valueColumn, selectionModel, scrollCache)
+            scrollCache   : Int                  = 0,): KeyValueTable<K, V> = KeyValueTable(SimpleKeyValueModel(values), keyColumn, valueColumn, selectionModel, scrollCache)
     }
 }

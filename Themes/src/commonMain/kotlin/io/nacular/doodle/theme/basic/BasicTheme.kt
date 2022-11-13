@@ -36,6 +36,7 @@ import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
+import io.nacular.doodle.controls.table.TreeTable
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.theme.CommonLabelBehavior
 import io.nacular.doodle.controls.tree.MutableTree
@@ -93,6 +94,7 @@ import io.nacular.doodle.theme.basic.tabbedpanel.TabContainer
 import io.nacular.doodle.theme.basic.tabbedpanel.TabProducer
 import io.nacular.doodle.theme.basic.table.BasicMutableTableBehavior
 import io.nacular.doodle.theme.basic.table.BasicTableBehavior
+import io.nacular.doodle.theme.basic.table.BasicTreeTableBehavior
 import io.nacular.doodle.theme.basic.tree.BasicMutableTreeBehavior
 import io.nacular.doodle.theme.basic.tree.BasicTreeBehavior
 import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
@@ -318,6 +320,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                             iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
                 ) }
+            }
+        }
+
+        public fun basicTreeTableBehavior(
+            rowHeight            : Double?              = null,
+            evenRowColor         : Color?               = null,
+            oddRowColor          : Color?               = null,
+            selectionColor       : Color?               = null,
+            selectionBlurredColor: Color?               = null,
+            iconFactory          : (() -> TreeRowIcon)? = null
+        ): Module = basicThemeModule(name = "BasicTreeTableBehavior") {
+            bindBehavior<TreeTable<Any, TreeModel<Any>>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicTreeTableBehavior(
+                        focusManager          = instanceOrNull(),
+                        rowHeight             = rowHeight             ?: 20.0,
+                        evenRowColor          = evenRowColor          ?: this.evenItemColor,
+                        oddRowColor           = oddRowColor           ?: this.oddItemColor,
+                        selectionColor        = selectionColor        ?: this.selectionColor,
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
+                    ) }
             }
         }
 

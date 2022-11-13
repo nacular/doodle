@@ -10,6 +10,7 @@ public interface Column<T> {
     public val header         : View?
     public val footer         : View?
     public val width          : Double
+    public val movable        : Boolean get() = true
 
     public var minWidth       : Double
     public var maxWidth       : Double?

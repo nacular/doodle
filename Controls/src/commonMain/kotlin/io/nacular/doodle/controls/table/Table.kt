@@ -341,12 +341,12 @@ public open class Table<T, M: ListModel<T>>(
     private var resizingCol: Int? = null
 
     override fun doLayout() {
-        resizingCol = resizingCol ?: 0
         width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
         resizingCol = null
 
         super.doLayout()
 
+        // Needed b/c width of header isn't constrained
         header.doLayout()
         (panel.content as? TablePanel)?.doLayout()
         footer.doLayout()

@@ -16,7 +16,6 @@ import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
@@ -39,6 +38,7 @@ import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
 import io.nacular.doodle.theme.basic.SimpleTreeRowIcon
 import io.nacular.doodle.theme.basic.TreeRow
+import io.nacular.doodle.theme.basic.TreeRowIcon
 import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.PropertyObserver
@@ -79,9 +79,9 @@ public open class BasicTreeTableBehavior<T>(
         private val footerColor          : Color? = Lightgray,
                     evenRowColor         : Color? = White,
                     oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                    iconColor            : Color  = Black,
+                    iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() },
         private val selectionColor       : Color? = Blue,
-        private val blurredSelectionColor: Color? = Lightgray): TreeTableBehavior<T>(), PointerListener, KeyListener, SelectableTreeKeyHandler {
+        private val selectionBlurredColor: Color? = Lightgray): TreeTableBehavior<T>(), PointerListener, KeyListener, SelectableTreeKeyHandler {
 
     private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { treeTable ,_,_ ->
         treeTable.bodyDirty()
@@ -106,7 +106,7 @@ public open class BasicTreeTableBehavior<T>(
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
             else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: ItemVisualizer<A, IndexedItem> {
                 override fun invoke(item: A, previous: View?, context: IndexedItem) = itemGenerator.invoke(item, previous, context)
-            }, iconFactory = { SimpleTreeRowIcon(iconColor) })
+            }, iconFactory = iconFactory)
         }
     }
 
@@ -200,7 +200,7 @@ public open class BasicTreeTableBehavior<T>(
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
         canvas.rect(Rectangle(size = canvas.size), canvasFill)
 
-        val color = if (table.hasFocus) selectionColor else blurredSelectionColor
+        val color = if (table.hasFocus) selectionColor else selectionBlurredColor
 
         if (color != null) {
             // FIXME: Performance can be bad for large lists

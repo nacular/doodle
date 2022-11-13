@@ -260,5 +260,7 @@ internal class LastColumn<T: TableLike, B: TableLikeBehavior<T>>(table: T, view:
         override fun contains(point: Point) = false
     }
 
+    override val movable = false
+
     override fun behavior(behavior: B?) {}
 }

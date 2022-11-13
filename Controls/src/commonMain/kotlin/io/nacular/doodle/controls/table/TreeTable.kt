@@ -308,6 +308,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
             }
         }
 
+        override val movable = false
+
         override fun moveBy(x: Double) {
             // NO-OP
         }
@@ -553,6 +555,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 }
             }
         }).apply {
+            contentWidthConstraints  = { it eq max(content?.idealSize?.width  ?: it.readOnly, width ) - verticalScrollBarWidth }
+            contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
+
             scrollBarDimensionsChanged += {
                 doLayout()
             }
@@ -604,7 +609,6 @@ public open class TreeTable<T, M: TreeModel<T>>(
     private var resizingCol: Int? = null
 
     override fun doLayout() {
-        resizingCol = resizingCol ?: 0
         width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
         resizingCol = null
 
@@ -612,8 +616,10 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
         // Needed b/c width of header isn't constrained
         header.doLayout()
-        (panel.content as? Container)?.relayout() // FIXME
+        (panel.content as? TablePanel)?.doLayout() // FIXME
         footer.doLayout()
+
+        resizingCol = null
     }
 
     internal fun rowsBelow(path: Path<Int>) = tree.rowsBelow(path)

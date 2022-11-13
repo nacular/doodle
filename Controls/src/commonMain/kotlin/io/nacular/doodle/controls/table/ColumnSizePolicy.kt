@@ -15,11 +15,12 @@ public interface ColumnSizePolicy {
      * Updates the width of each column and return the overall table width needed to
      * properly display the columns based on that width.
      *
-     * @param width of the Table before column widths updated
+     * @param tableWidth of the Table before column widths updated
      * @param columns within the Table
      * @param startIndex of columns that will be sized
+     * @return the updated width for the table
      */
-    public fun layout(width: Double, columns: List<Column>, startIndex: Int = 0): Double
+    public fun layout(tableWidth: Double, columns: List<Column>, startIndex: Int = 0): Double
 
     /**
      * Used to set a column's width. Implementations need to set the width(s) of any
@@ -36,8 +37,8 @@ public interface ColumnSizePolicy {
 }
 
 public object ConstrainedSizePolicy: ColumnSizePolicy {
-    override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
-        var remainingWidth = width
+    override fun layout(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
+        var remainingWidth = tableWidth
 
         // Set initial widths
         columns.forEachIndexed { index, it ->
@@ -64,13 +65,13 @@ public object ConstrainedSizePolicy: ColumnSizePolicy {
             }
         }
 
-        columns.last().let {
+        columns.lastOrNull()?.let {
             val old = it.width
             it.width += remainingWidth
             remainingWidth -= it.width - old
         }
 
-        return width - remainingWidth
+        return tableWidth - remainingWidth
     }
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
@@ -79,14 +80,14 @@ public object ConstrainedSizePolicy: ColumnSizePolicy {
 }
 
 public object EqualSizePolicy: ColumnSizePolicy {
-    override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
-        val colWidth = width / (columns.size - 1 - startIndex)
+    override fun layout(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
+        val colWidth = tableWidth / (columns.size - 1 - startIndex)
 
         columns.dropLast(1).forEach {
             it.width = colWidth
         }
 
-        return width
+        return tableWidth
     }
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
@@ -95,19 +96,19 @@ public object EqualSizePolicy: ColumnSizePolicy {
 }
 
 public object ProportionalSizePolicy: ColumnSizePolicy {
-    override fun layout(width: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
-        if (width > 0) {
+    override fun layout(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
+        if (tableWidth > 0) {
             val totalColWidth = columns.dropLast(1).sumOf { it.width }
 
             columns.dropLast(1).forEach {
                 it.width = when {
-                    totalColWidth > 0 -> (/*it.preferredWidth ?: */it.width) / totalColWidth * width
-                    else              -> width / (columns.size - 1)
+                    totalColWidth > 0 -> (/*it.preferredWidth ?: */it.width) / totalColWidth * tableWidth
+                    else              -> tableWidth / (columns.size - 1)
                 }
             }
         }
 
-        return width
+        return tableWidth
     }
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
