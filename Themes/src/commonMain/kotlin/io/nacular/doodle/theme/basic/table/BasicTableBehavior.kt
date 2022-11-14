@@ -283,15 +283,17 @@ public open class BasicMutableTableBehavior<T>(
 
     override val headerCellGenerator: HeaderCellGenerator<Table<T, *>> = object: HeaderCellGenerator<Table<T, *>> {
         override fun <A> invoke(table: Table<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor).apply {
-            toggled += {
-                if (table is MutableTable && column is MutableColumn<*,*> && column.comparator != null) {
-                    table.sortingChanged += { _,_,new ->
-                        sortOrder = if (new.size == 1 && new.first().column == column) new.first().order else null
-                    }
+            if (table is MutableTable && column is MutableColumn<*,*> && column.comparator != null) {
+                sortOrder = sortOrder(from = table, column)
 
-                    table.toggleSort(by = column as MutableColumn<T, *>)
-                }
+                table.sortingChanged += { _,_,_ -> sortOrder = sortOrder(from = table, column) }
+
+                toggled += { table.toggleSort(by = column as MutableColumn<T, *>) }
             }
+        }
+
+        private fun sortOrder(from: MutableTable<*, *>, column: MutableColumn<*, *>) = from.sorting.let {
+            if (it.size == 1 && it.first().column == column) it.first().order else null
         }
     }
 

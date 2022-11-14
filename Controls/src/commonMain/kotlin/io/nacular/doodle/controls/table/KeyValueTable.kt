@@ -37,10 +37,16 @@ public class SimpleKeyValueModel<K, V>(private val map: Map<K, V>): KeyValueMode
  *
  * @property header to show for the column
  * @property visualizer that renders the column's contents
+ * @property footer to show for the column
  * @property builder to configure the column
  * @constructor creates a new info
  */
-public data class ColumnInfo<K, V, T>(val header: View? = null, val visualizer: CellVisualizer<Pair<K, V>, T>, val builder: ColumnBuilder.() -> Unit)
+public data class ColumnInfo<K, V, T>(
+    val header    : View? = null,
+    val visualizer: CellVisualizer<Pair<K, V>, T>,
+    val footer    : View? = null,
+    val builder   : ColumnBuilder.() -> Unit
+)
 
 /**
  * A visual component that renders an immutable list of key ([K]) - value ([V]) pairs using a [TableBehavior]. Items are obtained via
@@ -67,8 +73,8 @@ public class KeyValueTable<K, V>(
     selectionModel : SelectionModel<Int>? = null,
     scrollCache    : Int                  = 0,
 ): Table<Pair<K, V>, KeyValueModel<K, V>>(model, selectionModel, scrollCache, columns = {
-    column(header = keyColumn.header,   extractor = { first  }, cellVisualizer = keyColumn.visualizer,   builder = keyColumn.builder  )
-    column(header = valueColumn.header, extractor = { second }, cellVisualizer = valueColumn.visualizer, builder = valueColumn.builder)
+    column(header = keyColumn.header,   footer = keyColumn.footer,   extractor = { first  }, cellVisualizer = keyColumn.visualizer,   builder = keyColumn.builder  )
+    column(header = valueColumn.header, footer = valueColumn.footer, extractor = { second }, cellVisualizer = valueColumn.visualizer, builder = valueColumn.builder)
 }) {
     init {
         columnSizePolicy = ProportionalSizePolicy
