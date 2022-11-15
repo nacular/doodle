@@ -2,6 +2,7 @@ package io.nacular.doodle.utils.diff
 
 import io.nacular.doodle.utils.diff.Operation.*
 import io.nacular.doodle.utils.fastMutableMapOf
+import io.nacular.doodle.utils.fastMutableSetOf
 import kotlin.math.min
 
 /**
@@ -290,8 +291,8 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, equa
     val secondLength = second.size
     val maxD         = firstLength + secondLength - 1
     val doubleEnd    = dualThreshold * 2 < maxD
-    var vMap1        = mutableListOf<HashSet<Long>>()
-    var vMap2        = mutableListOf<HashSet<Long>>()
+    var vMap1        = mutableListOf<MutableSet<Long>>()
+    var vMap2        = mutableListOf<MutableSet<Long>>()
     val v1           = fastMutableMapOf<Int, Int>().apply { this[1] = 0 }
     val v2           = fastMutableMapOf<Int, Int>().apply { this[1] = 0 }
     var footstep     = 0L  // Used to track overlapping paths.
@@ -301,7 +302,7 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, equa
 
     repeat(maxD) { d ->
         // Walk the front path one step.
-        vMap1.add(HashSet())  // Adds at index 'd'.
+        vMap1.add(fastMutableSetOf())  // Adds at index 'd'.
         var x: Int
         var y: Int
 
@@ -354,7 +355,7 @@ private fun <T> getMap(first: List<T>, second: List<T>, dualThreshold: Int, equa
 
         if (doubleEnd) {
             // Walk the reverse path one step.
-            vMap2.add(HashSet())  // Adds at index 'd'.
+            vMap2.add(fastMutableSetOf())  // Adds at index 'd'.
 
             for (k in -d..d step 2) {
                 when {
