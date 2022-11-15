@@ -16,12 +16,12 @@ import io.nacular.doodle.controls.theme.rowGenerator
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
-import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -610,6 +610,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     override fun doLayout() {
         width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
+        idealSize   = Size(width - (internalColumns.lastOrNull()?.width ?: 0.0), idealSize?.height ?: 0.0)
         resizingCol = null
 
         super.doLayout()

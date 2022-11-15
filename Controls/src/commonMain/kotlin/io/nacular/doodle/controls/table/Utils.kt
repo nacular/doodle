@@ -130,7 +130,7 @@ internal fun <T: View> tableLayout(
         panel_.bottom eq parent.bottom - (footer_.height.readOnly + footerPadding)
     }
 }.then {
-    table.idealSize = Size(table.width, max(footer.bounds.bottom, panel.bounds.bottom))
+    table.idealSize = Size(table.idealSize?.width ?: 0.0, max(footer.bounds.bottom, panel.bounds.bottom))
 }
 
 private fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {
