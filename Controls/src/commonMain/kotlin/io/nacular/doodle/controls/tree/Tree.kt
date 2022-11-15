@@ -13,6 +13,7 @@ import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -151,8 +152,7 @@ public open class Tree<T, out M: TreeModel<T>>(
             minimumSize = Size(minimumSize.width, field)
         }
 
-//    private val pathToRow = mutableMapOf<Path<Int>, Int>()
-
+    private   var handlingRectChange   = false
     protected var firstVisibleRow: Int =  0
     protected var lastVisibleRow : Int = -1
 
@@ -180,6 +180,9 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         @Suppress("LeakingThis")
         layout = object: Layout {
+            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle,       new: Rectangle      ) = !handlingRectChange
+            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = !handlingRectChange
+
             override fun layout(container: PositionableContainer) {
                 (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                     model[path].onSuccess { value ->
@@ -226,7 +229,7 @@ public open class Tree<T, out M: TreeModel<T>>(
                 else                                   -> max(0, findRow(position, firstVisibleRow) - scrollCache)
             }
 
-            position = Point(new.right, new.bottom)
+            position = Point(new.right - 1, new.bottom - 1)
 
             lastVisibleRow = when {
                 position == Point(old.right, old.bottom) && !old.empty -> lastVisibleRow
@@ -236,11 +239,13 @@ public open class Tree<T, out M: TreeModel<T>>(
             pathFromRow(firstVisibleRow)?.let { path -> model[path].onSuccess { minVisiblePosition = positioner.rowBounds(this, it, path, firstVisibleRow).position                     } }
             pathFromRow(lastVisibleRow )?.let { path -> model[path].onSuccess { maxVisiblePosition = positioner.rowBounds(this, it, path, lastVisibleRow ).run { Point(right, bottom) } } }
 
+            handlingRectChange = true
+
             children.batch {
                 if (oldFirst > firstVisibleRow) {
                     val end = min(oldFirst, lastVisibleRow)
 
-                    (firstVisibleRow until end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                    (firstVisibleRow .. end).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                         insert(this, path, index)
                     }
                 }
@@ -267,6 +272,8 @@ public open class Tree<T, out M: TreeModel<T>>(
                     }
                 }
             }
+
+            handlingRectChange = false
         }
     }
 
@@ -368,7 +375,7 @@ public open class Tree<T, out M: TreeModel<T>>(
                 // Remove old children
                 (numRows until size).forEach {
                     removeAt(numRows)
-                    rowToPath.remove(it) //?.let { pathToRow.remove(it) }
+                    rowToPath.remove(it)
                 }
             }
         }
@@ -469,11 +476,9 @@ public open class Tree<T, out M: TreeModel<T>>(
             }
 
             // Path index not found (could be invisible)
-            if (index in firstVisibleRow..lastVisibleRow) {
-                generator?.let { rowGenerator ->
-                    model[path].onSuccess { value ->
-                        // pathToRow[path ] = index
-
+            model[path].onSuccess { value ->
+                if (index in firstVisibleRow..lastVisibleRow) {
+                    generator?.let { rowGenerator ->
                         val i = index % children.size
 
                         rowGenerator(this, value, path, index, children.getOrNull(i)).also { ui ->
@@ -484,10 +489,10 @@ public open class Tree<T, out M: TreeModel<T>>(
                                 ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
                             }
                         }
-
-                        ++result
                     }
                 }
+
+                ++result
             }
         }
 
@@ -582,8 +587,6 @@ public open class Tree<T, out M: TreeModel<T>>(
         rowToPath[index] = path
         generator?.let {
             model[path].onSuccess { value ->
-//                    pathToRow[path ] = index
-
                 val expanded = expanded(path)
 
                 if (children.size <= lastVisibleRow - firstVisibleRow) {
@@ -648,7 +651,7 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    override fun rowFromPath(path: Path<Int>): Int? /*= pathToRow.getOrPut(path)*/ {
+    override fun rowFromPath(path: Path<Int>): Int? {
         var row         = if (rootVisible) 0 else -1
         var pathIndex   = 0
         var currentPath = Path<Int>()

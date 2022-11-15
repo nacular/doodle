@@ -204,7 +204,7 @@ public class TreeRow<T>(
         this.path  = path
         this.index = index
 
-        update(itemVisualizer.invoke(node, content, SimpleExpandableItem(tree, path, index)), tree)
+        update(itemVisualizer(node, content, SimpleExpandableItem(tree, path, index)), tree)
     }
 
     public fun update(content: View, tree: TreeLike) {

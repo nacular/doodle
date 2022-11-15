@@ -345,18 +345,16 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                     is Insert -> {
                         difference.items.forEachIndexed { index, insertedConstraint ->
                             previousDelete?.let {
-                                val deletedConstraint = it.items[index]
-
-                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(deletedConstraint)) {
+                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(it.items[index])) {
                                     // update constraint
                                     try {
-                                        solver.updateConstant(deletedConstraint, insertedConstraint)
+                                        solver.updateConstant(it.items[index], insertedConstraint)
                                     } catch (exception: ConstraintException) {
                                         errorHandler(exception)
                                     } catch (ignore: UnknownConstraintException) {}
                                 } else {
                                     // handle delete
-                                    handleDelete(solver, deletedConstraint)
+                                    handlePreviousDelete(solver, previousDelete)
                                     // handle insert
                                     handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
                                 }
