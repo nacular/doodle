@@ -469,10 +469,7 @@ internal open class VectorRendererSvg constructor(
     }
 
     private fun drawPath(data: String, stroke: Stroke?, fill: Paint?, fillRule: FillRule?) = present(stroke, fill ) {
-        when {
-            data.isNotBlank() -> makePath(data).also { it.setFillRule(fillRule) }
-            else              -> null
-        }
+        makePath(data).also { it.setFillRule(fillRule) }
     }
 
     private fun present(stroke: Stroke?, fill: Paint?, block: () -> SVGElement?) {
@@ -1031,6 +1028,6 @@ internal open class VectorRendererSvg constructor(
     }
 
     private companion object {
-        private val containerElements = setOf("svg", "filter")
+        private val containerElements = arrayOf("svg", "filter")
     }
 }

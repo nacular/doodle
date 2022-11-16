@@ -11,15 +11,14 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.normalize
 import io.nacular.measured.units.sign
 import io.nacular.measured.units.times
+import kotlin.jvm.JvmInline
 
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
  */
-public sealed interface Path {
-    public operator fun plus(other: Path): Path
-
-    /** command string */
-    public val data: String
+@JvmInline
+public value class Path internal constructor(public val data: String) {
+    public operator fun plus(other: Path): Path = Path(data + other.data)
 }
 
 /**
@@ -88,10 +87,9 @@ public sealed interface PathBuilder {
  * Creates a Path from the path data string.
  *
  * @param data conforming to https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
- * @return the path, or `null`
+ * @return the path, or `null` if [data] is blank
  */
-// TODO: Validate data?
-public fun path(data: String): Path = PathImpl(data)
+public fun path(data: String): Path? = if (data.isNotBlank()) Path(data) else null
 
 /**
  * Creates a Path at the given point and a builder to further define it.
@@ -220,23 +218,6 @@ public fun ringSection(
         close()
 }
 
-private class PathImpl(override val data: String): Path {
-    override fun toString() = data
-
-    override fun plus(other: Path) = PathImpl(data + other.data)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Path) return false
-
-        if (data != other.data) return false
-
-        return true
-    }
-
-    override fun hashCode() = data.hashCode()
-}
-
 private class PathBuilderImpl(start: Point): PathBuilder {
     private var data = "M${start.x},${start.y}"
 
@@ -256,7 +237,7 @@ private class PathBuilderImpl(start: Point): PathBuilder {
         data += "A$xRadius $yRadius ${rotation `in` degrees} ${if (largeArch) 1 else 0} ${if (sweep) 1 else 0} ${point.x},${point.y}"
     }
 
-    override fun close(): Path = PathImpl(data + "Z")
+    override fun close(): Path = Path(data + "Z")
 
-    override fun finish(): Path = PathImpl(data)
+    override fun finish(): Path = Path(data)
 }
