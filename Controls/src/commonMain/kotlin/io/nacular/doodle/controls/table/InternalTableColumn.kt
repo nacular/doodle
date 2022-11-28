@@ -10,6 +10,7 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Completable
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,7 +21,7 @@ internal interface TableLikeBehavior<T: TableLike> {
     fun <B: TableLikeBehavior<T>, F, R> columnMoveStart(table: T, internalColumn: InternalColumn<T, B, F, R>)
     fun <B: TableLikeBehavior<T>, F, R> columnMoveEnd  (table: T, internalColumn: InternalColumn<T, B, F, R>)
     fun <B: TableLikeBehavior<T>, F, R> columnMoved    (table: T, internalColumn: InternalColumn<T, B, F, R>)
-    fun moveColumn(table: T, function: (Float) -> Unit): Completable?
+    fun moveColumn(table: T, distance: Double, function: (Float) -> Unit): Completable?
 }
 
 internal interface TableLike {
@@ -145,11 +146,10 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
             view.zOrder                                    = new
         }
 
-    private var animation: Completable? = null
-        set(new) {
-            field?.cancel()
-            field = new
-        }
+    private var animation: Completable? = null; set(new) {
+        field?.cancel()
+        field = new
+    }
 
     /** FIXME: Refactor and join w/ impl in [[Table]] and move to Behavior */
     override fun moveBy(x: Double) {
@@ -184,7 +184,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
                     val offset       = column.x + column.transform.translateX
                     val translate    = min(max(value, minViewX - offset), maxViewX - offset)
 
-                    column.animation = behavior?.moveColumn(table) {
+                    column.animation = behavior?.moveColumn(table, abs(translate)) {
                         column.transform = oldTransform.translate(translate * it)
                     }
                 }
@@ -217,11 +217,13 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
 
         val oldTransform = transform
 
-        animation = behavior?.moveColumn(table) {
-            transform = when {
-                index < myNewIndex -> oldTransform.translate((targetBounds.right - width - myOffset) * it)
-                else               -> oldTransform.translate((targetBounds.x             - myOffset) * it)
-            }
+        val distance = when {
+            index < myNewIndex -> targetBounds.right - width - myOffset
+            else               -> targetBounds.x             - myOffset
+        }
+
+        animation = behavior?.moveColumn(table, abs(distance)) {
+            transform = oldTransform.translate(distance * it)
         }?.apply {
             completed += {
                 if (index != myNewIndex) {
@@ -234,7 +236,10 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
                     (table.panel.content as Container).children.forEach { it.rerenderNow() }
                 }
 
-                table.internalColumns.forEach { it.transform = Identity }
+                table.internalColumns.forEach {
+                    it.transform = Identity
+                    it.animation?.cancel()
+                }
             }
         }
     }

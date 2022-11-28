@@ -234,7 +234,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
             behavior?.columnMoved(table.delegate, internalColumn)
         }
 
-        override fun moveColumn(table: TableLikeWrapper, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, function)
+        override fun moveColumn(table: TableLikeWrapper, distance: Double, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, distance, function)
     }
 
     private inner class InternalTreeColumn<R>(

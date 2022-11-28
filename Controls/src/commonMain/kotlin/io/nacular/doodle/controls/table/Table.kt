@@ -100,7 +100,7 @@ public open class Table<T, M: ListModel<T>>(
             behavior?.columnMoved(table.delegate, internalColumn)
         }
 
-        override fun moveColumn(table: TableLikeWrapper, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, function)
+        override fun moveColumn(table: TableLikeWrapper, distance: Double, function: (Float) -> Unit): Completable? = behavior?.moveColumn(table.delegate, distance, function)
     }
 
     internal open inner class InternalListColumn<R>(

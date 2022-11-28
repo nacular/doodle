@@ -84,14 +84,15 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
      * controls the progress and timing of this move, allowing for custom
      * animation.
      *
-     * Calling block with a progress from 0 - 1 results in moving the column
+     * Calling block with progress from 0 to 1 results in moving the column
      * along the path from start to end.
      *
      * @param table in question
+     * @param distance over which the column will move
      * @param block controlling move animation
      * @return a completable operation the Table will monitor
      */
-    public fun moveColumn(table: T, block: (progress: Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    public fun moveColumn(table: T, distance: Double, block: (progress: Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
     /**
      * Called whenever a column begins moving in [table].
