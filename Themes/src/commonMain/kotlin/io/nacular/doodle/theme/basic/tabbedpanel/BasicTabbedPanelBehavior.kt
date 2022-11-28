@@ -3,8 +3,9 @@ package io.nacular.doodle.theme.basic.tabbedpanel
 import io.nacular.doodle.accessibility.TabListRole
 import io.nacular.doodle.accessibility.TabRole
 import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.fixedSpeedLinear
-import io.nacular.doodle.animation.fixedTimeLinear
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.linear
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.panels.TabbedPanel
@@ -43,8 +44,6 @@ import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.Time.Companion.seconds
-import io.nacular.measured.units.div
 import io.nacular.measured.units.times
 import kotlin.math.max
 import kotlin.math.min
@@ -454,9 +453,13 @@ public class AnimatingTabContainer<T>(
 //                        tab.animation = behavior?.moveColumn(this@Table) {
                         moveAnimations[tab]?.cancel()
 
-                        moveAnimations[tab] = animate { (0f to 1f using fixedSpeedLinear(10 / seconds)) {
+                        moveAnimations[tab] = animate(0f to 1f, tweenFloat(linear, 250 * milliseconds)/*fixedSpeedLinear(10 / seconds)*/) {
                             tab.transform = oldTransform.translate(translate * it) //1.0)
-                        } }
+                        }
+
+//                        moveAnimations[tab] = animate { (0f to 1f using fixedSpeedLinear(10 / seconds)) {
+//                            tab.transform = oldTransform.translate(translate * it) //1.0)
+//                        } }
                     }
                 }
             }
@@ -525,7 +528,7 @@ public class AnimatingTabContainer<T>(
 
         val tabColor = tab.backgroundColor
 
-        colorAnimations[tab] = (animate (start to end) using fixedTimeLinear(250 * milliseconds)) {
+        colorAnimations[tab] = animate(start to end, tweenFloat(linear, 250 * milliseconds)) {
             tab.backgroundColor = tabColor?.opacity(it)
 
             tab.rerenderNow()

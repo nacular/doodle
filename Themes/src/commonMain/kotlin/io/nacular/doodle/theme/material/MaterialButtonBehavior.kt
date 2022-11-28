@@ -3,8 +3,11 @@ package io.nacular.doodle.theme.material
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.Animator.Listener
-import io.nacular.doodle.animation.fixedTimeLinear
-import io.nacular.doodle.animation.speedUpSlowDown
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.easeInOutCubic
+import io.nacular.doodle.animation.transition.linear
+import io.nacular.doodle.animation.tweenDouble
+import io.nacular.doodle.animation.tweenFloat
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ButtonModel
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
@@ -90,8 +93,8 @@ public class MaterialButtonBehavior(
         val overlayEnd     = if (new) 0.2f else 0f
         val shadow1BlurEnd = if (new) 4.0  else 1.0
 
-        shadowAnimation  = (animate (shadow1Blur    to shadow1BlurEnd) using speedUpSlowDown(hoverAnimationTime)) { shadow1Blur    = it }
-        overlayAnimation = (animate (overlayOpacity to overlayEnd    ) using fixedTimeLinear(hoverAnimationTime)) { overlayOpacity = it }
+        shadowAnimation  = animate(shadow1Blur    to shadow1BlurEnd, tweenDouble(easeInOutCubic, hoverAnimationTime)) { shadow1Blur    = it }
+        overlayAnimation = animate(overlayOpacity to overlayEnd,     tweenFloat (linear,         hoverAnimationTime)) { overlayOpacity = it }
     }
 
     override fun clipCanvasToBounds(view: Button): Boolean = false
@@ -147,7 +150,7 @@ public class MaterialButtonBehavior(
         pointerPressed       = true
         pointerPressLocation = event.location
 
-        rippleAnimation = (animate (0.4f to 1f) using fixedTimeLinear(pressAnimationTime)) { rippleProgress = it }.apply {
+        rippleAnimation = animate(0.4f to 1f, tweenFloat(linear, pressAnimationTime)) { rippleProgress = it }.apply {
             completed += {
                 if (!pointerPressed) {
                     fadeRipple()
@@ -156,7 +159,7 @@ public class MaterialButtonBehavior(
                 }
             }
         }
-        shadowAnimation = (animate (shadow1Blur to 10.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
+        shadowAnimation = animate(shadow1Blur to 10.0, tweenDouble(easeInOutCubic, pressAnimationTime)) { shadow1Blur = it }
     }
 
     override fun released(event: PointerEvent) {
@@ -168,7 +171,7 @@ public class MaterialButtonBehavior(
             fadeRipple()
         }
 
-        shadowAnimation = (animate (shadow1Blur to 4.0) using speedUpSlowDown(pressAnimationTime)) { shadow1Blur = it }
+        shadowAnimation = animate(shadow1Blur to 4.0, tweenDouble(easeInOutCubic, pressAnimationTime)) { shadow1Blur = it }
     }
 
     override fun render(view: Button, canvas: Canvas) {
@@ -200,7 +203,7 @@ public class MaterialButtonBehavior(
     }
 
     private fun fadeRipple() {
-        rippleAnimation = (animate(0.24f to 0f) using fixedTimeLinear(pressAnimationTime * 2)) { rippleOpacity = it }.apply {
+        rippleAnimation = animate(0.24f to 0f, tweenFloat(linear, pressAnimationTime * 2)) { rippleOpacity = it }.apply {
             completed += {
                 if (!pointerPressed) {
                     pointerPressLocation = null

@@ -1,6 +1,9 @@
 package io.nacular.doodle.utils
 
 import io.nacular.doodle.core.Internal
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.times
 import kotlin.math.round
 
 /**
@@ -174,3 +177,5 @@ public fun <T> Set<T>.firstOrNull(): T? {
 
 @Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
 @Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
+
+public val zeroMillis: Measure<Time> by lazy { 0 * Time.milliseconds }

@@ -1,12 +1,14 @@
 package io.nacular.doodle.animation.impl
 
-import JsName
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator.Listener
-import io.nacular.doodle.animation.fixedTimeLinear
-import io.nacular.doodle.animation.fixedTimeLinearM
+import io.nacular.doodle.animation.AnimatorImpl
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.linear
+import io.nacular.doodle.animation.tween
+import io.nacular.doodle.animation.tweenFloat
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
@@ -15,7 +17,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.hours
 import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.Time.Companion.seconds
 import io.nacular.measured.units.times
 import kotlin.test.Test
 import kotlin.test.expect
@@ -78,7 +79,7 @@ class AnimatorImplTests {
         }
     }
 
-    @Test @JsName("animatesIncreasingNumberProperty") fun `animates increasing number property`() {
+    @Test fun `animates increasing number property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -89,7 +90,7 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        val animation = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation = animate.invoke(0f to 1f, tweenFloat(linear, 3 * milliseconds)) {
             outputs += it
         }.apply {
             completed += onCompleted
@@ -104,7 +105,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { onCompleted(animation) }
     }
 
-    @Test @JsName("animatesDecreasingNumberProperty") fun `animates decreasing number property`() {
+    @Test fun `animates decreasing number property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler() //ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -115,7 +116,7 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        val animation = (animate (1f to 0f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation = animate (1f to 0f, tweenFloat(linear, 3 * milliseconds)) {
             outputs += it
         }.apply {
             completed += onCompleted
@@ -123,14 +124,14 @@ class AnimatorImplTests {
 
         animationScheduler.runToCompletion()
 
-        expect(listOf(1f, 1/3f, 0f)) { outputs }
+        expect(listOf(1f, 1f - 2f/3, 0f)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
         verify(exactly = 1) { onCompleted(animation) }
     }
 
-    @Test @JsName("animatesSecondBatchOfNumberProperties") fun `animates second batch of number properties`() {
+    @Test fun `animates second batch of number properties`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -141,13 +142,13 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        val animation1 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation1 = animate(0f to 1f, tweenFloat(linear, 3 * milliseconds)) {
             outputs.plusAssign(it)
         }.apply {
             completed += onCompleted
         }
 
-        expect(listOf(0f, 2/3f, 1f)) { outputs }
+        expect(listOf(0f, 2f/3, 1f)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation1)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation1)) }
@@ -155,7 +156,7 @@ class AnimatorImplTests {
 
         outputs = mutableListOf()
 
-        val animation2 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) {
+        val animation2 = animate(0f to 1f, tweenFloat(linear, 3 * milliseconds)) {
             outputs.plusAssign(it)
         }
 
@@ -165,7 +166,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.completed(animate, setOf(animation2)) }
     }
 
-    @Test @JsName("animatesMeasureProperty") fun `animates measure property`() {
+    @Test fun `animates measure property`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ImmediateAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -176,20 +177,20 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        val animation = (animate (0 * seconds to 1 * hours) using fixedTimeLinearM(3 * milliseconds)) {
+        val animation = animate(0 * hours to 1 * hours, tween(hours, linear, 3 * milliseconds)) {
             outputs += it
         }.apply {
             completed += onCompleted
         }
 
-        expect(listOf(0 * milliseconds, 2 * hours / 3, 1000 * milliseconds * 3600)) { outputs }
+        expect(listOf(0 * hours, 1 * hours * (2.0/3.0).toFloat(), 1 * hours)) { outputs }
 
         verify(exactly = 2) { listener.changed  (animate, setOf(animation)) }
         verify(exactly = 1) { listener.completed(animate, setOf(animation)) }
         verify(exactly = 1) { onCompleted(animation) }
     }
 
-    @Test @JsName("cancelsNumberAnimation") fun `cancels number animation`() {
+    @Test fun `cancels number animation`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -200,8 +201,8 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        val animation1 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) { outputs1 += it }
-        val animation2 = (animate (0f to 1f) using fixedTimeLinear(3 * milliseconds)) { outputs2 += it }
+        val animation1 = animate(0f to 1f, tweenFloat(linear, 3 * milliseconds)) { outputs1 += it }
+        val animation2 = animate(0f to 1f, tweenFloat(linear, 3 * milliseconds)) { outputs2 += it }
 
         animation1.cancel()
 
@@ -217,7 +218,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.canceled(animate, setOf(animation1)         ) }
     }
 
-    @Test @JsName("animationBlockCancelsNested") fun `animation block cancels nested`() {
+    @Test fun `animation block cancels nested`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -232,10 +233,10 @@ class AnimatorImplTests {
         var animation2 = null as Animation?
 
         val topLevel = animate {
-            animation1 = (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs1 += it }
+            animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
 
             animate {
-                animation2 = (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs2 += it }
+                animation2 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
             }
         }
 
@@ -252,7 +253,7 @@ class AnimatorImplTests {
         verify(exactly = 1) { listener.canceled(animate, setOf(animation1!!, animation2!!)) }
     }
 
-    @Test @JsName("cancelsNumberAnimationGroup") fun `cancels number animation group`() {
+    @Test fun `cancels number animation group`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
         val animate            = AnimatorImpl(timer, animationScheduler)
@@ -264,8 +265,8 @@ class AnimatorImplTests {
         animate.listeners += listener
 
         val animations = animate {
-            (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs1 += it }
-            (0f to 1f using fixedTimeLinear(3 * milliseconds)) { outputs2 += it }
+            0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
+            0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
         }
 
         animations.cancel()

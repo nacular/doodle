@@ -2,10 +2,9 @@ package io.nacular.doodle
 
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Task
+import io.nacular.doodle.utils.zeroMillis
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
-import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.times
 
 class ManualScheduler: Scheduler {
     private class SimpleTask(override var completed: Boolean = false) : Task {
@@ -18,7 +17,7 @@ class ManualScheduler: Scheduler {
 
     fun runJobs() = tasks.forEach {
         it.first.completed = true
-        it.second(0 * milliseconds)
+        it.second(zeroMillis)
     }
 
     override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {

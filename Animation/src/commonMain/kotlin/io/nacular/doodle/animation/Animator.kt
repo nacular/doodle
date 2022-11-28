@@ -1,104 +1,175 @@
 package io.nacular.doodle.animation
 
-import io.nacular.doodle.animation.transition.FixedSpeedLinear
-import io.nacular.doodle.animation.transition.FixedTimeLinear
-import io.nacular.doodle.animation.transition.NoChange
-import io.nacular.doodle.animation.transition.SpeedUpSlowDown
-import io.nacular.doodle.animation.transition.Transition
+import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Pool
-import io.nacular.measured.units.InverseUnits
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-import io.nacular.measured.units.Units
-import io.nacular.measured.units.UnitsRatio
-import io.nacular.measured.units.times
-import kotlin.jvm.JvmName
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
-/**
- * Created by Nicholas Eddy on 3/29/18.
- */
-public class NoneUnit: Units("")
-
-public val noneUnits: NoneUnit = NoneUnit()
-
-@JvmName("fixedSpeedLinearNumber")
-public fun <T: Number> fixedSpeedLinear(speed: Measure<InverseUnits<Time>>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedSpeedLinear(1 * noneUnits * speed, end * noneUnits) }
-
-@JvmName("fixedSpeedLinearUnit")
-public fun <T: Units> fixedSpeedLinear(speed: Measure<UnitsRatio<T, Time>>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedSpeedLinear(speed, end) }
-
-public fun <T: Number> fixedTimeLinear(time: Measure<Time>): (T, T) -> Transition<NoneUnit> = { _,end -> FixedTimeLinear(time, end * noneUnits) }
-
-public fun <T: Units> fixedTimeLinearM(time: Measure<Time>): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> FixedTimeLinear(time, end) }
-
-public fun <T: Number> speedUpSlowDown(time: Measure<Time>, accelerationFraction: Float = 0.5f): (T, T) -> Transition<NoneUnit> = { _,end -> SpeedUpSlowDown(time, end * noneUnits, accelerationFraction) }
-
-public fun <T: Units> speedUpSlowDownM(time: Measure<Time>, accelerationFraction: Float = 0.5f): (Measure<T>, Measure<T>) -> Transition<T> = { _,end -> SpeedUpSlowDown(time, end, accelerationFraction) }
-
-public fun <T: Number> noChange (time: Measure<Time>): (T) -> Transition<NoneUnit> = { NoChange(time) }
-public fun <T: Units>  noChangeM(time: Measure<Time>): (Measure<T>) -> Transition<T> = { NoChange(time) }
-
-
+/** A running animation produced by an [Animator] */
 public interface Animation: Completable
 
-public interface Animator {
+/**
+ * Manages a set of [AnimationPlan]s and updates them over time.
+ */
+public sealed interface Animator {
+    /**
+     * Notified of an Animator's events.
+     */
     public interface Listener {
-        public fun changed  (animator: Animator, animations: Set<Animation>) {}
-        public fun canceled (animator: Animator, animations: Set<Animation>) {}
+        /**
+         * Notifies that the values of the given [animations] have changed.
+         *
+         * @param animator emitting the event
+         * @param animations whose values have changed
+         */
+        public fun changed(animator: Animator, animations: Set<Animation>) {}
+
+        /**
+         * Notifies that the given [animations] have been canceled.
+         *
+         * @param animator emitting the event
+         * @param animations that were canceled
+         */
+        public fun canceled(animator: Animator, animations: Set<Animation>) {}
+
+        /**
+         * Notifies that the given [animations] completed.
+         *
+         * @param animator emitting the event
+         * @param animations that completed
+         */
         public fun completed(animator: Animator, animations: Set<Animation>) {}
     }
 
-    public interface TransitionBuilder<T: Number> {
-        public infix fun then(transition: Transition<NoneUnit>): TransitionBuilder<T>
+    public abstract class NumericAnimationInfo<T, V> internal constructor()
 
-        public operator fun invoke(block: (T) -> Unit): Animation
+    /**
+     * Allows block-style animations to be defined and started. These animations are then grouped and
+     * managed by a top-level [Completable]. Callers are then able to monitor/cancel the entire group
+     * using the returned value.
+     *
+     * ```
+     * val animations = animate {
+     *     innerAnimation1 = 0f to 1f using = tween(...).invoke {
+     *     }
+     *
+     *     innerAnimation1 = start(customAnimation) {
+     *     }
+     *     ...
+     * }.apply {
+     *     completed += ... // called once when all nested animations are done
+     * }
+     *
+     *
+     * animations.cancel() // cancels all animations started in the block
+     * ```
+     */
+    public interface AnimationBlock {
+        /**
+         * Initiates a [NumericAnimationPlan] using the input from [NumericAnimationPlan.invoke]
+         *
+         * @param animation created from a [NumericAnimationPlan]
+         */
+        public infix fun <T, V> Pair<T, T>.using(animation: NumericAnimationInfo<T, V>): Animation
+
+        /**
+         * Defines the consumption block for a [NumericAnimationPlan] that is
+         */
+        public operator fun <T, V> NumericAnimationPlan<T, V>.invoke(definitions: (T) -> Unit): NumericAnimationInfo<T, V>
+
+        /**
+         * Starts a custom animation
+         *
+         * @param animation to start
+         * @param onChanged notified of changes to the animating value
+         */
+        public fun <T> start(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation
     }
 
-    public interface MeasureTransitionBuilder<T: Units> {
-        public infix fun then(transition: Transition<T>): MeasureTransitionBuilder<T>
+    /**
+     * Starts the given [animation] and notifies of changes to the underlying value via [onChanged].
+     *
+     * @param animation to start
+     * @param onChanged is called every time the value within [animation] changes
+     * @return a job referencing the ongoing animation
+     */
+    public operator fun <T> invoke(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation
 
-        public operator fun invoke(block: (Measure<T>) -> Unit): Animation
-    }
+    /**
+     * Allows block-style animations to be defined and started.
+     *
+     * @param definitions of which animations to start
+     * @see AnimationBlock
+     */
+    public operator fun invoke(definitions: AnimationBlock.() -> Unit): Completable
 
-    public interface NumberRangeUsing<T: Number> {
-        public infix fun using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>
-    }
-
-    public interface NumberUsing<T: Number> {
-        public infix fun using(transition: (start: T) -> Transition<NoneUnit>): TransitionBuilder<T>
-    }
-
-    public interface MeasureRangeUsing<T: Units> {
-        public infix fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
-    }
-
-    public interface MeasureUsing<T: Units> {
-        public infix fun using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
-    }
-
-    public operator fun <T: Number> invoke(range: Pair<T, T>): NumberRangeUsing<T> = object: NumberRangeUsing<T> {
-        override fun using(transition: (start: T, end: T) -> Transition<NoneUnit>) = range using transition
-    }
-
-    public operator fun <T: Number> invoke(value: T): NumberUsing<T> = object: NumberUsing<T> {
-        override fun using(transition: (start: T) -> Transition<NoneUnit>) = value using transition
-    }
-
-    public operator fun <T: Units> invoke(range: Pair<Measure<T>, Measure<T>>): MeasureRangeUsing<T> = object: MeasureRangeUsing<T> {
-        override fun using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>) = range using transition
-    }
-
-    public operator fun <T: Units> invoke(value: Measure<T>): MeasureUsing<T> = object: MeasureUsing<T> {
-        override fun using(transition: (start: Measure<T>) -> Transition<T>) = value using transition
-    }
-
-    public infix fun <T: Number> Pair<T, T>.using(transition: (start: T, end: T) -> Transition<NoneUnit>): TransitionBuilder<T>
-    public infix fun <T: Number> T.using(transition: (start: T) -> Transition<NoneUnit>): TransitionBuilder<T>
-    public infix fun <T: Units>  Pair<Measure<T>, Measure<T>>.using(transition: (start: Measure<T>, end: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
-    public infix fun <T: Units>  Measure<T>.using(transition: (start: Measure<T>) -> Transition<T>): MeasureTransitionBuilder<T>
-
-    public operator fun invoke(block: Animator.() -> Unit): Completable
-
+    /**
+     * Listeners that are notified of changes to the Animator's running animations
+     */
     public val listeners: Pool<Listener>
 }
+
+/**
+ * Starts an animation from `range.first` to `range.second`.
+ *
+ * @param range to animate within
+ * @param using this animation
+ * @param onChanged notified of changes to the animating value
+ */
+public operator fun <T, V> Animator.invoke(
+    range    : Pair<T, T>,
+    using    : NumericAnimationPlan<T, V>,
+    onChanged: (T) -> Unit
+): Animation = this(animation(range.first, range.second, using), onChanged)
+
+// region ================ Animatable Properties ========================
+
+/**
+ * Defines a property that can be animated using the given animation.
+ *
+ * @param default value to initialize the property with
+ * @param using the given animation
+ * @param onChanged that notifies when the underlying property changes
+ */
+public operator fun <V: View, T, K> Animator.invoke(default: T, using: NumericAnimationPlan<T, K>, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<V, T> = animatingProperty(
+    default,
+    this,
+    { start, end -> animation(start, end, using) },
+    onChanged
+)
+
+/**
+ * Creates a [ReadWriteProperty] that will animate to new values.
+ *
+ * @param default value for the property to begin with
+ * @param animator to use for the animation
+ * @param animation to use with the start and end values
+ * @param onChanged that notifies when the underlying property changes
+ */
+public fun <V: View, T> animatingProperty(
+    default  : T,
+    animator : Animator,
+    animation: (start: T, end: T) -> AnimationPlan<T>,
+    onChanged: (old: T, new: T) -> Unit = { _,_ -> }
+): ReadWriteProperty<V, T> = object: ReadWriteProperty<V, T> {
+    private var backingField: T = default
+    private var animation: Animation? = null; set(new) {
+        field?.cancel()
+        field = new
+    }
+
+    override operator fun getValue(thisRef: V, property: KProperty<*>): T = backingField
+
+    override operator fun setValue(thisRef: V, property: KProperty<*>, value: T) {
+        val old = backingField
+
+        this.animation = animator(animation(old, value)) {
+            if (backingField != it) {
+                backingField = it
+                onChanged(old, it)
+            }
+        }
+    }
+}
+// endregion

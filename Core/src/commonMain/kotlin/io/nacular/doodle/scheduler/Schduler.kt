@@ -1,21 +1,19 @@
 package io.nacular.doodle.scheduler
 
 import io.nacular.doodle.utils.Cancelable
+import io.nacular.doodle.utils.zeroMillis
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
-import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.times
 
 /**
  * Created by Nicholas Eddy on 10/19/17.
  */
-
 public interface Task: Cancelable {
     public val completed: Boolean
 }
 
 public interface Scheduler {
-    public fun now  (                     job: (Measure<Time>) -> Unit): Task = after(0 * milliseconds, job)
+    public fun now  (                     job: (Measure<Time>) -> Unit): Task = after(zeroMillis, job)
     public fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task
     public fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task
 
