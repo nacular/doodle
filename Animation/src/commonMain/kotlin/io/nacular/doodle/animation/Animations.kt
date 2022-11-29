@@ -43,7 +43,7 @@ public class Velocity<T>(public val change: T, public val over: Measure<Time>)
  * Low-level animation for values [T] that can be converted to numeric values using a [AnimationDataConverter]. This type is used by higher-level
  * APIs like [animation] and can be created using [tween] for tween animations that leverage [EasingFunction]s.
  */
-public sealed interface NumericAnimationPlan<T, V> {
+public interface NumericAnimationPlan<T, V> {
     /** Handles conversions of [T] to and from [V] */
     public val converter: AnimationDataConverter<T, V>
 

@@ -147,7 +147,7 @@ public operator fun <V: View, T, K> Animator.invoke(default: T, using: NumericAn
  * @param animation to use with the start and end values
  * @param onChanged that notifies when the underlying property changes
  */
-public fun <V: View, T> animatingProperty(
+public fun <V, T> animatingProperty(
     default  : T,
     animator : Animator,
     animation: (start: T, end: T) -> AnimationPlan<T>,

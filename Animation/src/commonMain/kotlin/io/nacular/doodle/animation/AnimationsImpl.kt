@@ -7,6 +7,7 @@ import io.nacular.doodle.utils.isEven
 import io.nacular.doodle.utils.zeroMillis
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.div
 import io.nacular.measured.units.times
 
@@ -18,10 +19,10 @@ internal class NumericAnimationPlanImpl<T>(
     override fun value(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>) = animation.value(start, end, initialVelocity, elapsedTime)
 
     override fun velocity(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>): Velocity<Double> {
-        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * Time.milliseconds)
+        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * milliseconds)
         val v2 = value(start, end, initialVelocity, elapsedTime                   )
 
-        return Velocity(v2 - v1, 1 * Time.milliseconds)
+        return Velocity(v2 - v1, 1 * milliseconds)
     }
 
     override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>): Measure<Time> {
@@ -41,10 +42,10 @@ internal open class MultiNumericAnimationPlanImpl<T>(
     }.toTypedArray()
 
     override fun velocity(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>): Velocity<Array<Double>> {
-        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * Time.milliseconds)
+        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * milliseconds)
         val v2 = value(start, end, initialVelocity, elapsedTime                   )
 
-        return Velocity(v2.zip(v1).map { it.first - it.second }.toTypedArray(), 1 * Time.milliseconds)
+        return Velocity(v2.zip(v1).map { it.first - it.second }.toTypedArray(), 1 * milliseconds)
     }
 
     override fun duration(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>): Measure<Time> {
@@ -55,6 +56,28 @@ internal open class MultiNumericAnimationPlanImpl<T>(
 
         return duration
     }
+}
+
+internal class KeyFrameBlockImpl<T>(private val duration: Measure<Time>): KeyFrameBlock<T> {
+    class FrameImpl<T>(val value: T, var easing: EasingFunction = linear): KeyFrameBlock.Frame<T> {
+        override fun then(easing: EasingFunction) {
+            this.easing = easing
+        }
+    }
+
+    val frames = mutableMapOf<Measure<Time>, FrameImpl<T>>()
+    var end: Pair<Measure<Time>, T>? = null
+
+    override infix fun T.at(timeStamp: Measure<Time>) = FrameImpl(this).also {
+        frames[timeStamp] = it
+        val e = end
+        end = when {
+            e == null || timeStamp > e.first -> timeStamp to it.value
+            else                             -> e
+        }
+    }
+
+    override infix fun T.at(fraction: Float): KeyFrameBlock.Frame<T> = at(duration * fraction)
 }
 
 internal abstract class KeyframeAnimationPlan<T, V>(
@@ -85,14 +108,14 @@ internal abstract class KeyframeAnimationPlan<T, V>(
         var endValue   = converter.deserialize(end)
         var easing     = linear
 
-        frames.forEach { frame ->
-            if (elapsedTime > frame.key && frame.key >= startTime) {
-                startTime  = frame.key
-                startValue = frame.value.value
-                easing     = frame.value.easing
-            } else if (elapsedTime < frame.key && frame.key <= endTime) {
-                endTime  = frame.key
-                endValue = frame.value.value
+        frames.forEach { (time, frame) ->
+            if (elapsedTime > time && time >= startTime) {
+                startTime  = time
+                startValue = frame.value
+                easing     = frame.easing
+            } else if (elapsedTime < time && time <= endTime) {
+                endTime    = time
+                endValue   = frame.value
             }
         }
 
@@ -100,10 +123,10 @@ internal abstract class KeyframeAnimationPlan<T, V>(
     }
 
     override fun velocity(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Velocity<V> {
-        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * Time.milliseconds)
+        val v1 = value(start, end, initialVelocity, elapsedTime - 1 * milliseconds)
         val v2 = value(start, end, initialVelocity, elapsedTime                        )
 
-        return velocity(v1, v2, 1 * Time.milliseconds)
+        return velocity(v1, v2, 1 * milliseconds)
     }
 
     override fun duration(start: V, end: V, initialVelocity: Velocity<V>): Measure<Time> = delay + duration
@@ -151,9 +174,8 @@ internal class MultiKeyframeAnimationPlan<T>(
     }
 
     override fun velocity(start: Array<Double>, end: Array<Double>, elapsedTime: Measure<Time>): Velocity<Array<Double>> {
-        return Velocity(end.zip(start).map { it.first - it.second }.toTypedArray(), 1 * Time.milliseconds)
+        return Velocity(end.zip(start).map { it.first - it.second }.toTypedArray(), 1 * milliseconds)
     }
-
 }
 
 internal abstract class RepeatingAnimationPlan<T, V>(
@@ -201,26 +223,4 @@ internal abstract class RepeatingAnimationPlan<T, V>(
             else                                                -> (numRepeats + 1) * duration - elapsedTime
         }
     }
-}
-
-internal class KeyFrameBlockImpl<T>(private val duration: Measure<Time>): KeyFrameBlock<T> {
-    class FrameImpl<T>(val value: T, var easing: EasingFunction = linear): KeyFrameBlock.Frame<T> {
-        override fun then(easing: EasingFunction) {
-            this.easing = easing
-        }
-    }
-
-    val frames = mutableMapOf<Measure<Time>, FrameImpl<T>>()
-    var end: Pair<Measure<Time>, T>? = null
-
-    override infix fun T.at(timeStamp: Measure<Time>) = FrameImpl(this).also {
-        frames[timeStamp] = it
-        val e = end
-        end = when {
-            e == null || timeStamp > e.first -> timeStamp to it.value
-            else                             -> e
-        }
-    }
-
-    override infix fun T.at(fraction: Float): KeyFrameBlock.Frame<T> = at(duration * fraction)
 }

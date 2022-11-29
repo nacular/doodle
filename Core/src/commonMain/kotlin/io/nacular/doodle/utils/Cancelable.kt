@@ -4,6 +4,8 @@ import io.nacular.doodle.utils.CompletableImpl.State.Active
 import io.nacular.doodle.utils.CompletableImpl.State.Canceled
 import io.nacular.doodle.utils.CompletableImpl.State.Completed
 import kotlin.js.JsName
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 
 public interface Completable: Cancelable {
@@ -73,4 +75,27 @@ public val NoOpCompletable: Completable = object: CompletableImpl() {
 
 public interface Cancelable {
     public fun cancel()
+}
+
+/**
+ * Creates a [ReadWriteProperty] that will cancel the previous value when changed.
+ *
+ * @param default value for the property to begin with
+ * @param onChanged that notifies when the underlying property changes
+ */
+public fun <V, T: Cancelable> cancelable(
+    default  : T? = null,
+    onChanged: (old: T?, new: T?) -> Unit = { _,_ -> }
+): ReadWriteProperty<V, T?> = object: ReadWriteProperty<V, T?> {
+    private var backingField: T? = default
+
+    override operator fun getValue(thisRef: V, property: KProperty<*>): T? = backingField
+
+    override operator fun setValue(thisRef: V, property: KProperty<*>, value: T?) {
+        val old = backingField?.apply {cancel() }
+
+        backingField = value
+
+        onChanged(old, backingField)
+    }
 }
