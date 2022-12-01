@@ -1,5 +1,6 @@
 package io.nacular.doodle.focus.impl
 
+import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -8,7 +9,6 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.ObservableList
-import JsName
 import io.nacular.doodle.utils.Path
 import kotlin.test.Test
 import kotlin.test.expect
@@ -307,6 +307,9 @@ class FocusTraversalPolicyImplTests {
                 focusable = node.focusable
                 node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
                 children += node.children.map { createHierarchy(it, path + it.value) }
+                children.forEach {
+                    it.addedToDisplay(mockk(), mockk(), mockk())
+                }
             }.also {
                 pathToView[path] = it
                 viewToPath[it  ] = path

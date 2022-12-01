@@ -7,7 +7,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /** A running animation produced by an [Animator] */
-public interface Animation: Completable
+public sealed interface Animation: Completable
 
 /**
  * Manages a set of [AnimationPlan]s and updates them over time.

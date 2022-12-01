@@ -9,6 +9,7 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Units
 import io.nacular.measured.units.times
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -90,7 +91,12 @@ public val Color.Companion.animationConverter: MultiDataConverter<Color> get() =
     override val size get()                        = 4
     override val zero                              = Black opacity 0f
     override fun serialize  (value: Color        ) = arrayOf(value.red.toDouble(), value.green.toDouble(), value.blue.toDouble(), value.opacity.toDouble())
-    override fun deserialize(value: Array<Double>) = Color(value[0].roundToInt().toUByte(), value[1].roundToInt().toUByte(), value[2].roundToInt().toUByte(), max(0f, value[3].toFloat()))
+    override fun deserialize(value: Array<Double>) = Color(
+        value[0].roundToInt().mod(256).toUByte(),
+        value[1].roundToInt().mod(256).toUByte(),
+        value[2].roundToInt().mod(256).toUByte(),
+        max(0f, min(value[3].toFloat(), 1f))
+    )
 }
 
 // endregion

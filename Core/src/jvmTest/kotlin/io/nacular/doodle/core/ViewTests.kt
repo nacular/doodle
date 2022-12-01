@@ -16,9 +16,9 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.View.SizePreferences
+import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform2D
-import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
@@ -1039,11 +1039,16 @@ class ViewTests {
         val parent = object: View() {}
         val child  = object: View() {}
 
+        root.addedToDisplay(mockk(), mockk(), mockk())
+
         expect(false) { root ancestorOf_ root  }
         expect(false) { root ancestorOf_ child }
 
         root.children_   += parent
         parent.children_ += child
+
+        parent.addedToDisplay(mockk(), mockk(), mockk())
+        child.addedToDisplay(mockk(), mockk(), mockk())
 
         expect(true) { root ancestorOf_ parent }
         expect(true) { root ancestorOf_ child  }
@@ -1145,6 +1150,10 @@ class ViewTests {
 
         grandParent.children += parent
         parent.children      += child
+
+        grandParent.addedToDisplay(mockk(), mockk(), mockk())
+        parent.addedToDisplay(mockk(), mockk(), mockk())
+        child.addedToDisplay(mockk(), mockk(), mockk())
 
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }

@@ -109,6 +109,7 @@ public open class ScrollPanel(content: View? = null): View() {
             children += it
             it.parentChange           +=  parentChanged
             it.sizePreferencesChanged += sizePreferencesListener
+            if (matchContentIdealSize) idealSize = it.idealSize
             (layout as? ViewLayout)?.updateConstraints()
         }
 
