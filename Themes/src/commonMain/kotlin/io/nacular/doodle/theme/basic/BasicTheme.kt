@@ -494,7 +494,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public inline fun basicRangeSliderBehavior(
+        public fun basicRangeSliderBehavior(
             barFill             : Paint?            = null,
             knobFill            : Paint?            = null,
             rangeFill           : Paint?            = knobFill,
@@ -565,10 +565,10 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             checkInset         : ((CheckBox) -> Float)? = null,
             iconSize           : ((CheckBox) -> Size)? = null
         ): Module = basicThemeModule(name = "BasicCheckBoxBehavior") {
-            bindBehavior<CheckBox>(BTheme::class) {
+            bindBehavior<CheckBox>(BTheme::class) { checkBox ->
                 val iconInsets = iconInset ?: 1.0
 
-                it.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(
+                checkBox.behavior = instance<BasicThemeConfig>().run { BasicCheckBoxBehavior(
                     instance(),
                     iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInsets, it.width - 2 * iconInsets))) },
                     checkInset          = checkInset          ?: { 0.5f },
@@ -594,10 +594,10 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             innerCircleInset   : ((RadioButton) -> Double)? = null,
             iconSize           : ((RadioButton) -> Size  )? = null,
         ): Module = basicThemeModule(name = "BasicRadioButtonBehavior") {
-            bindBehavior<RadioButton>(BTheme::class) {
+            bindBehavior<RadioButton>(BTheme::class) {radioButton ->
                 val iconInsets = iconInset ?: 1.0
 
-                it.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
+                radioButton.behavior = instance<BasicThemeConfig>().run { BasicRadioBehavior(
                     instance(),
                     iconTextSpacing     = iconSpacing         ?: 8.0,
                     iconSize            = iconSize            ?: { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInsets, it.width - 2 * iconInsets))) },
@@ -764,7 +764,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public inline fun basicCircularRangeSliderBehavior(
+        public fun basicCircularRangeSliderBehavior(
             barFill  : Paint? = null,
             knobFill : Paint? = null,
             rangeFill: Paint? = knobFill,
@@ -920,13 +920,13 @@ public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<
         override val defaultBackgroundColor: Color = super.defaultBackgroundColor.inverted
         override val hoverColorMapper      : ColorMapper = { it.lighter(0.3f) }
         override val disabledColorMapper   : ColorMapper = { it.darker()      }
-        override val disabledPaintMapper   : PaintMapper = {
-            when (it) {
-                is ColorPaint          -> it.color.darker().paint
-                is LinearGradientPaint -> LinearGradientPaint(it.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = it.start, end = it.end)
-                is RadialGradientPaint -> RadialGradientPaint(it.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = it.start, end = it.end)
-                is ImagePaint          -> ImagePaint(image = it.image, size = it.size, opacity = it.opacity * 0.5f)
-                else                   -> it
+        override val disabledPaintMapper   : PaintMapper = { paint ->
+            when (paint) {
+                is ColorPaint          -> paint.color.darker().paint
+                is LinearGradientPaint -> LinearGradientPaint(paint.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = paint.start, end = paint.end)
+                is RadialGradientPaint -> RadialGradientPaint(paint.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = paint.start, end = paint.end)
+                is ImagePaint          -> ImagePaint(image = paint.image, size = paint.size, opacity = paint.opacity * 0.5f)
+                else                   -> paint
             }
         }
     }

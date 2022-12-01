@@ -11,8 +11,8 @@ buildscript {
 }
 
 plugins {
-    id ("org.jetbrains.dokka"       ) version "1.7.0"
-    id("org.jetbrains.kotlinx.kover") version "0.4.4"
+    id ("org.jetbrains.dokka"        ) version "1.7.20"
+    id ("org.jetbrains.kotlinx.kover") version "0.6.1"
     signing
 }
 
