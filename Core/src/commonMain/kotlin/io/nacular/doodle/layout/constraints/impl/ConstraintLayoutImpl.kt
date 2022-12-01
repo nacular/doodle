@@ -6,6 +6,10 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstEdges
+import io.nacular.doodle.layout.constraints.ConstExpression
+import io.nacular.doodle.layout.constraints.ConstPosition
+import io.nacular.doodle.layout.constraints.ConstProperty
 import io.nacular.doodle.layout.constraints.ConstTerm
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -15,10 +19,6 @@ import io.nacular.doodle.layout.constraints.Edges
 import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
-import io.nacular.doodle.layout.constraints.ConstEdges
-import io.nacular.doodle.layout.constraints.ConstExpression
-import io.nacular.doodle.layout.constraints.ConstPosition
-import io.nacular.doodle.layout.constraints.ConstProperty
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.PropertyWrapper
@@ -354,7 +354,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                                     } catch (ignore: UnknownConstraintException) {}
                                 } else {
                                     // handle delete
-                                    handlePreviousDelete(solver, previousDelete)
+                                    handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
                                     // handle insert
                                     handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
                                 }
