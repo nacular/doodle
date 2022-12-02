@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
+import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.text.TextField
@@ -54,6 +55,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -69,6 +71,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             ) }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeScrollPanelBehavior(): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -85,6 +88,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
                         nativePointerPreprocessor = instanceOrNull()) }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -98,6 +102,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             ) }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -124,77 +129,113 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             ) }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeHyperLinkStyler> { NativeHyperLinkStylerImpl() }
 
-            bindBehavior<HyperLink>(NTheme::class) { it.behavior = NativeHyperLinkBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    textMetrics               = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingFocusManager         = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
-            ) as Behavior<Button> }
+            bindBehavior<HyperLink>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeHyperLinkBehavior(
+                        window                    = instance(),
+                        appScope                  = instance(),
+                        textMetrics               = instance(),
+                        uiDispatcher              = Dispatchers.Swing,
+                        focusManager              = instanceOrNull(),
+                        swingFocusManager         = FocusManager.getCurrentManager(),
+                        swingGraphicsFactory      = instance(),
+                        nativePointerPreprocessor = instanceOrNull()
+                ) as Behavior<Button>
+            }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<CheckBox>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    textMetrics               = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingFocusManager         = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
-            ) as Behavior<Button> }
+            bindBehavior<CheckBox>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeCheckBoxBehavior(
+                        window                    = instance(),
+                        appScope                  = instance(),
+                        textMetrics               = instance(),
+                        uiDispatcher              = Dispatchers.Swing,
+                        focusManager              = instanceOrNull(),
+                        swingFocusManager         = FocusManager.getCurrentManager(),
+                        swingGraphicsFactory      = instance(),
+                        nativePointerPreprocessor = instanceOrNull()
+                ) as Behavior<Button>
+            }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<RadioButton>(NTheme::class) { it.behavior = NativeRadioButtonBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    textMetrics               = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingFocusManager         = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
-            ) as Behavior<Button> }
+            bindBehavior<RadioButton>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeRadioButtonBehavior(
+                        window                    = instance(),
+                        appScope                  = instance(),
+                        textMetrics               = instance(),
+                        uiDispatcher              = Dispatchers.Swing,
+                        focusManager              = instanceOrNull(),
+                        swingFocusManager         = FocusManager.getCurrentManager(),
+                        swingGraphicsFactory      = instance(),
+                        nativePointerPreprocessor = instanceOrNull()
+                ) as Behavior<Button>
+            }
         }
 
+        @Suppress("MemberVisibilityCanBePrivate")
         public fun nativeSwitchBehavior(): Module = Module(name = "NativeSwitchBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindBehavior<Switch>(NTheme::class) { it.behavior = NativeCheckBoxBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    textMetrics               = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingFocusManager         = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
-            ) as Behavior<Button> }
+            bindBehavior<Switch>(NTheme::class) {
+                @Suppress("UNCHECKED_CAST")
+                it.behavior = NativeCheckBoxBehavior(
+                        window                    = instance(),
+                        appScope                  = instance(),
+                        textMetrics               = instance(),
+                        uiDispatcher              = Dispatchers.Swing,
+                        focusManager              = instanceOrNull(),
+                        swingFocusManager         = FocusManager.getCurrentManager(),
+                        swingGraphicsFactory      = instance(),
+                        nativePointerPreprocessor = instanceOrNull()
+                ) as Behavior<Button>
+            }
         }
 
-        public val nativeThemeBehaviors: List<Module> = listOf(
-            nativeButtonBehavior     (),
-            nativeSliderBehavior     (),
-            nativeSwitchBehavior     (),
-            nativeCheckBoxBehavior   (),
-            nativeTextFieldBehavior  (),
-            nativeHyperLinkBehavior  (),
-            nativeScrollPanelBehavior(),
-            nativeRadioButtonBehavior()
+        @Suppress("MemberVisibilityCanBePrivate")
+        public fun nativeFileSelectorBehavior(prompt: String): Module = Module(name = "NativeFileSelectorBehavior") {
+            importOnce(CommonNativeModule, allowOverride = true)
+
+            bindSingleton<NativeFileSelectorStyler > { NativeFileSelectorStylerImpl(window = instance()) }
+
+            bindBehavior<FileSelector>(NTheme::class) {
+                it.behavior = NativeFileSelectorBehavior(
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    focusManager              = instanceOrNull(),
+                    swingGraphicsFactory      = instance(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    prompt                    = prompt
+                )
+            }
+        }
+
+        public fun nativeThemeBehaviors(fileSelectorPrompt: String): List<Module> = listOf(
+            nativeButtonBehavior      (),
+            nativeSliderBehavior      (),
+            nativeSwitchBehavior      (),
+            nativeCheckBoxBehavior    (),
+            nativeTextFieldBehavior   (),
+            nativeHyperLinkBehavior   (),
+            nativeScrollPanelBehavior (),
+            nativeRadioButtonBehavior (),
+            nativeFileSelectorBehavior(fileSelectorPrompt),
         )
     }
 }

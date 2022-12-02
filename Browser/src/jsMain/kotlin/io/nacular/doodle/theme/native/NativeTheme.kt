@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
+import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.text.TextField
@@ -17,6 +18,8 @@ import io.nacular.doodle.drawing.impl.NativeCheckBoxRadioButtonFactoryImpl
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
 import io.nacular.doodle.drawing.impl.NativeEventHandlerImpl
 import io.nacular.doodle.drawing.impl.NativeEventListener
+import io.nacular.doodle.drawing.impl.NativeFileSelectorFactory
+import io.nacular.doodle.drawing.impl.NativeFileSelectorFactoryImpl
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactoryImpl
 import io.nacular.doodle.drawing.impl.NativeScrollPanelFactory
@@ -152,6 +155,15 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             }
         }
 
+        public fun nativeFileSelectorBehavior(): Module = Module(name = "NativeFileSelectorBehavior") {
+            importOnce(CommonNativeModule, allowOverride = true)
+
+            bindSingleton<NativeFileSelectorFactory> { NativeFileSelectorFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
+            bindSingleton<NativeFileSelectorStyler > { NativeFileSelectorStylerImpl (instance()                                                      ) }
+
+            bindBehavior<FileSelector>(NTheme::class) { it.behavior = NativeFileSelectorBehavior(instance(), it) }
+        }
+
         public val nativeThemeBehaviors: List<Module> = listOf(
             nativeButtonBehavior     (),
             nativeSliderBehavior     (),
@@ -160,7 +172,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             nativeTextFieldBehavior  (),
             nativeHyperLinkBehavior  (),
             nativeScrollPanelBehavior(),
-            nativeRadioButtonBehavior()
+            nativeRadioButtonBehavior(),
+            nativeFileSelectorBehavior(),
         )
     }
 }

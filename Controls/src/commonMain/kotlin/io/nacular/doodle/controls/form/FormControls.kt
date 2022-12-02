@@ -20,6 +20,7 @@ import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.controls.dropdown.Dropdown
+import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
@@ -31,8 +32,8 @@ import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.ListSpinnerModel
-import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
+import io.nacular.doodle.controls.spinner.SpinnerModel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.toString
@@ -47,6 +48,8 @@ import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.then
+import io.nacular.doodle.datatransport.LocalFile
+import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -56,7 +59,8 @@ import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
@@ -499,6 +503,36 @@ public fun <T> circularRangeSlider(
 }
 
 // endregion
+
+// endregion
+
+// region SimpleFile
+
+/**
+ * Creates a [FileSelector] control that is bound to a [Field] (of type [LocalFile]).
+ *
+ * @param acceptedTypes defines which file types to allow
+ */
+public fun file(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<LocalFile> = field {
+    FileSelector(allowMultiple = false, acceptedTypes = acceptedTypes).apply {
+        this.filesLoaded += { _,_,files ->
+            files.firstOrNull()?.let { state = Valid(it) }
+        }
+    }
+}
+
+/**
+ * Creates a [FileSelector] control that is bound to a [Field] (of type List of [LocalFile]).
+ *
+ * @param acceptedTypes defines which file types to allow
+ */
+public fun files(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<List<LocalFile>> = field {
+    FileSelector(allowMultiple = true, acceptedTypes).apply {
+        this.filesLoaded += { _,_,files ->
+            state = Valid(files)
+        }
+    }
+}
 
 // endregion
 

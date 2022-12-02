@@ -2,6 +2,7 @@ package io.nacular.doodle.datatransport.dragdrop.impl
 
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLInputElement
+import io.nacular.doodle.datatransport.SimpleFile
 import io.nacular.doodle.core.View
 import io.nacular.doodle.datatransport.DataBundle
 import io.nacular.doodle.datatransport.Files
@@ -36,19 +37,8 @@ import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.system.impl.PointerLocationResolver
-import io.nacular.measured.units.BinarySize.Companion.bytes
-import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.times
-import kotlinx.coroutines.CancellationException
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.get
 import org.w3c.dom.DragEvent
 import org.w3c.dom.get
-import org.w3c.files.FileReader
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.abs
 
 
@@ -71,101 +61,6 @@ internal class DragManagerImpl(
     private var dataBundle             = null as DataBundle?
 
     private lateinit var visualCanvas: RealGraphicsSurface
-
-    private class SimpleFile(private val delegate: org.w3c.files.File): LocalFile {
-        override val name         get() = delegate.name
-        override val size         get() = delegate.size * bytes
-        override val type         get() = delegate.type
-        override val isClosed     get() = delegate.isClosed
-        override val lastModified get() = delegate.lastModified * milliseconds
-
-        override suspend fun read(progress: (Float) -> Unit): ByteArray? = suspendCoroutine { coroutine ->
-            try {
-                val reader = FileReader()
-
-                reader.onerror = {
-                    coroutine.resume(null)
-                }
-
-                reader.onloadend = {
-                    val uint8Array = Uint8Array(reader.result as ArrayBuffer)
-
-                    coroutine.resume((0 until uint8Array.length).map {
-                        uint8Array[it]
-                    }.toByteArray())
-                }
-
-                reader.onprogress = {
-                    if (it.lengthComputable) {
-                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
-                    }
-                }
-
-                reader.readAsArrayBuffer(delegate)
-            } catch (e: CancellationException) {
-                coroutine.resumeWithException(e)
-            }
-        }
-
-        override suspend fun readText(encoding: String?, progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
-            try {
-                val reader = FileReader()
-
-                reader.onerror = {
-                    coroutine.resume(null)
-                }
-
-                reader.onloadend = {
-                    coroutine.resume(reader.result as String)
-                }
-
-                reader.onprogress = {
-                    if (it.lengthComputable) {
-                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
-                    }
-                }
-
-                when (encoding) {
-                    null -> reader.readAsText(delegate          )
-                    else -> reader.readAsText(delegate, encoding)
-                }
-
-            } catch (e: CancellationException) {
-                coroutine.resumeWithException(e)
-            }
-        }
-
-        override suspend fun readBase64(progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
-            try {
-                val reader = FileReader()
-
-                reader.onerror = {
-                    coroutine.resume(null)
-                }
-
-                reader.onloadend = {
-                    var encoded = (reader.result as String).replace("^data:(.*,)?".toRegex(), "")
-
-                    if ((encoded.length % 4) > 0) {
-                        encoded = encoded.padEnd(4 - (encoded.length % 4), '=')
-                    }
-
-                    coroutine.resume(encoded)
-                }
-
-                reader.onprogress = {
-                    if (it.lengthComputable) {
-                        progress((it.loaded.toDouble() / it.total.toDouble()).toFloat())
-                    }
-                }
-
-                reader.readAsDataURL(delegate)
-
-            } catch (e: CancellationException) {
-                coroutine.resumeWithException(e)
-            }
-        }
-    }
 
     private fun getFiles(dataTransfer: DataTransfer, mimeType: Files): List<LocalFile> {
         val mimeTypes = mimeType.types.map { "$it" }

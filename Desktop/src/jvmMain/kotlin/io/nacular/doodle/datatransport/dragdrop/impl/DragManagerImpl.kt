@@ -6,6 +6,7 @@ import io.nacular.doodle.datatransport.Files
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.datatransport.PlainText
+import io.nacular.doodle.datatransport.SimpleFile
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragOperation.Action
@@ -22,10 +23,6 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.swing.location
 import io.nacular.doodle.system.SystemInputEvent
 import io.nacular.doodle.system.SystemPointerEvent
-import io.nacular.measured.units.BinarySize.Companion.bytes
-import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.times
-import kotlinx.coroutines.CancellationException
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
@@ -43,11 +40,8 @@ import java.awt.dnd.DragSource
 import java.awt.dnd.DragSourceAdapter
 import java.awt.dnd.DragSourceDropEvent
 import java.awt.event.MouseEvent
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.nio.charset.Charset
 import java.nio.file.Files.probeContentType
-import java.util.Base64
 import javax.swing.JComponent
 import javax.swing.TransferHandler
 import javax.swing.TransferHandler.COPY
@@ -56,9 +50,6 @@ import javax.swing.TransferHandler.LINK
 import javax.swing.TransferHandler.MOVE
 import javax.swing.TransferHandler.NONE
 import javax.swing.TransferHandler.TransferSupport
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import java.awt.Point as AwtPoint
 
 
@@ -76,55 +67,10 @@ internal class DragManagerImpl(
     private var dragOperation          = null as DragOperation?
     private val dragSource             = DragSource()
 
-    private class SimpleFile(private val delegate: File): LocalFile {
-        override val name: String get() = delegate.name
-        override val size         get() = delegate.length() * bytes
-        override val type         get() = delegate.extension
-        override val isClosed     get() = false
-        override val lastModified get() = delegate.lastModified() * milliseconds
-
-        override suspend fun read(progress: (Float) -> Unit): ByteArray? = suspendCoroutine { coroutine ->
-            try {
-                val result    = ByteArrayOutputStream()
-                val fileSize  = delegate.length()
-                var totalRead = 0L
-
-                delegate.forEachBlock { buffer, bytesRead ->
-                    result.write(buffer)
-                    totalRead += bytesRead
-                    progress((fileSize / totalRead).toFloat())
-                }
-
-                coroutine.resume(result.toByteArray())
-            } catch (e: CancellationException) {
-                coroutine.resumeWithException(e)
-            }
-        }
-
-        override suspend fun readText(encoding: String?, progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
-            try {
-                val result = java.lang.StringBuilder()
-                val fileSize = delegate.length()
-                var totalRead = 0L
-
-                delegate.forEachLine(Charset.forName(encoding)) {
-                    result.append(it)
-                    totalRead += it.length
-                    progress((fileSize / totalRead).toFloat())
-                }
-
-                coroutine.resume(result.toString())
-            } catch (e: CancellationException) {
-                coroutine.resumeWithException(e)
-            }
-        }
-
-        override suspend fun readBase64(progress: (Float) -> Unit): String? = Base64.getEncoder().encodeToString(read(progress))
-    }
-
     private fun TransferSupport.getFiles(mimeType: Files): List<LocalFile> {
         val fileTypes = mimeType.types.map { it.toString() }
 
+        @Suppress("UNCHECKED_CAST")
         return (transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>)?.filter {
             probeContentType(it.toPath()) in fileTypes
         }?.map {
@@ -136,7 +82,7 @@ internal class DragManagerImpl(
         when (mimeType) {
             is Files -> {
                 if (isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                    return when (val files = transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>) {
+                    return when (@Suppress("UNCHECKED_CAST") val files = transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<File>) {
                         null -> true
                         else -> files.find {
                             val fileTypes = mimeType.types.map { it.toString() }
@@ -155,11 +101,16 @@ internal class DragManagerImpl(
     }
 
     private fun createBundle(support: TransferSupport) = object: DataBundle {
-        override fun <T> get(type: MimeType<T>) = when (type) {
-            is Files     -> support.getFiles(type) as? T
-            is PlainText -> DataFlavor(type.toString(), null).getReaderForText(support.transferable).readText() as T
-            in this      -> support.transferable.getTransferData(DataFlavor(type.toString(), null)) as? T
-            else         -> null
+        @Suppress("UNCHECKED_CAST")
+        override fun <T> get(type: MimeType<T>) = try {
+            when (type) {
+                is Files     -> support.getFiles(type) as? T
+                is PlainText -> DataFlavor(type.toString(), null).getReaderForText(support.transferable).readText() as? T
+                in this      -> support.transferable.getTransferData(DataFlavor(type.toString(), null)) as? T
+                else         -> null
+            }
+        } catch (exception: Exception) {
+            null
         }
 
         override val includedTypes: List<MimeType<*>>
@@ -245,7 +196,7 @@ internal class DragManagerImpl(
                 object: Transferable {
                     override fun getTransferDataFlavors(): Array<DataFlavor> = bundle.includedTypes.map {
                         when (it) {
-                            PlainText -> DataFlavor.plainTextFlavor
+                            PlainText -> DataFlavor.getTextPlainUnicodeFlavor()
                             else      -> DataFlavor(it.toString())
                         }
                     }.toTypedArray()

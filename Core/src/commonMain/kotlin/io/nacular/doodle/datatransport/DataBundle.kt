@@ -56,7 +56,7 @@ public interface LocalFile {
 public open class MimeType<T> internal constructor(private val primary: String, private val secondary: String, private val parameters: Map<String, String> = emptyMap()) {
     override fun toString(): String = "$primary/$secondary${if (parameters.isNotEmpty()) ";${parameters.entries.joinToString(";")}" else ""}"
 
-    public open fun assignableTo(other: MimeType<*>): Boolean = this.primary == other.primary && this.secondary == other.secondary
+    public open infix fun assignableTo(other: MimeType<*>): Boolean = this.primary == other.primary && this.secondary == other.secondary
 
     override fun equals(other: Any?): Boolean {
         if (this === other       ) return true
@@ -180,8 +180,9 @@ public inline fun <reified T: Any> DataBundle.contains(): Boolean = ReferenceTyp
  * Simple bundle holding a single item.
  */
 public class SingleItemBundle<Item>(private val type: MimeType<Item>, private val item: Item): DataBundle {
+    @Suppress("UNCHECKED_CAST")
     override fun <T> get     (type: MimeType<T>): T? = if (type in this) item as? T else null
-    override fun <T> contains(type: MimeType<T>): Boolean = this.type.assignableTo(type)
+    override fun <T> contains(type: MimeType<T>): Boolean = type assignableTo this.type
     override val includedTypes: List<MimeType<*>> by lazy { listOf(type) }
 }
 
@@ -199,7 +200,7 @@ public class CompositeBundle(private var bundles: Sequence<DataBundle>): DataBun
     override operator fun plus(other: DataBundle): CompositeBundle = CompositeBundle(bundles + other)
 }
 
-public inline fun textBundle(text: String): SingleItemBundle<String> = SingleItemBundle(PlainText, text)
-public inline fun uriBundle (uri : String): SingleItemBundle<String> = SingleItemBundle(UriList,    uri)
+public fun textBundle(text: String): SingleItemBundle<String> = SingleItemBundle(PlainText, text)
+public fun uriBundle (uri : String): SingleItemBundle<String> = SingleItemBundle(UriList,    uri)
 
 public inline fun <reified T: Any> refBundle(item: T): SingleItemBundle<T> = SingleItemBundle(ReferenceType(), item)

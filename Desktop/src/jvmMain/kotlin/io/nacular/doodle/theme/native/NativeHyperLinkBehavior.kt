@@ -11,7 +11,8 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseEvent.*
+import java.awt.event.MouseEvent.MOUSE_DRAGGED
+import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.net.URI
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -39,6 +40,8 @@ private class NativeHyperLinkBehaviorWrapper(
 }
 
 internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JLabel(), AbstractNativeButtonBehavior.Peer, PointerListener {
+    // This needs to remain since JLabel will render on construct before the local value is initialized
+    @Suppress("RedundantNullableReturnType")
     private val button: HyperLink? = button
 
     override var selected_             = false
@@ -64,7 +67,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
         button.pointerChanged += this
 
-        addMouseListener(object : MouseAdapter() {
+        addMouseListener(object: MouseAdapter() {
             override fun mouseClicked(e: MouseEvent?) {
                 try {
                     java.awt.Desktop.getDesktop().browse(URI(button.url))
