@@ -1,7 +1,7 @@
 <div style="text-align:center"><img src="docs/img/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div style="text-align:center"><h1>A pure Kotlin, UI framework</h1></div>
 
-[![Kotlin 1.6.10](https://img.shields.io/badge/Kotlin-1.6.10-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
+[![Kotlin 1.6.10](https://img.shields.io/badge/Kotlin-1.7.21-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 [![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
