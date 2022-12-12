@@ -15,6 +15,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -48,13 +49,13 @@ private class BasicRadioIcon(
 
     override fun render(view: RadioButton, canvas: Canvas, at: Point) {
         val size   = size(view)
-        val radius = min(size.width, size.height) / 2
+        val radius = max(0.0, min(size.width, size.height) / 2)
         val fill   = ColorPaint(fillColor(view))
 
         canvas.circle(Circle(at + Point(radius, radius), radius), fill)
 
         if (view.model.selected) {
-            canvas.circle(Circle(at + Point(radius, radius), radius - innerCircleInset(view)), ColorPaint(foregroundColor))
+            canvas.circle(Circle(at + Point(radius, radius), max(0.0, radius - innerCircleInset(view))), ColorPaint(foregroundColor))
         }
     }
 }
