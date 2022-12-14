@@ -18,8 +18,8 @@ public class Size(public val width: Double = 0.0, public val height: Double = wi
     public constructor(width: Float = 0f, height: Float = width): this(width.toDouble(), height.toDouble())
 
     init {
-        require(width  >= 0) { "Width cannot be negative"  }
-        require(height >= 0) { "Height cannot be negative" }
+        require(width  >= 0) { "Width [$width] cannot be negative"  }
+        require(height >= 0) { "Height [$height] cannot be negative" }
     }
 
     /** The area represented: [width] * [height] */

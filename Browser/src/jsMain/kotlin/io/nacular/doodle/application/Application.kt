@@ -5,6 +5,7 @@ import io.nacular.doodle.FontSerializerImpl
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.impl.DisplayImpl
@@ -103,17 +104,20 @@ public inline fun <reified T: Application> nestedApplication(
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
+@Internal
 public fun createApplication(
         injector            : DirectDI,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
+@Internal
 public fun createApplication(
         injector            : DirectDI,
         root                : HTMLElement,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
+@Internal
 public fun createNestedApplication(
         view                : ApplicationView,
         injector            : DirectDI,
@@ -319,9 +323,6 @@ private open class ApplicationHolderImpl protected constructor(
         mutations?.disconnect()
 
         initTask?.cancel()
-
-        (injector.instance<Scheduler> () as? SchedulerImpl)?.shutdown()
-        injector.instance<DisplayImpl>().shutdown()
 
         if (!isNested) {
             injector.instance<SystemStyler>().shutdown()

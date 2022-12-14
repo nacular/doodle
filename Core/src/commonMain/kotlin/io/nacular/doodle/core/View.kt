@@ -737,7 +737,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     protected operator fun contains(child: View): Boolean = child.parent == this
 
-    /** Prompts the View to layout its children if it has a Layout installed. */
+    /** Prompts the View to lay out its children if it has a Layout installed. */
     protected open fun relayout() { renderManager?.layout(this) }
 
     internal fun doLayout_() = doLayout()

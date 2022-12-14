@@ -81,7 +81,7 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
     /**
      * Called whenever a column needs to automatically move to a location.
      * This happens (for example) if a column is being reordered. The given
-     * controls the progress and timing of this move, allowing for custom
+     * [block] controls the progress and timing of this move, allowing for custom
      * animation.
      *
      * Calling block with progress from 0 to 1 results in moving the column

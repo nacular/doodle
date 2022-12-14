@@ -288,7 +288,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 }
 
                 val strength = when {
-                    variable == context.parent.width.writable || variable == context.parent.height.writable -> Strength(Required.value - 1).also { println("parent property: $variable") }
+                    variable == context.parent.width.writable || variable == context.parent.height.writable -> Strength(Required.value - 1)
                     variable is ReflectionVariable && variable.target in updatedBounds                      -> Strength(100)
                     else                                                                                    -> Weak
                 }

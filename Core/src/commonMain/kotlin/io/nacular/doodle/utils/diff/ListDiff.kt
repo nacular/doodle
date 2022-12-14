@@ -1,6 +1,5 @@
 package io.nacular.doodle.utils.diff
 
-import io.nacular.doodle.utils.diff.Operation.*
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
 import kotlin.math.min
@@ -158,11 +157,13 @@ public class Differences<T>(private val changes: List<Difference<T>>, private va
             }
 
             inserts.forEach { (insert, insertStart) ->
-                insert.items.forEachIndexed { insertIndex, item ->
+                insert.items.forEachIndexed { insertIndex, insertItem ->
                     deletes.forEach { (delete, deleteStart) ->
-                        delete.items.indexOfFirst { it == item && delete.destination(of = item) == null }.takeIf { it >= 0 }?.let {
-                            insert.setOrigin(item, it + deleteStart)
-                            delete.setDestination(item, insertIndex + insertStart)
+                        delete.items.indexOfFirst { deleteItem ->
+                            deleteItem == insertItem && delete.destination(of = insertItem) == null
+                        }.takeIf { it >= 0 }?.let {
+                            insert.setOrigin(insertItem, it + deleteStart)
+                            delete.setDestination(insertItem, insertIndex + insertStart)
                         }
                     }
                 }
@@ -412,30 +413,30 @@ internal fun <T> diffPath1(vMap: List<Set<Long>>, first: List<T>, second: List<T
             if (vMap[d].contains(getFootprint(x - 1, y))) {
                 x--
                 when (lastOp) {
-                    Delete -> path.first().items = first.subListOfSize(x, 1) + path.first().items
-                    else   -> path.add(0, Delete(first.subListOfSize(x, 1)))
+                    Operation.Delete -> path.first().items = first.subListOfSize(x, 1) + path.first().items
+                    else             -> path.add(0, Delete(first.subListOfSize(x, 1)))
                 }
-                lastOp = Delete
+                lastOp = Operation.Delete
                 break
             }
 
             if (vMap[d].contains(getFootprint(x, y - 1))) {
                 y--
                 when (lastOp) {
-                    Insert -> path.first().items = second.subListOfSize(y, 1) + path.first().items
-                    else   -> path.add(0, Insert(second.subListOfSize(y, 1)))
+                    Operation.Insert -> path.first().items = second.subListOfSize(y, 1) + path.first().items
+                    else             -> path.add(0, Insert(second.subListOfSize(y, 1)))
                 }
-                lastOp = Insert
+                lastOp = Operation.Insert
                 break
             }
 
             x--
             y--
             when (lastOp) {
-                Equal -> path.first().items = first.subListOfSize(x, 1) + path.first().items
-                else  -> path.add(0, Equal(first.subListOfSize(x, 1)))
+                Operation.Equal -> path.first().items = first.subListOfSize(x, 1) + path.first().items
+                else            -> path.add(0, Equal(first.subListOfSize(x, 1)))
             }
-            lastOp = Equal
+            lastOp = Operation.Equal
         }
     }
     return path
@@ -451,20 +452,20 @@ internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T
             if (vMap[d].contains(getFootprint(x - 1, y))) {
                 x--
                 when (lastOp) {
-                    Delete -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
-                    else   -> path.add(Delete(first.subListOfSize(first.size - x - 1, 1)))
+                    Operation.Delete -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
+                    else             -> path.add(Delete(first.subListOfSize(first.size - x - 1, 1)))
                 }
-                lastOp = Delete
+                lastOp = Operation.Delete
                 break
             }
 
             if (vMap[d].contains(getFootprint(x, y - 1))) {
                 y--
                 when (lastOp) {
-                    Insert -> path.last().items = path.last().items + second.subListOfSize(second.size - y - 1, 1)
-                    else   -> path.add(Insert(second.subListOfSize(second.size - y - 1, 1)))
+                    Operation.Insert -> path.last().items = path.last().items + second.subListOfSize(second.size - y - 1, 1)
+                    else             -> path.add(Insert(second.subListOfSize(second.size - y - 1, 1)))
                 }
-                lastOp = Insert
+                lastOp = Operation.Insert
                 break
             }
             x--
@@ -473,10 +474,10 @@ internal fun <T> diffPath2(vMap: List<Set<Long>>, first: List<T>, second: List<T
             //        == text2.charAt(text2.Count - y - 1))
             //      : "No diagonal.  Can't happen. (DiffPath2)";
             when (lastOp) {
-                Equal -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
-                else  -> path.add(Equal(first.subListOfSize(first.size - x - 1, 1)))
+                Operation.Equal -> path.last().items = path.last().items + first.subListOfSize(first.size - x - 1, 1)
+                else            -> path.add(Equal(first.subListOfSize(first.size - x - 1, 1)))
             }
-            lastOp = Equal
+            lastOp = Operation.Equal
         }
     }
 

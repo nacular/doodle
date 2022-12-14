@@ -1,6 +1,8 @@
 package io.nacular.doodle.utils.diff
 
-import io.nacular.doodle.utils.diff.Operation.*
+import io.nacular.doodle.utils.diff.Operation.Delete
+import io.nacular.doodle.utils.diff.Operation.Equal
+import io.nacular.doodle.utils.diff.Operation.Insert
 import kotlin.js.JsName
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

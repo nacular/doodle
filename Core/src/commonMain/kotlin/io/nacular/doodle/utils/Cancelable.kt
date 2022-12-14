@@ -13,6 +13,20 @@ public interface Completable: Cancelable {
     public val canceled : Pool<(source: Completable) -> Unit>
 }
 
+public fun Collection<Completable>.allCompleted(completed: () -> Unit) {
+    var numCompleted = 0
+
+    forEach {
+        it.completed += {
+            ++numCompleted
+
+            if (numCompleted >= size) {
+                completed()
+            }
+        }
+    }
+}
+
 internal class NoOpPool<T>: Pool<(source: T) -> Unit> {
     override fun plusAssign(item: (source: T) -> Unit) {}
 
@@ -53,15 +67,27 @@ public open class CompletableImpl: Completable {
             }
         }
 
-    private val completed_ by lazy { mutableSetOf<(source: Completable) -> Unit>() }
-    private val canceled_  by lazy { mutableSetOf<(source: Completable) -> Unit>() }
+    private val completed_ by lazy { ObservableSet<(source: Completable) -> Unit>() }
+    private val canceled_  by lazy { ObservableSet<(source: Completable) -> Unit>() }
 
-    override var completed: Pool<(source: Completable) -> Unit> = SetPool(completed_)
-        protected set
-    override var canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ )
-        protected set
+    override var completed: Pool<(source: Completable) -> Unit> = SetPool(completed_); protected set
+    override var canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ ); protected set
 
-    override  fun cancel() { state = Canceled }
+    init {
+        completed_.changed += { _,_,added ->
+            if (state == Completed) {
+                added.forEach { it(this) }
+            }
+        }
+
+        canceled_.changed += { _,_,added ->
+            if (state == Canceled) {
+                added.forEach { it(this) }
+            }
+        }
+    }
+
+    override fun cancel() { state = Canceled }
 
     @JsName("completedFunc")
     protected open fun completed() { state = Completed }

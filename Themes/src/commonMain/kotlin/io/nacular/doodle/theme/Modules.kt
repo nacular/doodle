@@ -39,6 +39,7 @@ public class Modules {
             bindSet<BehaviorResolver>()
 
             bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
+            bind<Theme>       () with singleton { instance<DynamicTheme>() }
         }
 
         public inline fun <reified T: View> Builder.bindBehavior(theme: KClass<out Theme>? = null, crossinline block: NoArgBindingDI<*>.(T) -> Unit): Unit = bindConditionalBehavior<T>(theme) {

@@ -116,8 +116,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
         list.removeAt(oldIndex)
         list.add     (to, element)
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
 
         return true
@@ -145,8 +147,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
                     diffs += Equal(list.subList(fromIndex = index + 1, toIndex = size).toList())
                 }
 
+                val differences = Differences(diffs)
+
                 changed_.forEach {
-                    it(this@ObservableListImpl, Differences(diffs))
+                    it(this@ObservableListImpl, differences)
                 }
             }
         }
@@ -169,8 +173,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
         diffs += Insert(listOf(element))
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
     }
 
@@ -192,7 +198,9 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
                     diffs += Equal(this.subList(fromIndex = index, toIndex = size).toList())
                 }
 
-                changed_.forEach { it(this, Differences(diffs)) }
+                val differences = Differences(diffs)
+
+                changed_.forEach { it(this, differences) }
             }
         }
     }
@@ -227,8 +235,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
         list.clear()
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
     }
 
@@ -247,8 +257,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
                 diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
             }
 
+            val differences = Differences(diffs)
+
             changed_.forEach {
-                it(this, Differences(diffs))
+                it(this, differences)
             }
         }
     }
@@ -267,8 +279,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
             diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
         }
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
     }
 
@@ -287,8 +301,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
             diffs += Equal(this.subList(fromIndex = index + 1, toIndex = size))
         }
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
     }
 
@@ -305,8 +321,10 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
             diffs += Equal(this.subList(fromIndex = index, toIndex = size).toList())
         }
 
+        val differences = Differences(diffs)
+
         changed_.forEach {
-            it(this, Differences(diffs))
+            it(this, differences)
         }
     }
 }
