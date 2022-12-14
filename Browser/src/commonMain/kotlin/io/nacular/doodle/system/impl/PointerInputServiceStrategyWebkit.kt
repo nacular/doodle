@@ -39,12 +39,13 @@ internal class PointerLocationResolverImpl(private val document: Document, priva
     var nested = false
 
     override fun invoke(event: MouseEvent): Point = when {
-        !nested && htmlFactory.root != document.body -> {
+        // FIXME: This does not solve for cases where apps have transforms
+        /*!nested &&*/ htmlFactory.root != document.body -> {
             val rect = htmlFactory.root.getBoundingClientRect()
 
-            Point(event.clientX - (rect.x), event.clientY - (rect.y))
+            Point(event.clientX - rect.x, event.clientY - rect.y)
         }
-        else -> Point(event.pageX, event.pageY)
+        else -> Point(event.clientX, event.clientY)
     }
 }
 
