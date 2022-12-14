@@ -30,10 +30,10 @@ public abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
     public var TabbedPanel<T>.layout          : Layout?              get() = _layout;           set(new) { _layout           = new }
     public var TabbedPanel<T>.isFocusCycleRoot: Boolean              get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
 
-    public inline operator fun TabbedPanel<T>.plusAssign (view: View           ): Unit = children.plusAssign (view )
-    public inline operator fun TabbedPanel<T>.minusAssign(view: View           ): Unit = children.minusAssign(view )
-    public inline operator fun TabbedPanel<T>.plusAssign (views: Iterable<View>): Unit = children.plusAssign (views)
-    public inline operator fun TabbedPanel<T>.minusAssign(views: Iterable<View>): Unit = children.minusAssign(views)
+    public operator fun TabbedPanel<T>.plusAssign (view: View           ): Unit = children.plusAssign (view )
+    public operator fun TabbedPanel<T>.minusAssign(view: View           ): Unit = children.minusAssign(view )
+    public operator fun TabbedPanel<T>.plusAssign (views: Iterable<View>): Unit = children.plusAssign (views)
+    public operator fun TabbedPanel<T>.minusAssign(views: Iterable<View>): Unit = children.minusAssign(views)
 
     /**
      * Called whenever the TabbedPanel's selection changes. This is an explicit API to ensure that
@@ -138,26 +138,39 @@ public class TabbedPanel<T>(
 
             var globalIndex = 0
 
-            diffs.forEach {
-                when (it) {
+            diffs.computeMoves().forEach { diff ->
+                when (diff) {
                     is Delete -> {
-                        repeat(it.items.size) { index ->
-                            selection = when {
-                                (selection ?: 0) >= globalIndex + index -> selection?.let { it - 1 }
-                                selection == globalIndex                -> {
-                                    selection = null; return@forEach
+                        diff.items.forEachIndexed { index, item ->
+                            when (val to = diff.destination(item)) {
+                                null -> selection = when {
+                                    (selection ?: 0) >= globalIndex + index ->   selection?.let { it - 1 }
+                                    selection == globalIndex                -> { selection = null; return@forEach }
+                                    else                                    ->   selection
                                 }
-                                else                                    -> selection
+                                else -> {
+                                    val from = globalIndex + index
+
+                                    selection = when (val s = selection) {
+                                        null                     -> s
+                                        in (from + 1) until to   -> s - 1
+                                        in (to   + 1) until from -> s + 1
+                                        from                     -> to
+                                        else                     -> s
+                                    }
+                                }
                             }
                         }
                     }
                     is Insert -> {
-                        repeat(it.items.size) { index ->
-                            selection = selection?.let { if (it >= globalIndex + index) it + 1 else it }
-                            ++globalIndex
+                        diff.items.forEachIndexed { index, item ->
+                            if (diff.origin(item) == null) {
+                                selection = selection?.let { if (it >= globalIndex + index) it + 1 else it }
+                                ++globalIndex
+                            }
                         }
                     }
-                    else      -> { globalIndex += it.items.size }
+                    else      -> { globalIndex += diff.items.size }
                 }
             }
 
