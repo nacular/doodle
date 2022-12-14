@@ -7,6 +7,7 @@ import io.nacular.doodle.event.KeyState.Type.Down
 import io.nacular.doodle.event.KeyState.Type.Up
 import io.nacular.doodle.event.KeyText
 import io.nacular.doodle.system.KeyInputService
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Consumed
 import io.nacular.doodle.system.KeyInputService.Listener
 import io.nacular.doodle.system.KeyInputService.Postprocessor
 import io.nacular.doodle.system.KeyInputService.Preprocessor
@@ -119,19 +120,19 @@ internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFoc
         val keyState = KeyState(e.doodleKeyCode, e.doodleKeyText, createModifiers(e), type)
 
         preprocessors.forEach {
-            if (it(keyState)) {
+            if (it(keyState) == Consumed) {
                 return
             }
         }
 
         listeners.forEach {
-            if (it(keyState)) {
+            if (it(keyState) == Consumed) {
                 return
             }
         }
 
         postprocessors.forEach {
-            if (it(keyState)) {
+            if (it(keyState) == Consumed) {
                 return
             }
         }

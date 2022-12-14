@@ -14,6 +14,8 @@ import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.role
+import io.nacular.doodle.system.KeyInputService.KeyResponse
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.KeyInputServiceImpl.RawListener
 import io.nacular.doodle.utils.IdGenerator
@@ -167,15 +169,14 @@ internal class AccessibilityManagerImpl(
         updateRelationship(owner, null, "aria-controls")
     }
 
-    override fun invoke(keyState: KeyState, target: EventTarget?): Boolean {
+    override fun invoke(keyState: KeyState, target: EventTarget?): KeyResponse {
         view(target)?.let {
             focusManager.requestFocus(it)
         }
 
-        return false
+        return Ignored
     }
 
-    @Suppress("UNUSED_PARAMETER")
     override fun onClick(event: Event): Boolean {
         if (event.target is HTMLButtonElement?) {
             view(event.target)?.let {

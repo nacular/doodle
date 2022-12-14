@@ -11,6 +11,9 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.system.KeyInputService
+import io.nacular.doodle.system.KeyInputService.KeyResponse
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Consumed
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.KeyInputService.Listener
 import io.nacular.doodle.utils.contains
 
@@ -52,7 +55,7 @@ public class KeyboardFocusManagerImpl(
         keyInputService -= this
     }
 
-    override operator fun invoke(keyState: KeyState): Boolean {
+    override operator fun invoke(keyState: KeyState): KeyResponse {
         focusManager.focusOwner?.let { focusOwner ->
             val keyEvent = KeyEvent(focusOwner, keyState)
 
@@ -66,10 +69,10 @@ public class KeyboardFocusManagerImpl(
                 postprocessKeyEvent(keyEvent)
             }
 
-            return !keyEvent.consumed
+            if (keyEvent.consumed) return Consumed
         }
 
-        return false
+        return Ignored
     }
 
     public operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.add   (preprocessor) }

@@ -3,6 +3,9 @@ package io.nacular.doodle.system.impl
 import io.nacular.doodle.dom.EventTarget
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.system.KeyInputService
+import io.nacular.doodle.system.KeyInputService.KeyResponse
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Consumed
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.KeyInputService.Listener
 import io.nacular.doodle.system.KeyInputService.Postprocessor
 import io.nacular.doodle.system.KeyInputService.Preprocessor
@@ -13,7 +16,7 @@ import io.nacular.doodle.system.impl.KeyInputServiceStrategy.EventHandler
  */
 internal class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy): KeyInputService {
     interface RawListener {
-        operator fun invoke(keyState: KeyState, target: EventTarget?): Boolean
+        operator fun invoke(keyState: KeyState, target: EventTarget?): KeyResponse
     }
 
     private var started        = false
@@ -89,36 +92,41 @@ internal class KeyInputServiceImpl(private val strategy: KeyInputServiceStrategy
 
     private val unused: Boolean get() = listeners.isEmpty() && preprocessors.isEmpty() && postprocessors.isEmpty() && rawListeners.isEmpty()
 
-    private fun notifyKeyEvent(keyState: KeyState, target: EventTarget?): Boolean {
+    private fun notifyKeyEvent(keyState: KeyState, target: EventTarget?): KeyResponse {
         notifying = true
+        var response = Ignored
 
         rawListeners.forEach {
-            if (it(keyState, target)) {
-                return true
+            response = it(keyState, target)
+            if (response == Consumed) {
+                return Consumed
             }
         }
 
         preprocessors.forEach {
-            if (it(keyState)) {
-                return true
+            response = it(keyState)
+            if (response == Consumed) {
+                return Consumed
             }
         }
 
         listeners.forEach {
-            if (it(keyState)) {
-                return true
+            response = it(keyState)
+            if (response == Consumed) {
+                return Consumed
             }
         }
 
         postprocessors.forEach {
-            if (it(keyState)) {
-                return true
+            response = it(keyState)
+            if (response == Consumed) {
+                return Consumed
             }
         }
 
         notifying = false
 
-        return false
+        return response
     }
 
     private fun startUp() {

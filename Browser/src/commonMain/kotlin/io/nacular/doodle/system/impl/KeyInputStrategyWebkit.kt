@@ -11,6 +11,8 @@ import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.KeyState.Type.Down
 import io.nacular.doodle.event.KeyState.Type.Up
 import io.nacular.doodle.event.KeyText
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Consumed
+import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.SystemInputEvent.Modifier
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
@@ -48,8 +50,18 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
     private var previousKeyDownResponse = false
 
-    private fun keyUp   (event: KeyboardEvent) = dispatchKeyEvent(event, Up  ).ifFalse { event.preventBrowserDefault() }
-    private fun keyDown (event: KeyboardEvent) = dispatchKeyEvent(event, Down).also { previousKeyDownResponse = it }.ifFalse { event.preventBrowserDefault() }
+    private fun keyUp(event: KeyboardEvent) = when {
+        dispatchKeyEvent(event, Up) == Consumed -> false
+        isNativeElement(event.target)           -> true
+        else                                    -> false
+    }.ifFalse { event.preventBrowserDefault() }
+
+    private fun keyDown (event: KeyboardEvent) = when {
+        dispatchKeyEvent(event, Down).also { previousKeyDownResponse = it == Consumed } == Consumed -> false
+        isNativeElement(event.target)                                                               -> true
+        else                                                                                        -> false
+    }.ifFalse { event.preventBrowserDefault() }
+
     private fun keyPress(event: KeyboardEvent) = when (KeyCode(event.code)) {
         Space -> previousKeyDownResponse || isNativeElement(event.target)
         else  -> true
@@ -57,7 +69,7 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.invoke(
         KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
-    ) ?: true
+    ) ?: Ignored
 
     private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {
         event.altKey.ifTrue   { it += Alt   }
