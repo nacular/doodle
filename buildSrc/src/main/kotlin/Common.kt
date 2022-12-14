@@ -78,7 +78,7 @@ fun Project.setupSigning() {
 fun Project.setupPublication(dokkaJar: Jar) {
     extensions.getByType<PublishingExtension>().run {
         publications.withType<MavenPublication>().all {
-            if (project.hasProperty("release")) {
+            if (project.hasProperty("release") || project.hasProperty("snapshot")) {
                 artifact(dokkaJar)
 
                 pom {
