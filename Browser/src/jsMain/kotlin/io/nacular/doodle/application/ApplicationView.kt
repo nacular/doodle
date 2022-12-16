@@ -4,7 +4,9 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.setHeight
 import io.nacular.doodle.dom.setHeightPercent
+import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeCanvas
@@ -46,6 +48,14 @@ public class ApplicationView(htmlFactory: HtmlFactory, private val nativeFocusMa
     init {
         boundsChanged += { _,old,new ->
             if (old.size != new.size) {
+                if (new.width != old.width) {
+                    root.style.setWidth(new.width)
+                }
+
+                if (new.height != old.height) {
+                    root.style.setHeight(new.height)
+                }
+
                 // Send resize message to nested app since onresize won't be called automatically
                 // in most browsers
                 root.onresize?.let {
