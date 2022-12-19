@@ -62,9 +62,10 @@ internal class NativeHyperLink internal constructor(
         href = hyperLink.url
 
         if (customRenderer == null) {
-            style.cursor = "inherit"
             style.setFont (hyperLink.font           )
             style.setColor(hyperLink.foregroundColor)
+        } else {
+            style.cursor = "inherit"
         }
 
         style.setOverflow     (Visible())
