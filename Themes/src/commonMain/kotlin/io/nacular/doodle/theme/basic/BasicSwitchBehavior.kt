@@ -17,6 +17,7 @@ import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
+import io.nacular.doodle.utils.cancelable
 
 
 public open class BasicSwitchBehavior(
@@ -29,12 +30,8 @@ public open class BasicSwitchBehavior(
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
 
-    private var progress         = 0f
-    private var activeTransition = null as Completable?
-        private set(new) {
-            field?.cancel()
-            field = new
-        }
+    private var progress = 0f
+    private var activeTransition: Completable? by cancelable(null)
 
     public open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
 
