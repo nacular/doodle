@@ -6,6 +6,7 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.core.ChildObserver
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult.Found
@@ -13,8 +14,6 @@ import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.height
-import io.nacular.doodle.core.minusAssign
-import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -227,6 +226,52 @@ class DisplayImplTests {
         ))
 
         expect(listOf(child1, child2, child0)) { display.children }
+    }
+
+    @Test fun `+= view works`() {
+        val child   = mockk<Container>()
+        val display = display()
+
+        display += child
+
+        expect(1    ) { display.children.size    }
+        expect(child) { display.children.first() }
+    }
+
+    @Test fun `-= view works`() {
+        val child   = mockk<Container>()
+        val display = display()
+
+        display += child
+        display -= child
+
+        expect(true) { display.children.isEmpty() }
+    }
+
+    @Test fun `+= collection works`() {
+        val child1  = mockk<Container>()
+        val child2  = mockk<View>     ()
+        val display = display()
+
+        display += listOf(child1, child2)
+
+        expect(2     ) { display.children.size }
+        expect(child1) { display.children[0]   }
+        expect(child2) { display.children[1]   }
+    }
+
+    @Test fun `-= collection works`() {
+        val child1  = mockk<Container>()
+        val child2  = mockk<View>     ()
+        val child3  = mockk<View>     ()
+        val display = display()
+
+        display += listOf(child1, child2, child3)
+
+        display -= listOf(child1, child3)
+
+        expect(1     ) { display.children.size    }
+        expect(child2) { display.children.first() }
     }
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }

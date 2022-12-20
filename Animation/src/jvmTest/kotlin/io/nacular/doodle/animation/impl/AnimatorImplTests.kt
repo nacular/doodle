@@ -229,8 +229,8 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        var animation1 = null as Animation?
-        var animation2 = null as Animation?
+        var animation1 = null as Animation<Float>?
+        var animation2 = null as Animation<Float>?
 
         val topLevel = animate {
             animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }

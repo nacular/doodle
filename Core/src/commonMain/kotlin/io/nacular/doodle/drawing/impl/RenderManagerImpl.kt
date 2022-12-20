@@ -8,7 +8,6 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.height
-import io.nacular.doodle.core.minusAssign
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.GraphicsDevice

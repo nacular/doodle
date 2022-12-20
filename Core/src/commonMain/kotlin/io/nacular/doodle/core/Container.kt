@@ -44,56 +44,43 @@ public open class Container: View(), PositionableContainer, Iterable<View> {
 
     public override fun relayout() { super.relayout() }
 
+    /**
+     * Adds [view] to the Container.
+     *
+     * @param view to be added
+     */
+    public operator fun plusAssign(view: View): Unit = children.plusAssign(view)
+
+    /**
+     * Adds the given [views] to the Container.
+     *
+     * @param views to be added
+     */
+    public operator fun plusAssign(views: Collection<View>): Unit = children.plusAssign(views)
+
+    /**
+     * Removes [view] from the Container.
+     *
+     * @param view to be removed
+     */
+    public operator fun minusAssign(view: View): Unit = children.minusAssign(view)
+
+    /**
+     * Removes the given [views] from the Container.
+     *
+     * @param views to be removed
+     */
+    public operator fun minusAssign(views: Collection<View>): Unit = children.minusAssign(views)
+
     override fun iterator(): MutableIterator<View> = children.iterator()
 }
-
-/**
- * Adds [view] to the Container.
- *
- * @param view to be added
- */
-public inline operator fun Container.plusAssign(view: View): Unit = children.plusAssign(view)
-
-/**
- * Adds [container] to the Display.
- *
- * @param container to be added
- */
-public inline operator fun Container.plusAssign(container: Container): Unit = children.plusAssign(container)
-
-/**
- * Adds the given [views] to the Container.
- *
- * @param views to be added
- */
-public inline operator fun Container.plusAssign(views: Iterable<View>): Unit = children.plusAssign(views)
-
-/**
- * Removes [view] from the Container.
- *
- * @param view to be removed
- */
-public inline operator fun Container.minusAssign(view: View): Unit = children.minusAssign(view)
-
-/**
- * Removes [container] from the Display.
- *
- * @param container to be removed
- */
-public inline operator fun Container.minusAssign(container: Container): Unit = children.minusAssign(container)
-
-/**
- * Removes the given [views] from the Container.
- *
- * @param views to be removed
- */
-public inline operator fun Container.minusAssign(views: Iterable<View>): Unit = children.minusAssign(views)
 
 /**
  * Class to enable `container { ... }` DSL.
  * @property render operations to perform
  */
 public class ContainerBuilder: Container() {
+    @Suppress("PrivatePropertyName")
     private var render_: Canvas.() -> Unit = {}
 
     public var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }

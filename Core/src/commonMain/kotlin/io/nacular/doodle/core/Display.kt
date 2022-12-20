@@ -117,6 +117,34 @@ public interface Display: Iterable<View> {
     public fun child(at: Point): View?
 
     /**
+     * Adds [view] to the Display.
+     *
+     * @param view to be added
+     */
+    public operator fun plusAssign(view: View): Unit = children.plusAssign(view)
+
+    /**
+     * Adds the given [views] to the Display.
+     *
+     * @param views to be added
+     */
+    public operator fun plusAssign(views: Collection<View>): Unit = children.plusAssign(views)
+
+    /**
+     * Removes [view] from the Display.
+     *
+     * @param view to be removed
+     */
+    public operator fun minusAssign(view: View): Unit = children.minusAssign(view)
+
+    /**
+     * Removes the given [views] from the Display.
+     *
+     * @param views to be removed
+     */
+    public operator fun minusAssign(views: Collection<View>): Unit = children.minusAssign(views)
+
+    /**
      * @param view in question
      * @return `true` IFF [view] is a descendant of the Display
      */
@@ -138,49 +166,7 @@ public inline val Display.width: Double get() = size.width
  */
 public inline val Display.height: Double get() = size.height
 
-public inline fun Display.fill(color: Color): Unit = fill(color.paint)
-
-/**
- * Adds [view] to the Display.
- *
- * @param view to be added
- */
-public inline operator fun Display.plusAssign(view: View): Unit = children.plusAssign(view)
-
-/**
- * Adds [container] to the Display.
- *
- * @param container to be added
- */
-public inline operator fun Display.plusAssign(container: Container): Unit = children.plusAssign(container)
-
-/**
- * Adds the given [views] to the Display.
- *
- * @param views to be added
- */
-public inline operator fun Display.plusAssign(views: Iterable<View>): Unit = children.plusAssign(views)
-
-/**
- * Removes [view] from the Display.
- *
- * @param view to be removed
- */
-public inline operator fun Display.minusAssign(view: View): Unit = children.minusAssign(view)
-
-/**
- * Removes [container] from the Display.
- *
- * @param container to be removed
- */
-public inline operator fun Display.minusAssign(container: Container): Unit = children.minusAssign(container)
-
-/**
- * Removes the given [views] from the Display.
- *
- * @param views to be removed
- */
-public inline operator fun Display.minusAssign(views: Iterable<View>): Unit = children.minusAssign(views)
+public fun Display.fill(color: Color): Unit = fill(color.paint)
 
 public interface InternalDisplay: Display {
     public fun repaint()

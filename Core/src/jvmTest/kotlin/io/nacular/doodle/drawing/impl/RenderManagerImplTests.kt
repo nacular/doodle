@@ -18,8 +18,6 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.minusAssign
-import io.nacular.doodle.core.plusAssign
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -1210,7 +1208,8 @@ class RenderManagerImplTests {
             observers.forEach { it(this, differences) }
         }
 
-        val view = slot<View>()
+        val view  = slot<View>()
+        val views = slot<Collection<View>>()
 
         every { this@apply.size                      } returns Size(100, 100)
         every { this@apply.children                  } returns displayChildren
@@ -1236,6 +1235,10 @@ class RenderManagerImplTests {
             result
         }
         every { this@apply.layout                    } returns layout
+        every { this@apply += capture(view )         } answers { displayChildren += view.captured  }
+        every { this@apply -= capture(view )         } answers { displayChildren -= view.captured  }
+        every { this@apply += capture(views)         } answers { displayChildren += views.captured }
+        every { this@apply -= capture(views)         } answers { displayChildren -= views.captured }
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>().apply {
