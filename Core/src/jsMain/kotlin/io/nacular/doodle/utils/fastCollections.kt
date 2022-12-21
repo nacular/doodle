@@ -1,7 +1,7 @@
 package io.nacular.doodle.utils
 
 import kotlinx.browser.window
-import kotlin.collections.Map
+import kotlin.collections.Map.Entry
 import kotlin.collections.MutableMap.MutableEntry
 
 /**
@@ -23,11 +23,11 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
 
     private val delegate = Map<Int, Array<MutablePair<K, V>>>()
 
-    private abstract class AbstractEntrySet<E : Map.Entry<K, V>, K, V> : AbstractMutableSet<E>() {
-        override fun contains     (element: E              ): Boolean = containsEntry(element)
-        abstract fun containsEntry(element: Map.Entry<K, V>): Boolean
-        override fun remove       (element: E              ): Boolean = removeEntry(element)
-        abstract fun removeEntry  (element: Map.Entry<K, V>): Boolean
+    private abstract class AbstractEntrySet<E : Entry<K, V>, K, V> : AbstractMutableSet<E>() {
+        override fun contains     (element: E          ): Boolean = containsEntry(element)
+        abstract fun containsEntry(element: Entry<K, V>): Boolean
+        override fun remove       (element: E          ): Boolean = removeEntry(element)
+        abstract fun removeEntry  (element: Entry<K, V>): Boolean
     }
 
     private inner class EntrySet: AbstractEntrySet<MutableEntry<K, V>, K, V>() {
@@ -36,8 +36,8 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
         override fun add          (element: MutableEntry<K, V>) = throw UnsupportedOperationException("Add is not supported on entries")
         override fun clear        (                           ) = this@MapWrapper.clear        (       )
         override fun iterator     (                           ) = this@MapWrapper.iterator     (       )
-        override fun containsEntry(element: Map.Entry<K, V>   ) = this@MapWrapper.containsEntry(element)
-        override fun removeEntry  (element: Map.Entry<K, V>   ): Boolean {
+        override fun containsEntry(element: Entry<K, V>       ) = this@MapWrapper.containsEntry(element)
+        override fun removeEntry  (element: Entry<K, V>       ): Boolean {
             if (contains(element)) {
                 this@MapWrapper.remove(element.key)
                 return true
@@ -46,9 +46,9 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
         }
     }
 
-    private fun containsEntry(entry: Map.Entry<*, *>?): Boolean {
+    private fun containsEntry(entry: Entry<*, *>?): Boolean {
         // since entry comes from @UnsafeVariance parameters it can be virtually anything
-        if (entry !is Map.Entry<*, *>) return false
+        if (entry !is Entry<*, *>) return false
         val key      = entry.key
         val value    = entry.value
         val ourValue = get(key)
@@ -124,24 +124,24 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
         var item  = iter.next()
         var index = 0
 
-        override fun hasNext() = when {
+        override fun hasNext(): Boolean = when {
             item.done                                       -> false
             index >= item.value[1].length.unsafeCast<Int>() -> {
                 item  = iter.next()
                 index = 0
-                !item.done
+                !item.done as Boolean
             }
             else                                            -> true
         }
 
         override fun next(): MutableEntry<K, V> = object: MutableEntry<K, V> {
             private val myIndex = index
-            override val key  : K = item.value[1][myIndex].first
-            override val value: V = item.value[1][myIndex].second
+            override val key  : K = item.value[1][myIndex].unsafeCast<MutablePair<K, V>>().first
+            override val value: V = item.value[1][myIndex].unsafeCast<MutablePair<K, V>>().second
 
             override fun setValue(newValue: V): V {
-                val old = item.value[1][myIndex].second
-                item.value[1][myIndex].second = newValue
+                val old = item.value[1][myIndex].unsafeCast<MutablePair<K, V>>().second
+                item.value[1][myIndex].unsafeCast<MutablePair<K, V>>().second = newValue
                 return old
             }
         }.also { key = it.key; ++index }
