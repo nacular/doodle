@@ -92,10 +92,10 @@ internal class NativeHyperLink internal constructor(
     }
 
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
-        linkElement.href = when {
-            new  -> hyperLink.url
-            else -> ""
-        }
+         when {
+             new  -> linkElement.style.removeProperty("pointer-events"        )
+             else -> linkElement.style.setProperty   ("pointer-events", "none")
+         }
     }
 
     private val focusableChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
