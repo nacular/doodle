@@ -219,6 +219,8 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
         focusable = false
         this += label
         this += Switch().apply {
+            accessibilityLabelProvider = label
+
             initial.ifValid { selected = it }
 
             selectedChanged += { _,_,_ ->
@@ -1491,7 +1493,7 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        this += listOf(label, visualization(this@field)).onEach {
+        this += listOf(label, visualization(this@field).also { it.accessibilityLabelProvider = label }).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -1571,7 +1573,7 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        this += listOf(nameLabel, visualization(this@field), helperLabel).onEach {
+        this += listOf(nameLabel, visualization(this@field).also { it.accessibilityLabelProvider = nameLabel }, helperLabel).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -1810,7 +1812,9 @@ private fun <T> buildToggleList(
         this += items.map { value ->
             container {
                 focusable = false
-                this += builder.visualizer(value)
+                val visualizedValue = builder.visualizer(value)
+
+                this += visualizedValue
                 this += toggleBuilder().apply {
                     selected         = value in selection
                     selectedChanged += { _, _, selected ->
@@ -1821,6 +1825,7 @@ private fun <T> buildToggleList(
 
                         state = Valid(ArrayList(selection))
                     }
+                    accessibilityLabelProvider = visualizedValue
                 }
 
                 this.layout = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0])).then {
@@ -1845,7 +1850,9 @@ private fun <T> buildRadioList(
     children  += (listOf(first) + rest).map { value ->
         container {
             focusable = false
-            this += optionListConfig.visualizer(value)
+            val visualizedValue = optionListConfig.visualizer(value)
+
+            this += visualizedValue
             this += RadioButton().apply {
                 group += this
 
@@ -1855,7 +1862,8 @@ private fun <T> buildRadioList(
 
                 config(value, this)
 
-                width = 16.0
+                width                      = 16.0
+                accessibilityLabelProvider = visualizedValue
             }
 
             layout = buttonItemLayout(button = children[1], label = children[0]).then {

@@ -31,8 +31,8 @@ public sealed class AccessibilityRole {
     @Internal public      var manager: AccessibilityManager? = null
     @Internal public      var view   : View?                 = null
     @Internal public open val name   : String?               = when {
-        this::class.simpleName?.lowercase()?.endsWith("role") == true -> this::class.simpleName?.toLowerCase()?.dropLast(4)
-        else                                                          -> this::class.simpleName?.toLowerCase()
+        this::class.simpleName?.lowercase()?.endsWith("role") == true -> this::class.simpleName?.lowercase()?.dropLast(4)
+        else                                                          -> this::class.simpleName?.lowercase()
     }
 }
 
@@ -63,10 +63,14 @@ public class SliderRole: RangeRole() {
     public var orientation: Orientation? by roleProperty(null)
 }
 
-public class ImageRole: AccessibilityRole()
+public class ImageRole: AccessibilityRole() {
+    override val name: String = "img"
+}
 
 /** Indicates a View that a user can click to take an action. */
 public open class ButtonRole internal constructor(): AccessibilityRole() {
+    override val name: String? = "button"
+
     public companion object {
         public operator fun invoke(): ButtonRole = ButtonRole()
     }
@@ -74,8 +78,6 @@ public open class ButtonRole internal constructor(): AccessibilityRole() {
 
 /** Indicates a button that toggles between selected/deselected when clicked. */
 public open class ToggleButtonRole internal constructor(): ButtonRole() {
-    override val name: String? get() = super.name
-
     public var pressed: Boolean by roleProperty(false)
 
     public companion object {
@@ -84,13 +86,19 @@ public open class ToggleButtonRole internal constructor(): ButtonRole() {
 }
 
 /** Indicates a toggle-button that toggles between checked/un-checked when clicked. */
-public class CheckBoxRole: ToggleButtonRole()
+public class CheckBoxRole: ToggleButtonRole() {
+    override val name: String = "checkbox"
+}
 
 /** Indicates a toggle-button used (usually within a group) to select a single option from many. */
-public class RadioRole: ToggleButtonRole()
+public class RadioRole: ToggleButtonRole() {
+    override val name: String = "radio"
+}
 
 /** A toggle-button that generally indicates an on/off option */
-public class SwitchRole: ToggleButtonRole()
+public class SwitchRole: ToggleButtonRole() {
+    override val name: String = "switch"
+}
 
 /** A hyperlink that navigates to a url. */
 public class LinkRole: ButtonRole()
