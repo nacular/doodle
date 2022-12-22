@@ -179,3 +179,8 @@ public fun <T> Set<T>.firstOrNull(): T? {
 @Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
 
 public val zeroMillis: Measure<Time> by lazy { 0 * Time.milliseconds }
+
+/**
+ * Interpolates between two values.
+ */
+public fun lerp(first: Double, second: Double, fraction: Float): Double = first + (second - first) * fraction

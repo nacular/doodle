@@ -1,5 +1,6 @@
 package io.nacular.doodle.geometry
 
+import io.nacular.doodle.utils.lerp
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -269,6 +270,11 @@ public operator fun Float.times(value: Vector3D): Vector3D = value * this
 
 /** @see Vector3D.times */
 public operator fun Double.times(value: Vector3D): Vector3D = value * this
+
+/**
+ * Interpolates between 2 points
+ */
+public fun lerp(first: Vector2D, second: Vector2D, fraction: Float): Vector2D = Point(lerp(first.x, second.x, fraction), lerp(first.y, second.y, fraction))
 
 internal class VectorImpl(override val x: Double = 0.0, override val y: Double = 0.0, override val z: Double = 0.0): Vector2D, Vector3D {
     override inline fun as2d() = this
