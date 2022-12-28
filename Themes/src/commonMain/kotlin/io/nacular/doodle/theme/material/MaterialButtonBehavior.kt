@@ -80,9 +80,9 @@ public class MaterialButtonBehavior(
     private var pointerPressed       = false
     private var pointerPressLocation = null as Point?
 
-    private var shadowAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
-    private var rippleAnimation  = null as Animation?;   set(new) { field?.cancel(); field = new }
-    private var overlayAnimation = null as Animation?;   set(new) { field?.cancel(); field = new }
+    private var shadowAnimation  = null as Animation<Double>?; set(new) { field?.cancel(); field = new }
+    private var rippleAnimation  = null as Animation<Float>?;  set(new) { field?.cancel(); field = new }
+    private var overlayAnimation = null as Animation<Float>?;  set(new) { field?.cancel(); field = new }
 
     private val hoverAnimationTime = 180 * milliseconds
     private val pressAnimationTime = hoverAnimationTime / 2
@@ -120,12 +120,12 @@ public class MaterialButtonBehavior(
         animationListener?.let { animate.listeners -= it }
 
         animate.listeners += object: Listener {
-            override fun changed(animator: Animator, animations: Set<Animation>) {
+            override fun changed(animator: Animator, animations: Set<Animation<*>>) {
                 view.rerenderNow()
             }
 
-            override fun completed(animator: Animator, animations: Set<Animation>) {
-                if (rippleAnimation in animations) {
+            override fun completed(animator: Animator, animations: Set<Animation<*>>) {
+                if (rippleAnimation in animations.filterIsInstance<Animation<Float>>()) {
                     view.rerenderNow()
                 }
             }

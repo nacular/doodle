@@ -7,7 +7,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /** A running animation produced by an [Animator] */
-public sealed interface Animation: Completable
+public sealed interface Animation<T>: Completable
 
 /**
  * Manages a set of [AnimationPlan]s and updates them over time.
@@ -23,7 +23,7 @@ public sealed interface Animator {
          * @param animator emitting the event
          * @param animations whose values have changed
          */
-        public fun changed(animator: Animator, animations: Set<Animation>) {}
+        public fun changed(animator: Animator, animations: Set<Animation<*>>) {}
 
         /**
          * Notifies that the given [animations] have been canceled.
@@ -31,7 +31,7 @@ public sealed interface Animator {
          * @param animator emitting the event
          * @param animations that were canceled
          */
-        public fun canceled(animator: Animator, animations: Set<Animation>) {}
+        public fun canceled(animator: Animator, animations: Set<Animation<*>>) {}
 
         /**
          * Notifies that the given [animations] completed.
@@ -39,7 +39,7 @@ public sealed interface Animator {
          * @param animator emitting the event
          * @param animations that completed
          */
-        public fun completed(animator: Animator, animations: Set<Animation>) {}
+        public fun completed(animator: Animator, animations: Set<Animation<*>>) {}
     }
 
     public abstract class NumericAnimationInfo<T, V> internal constructor()
@@ -71,7 +71,7 @@ public sealed interface Animator {
          *
          * @param animation created from a [NumericAnimationPlan]
          */
-        public infix fun <T, V> Pair<T, T>.using(animation: NumericAnimationInfo<T, V>): Animation
+        public infix fun <T, V> Pair<T, T>.using(animation: NumericAnimationInfo<T, V>): Animation<T>
 
         /**
          * Defines the consumption block for a [NumericAnimationPlan] that is
@@ -84,7 +84,7 @@ public sealed interface Animator {
          * @param animation to start
          * @param onChanged notified of changes to the animating value
          */
-        public fun <T> start(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation
+        public fun <T> start(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation<T>
     }
 
     /**
@@ -94,7 +94,7 @@ public sealed interface Animator {
      * @param onChanged is called every time the value within [animation] changes
      * @return a job referencing the ongoing animation
      */
-    public operator fun <T> invoke(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation
+    public operator fun <T> invoke(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation<T>
 
     /**
      * Allows block-style animations to be defined and started.
@@ -102,7 +102,7 @@ public sealed interface Animator {
      * @param definitions of which animations to start
      * @see AnimationBlock
      */
-    public operator fun invoke(definitions: AnimationBlock.() -> Unit): Completable
+    public operator fun invoke(definitions: AnimationBlock.() -> Unit): Animation<Any>
 
     /**
      * Listeners that are notified of changes to the Animator's running animations
@@ -121,7 +121,7 @@ public operator fun <T, V> Animator.invoke(
     range    : Pair<T, T>,
     using    : NumericAnimationPlan<T, V>,
     onChanged: (T) -> Unit
-): Animation = this(animation(range.first, range.second, using), onChanged)
+): Animation<T> = this(animation(range.first, range.second, using), onChanged)
 
 // region ================ Animatable Properties ========================
 
@@ -151,10 +151,10 @@ public fun <V, T> animatingProperty(
     default  : T,
     animator : Animator,
     animation: (start: T, end: T) -> AnimationPlan<T>,
-    onChanged: (old: T, new: T) -> Unit = { _,_ -> }
+    onChanged: (old  : T, new: T) -> Unit = { _,_ -> }
 ): ReadWriteProperty<V, T> = object: ReadWriteProperty<V, T> {
     private var backingField: T = default
-    private var animation: Animation? = null; set(new) {
+    private var animation: Animation<T>? = null; set(new) {
         field?.cancel()
         field = new
     }

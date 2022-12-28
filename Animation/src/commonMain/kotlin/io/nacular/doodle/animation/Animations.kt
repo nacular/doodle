@@ -68,6 +68,22 @@ public interface NumericAnimationPlan<T, V> {
     public fun velocity(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Velocity<V>
 
     /**
+     * Returns `true` IFF the animation if completed after [elapsedTime]. NOTE: implementations
+     * SHOULD NOT return `true` if the animation has not started yet.
+     *
+     * @param start value when the animation began
+     * @param end value to animate toward
+     * @param initialVelocity when the animation began
+     * @param elapsedTime since the animation was created
+     */
+    public fun finished(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Boolean
+}
+
+/**
+ * Represents and animation that runs for a finite amount of time.
+ */
+public interface FiniteNumericAnimationPlan<T, V>: NumericAnimationPlan<T, V> {
+    /**
      * Returns the duration of this animation including any delay.
      *
      * @param start value when the animation began
@@ -76,6 +92,8 @@ public interface NumericAnimationPlan<T, V> {
      * @return the animation's duration, including any delay
      */
     public fun duration(start: V, end: V, initialVelocity: Velocity<V>): Measure<Time>
+
+    override fun finished(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Boolean = elapsedTime > duration(start, end, initialVelocity)
 }
 
 /**
@@ -100,7 +118,7 @@ public fun <T, V> animation(
 
     override fun value   (elapsedTime: Measure<Time>) = converter.deserialize(animationPlan.value(startDouble, endDouble, velocity, elapsedTime))
     override fun velocity(elapsedTime: Measure<Time>) = animationPlan.velocity(startDouble, endDouble, velocity, elapsedTime).run { Velocity(converter.deserialize(change), over) }
-    override fun finished(elapsedTime: Measure<Time>) = elapsedTime >= animationPlan.duration(startDouble, endDouble, velocity)
+    override fun finished(elapsedTime: Measure<Time>) = animationPlan.finished(startDouble, endDouble, velocity, elapsedTime) //elapsedTime >= animationPlan.duration(startDouble, endDouble, velocity)
 }
 
 // region ================ Tween ========================
@@ -114,32 +132,32 @@ public fun <T, V> animation(
  * @param delay to apply before the animation begins
  */
 public fun <T> tween(
-    converter: AnimationDataConverter<T, Double>,
+    converter: SingleDataConverter<T>,
     easing   : EasingFunction,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<T, Double> = NumericAnimationPlanImpl(delay, converter, TimedEasing(duration, easing))
+): FiniteNumericAnimationPlan<T, Double> = NumericAnimationPlanImpl(delay, converter, TimedEasing(duration, easing))
 
 /** @see tween */
 public fun tweenInt(
     easing   : EasingFunction,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Int, Double> = tween(Int.animationConverter, easing, duration, delay)
+): FiniteNumericAnimationPlan<Int, Double> = tween(Int.animationConverter, easing, duration, delay)
 
 /** @see tween */
 public fun tweenFloat(
     easing   : EasingFunction,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Float, Double> = tween(Float.animationConverter, easing, duration, delay)
+): FiniteNumericAnimationPlan<Float, Double> = tween(Float.animationConverter, easing, duration, delay)
 
 /** @see tween */
 public fun tweenDouble(
     easing   : EasingFunction,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Double, Double> = tween(Double.animationConverter, easing, duration, delay)
+): FiniteNumericAnimationPlan<Double, Double> = tween(Double.animationConverter, easing, duration, delay)
 
 /** @see tween */
 public fun <T: Units> tween(
@@ -147,7 +165,7 @@ public fun <T: Units> tween(
     easing   : EasingFunction,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Measure<T>, Double> = tween(units.animationConverter, easing, duration, delay)
+): FiniteNumericAnimationPlan<Measure<T>, Double> = tween(units.animationConverter, easing, duration, delay)
 
 public data class Easing(val easing: EasingFunction, val duration : Measure<Time>)
 
@@ -163,59 +181,59 @@ public fun <T> tween(
     converter: MultiDataConverter<T>,
     easings  : (dimension: Int) -> Easing,
     delay    : Measure<Time> = zeroMillis
-): NumericAnimationPlan<T, Array<Double>> = MultiNumericAnimationPlanImpl(delay, converter, easings)
+): FiniteNumericAnimationPlan<T, Array<Double>> = MultiNumericAnimationPlanImpl(delay, converter, easings)
 
 /** @see tween */
 public fun tweenPoint(
     easing  : EasingFunction,
     duration: Measure<Time>,
     delay   : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, { Easing(easing, duration) }, delay)
+): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, { Easing(easing, duration) }, delay)
 
 /** @see tween */
 public fun tweenPoint(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time> = zeroMillis
-): NumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, easings, delay)
+): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, easings, delay)
 
 /** @see tween */
 public fun tweenSize(
     easing  : EasingFunction,
     duration: Measure<Time>,
     delay   : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, { Easing(easing, duration) }, delay)
+): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, { Easing(easing, duration) }, delay)
 
 /** @see tween */
 public fun tweenSize(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time> = zeroMillis
-): NumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, easings, delay)
+): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, easings, delay)
 
 /** @see tween */
 public fun tweenRect(
     easing  : EasingFunction,
     duration: Measure<Time>,
     delay   : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, { Easing(easing, duration) }, delay)
+): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, { Easing(easing, duration) }, delay)
 
 /** @see tween */
 public fun tweenRect(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time> = zeroMillis
-): NumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, easings, delay)
+): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, easings, delay)
 
 /** @see tween */
 public fun tweenColor(
     easing  : EasingFunction,
     duration: Measure<Time>,
     delay   : Measure<Time> = zeroMillis,
-): NumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, { Easing(easing, duration) }, delay)
+): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, { Easing(easing, duration) }, delay)
 
 /** @see tween */
 public fun tweenColor(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time> = zeroMillis
-): NumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, easings, delay)
+): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, easings, delay)
 
 // endregion
 
@@ -231,63 +249,96 @@ public interface KeyFrameBlock<T> {
     public infix fun T.at(fraction: Float): Frame<T>
 }
 
+/**
+ * Creates an animation that manipulates values of type [T] that are convertable to a [Double].
+ *
+ * ```
+ * keyFrames(converter, duration) {
+ *     value1 at duration * 0   then easeInElastic
+ *     value2 at duration * 1/3 then linear
+ *     value3 at duration * 2/3 then easeOutBack
+ * }
+ * ```
+ *
+ * @param converter that maps [T] to and from `Array<Double>`
+ * @param duration of the animation
+ * @param delay to apply before the animation begins
+ * @param frames defining the animation key points
+ */
 @JvmName("keyFramesSingle")
 public fun <T> keyFrames(
-    converter: AnimationDataConverter<T, Double>,
+    converter: SingleDataConverter<T>,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<T>.() -> Unit
-): NumericAnimationPlan<T, Double> = SingleKeyframeAnimationPlan(converter, duration, delay, frames)
+): FiniteNumericAnimationPlan<T, Double> = SingleKeyframeAnimationPlan(converter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesInt(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Int>.() -> Unit
-): NumericAnimationPlan<Int, Double> = keyFrames(Int.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Int, Double> = keyFrames(Int.animationConverter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesFloat(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Float>.() -> Unit
-): NumericAnimationPlan<Float, Double> = keyFrames(Float.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Float, Double> = keyFrames(Float.animationConverter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesDouble(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Double>.() -> Unit
-): NumericAnimationPlan<Double, Double> = keyFrames(Double.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Double, Double> = keyFrames(Double.animationConverter, duration, delay, frames)
 
+/**
+ * Creates an animation that manipulates values of type [T] that are convertable to an array of [Double]. Each dimension of [T]
+ * will be animated using the definitions within [frames].
+ *
+ * @param converter that maps [T] to and from `Array<Double>`
+ * @param duration of the animation
+ * @param delay to apply before the animation begins
+ * @param frames defining the animation key points
+ * @see keyFrames
+ */
 @JvmName("keyFramesMulti")
 public fun <T> keyFrames(
-    converter: AnimationDataConverter<T, Array<Double>>,
+    converter: MultiDataConverter<T>,
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<T>.() -> Unit
-): NumericAnimationPlan<T, Array<Double>> = MultiKeyframeAnimationPlan(converter, duration, delay, frames)
+): FiniteNumericAnimationPlan<T, Array<Double>> = MultiKeyframeAnimationPlan(converter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesPoint(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Point>.() -> Unit
-): NumericAnimationPlan<Point, Array<Double>> = keyFrames(Point.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Point, Array<Double>> = keyFrames(Point.animationConverter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesSize(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Size>.() -> Unit
-): NumericAnimationPlan<Size, Array<Double>> = keyFrames(Size.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Size, Array<Double>> = keyFrames(Size.animationConverter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesRect(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Rectangle>.() -> Unit
-): NumericAnimationPlan<Rectangle, Array<Double>> = keyFrames(Rectangle.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = keyFrames(Rectangle.animationConverter, duration, delay, frames)
 
+/** @see keyFrames */
 public fun keyFramesColor(
     duration : Measure<Time>,
     delay    : Measure<Time> = zeroMillis,
     frames   : KeyFrameBlock<Color>.() -> Unit
-): NumericAnimationPlan<Color, Array<Double>> = keyFrames(Color.animationConverter, duration, delay, frames)
+): FiniteNumericAnimationPlan<Color, Array<Double>> = keyFrames(Color.animationConverter, duration, delay, frames)
 
 // endregion
 
@@ -295,12 +346,19 @@ public fun keyFramesColor(
 
 public enum class RepetitionType { Restart, Reverse }
 
+/**
+ * Repeats the given [animationPlan] for the specified number of [times].
+ *
+ * @param animationPlan to repeat
+ * @param times to repeat
+ * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ */
 @JvmName("repeatSingle")
 public fun <T> repeat(
-    animationPlan: NumericAnimationPlan<T, Double>,
+    animationPlan: FiniteNumericAnimationPlan<T, Double>,
     times        : Int = 1,
     type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Double> = object: RepeatingAnimationPlan<T, Double>(animationPlan, type) {
+): FiniteNumericAnimationPlan<T, Double> = object: FiniteRepeatingAnimationPlan<T, Double>(animationPlan, type, times) {
     override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>): Measure<Time> = (times + 1) * iterationDuration(
         start,
         end,
@@ -308,12 +366,19 @@ public fun <T> repeat(
     )
 }
 
+/**
+ * Repeats the given [animationPlan] for the specified number of [times].
+ *
+ * @param animationPlan to repeat
+ * @param times to repeat
+ * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ */
 @JvmName("repeatMulti")
 public fun <T> repeat(
-    animationPlan: NumericAnimationPlan<T, Array<Double>>,
+    animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
     times        : Int            = 1,
     type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type) {
+): FiniteNumericAnimationPlan<T, Array<Double>> = object: FiniteRepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, times) {
     override fun duration(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>): Measure<Time> = (times + 1) * iterationDuration(
         start,
         end,
@@ -321,20 +386,32 @@ public fun <T> repeat(
     )
 }
 
+/**
+ * Loops the given [animationPlan] indefinitely.
+ *
+ * @param animationPlan to repeat
+ * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ */
 @JvmName("loopSingle")
 public fun <T> loop(
-    animationPlan: NumericAnimationPlan<T, Double>,
+    animationPlan: FiniteNumericAnimationPlan<T, Double>,
     type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Double> = object: RepeatingAnimationPlan<T, Double>(animationPlan, type) {
-    override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>): Measure<Time> = Double.MAX_VALUE * milliseconds
+): NumericAnimationPlan<T, Double> = object: RepeatingAnimationPlan<T, Double>(animationPlan, type, Int.MAX_VALUE) {
+    override fun finished(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>) = false
 }
 
+/**
+ * Loops the given [animationPlan] indefinitely.
+ *
+ * @param animationPlan to repeat
+ * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ */
 @JvmName("loopMulti")
 public fun <T> loop(
-    animationPlan: NumericAnimationPlan<T, Array<Double>>,
+    animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
     type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type) {
-    override fun duration(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>): Measure<Time> = Double.MAX_VALUE * milliseconds
+): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, Int.MAX_VALUE) {
+    override fun finished(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>) = false
 }
 
 // endregion

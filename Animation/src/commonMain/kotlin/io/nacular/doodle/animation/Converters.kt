@@ -28,14 +28,14 @@ public sealed interface AnimationDataConverter<T, V> {
 }
 
 /**
- * [AnimationDataConverter] that maps values [V] to [Double].
+ * [AnimationDataConverter] that maps values [T] to [Double].
  */
-public interface SingleDataConverter<V>: AnimationDataConverter<V, Double>
+public interface SingleDataConverter<T>: AnimationDataConverter<T, Double>
 
 /**
- * [AnimationDataConverter] that maps values [V] to an [Array] of [Double].
+ * [AnimationDataConverter] that maps values [T] to an [Array] of [Double].
  */
-public interface MultiDataConverter<V> : AnimationDataConverter<V, Array<Double>> {
+public interface MultiDataConverter<T> : AnimationDataConverter<T, Array<Double>> {
     /** The size of array this converter uses */
     public val size: Int
 }
