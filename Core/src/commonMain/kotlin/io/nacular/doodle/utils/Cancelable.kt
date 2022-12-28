@@ -109,7 +109,7 @@ public interface Cancelable {
  * @param default value for the property to begin with
  * @param onChanged that notifies when the underlying property changes
  */
-public fun <V, T: Cancelable> cancelable(
+public fun <V, T: Cancelable> autoCanceling(
     default  : T? = null,
     onChanged: (old: T?, new: T?) -> Unit = { _,_ -> }
 ): ReadWriteProperty<V, T?> = object: ReadWriteProperty<V, T?> {
@@ -118,7 +118,7 @@ public fun <V, T: Cancelable> cancelable(
     override operator fun getValue(thisRef: V, property: KProperty<*>): T? = backingField
 
     override operator fun setValue(thisRef: V, property: KProperty<*>, value: T?) {
-        val old = backingField?.apply {cancel() }
+        val old = backingField?.apply { cancel() }
 
         backingField = value
 
