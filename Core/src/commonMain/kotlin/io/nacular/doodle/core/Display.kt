@@ -25,6 +25,7 @@ import io.nacular.doodle.utils.PropertyObservers
  */
 public interface Display: Iterable<View> {
     override fun iterator(): MutableIterator<View> = children.iterator()
+
     /**
      * The top-level cursor.  This will be the cursor used for [View] hierarchies that do not have one set.
      */
