@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.FontSerializer
+import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLInputElement
 import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
@@ -273,11 +274,14 @@ internal class NativeTextField(
         selectionStyle    = null
         placeHolderStyle  = null
         mozSelectionStyle = null
+
+        (inputElement.parentElement as? HTMLElement)?.style?.setProperty("transform-style", "")
     }
 
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
             canvas.addData(listOf(inputElement))
+            (inputElement.parentElement as? HTMLElement)?.style?.setProperty("transform-style", "preserve-3d")
         }
 
         if (textField.hasFocus && !elementFocused) {
