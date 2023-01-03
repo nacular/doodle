@@ -341,11 +341,11 @@ internal class Solver {
     }
 
     fun suggestValue(variable: Variable, value: Double) {
-        val info      = edits[variable] ?: throw UnknownEditVariableException()
-        val delta     = value - info.constant
-        info.constant = value
+        val info  = edits[variable] ?: throw UnknownEditVariableException()
+        val delta = value - info.constant
 
         if (delta != 0.0) {
+            info.constant = value
             updateRow(rows[info.tag.marker], info.tag, delta)
         }
     }

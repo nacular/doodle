@@ -7,6 +7,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 
+/** @suppress */
 @Internal
 public interface GraphicsSurface {
     public var position          : Point

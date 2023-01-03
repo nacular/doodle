@@ -33,11 +33,13 @@ public interface Postprocessor {
     public operator fun invoke(keyEvent: KeyEvent)
 }
 
+/** @suppress */
 @Internal
 public interface KeyboardFocusManager {
     public fun shutdown()
 }
 
+/** @suppress */
 @Internal
 public class KeyboardFocusManagerImpl(
         private val keyInputService     : KeyInputService,

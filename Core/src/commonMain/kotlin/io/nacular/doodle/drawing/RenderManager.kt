@@ -9,6 +9,7 @@ import io.nacular.doodle.utils.diff.Differences
 
 /**
  * An internal manger that handles all render operations within an app.
+ * @suppress
  */
 @Internal
 public abstract class RenderManager {

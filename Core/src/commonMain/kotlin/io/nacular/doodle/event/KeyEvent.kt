@@ -3,9 +3,11 @@ package io.nacular.doodle.event
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.system.SystemInputEvent.Modifier
+import kotlin.jvm.JvmInline
 
 
-public inline class KeyText(public val text: String) {
+@JvmInline
+public value class KeyText(public val text: String) {
     public companion object {
         // Key Text from https://www.w3.org/TR/uievents-key/#key-attribute-value
         public val Backspace : KeyText = KeyText("Backspace" )
@@ -38,7 +40,8 @@ public inline class KeyText(public val text: String) {
     }
 }
 
-public inline class KeyCode(public val key: String) {
+@JvmInline
+public value class KeyCode(public val key: String) {
     public companion object {
         // Key Codes from https://w3c.github.io/uievents-code/
         public val Backquote           : KeyCode = KeyCode("Backquote")

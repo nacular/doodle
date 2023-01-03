@@ -104,12 +104,14 @@ public inline fun <reified T: Application> nestedApplication(
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
+/** @suppress */
 @Internal
 public fun createApplication(
         injector            : DirectDI,
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
+/** @suppress */
 @Internal
 public fun createApplication(
         injector            : DirectDI,
@@ -117,6 +119,7 @@ public fun createApplication(
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
+/** @suppress */
 @Internal
 public fun createNestedApplication(
         view                : ApplicationView,

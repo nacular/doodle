@@ -2,9 +2,7 @@ package io.nacular.doodle.utils
 
 import io.nacular.doodle.core.Internal
 
-/**
- * Created by Nicholas Eddy on 4/11/18.
- */
+/** @suppress */
 @Suppress("PrivatePropertyName", "FunctionName")
 @Internal
 public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {

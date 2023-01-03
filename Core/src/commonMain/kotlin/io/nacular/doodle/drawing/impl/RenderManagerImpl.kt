@@ -28,6 +28,7 @@ import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.firstOrNull
 import io.nacular.doodle.utils.ifTrue
 
+/** @suppress */
 @Internal
 @Suppress("NestedLambdaShadowedImplicitParameter")
 public open class RenderManagerImpl(

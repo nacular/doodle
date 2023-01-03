@@ -37,7 +37,7 @@ kotlin {
         jvm().compilations["test"].defaultSourceSet {
             dependencies {
                 implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test"))
 
                 implementation("org.slf4j:slf4j-api:$log4jVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
@@ -51,4 +51,8 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

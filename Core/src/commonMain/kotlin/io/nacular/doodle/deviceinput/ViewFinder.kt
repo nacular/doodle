@@ -5,14 +5,13 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 
-/**
- * Created by Nicholas Eddy on 3/12/19.
- */
+/** @suppress */
 @Internal
 public interface ViewFinder {
     public fun find(at: Point): View?
 }
 
+/** @suppress */
 @Internal
 public class ViewFinderImpl(private val display: Display): ViewFinder {
     override fun find(at: Point): View? {

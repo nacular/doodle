@@ -45,11 +45,13 @@ public interface ThemeManager {
     public val selectionChanged: PropertyObservers<ThemeManager, Theme?>
 }
 
+/** @suppress */
 @Internal
 public abstract class InternalThemeManager internal constructor(): ThemeManager {
     internal abstract fun update(view: View)
 }
 
+/** @suppress */
 @Internal
 public class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }

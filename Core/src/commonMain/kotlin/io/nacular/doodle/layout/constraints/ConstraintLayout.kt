@@ -907,6 +907,7 @@ public fun constrain(a: View, b: View, vararg others: View, constraints: Constra
  * @param using this constraint for each View
  * @param within this rectangle
  * @throws ConstraintException
+ * @suppress
  */
 @Internal
 public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(Bounds) -> Unit, within: (Int, T) -> Rectangle) {

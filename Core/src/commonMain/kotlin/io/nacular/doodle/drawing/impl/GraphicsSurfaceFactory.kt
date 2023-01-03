@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.GraphicsSurface
 
+/** @suppress */
 @Internal
 public interface GraphicsSurfaceFactory<T: GraphicsSurface> {
     public operator fun invoke(): T

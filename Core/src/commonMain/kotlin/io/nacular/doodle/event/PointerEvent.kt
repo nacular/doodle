@@ -9,11 +9,13 @@ import io.nacular.doodle.system.SystemPointerEvent.Button
 import io.nacular.doodle.system.SystemPointerEvent.Type
 import io.nacular.doodle.utils.fastSetOf
 import io.nacular.doodle.utils.first
+import kotlin.jvm.JvmInline
 
 /**
  * Represents a pointing device (Mouse, Pen, Touch, etc.).
  */
-public inline class Pointer(internal val id: Int)
+@JvmInline
+public value class Pointer(internal val id: Int)
 
 /**
  * Represents an interaction with a View by a [Pointer].
@@ -88,6 +90,7 @@ public class PointerEvent internal constructor(
     }
 
     public companion object {
+        /** @suppress */
         @Internal
         public operator fun invoke(target: View, event: SystemPointerEvent): PointerEvent {
             val pointers = fastSetOf(Interaction(Pointer(event.id), target, event.type, target.fromAbsolute(event.location), event.location))

@@ -12,6 +12,7 @@ public class SystemPointerEvent @Internal constructor(
                              modifiers        : Set<Modifier>,
                   public val nativeScrollPanel: Boolean = false): SystemInputEvent(modifiers) {
 
+    /** @suppress */
     @Internal
     public constructor(
             id               : Int,

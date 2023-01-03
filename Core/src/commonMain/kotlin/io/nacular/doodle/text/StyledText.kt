@@ -100,6 +100,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
 
     public fun copy(): StyledText = StyledText(MutableList(data.size) { MutablePair(data[it].first, data[it].second.copy()) })
 
+    /** @suppress */
     @Internal
     public fun mapStyle(block: (Style) -> Style): StyledText = StyledText(data.mapTo(mutableListOf()) {
         MutablePair(it.first, StyleImpl(block(it.second)))

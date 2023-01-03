@@ -156,6 +156,7 @@ public open class ScrollPanel(content: View? = null): View() {
 
     /**
      * The Panel will match its content's ideal size if this set to `true`
+     * @suppress
      */
     @Internal
     public var matchContentIdealSize: Boolean = true

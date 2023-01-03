@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.utils.fastMutableMapOf
 
+/** @suppress */
 @Internal
 public class RealGraphicsDevice<T: GraphicsSurface>(private val surfaceFactory: GraphicsSurfaceFactory<T>): GraphicsDevice<T> {
 

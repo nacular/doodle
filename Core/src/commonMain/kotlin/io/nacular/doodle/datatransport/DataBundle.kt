@@ -6,9 +6,6 @@ import io.nacular.measured.units.Time
 import kotlin.reflect.KClass
 
 /**
- * Created by Nicholas Eddy on 11/3/18.
- */
-/**
  * Represents a file on the local machine that is being transferred
  * within a [DataBundle].
  * @property name of the file
@@ -119,6 +116,9 @@ public open class ApplicationType<T> internal constructor(type: String): MimeTyp
  */
 public class Image(type: String): MimeType<LocalFile>("image", type)
 
+/**
+ * Runtime mime-type to represent a reference to some value of type [type].
+ */
 public class ReferenceType<T: Any>(private val type: KClass<out T>): ApplicationType<T>("doodle-reference-${type.simpleName}") {
     override fun equals(other: Any?): Boolean {
         if (this === other            ) return true

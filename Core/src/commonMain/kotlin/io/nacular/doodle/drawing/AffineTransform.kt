@@ -71,20 +71,20 @@ public abstract class AffineTransform internal constructor(internal val matrix: 
     /** Translation component in the z direction */
     public val translateZ: Double get() = if (is3d) m03 else m22
 
-    @Internal public val m00: Double get() = matrix[0, 0]
-    @Internal public val m01: Double get() = matrix[0, 1]
-    @Internal public val m02: Double get() = matrix[0, 2]
-    @Internal public val m03: Double get() = matrix[0, 3]
-    @Internal public val m10: Double get() = matrix[1, 0]
-    @Internal public val m11: Double get() = matrix[1, 1]
-    @Internal public val m12: Double get() = matrix[1, 2]
-    @Internal public val m13: Double get() = matrix[1, 3]
-    @Internal public val m20: Double get() = matrix[2, 0]
-    @Internal public val m21: Double get() = matrix[2, 1]
-    @Internal public val m22: Double get() = matrix[2, 2]
-    @Internal public val m23: Double get() = matrix[2, 3]
+    /** @suppress */ @Internal public val m00: Double get() = matrix[0, 0]
+    /** @suppress */ @Internal public val m01: Double get() = matrix[0, 1]
+    /** @suppress */ @Internal public val m02: Double get() = matrix[0, 2]
+    /** @suppress */ @Internal public val m03: Double get() = matrix[0, 3]
+    /** @suppress */ @Internal public val m10: Double get() = matrix[1, 0]
+    /** @suppress */ @Internal public val m11: Double get() = matrix[1, 1]
+    /** @suppress */ @Internal public val m12: Double get() = matrix[1, 2]
+    /** @suppress */ @Internal public val m13: Double get() = matrix[1, 3]
+    /** @suppress */ @Internal public val m20: Double get() = matrix[2, 0]
+    /** @suppress */ @Internal public val m21: Double get() = matrix[2, 1]
+    /** @suppress */ @Internal public val m22: Double get() = matrix[2, 2]
+    /** @suppress */ @Internal public val m23: Double get() = matrix[2, 3]
 
-    @Internal public val is3d: Boolean = !isIdentity && matrix.numColumns > 3
+    /** @suppress */ @Internal public val is3d: Boolean = !isIdentity && matrix.numColumns > 3
 
     internal fun as3d(): AffineTransform = when {
         is3d -> this

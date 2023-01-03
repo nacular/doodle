@@ -1,3 +1,7 @@
+
+import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
+import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
+
 buildscript {
     val kotlinVersion: String by System.getProperties()
 
@@ -17,9 +21,10 @@ plugins {
 }
 
 allprojects {
-    apply (plugin = "maven-publish"      )
-    apply (plugin = "signing"            )
-    apply (plugin = "org.jetbrains.dokka")
+    apply (plugin = "maven-publish"              )
+    apply (plugin = "signing"                    )
+    apply (plugin = "org.jetbrains.dokka"        )
+    apply (plugin = "org.jetbrains.kotlinx.kover")
 
     repositories {
         mavenCentral()
@@ -53,6 +58,8 @@ allprojects {
 
                 // Do not create index pages for empty packages
                 skipEmptyPackages.set(true)
+
+                documentedVisibilities.set(setOf(PUBLIC, PROTECTED))
             }
         }
     }

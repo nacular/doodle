@@ -10,9 +10,7 @@ import io.nacular.doodle.theme.InternalThemeManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
 
-/**
- * Created by Nicholas Eddy on 6/2/21.
- */
+/** @suppress */
 @Internal
 internal class DesktopRenderManagerImpl(
         display             : InternalDisplay,

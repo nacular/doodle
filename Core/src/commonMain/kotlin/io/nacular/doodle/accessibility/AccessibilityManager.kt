@@ -8,6 +8,7 @@ import kotlin.properties.ReadWriteProperty
 
 /**
  * Manages all accessibility interactions within an application.
+ * @suppress
  */
 public interface AccessibilityManager {
     @Internal public fun syncLabel        (view: View)
@@ -26,6 +27,7 @@ public interface AccessibilityManager {
 /**
  * Base class for all accessible roles a [View] can take.
  * @see [View.accessibilityRole]
+ * @suppress
  */
 public sealed class AccessibilityRole {
     @Internal public      var manager: AccessibilityManager? = null

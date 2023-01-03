@@ -13,16 +13,19 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
+/** @suppress */
 @Internal
 public interface FocusabilityChecker {
     public operator fun invoke(view: View): Boolean
 }
 
+/** @suppress */
 @Internal
 public class DefaultFocusabilityChecker: FocusabilityChecker {
     override fun invoke(view: View): Boolean = view.run { focusable && enabled && visible }
 }
 
+/** @suppress */
 @Internal
 public class FocusManagerImpl(
         private val display                    : Display,

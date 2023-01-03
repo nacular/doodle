@@ -2,6 +2,7 @@ package io.nacular.doodle.utils
 
 import io.nacular.doodle.core.Internal
 
+/** @suppress */
 @Internal
 public class MutableTreeSetJs<E>(comparator: Comparator<E>, elements: Collection<E>): TreeSetJs<E>(comparator, elements), MutableSet<E> {
     public constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
@@ -28,7 +29,7 @@ public class MutableTreeSetJs<E>(comparator: Comparator<E>, elements: Collection
     override fun clear(): Unit = super.clear_()
 
     public companion object {
-        public operator fun <T: Comparable<T>> invoke(                       ): MutableTreeSetJs<T> = MutableTreeSetJs(Comparator { a, b -> a.compareTo(b) })
-        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSetJs<T> = MutableTreeSetJs(Comparator { a, b -> a.compareTo(b) }, elements)
+        public operator fun <T: Comparable<T>> invoke(                       ): MutableTreeSetJs<T> = MutableTreeSetJs { a, b -> a.compareTo(b) }
+        public operator fun <T: Comparable<T>> invoke(elements: Collection<T>): MutableTreeSetJs<T> = MutableTreeSetJs({ a, b -> a.compareTo(b) }, elements)
     }
 }

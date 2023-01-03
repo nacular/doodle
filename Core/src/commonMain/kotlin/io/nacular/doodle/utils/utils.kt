@@ -157,6 +157,7 @@ public fun Double.roundToNearest(value: Double): Double = when (value) {
     else -> round(this / value) * value
 }
 
+/** @suppress */
 @Internal
 public fun <T> Set<T>.first(): T {
     val iterator = iterator()
@@ -164,19 +165,20 @@ public fun <T> Set<T>.first(): T {
     return iterator.next()
 }
 
+/** @suppress */
 @Internal
 public fun <T> Set<T>.firstOrNull(): T? {
     val iterator = iterator()
     return if (!iterator.hasNext()) null else iterator.next()
 }
 
-@Internal public expect fun <K, V> fastMutableMapOf(): MutableMap<K, V>
+/** @suppress */ @Internal public expect fun <K, V> fastMutableMapOf(): MutableMap<K, V>
 
-@Internal public expect fun <E> fastSetOf       (): Set<E>
-@Internal public expect fun <E> fastMutableSetOf(): MutableSet<E>
+/** @suppress */ @Internal public expect fun <E> fastSetOf       (): Set<E>
+/** @suppress */ @Internal public expect fun <E> fastMutableSetOf(): MutableSet<E>
 
-@Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
-@Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
+/** @suppress */ @Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
+/** @suppress */ @Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
 
 public val zeroMillis: Measure<Time> by lazy { 0 * Time.milliseconds }
 

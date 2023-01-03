@@ -25,6 +25,7 @@ public data class Camera(val position: Point, val distance: Double) {
      */
     public val projection: ProjectionTransform by lazy { projection(offset = Origin) }
 
+    /** @suppress */
     @Internal public fun projection(offset: Point): ProjectionTransform = when (distance) {
         0.0, Double.MAX_VALUE -> ProjectionTransform.Identity
         else                  -> {
