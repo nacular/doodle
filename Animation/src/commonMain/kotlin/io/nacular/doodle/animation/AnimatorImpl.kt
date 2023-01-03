@@ -72,23 +72,32 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
     private inner class GroupAnimation(private val animations: Set<AnimationData<*>>): Animation<Any>, CompletableImpl() {
         private var numCompleted = 0
+        private var numCanceled  = 0
+        private var initiatingCancel = false
 
         init {
             animations.forEach {
                 it.completed += {
-                    if (++numCompleted == animations.size) {
+                    if (++numCompleted + numCanceled == animations.size) {
                         completed()
+                    }
+                }
+                it.canceled += {
+                    if (!initiatingCancel && ++numCanceled + numCompleted == animations.size) {
+                        cancel()
                     }
                 }
             }
         }
 
         override fun cancel() {
-            animations.forEach { it.cancel(broadcast = false) }
+            initiatingCancel = true
+            animations.forEach { it.cancel() }
 
             (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, animations) }
 
             super.cancel()
+            initiatingCancel = false
         }
     }
 
@@ -181,6 +190,8 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         inAnimation = false
         concurrentlyModifiedAnimations?.let {
             animations.addAll(it)
+            it.clear()
+            concurrentlyModifiedAnimations = null
         }
 
         if (changed.isNotEmpty()) {
