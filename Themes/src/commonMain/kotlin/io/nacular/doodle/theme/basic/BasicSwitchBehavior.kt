@@ -10,7 +10,7 @@ import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.darker
-import io.nacular.doodle.drawing.interpolate
+import io.nacular.doodle.drawing.lerp
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
@@ -73,7 +73,7 @@ public open class BasicSwitchBehavior(
         canvas.circle(Circle(center, radius - border), ColorPaint(circleColor))
     }
 
-    private fun color(button: Button, start: Color, end: Color) = interpolate(start, end, progress).let {
+    private fun color(button: Button, start: Color, end: Color) = lerp(start, end, progress).let {
         when {
             !button.enabled          -> disabledColorMapper(it)
             button.model.pointerOver -> hoverColorMapper   (it)

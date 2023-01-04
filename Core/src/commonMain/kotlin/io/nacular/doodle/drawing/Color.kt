@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import io.nacular.doodle.utils.lerp
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
@@ -337,24 +338,22 @@ public fun HsvColor.toRgb(): Color {
 }
 
 /**
- * Picks a Color that is [percent] within the range [[start], [end]] inclusive.
+ * Picks a Color that is [fraction] within the range [[start], [end]] inclusive using linear interpolation.
  *
  * @param start color
  * @param end color
- * @param percent from start to end
+ * @param fraction of the way between them
  * @return the color
  */
-public fun interpolate(start: Color, end: Color, percent: Float): Color = when (percent) {
-    0f   -> start
-    1f   -> end
-    else -> {
-        Color(
-            red     = (start.red.toInt  () * (1 - percent) + end.red.toInt  () * percent).toInt().toUByte(),
-            green   = (start.green.toInt() * (1 - percent) + end.green.toInt() * percent).toInt().toUByte(),
-            blue    = (start.blue.toInt () * (1 - percent) + end.blue.toInt () * percent).toInt().toUByte(),
-            opacity = start.opacity * (1 - percent) + end.opacity * percent
-        )
-    }
+public fun lerp(start: Color, end: Color, fraction: Float): Color = when(fraction) {
+    0f -> start
+    1f -> end
+    else -> Color(
+        red     = lerp(start.red.toDouble  (), end.red.toDouble  (), fraction).toInt().toUByte(),
+        green   = lerp(start.green.toDouble(), end.green.toDouble(), fraction).toInt().toUByte(),
+        blue    = lerp(start.blue.toDouble (), end.blue.toDouble (), fraction).toInt().toUByte(),
+        opacity = lerp(start.opacity, end.opacity, fraction)
+    )
 }
 
 public val Color?.visible   : Boolean get() = this?.visible ?: false

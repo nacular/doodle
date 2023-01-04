@@ -184,5 +184,18 @@ public val zeroMillis: Measure<Time> by lazy { 0 * Time.milliseconds }
 
 /**
  * Interpolates between two values.
+ *
+ * @param first value
+ * @param second value
+ * @param fraction of the way between them
  */
 public fun lerp(first: Double, second: Double, fraction: Float): Double = first + (second - first) * fraction
+
+/**
+ * Interpolates between two values.
+ *
+ * @param first value
+ * @param second value
+ * @param fraction of the way between them
+ */
+public fun lerp(first: Float, second: Float, fraction: Float): Float = first + (second - first) * fraction
