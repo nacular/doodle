@@ -127,14 +127,22 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
 }
 
 public inline fun <T: Button> simpleTextButtonRenderer(
-        textMetrics : TextMetrics,
-        focusManager: FocusManager?,
-        crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
+    textMetrics : TextMetrics,
+    crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = null) {
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }
 
 public inline fun <T: Button> simpleTextButtonRenderer(
-        textMetrics : TextMetrics,
-        crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = null) {
+    textMetrics : TextMetrics,
+    focusManager: FocusManager?,
+    crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
+    override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
+}
+
+public inline fun <T: Button> simpleTextButtonRenderer(
+    textMetrics : TextMetrics,
+    focusManager: FocusManager? = null,
+    insets      : Insets        = None,
+    crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager, insets = insets) {
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }
