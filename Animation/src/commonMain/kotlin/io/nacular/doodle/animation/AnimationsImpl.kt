@@ -194,16 +194,20 @@ internal class MultiKeyframeAnimationPlan<T>(
 internal abstract class RepeatingAnimationPlan<T, V>(
     private   val animation: FiniteNumericAnimationPlan<T, V>,
     private   val type     : RepetitionType = Restart,
-    protected val times    : Int
+    protected val times    : Int,
+    private   val delay    : Measure<Time> = zeroMillis
 ): NumericAnimationPlan<T, V> {
     override val converter get() = animation.converter
 
-    override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V = animation.value(
-        start,
-        end,
-        velocityForRepeat   (start, end, initialVelocity, elapsedTime),
-        elapsedTimeForRepeat(start, end, initialVelocity, elapsedTime)
-    )
+    override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V = when {
+        elapsedTime <= delay -> start
+        else                 -> animation.value(
+            start,
+            end,
+            velocityForRepeat   (start, end, initialVelocity, elapsedTime - delay),
+            elapsedTimeForRepeat(start, end, initialVelocity, elapsedTime - delay)
+        )
+    }
 
     override fun velocity(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Velocity<V> = animation.velocity(
         start,
@@ -242,5 +246,6 @@ internal abstract class RepeatingAnimationPlan<T, V>(
 internal abstract class FiniteRepeatingAnimationPlan<T, V>(
     animation: FiniteNumericAnimationPlan<T, V>,
     type     : RepetitionType = Restart,
-    times    : Int
-): RepeatingAnimationPlan<T, V>(animation, type, times), FiniteNumericAnimationPlan<T, V>
+    times    : Int,
+    delay    : Measure<Time>,
+): RepeatingAnimationPlan<T, V>(animation, type, times, delay), FiniteNumericAnimationPlan<T, V>

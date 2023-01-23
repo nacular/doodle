@@ -352,18 +352,20 @@ public enum class RepetitionType { Restart, Reverse }
  * @param animationPlan to repeat
  * @param times to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ * @param delay to apply before the animation begins
  */
 @JvmName("repeatSingle")
 public fun <T> repeat(
     animationPlan: FiniteNumericAnimationPlan<T, Double>,
     times        : Int = 1,
-    type         : RepetitionType = Restart
-): FiniteNumericAnimationPlan<T, Double> = object: FiniteRepeatingAnimationPlan<T, Double>(animationPlan, type, times) {
+    type         : RepetitionType = Restart,
+    delay        : Measure<Time> = zeroMillis
+): FiniteNumericAnimationPlan<T, Double> = object: FiniteRepeatingAnimationPlan<T, Double>(animationPlan, type, times, delay) {
     override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>): Measure<Time> = (times + 1) * iterationDuration(
         start,
         end,
         initialVelocity
-    )
+    ) + delay
 }
 
 /**
@@ -372,18 +374,20 @@ public fun <T> repeat(
  * @param animationPlan to repeat
  * @param times to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ * @param delay to apply before the animation begins
  */
 @JvmName("repeatMulti")
 public fun <T> repeat(
     animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
     times        : Int            = 1,
-    type         : RepetitionType = Restart
-): FiniteNumericAnimationPlan<T, Array<Double>> = object: FiniteRepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, times) {
+    type         : RepetitionType = Restart,
+    delay        : Measure<Time> = zeroMillis
+): FiniteNumericAnimationPlan<T, Array<Double>> = object: FiniteRepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, times, delay) {
     override fun duration(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>): Measure<Time> = (times + 1) * iterationDuration(
         start,
         end,
         initialVelocity
-    )
+    ) + delay
 }
 
 /**
@@ -391,12 +395,14 @@ public fun <T> repeat(
  *
  * @param animationPlan to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ * @param delay to apply before the animation begins
  */
 @JvmName("loopSingle")
 public fun <T> loop(
     animationPlan: FiniteNumericAnimationPlan<T, Double>,
-    type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Double> = object: RepeatingAnimationPlan<T, Double>(animationPlan, type, Int.MAX_VALUE) {
+    type         : RepetitionType = Restart,
+    delay        : Measure<Time> = zeroMillis
+): NumericAnimationPlan<T, Double> = object: RepeatingAnimationPlan<T, Double>(animationPlan, type, Int.MAX_VALUE, delay) {
     override fun finished(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>) = false
 }
 
@@ -405,12 +411,14 @@ public fun <T> loop(
  *
  * @param animationPlan to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
+ * @param delay to apply before the animation begins
  */
 @JvmName("loopMulti")
 public fun <T> loop(
     animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
-    type         : RepetitionType = Restart
-): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, Int.MAX_VALUE) {
+    type         : RepetitionType = Restart,
+    delay        : Measure<Time> = zeroMillis
+): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, Int.MAX_VALUE, delay) {
     override fun finished(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>) = false
 }
 

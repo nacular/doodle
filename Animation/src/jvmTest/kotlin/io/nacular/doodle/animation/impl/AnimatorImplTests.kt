@@ -3,9 +3,12 @@ package io.nacular.doodle.animation.impl
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.animation.Animation
+import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.Animator.Listener
 import io.nacular.doodle.animation.AnimatorImpl
 import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.loop
+import io.nacular.doodle.animation.repeat
 import io.nacular.doodle.animation.transition.linear
 import io.nacular.doodle.animation.tween
 import io.nacular.doodle.animation.tweenFloat
@@ -25,10 +28,11 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 12/15/19.
  */
 class AnimatorImplTests {
-    private class MonotonicTimer: Timer {
-        override var now = 100 * milliseconds
-            get() = field.also { field += 2 * milliseconds }
+    private class MonotonicTimer(private val increment: Measure<Time> = 2 * milliseconds): Timer {
+        var actual = 100 * milliseconds
             private set
+
+        override val now get() = actual.also { actual += increment }
     }
 
     private class ImmediateAnimationScheduler: AnimationScheduler {
@@ -279,5 +283,59 @@ class AnimatorImplTests {
         verify(exactly = 0) { listener.changed  (animate, any()) }
         verify(exactly = 0) { listener.completed(animate, any()) }
         verify(exactly = 1) { listener.canceled (animate, match { it.size == 2 }) }
+    }
+
+    @Test fun `delay on repeat`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate(0f to 1f, repeat(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+    }
+
+    @Test fun `delay on loop`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate(0f to 1f, loop(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+    }
+
+    private fun <T> Animation<T>.onCompleted(animate: Animator, outputs: MutableSet<Animation<*>>, block: Animator.AnimationBlock.() -> Unit): Animation<T> = this.apply {
+        completed += {
+            outputs += animate.invoke(block)
+        }
     }
 }
