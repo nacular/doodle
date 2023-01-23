@@ -11,11 +11,16 @@ import io.nacular.doodle.SVGLinearGradientElement
 import io.nacular.doodle.SVGPatternElement
 import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
-import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap
+import io.nacular.doodle.drawing.Stroke.LineCap.Butt
+import io.nacular.doodle.drawing.Stroke.LineCap.Round
+import io.nacular.doodle.drawing.Stroke.LineCap.Square
+import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
@@ -75,12 +80,28 @@ internal inline fun SVGCircleElement.setR     (value: Double) = setAttribute  ("
 internal inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
 
 internal inline fun SVGElement.setPathData               (value: String      ) = setAttribute   ("d",                   value          )
-internal inline fun SVGElement.setStrokeWidth            (value: Double      ) = setAttribute   ("stroke-width",      "$value"          )
+internal inline fun SVGElement.setStrokeWidth            (value: Double      ) = setAttribute   ("stroke-width",      "$value"         )
 internal inline fun SVGElement.setDefaultStrokeWidth     (                   ) = removeAttribute("stroke-width"                        )
 internal inline fun SVGElement.setStrokeDash             (value: DoubleArray?) = setAttribute   ("stroke-dasharray",   dashArray(value))
 internal inline fun SVGElement.setDefaultStrokeDash      (                   ) = removeAttribute("stroke-dasharray"                    )
 internal inline fun SVGElement.setStrokeDashOffset       (value: Double?     ) = setAttribute   ("stroke-dashoffset",  value?.let { "$it" } ?: "")
 internal inline fun SVGElement.setDefaultStrokeDashOffset(                   ) = removeAttribute("stroke-dashoffset"                    )
+
+internal inline fun SVGElement.setStrokeJoint(value: LineJoint) = setAttribute("stroke-linejoin", when (value) {
+    LineJoint.Miter -> "butt"
+    LineJoint.Round -> "round"
+    LineJoint.Bevel -> "bevel"
+})
+
+internal inline fun SVGElement.setDefaultStrokeJoint() = removeAttribute("stroke-linejoin")
+
+internal inline fun SVGElement.setStrokeLineCap(value: LineCap) = setAttribute("stroke-linecap", when (value) {
+    Butt   -> "butt"
+    Round  -> "round"
+    Square -> "square"
+})
+
+internal inline fun SVGElement.setDefaultStrokeLineCap() = removeAttribute("stroke-linecap")
 
 internal inline fun SVGGeometryElement.setPoints(vararg points: Point) = setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
 
@@ -146,10 +167,14 @@ internal fun SVGElement.setStroke(stroke: Stroke?) {
             setStrokeColor            (null)
             setDefaultStrokeDash      ()
             setDefaultStrokeWidth     ()
+            setDefaultStrokeJoint     ()
+            setDefaultStrokeLineCap   ()
             setDefaultStrokeDashOffset()
         }
         else -> {
-            setStrokeWidth(stroke.thickness)
+            setStrokeWidth  (stroke.thickness)
+            stroke.lineJoint?.let { setStrokeJoint  (it) }
+            stroke.lineCap?.let   { setStrokeLineCap(it) }
 
             when (stroke.dashes) {
                 null -> {

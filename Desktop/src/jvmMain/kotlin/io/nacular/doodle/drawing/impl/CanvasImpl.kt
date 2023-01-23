@@ -1,8 +1,8 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.core.Camera
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -21,6 +21,8 @@ import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Renderer.FillRule.EvenOdd
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap
+import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Circle
@@ -55,6 +57,10 @@ import org.jetbrains.skia.FilterTileMode.REPEAT
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.MaskFilter
 import org.jetbrains.skia.Matrix44
+import org.jetbrains.skia.PaintStrokeCap.BUTT
+import org.jetbrains.skia.PaintStrokeCap.ROUND
+import org.jetbrains.skia.PaintStrokeCap.SQUARE
+import org.jetbrains.skia.PaintStrokeJoin
 import org.jetbrains.skia.PathEffect
 import org.jetbrains.skia.PathFillMode.EVEN_ODD
 import org.jetbrains.skia.PathFillMode.WINDING
@@ -77,9 +83,9 @@ import org.jetbrains.skia.paragraph.TextStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 import org.jetbrains.skia.Canvas as SkiaCanvas
-import org.jetbrains.skia.Font  as SkiaFont
-import org.jetbrains.skia.Paint as SkiaPaint
-import org.jetbrains.skia.Path  as SkiaPath
+import org.jetbrains.skia.Font   as SkiaFont
+import org.jetbrains.skia.Paint  as SkiaPaint
+import org.jetbrains.skia.Path   as SkiaPath
 
 internal class PatternCanvasWrapper(private val canvas: Canvas): PatternCanvas, CommonCanvas by canvas {
     override fun transform(transform: AffineTransform, block: PatternCanvas.() -> Unit) = canvas.transform(transform) { block(this@PatternCanvasWrapper) }
@@ -141,6 +147,18 @@ internal class CanvasImpl(
             }
 
             it.pathEffect = PathEffect.makeDash(fixedDashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
+        }
+
+        it.strokeCap = when (lineCap) {
+            LineCap.Square -> SQUARE
+            LineCap.Round  -> ROUND
+            else           -> BUTT
+        }
+
+        it.strokeJoin = when (lineJoint) {
+            LineJoint.Round -> PaintStrokeJoin.ROUND
+            LineJoint.Bevel -> PaintStrokeJoin.BEVEL
+            else            -> PaintStrokeJoin.MITER
         }
     }
 

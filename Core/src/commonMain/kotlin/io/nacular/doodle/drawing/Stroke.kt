@@ -22,8 +22,22 @@ public class Stroke(
         public val fill      : Paint        = ColorPaint(Black),
         public val thickness : Double       = 1.0,
         public val dashes    : DoubleArray? = null,
-        public val dashOffset: Double       = 0.0
+        public val dashOffset: Double       = 0.0,
+        public val lineJoint : LineJoint?   = null,
+        public val lineCap   : LineCap  ?   = null,
 ) {
+    public enum class LineJoint {
+        Miter,
+        Round,
+        Bevel
+    }
+
+    public enum class LineCap {
+        Butt,
+        Round,
+        Square
+    }
+
     /** `true` IFF [thickness] > 0 and [color] visible */
     public val visible: Boolean = thickness > 0 && fill.visible
 
