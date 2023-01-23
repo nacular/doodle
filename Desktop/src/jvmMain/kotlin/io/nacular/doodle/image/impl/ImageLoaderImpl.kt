@@ -48,7 +48,15 @@ public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val bas
 
                     ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(source)), source)
                 }
-                else -> ImageImpl(SkiaImage.makeFromEncoded(file.readBytes()), source)
+                else -> {
+                    val bytes = file.readBytes()
+
+                    runCatching {
+                        ImageImpl(SkiaImage.makeFromEncoded(bytes), source)
+                    }.getOrElse {
+                        SvgImage(SVGDOM(Data.makeFromBytes(bytes)))
+                    }
+                }
             }
         } catch (ignored: Throwable) { ignored.printStackTrace() }
 

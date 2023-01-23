@@ -16,7 +16,13 @@ import org.jetbrains.skia.Rect
 internal fun Color.skia(): Int = (((opacity * 0xFF).toUInt() shl 24) + (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt()).toInt()
 
 internal fun Rectangle.skia() = Rect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
-internal fun Rectangle.rrect(radius: Float) = RRect.makeXYWH(x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat(), radius)
+internal fun Rectangle.rrect(radius: Float) = RRect.makeXYWH(
+        l = x.toFloat(),
+        t = y.toFloat(),
+        w = width.toFloat(),
+        h = height.toFloat(),
+        tlRad = radius, trRad = radius, brRad = radius, blRad = radius
+)
 
 internal fun Polygon.skia() = toPath().skia()
 

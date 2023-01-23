@@ -308,10 +308,15 @@ internal class CanvasImpl(
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (image is ImageImpl) {
             withShadows({ destination.toPath() }) {
+                skiaCanvas.save()
+                if (radius > 0.0) {
+                    skiaCanvas.clipRRect(destination.rrect(radius.toFloat()))
+                }
                 skiaCanvas.drawImageRect(image.skiaImage, source.skia(), destination.skia())
+                skiaCanvas.restore()
             }
         } else if (image is SvgImage) {
-            image.render(skiaCanvas, source.skia(), destination.skia())
+            image.render(skiaCanvas, source.skia(), destination.skia(), radius.toFloat())
         }
     }
 
