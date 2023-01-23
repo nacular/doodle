@@ -349,7 +349,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             bindBehavior<Label>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     CommonLabelBehavior(instance(), foregroundColor ?: this.foregroundColor).apply {
-                        disabledColorMapper  = this@run.disabledColorMapper
+                        disabledColorMapper = this@run.disabledColorMapper
                     }
                 }
             }

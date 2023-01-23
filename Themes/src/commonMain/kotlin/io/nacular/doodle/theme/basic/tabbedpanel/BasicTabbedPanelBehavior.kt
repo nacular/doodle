@@ -599,18 +599,12 @@ public open class BasicTabbedPanelBehavior<T>(
     }
 
     override fun selectionChanged(panel: TabbedPanel<T>, new: T?, newIndex: Int?, old: T?, oldIndex: Int?) {
-        val dirty = mutableSetOf<Int>()
-
         oldIndex?.let {
             panel.children.getOrNull(it + 1)?.visible = false
-
-            dirty += it
         }
 
         newIndex?.let {
             panel.children.getOrNull(it + 1)?.visible = true
-
-            dirty += it
         }
 
         @Suppress("UNCHECKED_CAST")
