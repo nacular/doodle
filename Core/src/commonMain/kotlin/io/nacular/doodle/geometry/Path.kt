@@ -12,6 +12,7 @@ import io.nacular.measured.units.normalize
 import io.nacular.measured.units.sign
 import io.nacular.measured.units.times
 import kotlin.jvm.JvmInline
+import kotlin.math.min
 
 /**
  * Represents a path-command string as defined by: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
@@ -111,24 +112,50 @@ public fun Polygon.toPath(): Path = PathBuilderImpl(points[0]).apply {
 /**
  * Converts [Rectangle] with radius to [Path].
  */
-public fun Rectangle.toPath(radius: Double): Path {
-    val sanitizedRadius = minOf(width / 2, height / 2, radius)
+public fun Rectangle.toPath(radius: Double): Path = toPath(radius, radius, radius, radius)
 
-    return PathBuilderImpl(points[0] + Point(sanitizedRadius, 0.0)).apply {
-        lineTo(points[1] - Point(sanitizedRadius, 0.0))
-        arcTo (points[1] + Point(0.0, sanitizedRadius), sanitizedRadius, largeArch = false, sweep = true)
+/**
+ * Converts [Rectangle] with radii to [Path].
+ */
+@Suppress("LocalVariableName")
+public fun Rectangle.toPath(
+    topLeftRadius    : Double = 0.0,
+    topRightRadius   : Double = 0.0,
+    bottomRightRadius: Double = 0.0,
+    bottomLeftRadius : Double = 0.0,
+): Path {
+    val minDimension       = min(width, height) / 2
+    val topLeftRadius_     = min(topLeftRadius,     minDimension)
+    val topRightRadius_    = min(topRightRadius,    minDimension)
+    val bottomRightRadius_ = min(bottomRightRadius, minDimension)
+    val bottomLeftRadius_  = min(bottomLeftRadius,  minDimension)
 
-        lineTo(points[2] - Point(0.0, sanitizedRadius))
-        arcTo (points[2] - Point(sanitizedRadius, 0.0), sanitizedRadius, largeArch = false, sweep = true)
+    return PathBuilderImpl(points[0] + Point(topLeftRadius_, 0.0)).apply {
+        lineTo(points[1] - Point(min(minDimension, topRightRadius_), 0.0))
 
-        lineTo(points[3] + Point(sanitizedRadius, 0.0))
-        arcTo (points[3] - Point(0.0, sanitizedRadius), sanitizedRadius, largeArch = false, sweep = true)
+        if (topRightRadius_ > 0) {
+            arcTo(points[1] + Point(0.0, topRightRadius_), topRightRadius_, largeArch = false, sweep = true)
+        }
 
-        lineTo(points[0] + Point(0.0, sanitizedRadius))
-        arcTo (points[0] + Point(sanitizedRadius, 0.0), sanitizedRadius, largeArch = false, sweep = true)
+        lineTo(points[2] - Point(0.0, bottomRightRadius_))
+
+        if (bottomRightRadius_ > 0) {
+            arcTo(points[2] - Point(bottomRightRadius_, 0.0), bottomRightRadius_, largeArch = false, sweep = true)
+        }
+
+        lineTo(points[3] + Point(bottomLeftRadius_, 0.0))
+
+        if (bottomLeftRadius_ > 0) {
+            arcTo(points[3] - Point(0.0, bottomLeftRadius_), bottomLeftRadius_, largeArch = false, sweep = true)
+        }
+
+        lineTo(points[0] + Point(0.0, topLeftRadius_))
+
+        if (topLeftRadius_ > 0) {
+            arcTo(points[0] + Point(topLeftRadius_, 0.0), topLeftRadius_, largeArch = false, sweep = true)
+        }
     }.close()
 }
-
 
 /**
  * Converts an [Ellipse] to a [Path].
