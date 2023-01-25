@@ -12,12 +12,9 @@ import org.jetbrains.skia.paragraph.ParagraphBuilder
 import org.jetbrains.skia.paragraph.ParagraphStyle
 import org.jetbrains.skia.paragraph.PlaceholderAlignment
 import org.jetbrains.skia.paragraph.PlaceholderStyle
-import org.jetbrains.skia.paragraph.RectHeightMode
-import org.jetbrains.skia.paragraph.RectWidthMode
 import org.jetbrains.skia.paragraph.TextStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
 import kotlin.math.max
-import kotlin.math.round
 import org.jetbrains.skia.Font as SkiaFont
 
 /**
@@ -93,11 +90,7 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
     internal fun size(text: String, width: Double, indent: Double = 0.0, textStyle: TextStyle = defaultFont.textStyle()): Size = Size(width(text, width, indent, textStyle), height(text, width, indent, textStyle))
 
     // NOTE: This gives better results than relying on Paragraph.height
-    private val Paragraph.totalHeight: Double get() = lineMetrics.filterNotNull().sumOf { it.ascent + it.descent }
+    private val Paragraph.totalHeight: Double get() = lineMetrics.sumOf { it.ascent + it.descent }
 
-    private val Paragraph.longestWidth: Double get() = lineMetrics.filterNotNull().maxOfOrNull {
-        getRectsForRange(it.left.toInt(), it.endIncludingNewline.toInt(), RectHeightMode.TIGHT, RectWidthMode.MAX).fold(0f) { left, right ->
-            left + right.rect.width
-        }.toDouble()
-    } ?: 0.0
+    private val Paragraph.longestWidth: Double get() = longestLine.toDouble()
 }
