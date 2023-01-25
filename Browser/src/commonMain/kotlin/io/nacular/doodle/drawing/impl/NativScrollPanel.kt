@@ -89,7 +89,9 @@ internal class NativeScrollPanel internal constructor(
         private val scrolled      : (Point) -> Unit): NativeEventListener {
 
     private val eventHandler: NativeEventHandler
-    private val rootElement = graphicsDevice[panel].rootElement
+    private val rootElement = graphicsDevice[panel].rootElement.apply {
+        setAttribute("data-native", "")
+    }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,old,new ->
         if (new.size != old.size) {
@@ -197,6 +199,7 @@ internal class NativeScrollPanel internal constructor(
         rootElement.apply {
             style.setOverflow(Hidden())
 
+            removeAttribute("data-native")
             eventHandler.unregisterScrollListener()
         }
 

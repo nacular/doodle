@@ -105,6 +105,7 @@ internal actual typealias HTMLHeadElement   = org.w3c.dom.HTMLHeadElement
 internal actual typealias HTMLImageElement  = org.w3c.dom.HTMLImageElement
 internal actual typealias HTMLInputElement  = org.w3c.dom.HTMLInputElement
 internal actual typealias HTMLButtonElement = org.w3c.dom.HTMLButtonElement
+internal actual typealias HTMLAnchorElement = org.w3c.dom.HTMLAnchorElement
 
 internal actual typealias StyleSheet = org.w3c.dom.css.StyleSheet
 

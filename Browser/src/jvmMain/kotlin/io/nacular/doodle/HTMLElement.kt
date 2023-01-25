@@ -111,6 +111,7 @@ public actual abstract class Element: Node() {
 
     public actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
+    public actual fun getAttribute   (                    qualifiedName: String               ): String? = ""
     public actual fun setAttribute   (                    qualifiedName: String, value: String) {}
     public actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
     public actual fun removeAttribute(                    qualifiedName: String               ) {}
@@ -200,6 +201,8 @@ public actual abstract class HTMLInputElement: HTMLElement() {
 public actual abstract class HTMLButtonElement: HTMLElement() {
     public actual var disabled: Boolean = false
 }
+
+public actual abstract class HTMLAnchorElement: HTMLElement()
 
 public actual abstract class StyleSheet
 

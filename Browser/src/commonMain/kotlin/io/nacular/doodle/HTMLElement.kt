@@ -107,6 +107,8 @@ public expect abstract class Element: Node {
 
     public fun getBoundingClientRect(): DOMRect
 
+    public fun getAttribute   (                    qualifiedName: String): String?
+
     public fun setAttribute   (                    qualifiedName: String, value: String)
     public fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
     public fun removeAttribute(                    qualifiedName: String               )
@@ -209,6 +211,7 @@ public expect abstract class HTMLInputElement : HTMLElement
 public expect abstract class HTMLButtonElement: HTMLElement {
     internal var disabled: Boolean
 }
+public expect abstract class HTMLAnchorElement : HTMLElement
 
 public expect open class ResizeObserver(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
     public fun observe(target: Node, options: ResizeObserverInit)
