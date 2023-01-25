@@ -37,17 +37,7 @@ internal class FontLoaderImpl(private val fontCollection: FontCollection): FontL
                 else       -> UPRIGHT
             }
 
-            result = fontCollection.findTypefaces(info.families.toTypedArray(), FontStyle(info.weight, 5, slant)).firstOrNull()?.let { typeface ->
-                typefaceFontProvider.registerTypeface(typeface)
-
-                FontImpl(TextStyle().also {
-                    it.fontSize     = info.size.toFloat()
-                    it.typeface     = typeface
-                    it.fontStyle    = typeface.fontStyle.withWeight(info.weight)
-                    it.fontFamilies = typeface.familyNames.map { it.name }.toTypedArray()
-                    it.baselineMode = BaselineMode.IDEOGRAPHIC
-                })
-            }?.also {
+            result = fontCollection.findTypefaces(info.families.toTypedArray(), FontStyle(info.weight, 5, slant)).firstOrNull()?.toFont(info)?.also {
                 loadedFonts[info] = it
             }
         }
@@ -55,27 +45,20 @@ internal class FontLoaderImpl(private val fontCollection: FontCollection): FontL
         return result
     }
 
-    override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font? = FontInfo().apply(info).let { info ->
-        var result = loadedFonts[info]
+    override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font? = FontInfo().apply(info).let { modifiedInfo ->
+        loadedFonts[modifiedInfo] ?: Thread.currentThread().contextClassLoader.getResourceAsStream(source)?.let { file ->
+            val typeface = Typeface.makeFromData(Data.makeFromBytes(file.readBytes()))
+            typefaceFontProvider.registerTypeface(typeface, modifiedInfo.family)
 
-        if (result == null) {
-            result = Thread.currentThread().contextClassLoader.getResourceAsStream(source)?.let { file ->
-                // FIXME: Incorporate FontInfo
-                val typeface = Typeface.makeFromData(Data.makeFromBytes(file.readBytes()))
-                typefaceFontProvider.registerTypeface(typeface)
-
-                FontImpl(TextStyle().also {
-                    it.fontSize     = info.size.toFloat()
-                    it.typeface     = typeface
-                    it.fontStyle    = typeface.fontStyle.withWeight(info.weight)
-                    it.fontFamilies = typeface.familyNames.map { it.name }.toTypedArray()
-                    it.baselineMode = BaselineMode.IDEOGRAPHIC
-                }).also {
-                    loadedFonts[info] = it
-                }
-            }
+            typeface.toFont(modifiedInfo).also { loadedFonts[modifiedInfo] = it }
         }
-
-        result
     }
+
+    private fun Typeface.toFont(info: FontInfo): Font = FontImpl(TextStyle().also {
+        it.fontSize     = info.size.toFloat()
+        it.typeface     = this
+        it.fontStyle    = fontStyle.withWeight(info.weight)
+        it.fontFamilies = info.families.toTypedArray()
+        it.baselineMode = BaselineMode.IDEOGRAPHIC
+    })
 }
