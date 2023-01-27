@@ -204,7 +204,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
 
                 override fun next   () = source[indexToSource[index++]]
                 override fun hasNext() = index < indexToSource.size
-                override fun remove () = source.removeAt(indexToSource[index]).let {}
+                override fun remove () = source.removeAt(indexToSource[--index]).let {}
             }
         }
     }

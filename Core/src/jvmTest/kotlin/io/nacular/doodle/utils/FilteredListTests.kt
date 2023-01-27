@@ -400,4 +400,56 @@ class FilteredListTests {
         expect(0) { filteredList.size }
         expect(true) { filteredList.isEmpty() }
     }
+
+    @Test fun `remove all no filter`() {
+        val source = ObservableList(listOf(0, 1, 0))
+
+        val filteredList = FilteredList(source).apply {
+            filter = { true }
+        }
+
+        filteredList.removeAll { true }
+
+        expect(0) { source.size       }
+        expect(0) { filteredList.size }
+    }
+
+    @Test fun `remove all filtered`() {
+        val source = ObservableList(listOf(0, 1, 0))
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+        }
+
+        filteredList.removeAll { true }
+
+        expect(listOf(1)) { source       }
+        expect(listOf( )) { filteredList }
+    }
+
+    @Test fun `remove some no filter`() {
+        val source = ObservableList(listOf(0, 1, 0))
+
+        val filteredList = FilteredList(source).apply {
+            filter = { true }
+        }
+
+        filteredList.removeAll { it.isEven }
+
+        expect(listOf(1)) { source       }
+        expect(listOf(1)) { filteredList }
+    }
+
+    @Test fun `remove some filtered`() {
+        val source = ObservableList(listOf(1, 2, 3, 4, 5, 6, 7, 8))
+
+        val filteredList = FilteredList(source).apply {
+            filter = { it.isEven }
+        }
+
+        filteredList.removeAll { it > 2 }
+
+        expect(listOf(1, 2, 3, 5, 7)) { source                }
+        expect(listOf(2            )) { filteredList.toList() }
+    }
 }
