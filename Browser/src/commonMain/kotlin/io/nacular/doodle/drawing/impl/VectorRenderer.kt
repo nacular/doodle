@@ -9,6 +9,7 @@ import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.HorizontalAlignment
 
 
 /**
@@ -32,19 +33,9 @@ internal interface VectorRenderer: Renderer {
 
     fun text(text: StyledText, at: Point)
 
-    fun wrapped(
-            text       : String,
-            font       : Font? = null,
-            at         : Point,
-            leftMargin : Double,
-            rightMargin: Double,
-            fill      : Paint)
+    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float)
 
-    fun wrapped(
-            text       : StyledText,
-            at         : Point,
-            leftMargin : Double,
-            rightMargin: Double)
+    fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float)
 }
 
 internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

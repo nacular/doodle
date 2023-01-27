@@ -54,6 +54,7 @@ public expect abstract class CSSStyleDeclaration {
     internal var overflowY          : String
     internal var boxShadow          : String
     internal var fontStyle          : String
+    internal var textAlign          : String
     internal var textShadow         : String
     internal var textIndent         : String
     internal var fontFamily         : String
@@ -61,6 +62,7 @@ public expect abstract class CSSStyleDeclaration {
     internal var background         : String
     internal var marginLeft         : String
     internal var whiteSpace         : String
+    internal var lineHeight         : String
     internal var marginRight        : String
     internal var borderStyle        : String
     internal var borderColor        : String

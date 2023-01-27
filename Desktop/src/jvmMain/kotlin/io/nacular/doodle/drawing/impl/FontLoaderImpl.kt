@@ -54,10 +54,16 @@ internal class FontLoaderImpl(private val fontCollection: FontCollection): FontL
         }
     }
 
+    private val Font.Style.skia get() = when (this) {
+        Italic     -> OBLIQUE
+        is Oblique -> OBLIQUE
+        else       -> UPRIGHT
+    }
+
     private fun Typeface.toFont(info: FontInfo): Font = FontImpl(TextStyle().also {
         it.fontSize     = info.size.toFloat()
         it.typeface     = this
-        it.fontStyle    = fontStyle.withWeight(info.weight)
+        it.fontStyle    = fontStyle.withWeight(info.weight).withSlant(info.style.skia)
         it.fontFamilies = info.families.toTypedArray()
         it.baselineMode = BaselineMode.IDEOGRAPHIC
     })

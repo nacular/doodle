@@ -101,7 +101,7 @@ public open class CommonLabelBehavior(
             }
 
             if (wrapsWords) {
-                canvas.wrapped(renderedText, Point(x, y), 0.0, width)
+                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.horizontalAlignment, lineSpacing = view.lineSpacing)
             } else {
                 canvas.text(renderedText, Point(x, y))
             }
@@ -110,7 +110,7 @@ public open class CommonLabelBehavior(
 
     override fun measureText(label: Label): Size {
         val height = when {
-            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width) else textMetrics.height(label.styledText)
+            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing) else textMetrics.height(label.styledText)
             else                                                      -> 0.0
         }
 

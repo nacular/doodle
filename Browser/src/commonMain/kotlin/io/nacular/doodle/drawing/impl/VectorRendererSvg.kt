@@ -82,6 +82,9 @@ import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.HorizontalAlignment.Center
+import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.IdGenerator
 import io.nacular.doodle.utils.splitMatches
 import io.nacular.measured.units.Angle
@@ -162,21 +165,21 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float) {
         syncShadows()
 
         StyledText(text, font, foreground = fill).first().let { (text, style) ->
-            wrappedText(text, style, at, leftMargin, rightMargin)
+            wrappedText(text, style, at, leftMargin, rightMargin, alignment, lineSpacing)
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float) {
         syncShadows()
 
         var offset = at
 
         text.forEach { (text, style) ->
-            offset = wrappedText(text, style, offset, leftMargin, rightMargin)
+            offset = wrappedText(text, style, offset, leftMargin, rightMargin, alignment, lineSpacing)
         }
     }
 
@@ -421,37 +424,53 @@ internal open class VectorRendererSvg constructor(
         } ?: setDefaultFill()
     }
 
-    private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double): Point {
-        val lines        = mutableListOf<Pair<String, Point>>()
-        val words        = text.splitMatches("""\s""".toRegex()).matches
-        var line         = ""
-        var lineTest     : String
-        var currentPoint = at
-        var endX         = currentPoint.x
+    private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float): Point {
+        val lines              = mutableListOf<Pair<String, Point>>()
+        val (words, remaining) = text.splitMatches("""\s""".toRegex()).run { matches to remaining }
+        var line               = ""
+        var lineTest           : String
+        var currentPoint       = at
+        var endX               = currentPoint.x
+        var currentLineWidth   = 0.0
 
-        words.forEach {
-            val word      = it.match
-            val delimiter = it.delimiter
+        val handleWord = { word: String, delimiter: String ->
             lineTest      = line + word + delimiter
+            val lineWidth = textMetrics.width(lineTest, style.font)
 
-            val metric = textMetrics.size(lineTest, style.font)
-
-            endX = currentPoint.x + metric.width
+            endX = currentPoint.x + lineWidth
 
             if (endX > rightMargin) {
-                lines += line to currentPoint
+                val startX = when (alignment) {
+                    Left   -> currentPoint.x
+                    Center -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
+                    else   -> rightMargin - currentLineWidth
+                }
+
+                lines += line to Point(startX, currentPoint.y)
 
                 line         = word + delimiter
-                currentPoint = Point(leftMargin, at.y + lines.size * (1 + (style.font?.size ?: defaultFontSize).toDouble()))
-                endX         = leftMargin
+                currentPoint = Point(leftMargin, at.y + lines.size * (lineSpacing + (style.font?.size ?: defaultFontSize).toDouble()))
+                endX         = startX + currentLineWidth
             } else {
-                line = lineTest
+                line             = lineTest
+                currentLineWidth = lineWidth
             }
         }
 
+        words.forEach { handleWord(it.match, it.delimiter) }
+
+        handleWord(remaining, "")
+
         if (line.isNotBlank()) {
-            endX   = currentPoint.x + textMetrics.width(line, style.font)
-            lines += line to currentPoint
+            val lineWidth = textMetrics.width(line, style.font)
+            val startX    = when (alignment) {
+                Left   -> currentPoint.x
+                Center -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2
+                else   -> rightMargin - lineWidth
+            }
+            endX          = startX + lineWidth
+
+            lines += line to Point(startX, currentPoint.y)
         }
 
         lines.filter { it.first.isNotBlank() }.forEach { (text, at) ->

@@ -2,6 +2,8 @@ package io.nacular.doodle.skia
 
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.impl.FontImpl
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
@@ -11,6 +13,7 @@ import org.jetbrains.skia.Matrix33
 import org.jetbrains.skia.Matrix44
 import org.jetbrains.skia.RRect
 import org.jetbrains.skia.Rect
+import org.jetbrains.skia.paragraph.TextStyle
 
 
 internal fun Color.skia(): Int = (((opacity * 0xFF).toUInt() shl 24) + (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt()).toInt()
@@ -48,3 +51,11 @@ internal fun AffineTransform.skia44() = Matrix44(
         m20.toFloat(), m21.toFloat(), m22.toFloat(), m23.toFloat(),
         0f,            0f,            0f,            1f
 )
+
+internal fun FontImpl.textStyle() = TextStyle().apply {
+        fontSize     = textStyle.fontSize
+        typeface     = textStyle.typeface
+        fontStyle    = textStyle.fontStyle
+        fontFamilies = textStyle.fontFamilies
+        baselineMode = textStyle.baselineMode
+}

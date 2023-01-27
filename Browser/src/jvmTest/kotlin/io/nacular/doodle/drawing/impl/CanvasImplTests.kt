@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
+import JsName
 import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
@@ -49,9 +50,9 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
-import JsName
 import kotlin.reflect.KProperty1
 import kotlin.test.Test
 import kotlin.test.expect
@@ -60,7 +61,6 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 8/11/19.
  */
 
-@Suppress("FunctionName")
 class CanvasImplTests {
     init {
         mockkStatic("io.nacular.doodle.dom.ElementKt")
@@ -359,7 +359,7 @@ class CanvasImplTests {
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.wrapped(text, font, 100.0, 50.0, null) } returns t
+            every { textFactory.wrapped(text, font, 100.0, 50.0, Left, 1f, null) } returns t
 
             wrapped(text, font, at, 100.0, 200.0, fill)
 
@@ -367,7 +367,7 @@ class CanvasImplTests {
 
             verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
             verify (exactly = 1) { style.setColor  (fill.color        ) }
-            verify (exactly = 1) { style.translate (at                 ) }
+            verify (exactly = 1) { style.translate (at                ) }
 
             verify (exactly = 1) { renderParent.appendChild(t) }
         }
@@ -381,7 +381,7 @@ class CanvasImplTests {
 
             wrapped(text, font, at, 100.0, 200.0, fill)
 
-            verify(exactly = 1) { renderer.wrapped(text, font, at, 100.0, 200.0, fill) }
+            verify(exactly = 1) { renderer.wrapped(text, font, at, 100.0, 200.0, fill, Left, 1f) }
         }
     }
 
@@ -391,7 +391,7 @@ class CanvasImplTests {
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.wrapped(text, 100.0, 50.0, null) } returns t
+            every { textFactory.wrapped(text, 100.0, 50.0, Left, 1f, null) } returns t
 
             wrapped(text, at, 100.0, 200.0)
 
@@ -411,8 +411,8 @@ class CanvasImplTests {
             wrapped(text1, at, 100.0, 200.0)
             wrapped(text2, at, 100.0, 200.0)
 
-            verify(exactly = 1) { renderer.wrapped(text1, at, 100.0, 200.0) }
-            verify(exactly = 1) { renderer.wrapped(text2, at, 100.0, 200.0) }
+            verify(exactly = 1) { renderer.wrapped(text1, at, 100.0, 200.0, Left, 1f) }
+            verify(exactly = 1) { renderer.wrapped(text2, at, 100.0, 200.0, Left, 1f) }
         }
     }
 

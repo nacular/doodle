@@ -26,6 +26,10 @@ import io.nacular.doodle.text.TextDecoration.Thickness
 import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
 import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.textDecorationThickness
+import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.HorizontalAlignment.Center
+import io.nacular.doodle.utils.HorizontalAlignment.Left
+import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
@@ -40,7 +44,20 @@ internal val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
 internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
-internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value, true) }
+internal inline fun Style.setTextIndent   (value: Double) { textIndent = em(value, true) }
+internal fun Style.setTextAlignment(alignment: HorizontalAlignment) {
+    textAlign = when (alignment) {
+        Left   -> "left"
+        Center -> "center"
+        Right  -> "right"
+    }
+}
+internal fun Style.setLineHeight(value: Float) {
+    lineHeight = when {
+        value != 1f -> "$value"
+        else        -> ""
+    }
+}
 
 internal inline fun Style.setTop   (value: Double) { top    = em(value) }
 internal inline fun Style.setLeft  (value: Double) { left   = em(value) }

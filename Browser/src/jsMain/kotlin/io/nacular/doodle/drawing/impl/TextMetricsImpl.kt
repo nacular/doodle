@@ -9,6 +9,7 @@ import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
@@ -111,7 +112,7 @@ internal class TextMetricsImpl(
     override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, font, width, indent))
+        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing = 1f))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -120,7 +121,7 @@ internal class TextMetricsImpl(
     override fun width(text: StyledText, width: Double, indent: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, width, indent))
+        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing = 1f))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -143,9 +144,9 @@ internal class TextMetricsImpl(
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?) = elementRuler.height(textFactory.wrapped(text, font, width, indent))
+    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float) = elementRuler.height(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing))
 
-    override fun height(text: StyledText, width: Double, indent: Double) = elementRuler.height(textFactory.wrapped(text, width, indent))
+    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float) = elementRuler.height(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing))
 }
 
 //class TextMetricsImpl2(private val textFactory: TextFactory, svgFactory: SvgFactory, private val elementRuler: ElementRuler, private val htmlFactory: HtmlFactory): TextMetrics {

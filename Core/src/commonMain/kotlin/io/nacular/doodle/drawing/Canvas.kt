@@ -13,6 +13,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 
@@ -142,8 +144,19 @@ public interface CommonCanvas: Renderer {
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
      * @param fill to fill with
+     * @param alignment of text
+     * @param lineSpacing of text (1 = spacing for this font)
      */
-    public fun wrapped(text: String, font: Font? = null, at: Point = Origin, leftMargin: Double, rightMargin: Double, fill: Paint)
+    public fun wrapped(
+        text       : String,
+        font       : Font? = null,
+        at         : Point = Origin,
+        leftMargin : Double,
+        rightMargin: Double,
+        fill       : Paint,
+        alignment  : HorizontalAlignment = Left,
+        lineSpacing: Float = 1f,
+    )
 
     /**
      * Draws wrapped styled text.
@@ -152,8 +165,17 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
+     * @param alignment of text
+     * @param lineSpacing of text (1 = spacing for this font)
      */
-    public fun wrapped(text: StyledText, at: Point = Origin, leftMargin: Double, rightMargin: Double)
+    public fun wrapped(
+        text       : StyledText,
+        at         : Point = Origin,
+        leftMargin : Double,
+        rightMargin: Double,
+        alignment  : HorizontalAlignment = Left,
+        lineSpacing: Float = 1f,
+    )
 
     /**
      * Draws an image.
