@@ -1,5 +1,7 @@
 package io.nacular.doodle.application
 
+import io.nacular.doodle.controls.PopupManager
+import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
@@ -30,6 +32,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.theme.native.NativePointerPreprocessor
+import io.nacular.doodle.utils.RelativePositionMonitor
+import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
 import org.kodein.di.bindInstance
@@ -97,6 +101,11 @@ public class Modules {
                     }
                 )
             }
+        }
+
+        public val PopupModule: Module = Module(allowSilentOverride = true, name = "Popup") {
+            bindSingleton<RelativePositionMonitor> { RelativePositionMonitorImpl() }
+            bindSingleton<PopupManager>            { PopupManagerImpl(instance(), instance(), instance()) }
         }
     }
 }

@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.basic.dropdown
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.MutableListModel
+import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.dropdown.Dropdown
 import io.nacular.doodle.controls.dropdown.MutableDropdown
 import io.nacular.doodle.controls.dropdown.MutableDropdownBehavior
@@ -27,7 +28,9 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
         foregroundColor    : Color,
         cornerRadius       : Double,
         buttonWidth        : Double,
-        focusManager       : FocusManager? = null): MutableDropdownBehavior<T, M>(), PointerListener {
+        focusManager       : FocusManager? = null,
+        popupManager       : PopupManager? = null
+): MutableDropdownBehavior<T, M>(), PointerListener {
 
     private val delegate = BasicDropdownBehavior<T, M>(
             display,
@@ -37,7 +40,8 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
             foregroundColor,
             cornerRadius,
             buttonWidth,
-            focusManager
+            focusManager,
+            popupManager,
     ).apply {
         buttonAlignment = {
             it.top    eq 0

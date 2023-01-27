@@ -68,7 +68,7 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
 
     override suspend fun delay(time: Measure<Time>) = kotlinx.coroutines.delay((time `in` milliseconds).toLong())
 
-    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine { coroutine ->
         try {
             check(predicate, coroutine.context) {
                 coroutine.resume(Unit)

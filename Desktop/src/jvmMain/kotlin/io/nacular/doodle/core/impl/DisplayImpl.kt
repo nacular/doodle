@@ -11,8 +11,8 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -55,18 +55,20 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
  */
 // FIXME: Move common parts to common code
 internal class DisplayImpl(
-        private val appScope      : CoroutineScope,
-        private val uiDispatcher  : CoroutineContext,
-        private val skiaLayer     : SkiaLayer,
-        private val defaultFont   : Font,
-        private val fontCollection: FontCollection,
-        private val device        : GraphicsDevice<RealGraphicsSurface>
+    private val appScope      : CoroutineScope,
+    private val uiDispatcher  : CoroutineContext,
+    private val skiaLayer     : SkiaLayer,
+    private val defaultFont   : Font,
+    private val fontCollection: FontCollection,
+    private val device        : GraphicsDevice<RealGraphicsSurface>,
 ): InternalDisplay {
     override var insets = Insets.None
 
     override var layout: Layout? by Delegates.observable(null) { _, _, _ ->
         relayout()
     }
+
+    private val popUps by lazy { mutableListOf<View>() }
 
     override val children by lazy { ObservableList<View>().apply {
         changed += { _, differences ->
@@ -81,6 +83,7 @@ internal class DisplayImpl(
                             if (diff.origin(of = item) == null) {
                                 // Avoid duplicating View
                                 filterIndexed { i, view -> i != index && view == item }.forEach { remove(it); --index }
+                                popUps -= item
                             }
 
                             ++index
@@ -184,6 +187,10 @@ internal class DisplayImpl(
             device[it].onRender(skiaCanvas)
         }
 
+        popUps.forEach {
+            device[it].onRender(skiaCanvas)
+        }
+
         skiaCanvas.restore()
     }
 
@@ -219,10 +226,18 @@ internal class DisplayImpl(
                 var child = null as View?
                 var topZOrder = 0
 
-                children.reversed().forEach {
-                    if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
+                popUps.asReversed().forEach {
+                    if (it.visible && point in it && (child == null)) {
                         child = it
-                        topZOrder = it.zOrder
+                    }
+                }
+
+                if (child == null) {
+                    children.asReversed().forEach {
+                        if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
+                            child = it
+                            topZOrder = it.zOrder
+                        }
                     }
                 }
 
@@ -247,7 +262,7 @@ internal class DisplayImpl(
 
             layout?.layout(positionableWrapper)
 
-            layingOut= false
+            layingOut = false
 
             requestRender()
         }
@@ -255,6 +270,7 @@ internal class DisplayImpl(
 
     fun shutdown() {
         children.clear()
+        popUps.clear()
 
         fill = null
     }
@@ -263,6 +279,15 @@ internal class DisplayImpl(
         fill?.let {
             requestRender()
         }
+    }
+
+    override fun showPopup(view: View) {
+        children -= view
+        popUps   += view
+    }
+
+    override fun hidePopup(view: View) {
+        popUps -= view
     }
 
     private val resolvedTransform get() = when {

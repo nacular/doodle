@@ -238,9 +238,7 @@ private open class ApplicationHolderImpl protected constructor(
         bindSingleton                                              { instance<Display>     () as DisplayImpl }
         bindSingleton<InternalDisplay>                             { instance<DisplayImpl> ()                }
 
-        modules.forEach {
-            import(it, allowOverride = true)
-        }
+        importAll(modules, allowOverride = true)
     }
 
     private var initTask    = null as Task?

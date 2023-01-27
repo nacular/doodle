@@ -28,8 +28,8 @@ import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.width
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.ImagePaint
@@ -61,6 +61,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         relayout()
     }
 
+    private val popUps by lazy { mutableListOf<View>() }
+
     override val children by lazy { ObservableList<View>().apply {
         changed += { _, differences ->
             var index = 0
@@ -74,6 +76,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                             if (diff.origin(of = item) == null) {
                                 // Avoid duplicating View
                                 repeat(filterIndexed { i, view -> i != index && view == item }.size) { remove(item); --index }
+                                popUps -= item
                             }
 
                             ++index
@@ -86,7 +89,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
             (childrenChanged as ChildObserversImpl).invoke(differences)
         }
-    } }
+    }}
 
     private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<Display>> = mutableSetOf()): SetPool<ChildObserver<Display>>(mutableSet) {
         operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@DisplayImpl, differences) }
@@ -233,10 +236,18 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                 var child     = null as View?
                 var topZOrder = 0
 
-                children.reversed().forEach {
-                    if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
-                        child     = it
-                        topZOrder = it.zOrder
+                popUps.asReversed().forEach {
+                    if (it.visible && point in it && (child == null)) {
+                        child = it
+                    }
+                }
+
+                if (child == null) {
+                    children.asReversed().forEach {
+                        if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
+                            child = it
+                            topZOrder = it.zOrder
+                        }
                     }
                 }
 
@@ -267,6 +278,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     fun shutdown() {
         children.clear()
+        popUps.clear()
 
         fill = null
 
@@ -291,6 +303,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             canvas.rect (Rectangle(size = size), it)
             canvas.flush()
         }
+    }
+
+    override fun showPopup(view: View) {
+        children -= view
+        popUps   += view
+    }
+
+    override fun hidePopup(view: View) {
+        popUps -= view
     }
 
     private fun refreshAugmentedTransform() {

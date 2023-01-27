@@ -929,23 +929,20 @@ public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(
         parent = ImmutableSizeBounds(widthProperty = Rectangle.Empty::width, heightProperty = Rectangle.Empty::height, this)
     }
 
-    var parentSize by observable(Size.Empty) {_,new ->
-        context.parent = ImmutableSizeBounds(widthProperty = new::width, heightProperty = new::height, context)
-        setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
-    }
-
-    setupSolver(solver, context, updatedBounds, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
-
-    boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
+    var parentSize = Size.Empty
 
     forEachIndexed { index, view ->
         val bounds = within(index, view)
 
-        parentSize = bounds.size
-
         if (fakeView.bounds != view.bounds) {
             fakeView.bounds = view.bounds
             boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
+        }
+
+        if (bounds.size != parentSize) {
+            parentSize = bounds.size
+            context.parent = ImmutableSizeBounds(widthProperty = parentSize::width, heightProperty = parentSize::height, context)
+            setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
         }
 
         solve(solver, activeBounds = activeBounds, updatedBounds = updatedBounds, context = context) { throw it }

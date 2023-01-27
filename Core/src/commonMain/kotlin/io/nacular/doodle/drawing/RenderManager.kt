@@ -128,4 +128,7 @@ public abstract class RenderManager {
      * @param new value
      */
     internal abstract fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean)
+
+    internal abstract fun popupShown (view: View)
+    internal abstract fun popupHidden(view: View)
 }

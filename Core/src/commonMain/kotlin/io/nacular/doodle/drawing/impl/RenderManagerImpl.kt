@@ -61,6 +61,7 @@ public open class RenderManagerImpl(
     protected open val addedInvisible     : MutableSet<View>                   = fastMutableSetOf()
     protected open val visibilityChanged  : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingBoundsChange: MutableSet<View>                   = fastMutableSetOf()
+    protected open val popups             : MutableSet<View>                   = fastMutableSetOf()
 
     init {
         display.childrenChanged += { _, diffs ->
@@ -84,8 +85,7 @@ public open class RenderManagerImpl(
                                     needsLayout = true
                                 }
                                 else -> {
-                                   val surface = graphicsDevice[item]
-                                   surface.index = destination
+                                   graphicsDevice[item].index = destination
                                }
                             }
                         }
@@ -171,6 +171,16 @@ public open class RenderManagerImpl(
         return clipRect
     }
 
+    private val View.highestAncestor: View get() {
+        var result = this
+
+        while (result.parent != null) {
+            result = result.parent!!
+        }
+
+        return result
+    }
+
     private fun record(view: View) {
         if (view !in views) {
             view.parent?.let {
@@ -180,7 +190,9 @@ public open class RenderManagerImpl(
                 }
             }
 
-            if (display ancestorOf view) {
+            val highestAncestor = view.highestAncestor
+
+            if (highestAncestor in display || highestAncestor in popups) {
                 view.addedToDisplay(display, this, accessibilityManager)
 
                 dirtyViews          += view
@@ -215,7 +227,7 @@ public open class RenderManagerImpl(
 
             checkContentDirectionChange(view)
 
-            if (view in display) {
+            if (view in display || view in popups) {
                 render(view, true)
             }
         }
@@ -392,26 +404,28 @@ public open class RenderManagerImpl(
     }
 
     private fun releaseResources(parent: View?, view: View) {
-        view.removedFromDisplay_()
+        if (view in views) {
+            view.removedFromDisplay_()
 
-        view.rendered = false
+            view.rendered = false
 
-        view.children_.forEach {
-            releaseResources(it.parent, it)
+            view.children_.forEach {
+                releaseResources(it.parent, it)
+            }
+
+            views -= view
+            dirtyViews -= view
+            pendingLayout -= view
+            pendingBoundsChange -= view
+
+            parent?.let {
+                pendingCleanup[parent]?.remove(view)
+            }
+
+            unregisterDisplayRectMonitoring(view)
+
+            graphicsDevice.release(view)
         }
-
-        views               -= view
-        dirtyViews          -= view
-        pendingLayout       -= view
-        pendingBoundsChange -= view
-
-        parent?.let {
-            pendingCleanup[parent]?.remove(view)
-        }
-
-        unregisterDisplayRectMonitoring(view)
-
-        graphicsDevice.release(view)
     }
 
     protected open fun addToCleanupList(parent: View, child: View) {
@@ -434,7 +448,7 @@ public open class RenderManagerImpl(
                     releaseResources(it.key, child)
                 }
 
-                if (views.isEmpty()) {
+                if (views.isEmpty() && parent != null) {
                     pendingCleanup.remove(parent)
                 }
 
@@ -481,8 +495,8 @@ public open class RenderManagerImpl(
 
     private fun childAdded(parent: View?, child: View) {
         when {
-            parent == null            -> child.parent?.children_?.remove(child) // View is moved to the Display after it is already withing another View
-            child in display.children -> display -= child                       // View is moved to a new parent after it is already within the Display
+            parent == null                               -> child.parent?.children_?.remove(child) // View is moved to the Display after it is already withing another View
+            child in display.children || child in popups -> display -= child                       // View is moved to a new parent after it is already within the Display
         }
 
         removeFromCleanupList(parent, child)
@@ -514,7 +528,7 @@ public open class RenderManagerImpl(
             view.visibilityChanged -= ::visibilityChanged
         }
 
-        if (!(parent == null || view in display)) {
+        if (!(parent == null || view in display || view in popups)) {
             pendingLayout += parent
 
             // Views that change bounds while invisible are never scheduled
@@ -527,7 +541,7 @@ public open class RenderManagerImpl(
             pendingRender     += view
 
             render(parent)
-        } else if (view in display) {
+        } else if (view in display || view in popups) {
             if (new) {
                 visibilityChanged   += view
                 pendingBoundsChange += view // See above
@@ -567,7 +581,7 @@ public open class RenderManagerImpl(
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
         //
         // Same for invisible items.
-        if ((parent == null && view !in display) || !view.visible) {
+        if ((parent == null && view !in display && view !in popups) || !view.visible) {
             return
         }
 
@@ -597,7 +611,7 @@ public open class RenderManagerImpl(
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
         //
         // Same for invisible items.
-        if ((parent == null && view !in display) || !view.visible) {
+        if ((parent == null && view !in display && view !in popups) || !view.visible) {
             return
         }
 
@@ -732,5 +746,17 @@ public open class RenderManagerImpl(
         }
 
         public operator fun get(index: Int): DisplayRectNode = children[index]
+    }
+
+    override fun popupShown(view: View) {
+        popups += view
+        childAdded(null, view)
+    }
+
+    override fun popupHidden(view: View) {
+        if (/*view.parent == null &&*/ view.displayed) {
+            childRemoved(null, view)
+        }
+        popups -= view
     }
 }

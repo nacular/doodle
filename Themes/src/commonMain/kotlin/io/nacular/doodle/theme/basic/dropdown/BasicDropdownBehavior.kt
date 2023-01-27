@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic.dropdown
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.TextVisualizer
@@ -72,6 +73,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         private val cornerRadius       : Double,
         private val buttonWidth        : Double = 20.0,
         private val focusManager       : FocusManager? = null,
+        private val popupManager       : PopupManager? = null,
 ): DropdownBehavior<T, M>, PointerListener, KeyListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
@@ -219,24 +221,35 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     private fun showList(view: Dropdown<T, M>) {
         view.list?.let {
-            // FIXME Do better placement?
-            val viewAbsolute = view.toAbsolute(Origin)
-
             it.font  = view.font
-            it.x     = viewAbsolute.x
-            it.y     = viewAbsolute.y - view.selection * (view.height - 2 * INSET)
             it.width = view.width
-
-            display.children += it
 
             it.setSelection(setOf(view.selection))
 
             focusManager?.requestFocus(it)
+
+            when (popupManager) {
+                null -> {
+                    val viewAbsolute = view.toAbsolute(Origin)
+                    it.x     = viewAbsolute.x
+                    it.y     = viewAbsolute.y - view.selection * (view.height - 2 * INSET)
+                    display += it
+                }
+                else -> popupManager.show(it, view) { list, dropdown ->
+                    list.top  eq dropdown.y - view.selection * (view.height - 2 * INSET)
+                    list.left eq dropdown.x
+                }
+            }
         }
     }
 
     private fun hideList(view: Dropdown<T, M>, focusDropdown: Boolean = false) {
-        view.list?.let { display.children -= it }
+        view.list?.let {
+            when (popupManager) {
+                null -> display -= it
+                else -> popupManager.hide(it)
+            }
+        }
 
         if (focusDropdown) {
             focusManager?.requestFocus(view)

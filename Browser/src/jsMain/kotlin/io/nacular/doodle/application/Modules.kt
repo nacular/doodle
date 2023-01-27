@@ -3,6 +3,8 @@ package io.nacular.doodle.application
 import io.nacular.doodle.UrlView
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
+import io.nacular.doodle.controls.PopupManager
+import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.document.Document
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
@@ -45,6 +47,8 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
+import io.nacular.doodle.utils.RelativePositionMonitor
+import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import kotlinx.browser.document
 import org.kodein.di.DI.Module
 import org.kodein.di.bindProvider
@@ -129,6 +133,11 @@ public class Modules {
 
         public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
             bindSingleton<ImageLoader>{ ImageLoaderImpl(instance(), instance()) }
+        }
+
+        public val PopupModule: Module = Module(allowSilentOverride = true, name = "Popup") {
+            bindSingleton<RelativePositionMonitor> { RelativePositionMonitorImpl() }
+            bindSingleton<PopupManager>            { PopupManagerImpl(instance(), instance(), instance()) }
         }
     }
 }
