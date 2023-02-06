@@ -36,6 +36,7 @@ import io.nacular.doodle.dom.setFloodColor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setGradientUnits
 import io.nacular.doodle.dom.setId
+import io.nacular.doodle.dom.setLetterSpacing
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setPathData
 import io.nacular.doodle.dom.setPatternTransform
@@ -148,38 +149,38 @@ internal open class VectorRendererSvg constructor(
     override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = drawEllipse(ellipse, null,   fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = drawEllipse(ellipse, stroke, fill)
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint) = present(stroke = null, fill = fill) {
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double) = present(stroke = null, fill = fill) {
         when {
-            text.isNotBlank() -> makeText(text, font, at, fill)
+            text.isNotBlank() -> makeText(text, font, at, fill, letterSpacing)
             else              -> null
         }
     }
 
-    override fun text(text: StyledText, at: Point) {
+    override fun text(text: StyledText, at: Point, letterSpacing: Double) {
         when {
             text.count > 0 -> {
                 syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
-                completeOperation(makeStyledText(text, at))
+                completeOperation(makeStyledText(text, at, letterSpacing))
             }
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
         StyledText(text, font, foreground = fill).first().let { (text, style) ->
-            wrappedText(text, style, at, leftMargin, rightMargin, alignment, lineSpacing)
+            wrappedText(text, style, at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
         var offset = at
 
         text.forEach { (text, style) ->
-            offset = wrappedText(text, style, offset, leftMargin, rightMargin, alignment, lineSpacing)
+            offset = wrappedText(text, style, offset, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
         }
     }
 
@@ -354,7 +355,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?) = createOrUse<SVGElement>("text").apply {
+    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?, letterSpacing: Double) = createOrUse<SVGElement>("text").apply {
         if (textContent != text) {
             textContent = text
         }
@@ -363,6 +364,7 @@ internal open class VectorRendererSvg constructor(
         setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
+        this.style.setLetterSpacing(letterSpacing)
 
         font?.let {
             style.setFont(it)
@@ -376,7 +378,7 @@ internal open class VectorRendererSvg constructor(
         setStroke(null)
     }
 
-    private fun makeStyledText(text: StyledText, at: Point) = createOrUse<SVGElement>("text").apply {
+    private fun makeStyledText(text: StyledText, at: Point, letterSpacing: Double) = createOrUse<SVGElement>("text").apply {
         setPosition(at)
 
         val oldRenderPosition = renderPosition
@@ -386,7 +388,7 @@ internal open class VectorRendererSvg constructor(
                 completeOperation(it)
             }
 
-            add(makeTextSegment(text, style).also { segment ->
+            add(makeTextSegment(text, style, letterSpacing).also { segment ->
                 background?.let {
                     segment.style.filter = "url(#${it.id})"
                 }
@@ -400,7 +402,7 @@ internal open class VectorRendererSvg constructor(
         renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
-    private fun makeTextSegment(text: String, style: Style) = createOrUse<SVGElement>("tspan").apply {
+    private fun makeTextSegment(text: String, style: Style, letterSpacing: Double) = createOrUse<SVGElement>("tspan").apply {
         if (textContent != text) {
             textContent = text
         }
@@ -412,6 +414,7 @@ internal open class VectorRendererSvg constructor(
         this.style.setTextDecoration(style.decoration)
 
         this.style.whiteSpace = "pre"
+        this.style.setLetterSpacing(letterSpacing)
 
         style.font?.let {
             this.style.setFont(it)
@@ -424,7 +427,16 @@ internal open class VectorRendererSvg constructor(
         } ?: setDefaultFill()
     }
 
-    private fun wrappedText(text: String, style: Style, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float): Point {
+    private fun wrappedText(
+        text: String,
+        style: Style,
+        at: Point,
+        leftMargin: Double,
+        rightMargin: Double,
+        alignment: HorizontalAlignment,
+        lineSpacing: Float,
+        letterSpacing: Double
+    ): Point {
         val lines              = mutableListOf<Pair<String, Point>>()
         val (words, remaining) = text.splitMatches("""\s""".toRegex()).run { matches to remaining }
         var line               = ""
@@ -474,7 +486,7 @@ internal open class VectorRendererSvg constructor(
         }
 
         lines.filter { it.first.isNotBlank() }.forEach { (text, at) ->
-            text(StyledText(text, style.font, foreground = style.foreground, background = style.background, decoration = style.decoration), at)
+            text(StyledText(text, style.font, foreground = style.foreground, background = style.background, decoration = style.decoration), at, letterSpacing)
         }
 
         return Point(endX, currentPoint.y)

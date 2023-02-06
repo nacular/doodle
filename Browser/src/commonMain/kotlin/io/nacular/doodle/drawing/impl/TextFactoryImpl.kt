@@ -12,6 +12,7 @@ import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setFont
+import io.nacular.doodle.dom.setLetterSpacing
 import io.nacular.doodle.dom.setLineHeight
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setTextAlignment
@@ -26,7 +27,7 @@ import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.HorizontalAlignment
 
 internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
-    override fun create(text: String, font: Font?, possible: HTMLElement?): HTMLElement {
+    override fun create(text: String, font: Font?, letterSpacing: Double, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse(TEXT_ELEMENT, possible)
 
         if (element.textContent != text) {
@@ -37,6 +38,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             element.style.setFont(it)
         }
 
+        element.style.setLetterSpacing(letterSpacing)
+
         if (element == possible) {
             element.style.setTextDecoration(null)
         }
@@ -44,10 +47,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    override fun create(text: StyledText, possible: HTMLElement?): HTMLElement {
+    override fun create(text: StyledText, letterSpacing: Double, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
             text.first().also { (text, style) ->
-                return create(text, style.font, possible).also {
+                return create(text, style.font, letterSpacing, possible).also {
                     applyStyle(it, style)
                 }
             }
@@ -58,9 +61,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         element.clear()
 
         text.forEach { (text, style) ->
-            element.add(create(text, style.font).also { element ->
-                element.style.setDisplay (Inline())
-                element.style.setPosition(Static())
+            element.add(create(text, style.font, letterSpacing).also { element ->
+                element.style.setDisplay      (Inline()     )
+                element.style.setPosition     (Static()     )
+                element.style.setLetterSpacing(letterSpacing)
 
                 applyStyle(element, style)
             })
@@ -69,23 +73,58 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    override fun wrapped(text: String, font: Font?, width: Double, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, possible: HTMLElement?) = wrapped(text, font, indent, alignment, lineSpacing, possible).also {
+    override fun wrapped(
+        text: String,
+        font: Font?,
+        width: Double,
+        indent: Double,
+        alignment: HorizontalAlignment,
+        lineSpacing: Float,
+        letterSpacing: Double,
+        possible: HTMLElement?
+    ) = wrapped(
+        text = text,
+        font = font,
+        indent = indent,
+        alignment = alignment,
+        lineSpacing = lineSpacing,
+        letterSpacing = letterSpacing,
+        possible = possible
+    ).also {
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: String, font: Font?, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, possible: HTMLElement?) = create(text, font, possible).also {
-        it.style.setTextAlignment(alignment  )
-        it.style.setLineHeight   (lineSpacing)
+    override fun wrapped(text: String, font: Font?, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
+        text = text,
+        font = font,
+        letterSpacing = letterSpacing,
+        possible = possible
+    ).also {
+        it.style.setLineHeight   (lineSpacing  )
+        it.style.setTextAlignment(alignment    )
+        it.style.setLetterSpacing(letterSpacing)
         applyWrap(it, indent)
     }
 
-    override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, possible: HTMLElement?) = wrapped(text, indent, alignment, lineSpacing, possible).also {
+    override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = wrapped(
+        text = text,
+        indent = indent,
+        alignment = alignment,
+        lineSpacing = lineSpacing,
+        letterSpacing = letterSpacing,
+        possible = possible
+    ).also {
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: StyledText, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, possible: HTMLElement?) = create(text, possible).also {
-        it.style.setTextAlignment(alignment  )
-        it.style.setLineHeight   (lineSpacing)
+    override fun wrapped(text: StyledText, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
+        text = text,
+        letterSpacing = letterSpacing,
+        possible = possible
+    ).also {
+        it.style.setLineHeight   (lineSpacing )
+        it.style.setTextAlignment(alignment   )
+        it.style.setLetterSpacing(letterSpacing)
 
         if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {
             applyWrap(it, indent)
@@ -96,7 +135,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
     private fun applyWrap(element: HTMLElement, indent: Double) {
         with(element.style) {
-            whiteSpace = "pre-wrap"
+            whiteSpace = "pre-line"
             setTextIndent(indent)
         }
     }

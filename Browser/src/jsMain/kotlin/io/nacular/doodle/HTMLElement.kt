@@ -25,6 +25,10 @@ internal actual var CSSStyleDeclaration.textDecorationThickness: String by Dynam
 internal actual var CSSStyleDeclaration.touchAction            : String by DynamicProperty("touch-action"             ) { "" }
 internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
 
+internal actual typealias CanvasRenderingContext2D = org.w3c.dom.CanvasRenderingContext2D
+
+internal actual var CanvasRenderingContext2D.letterSpacing: String by DynamicProperty("letterSpacing") { "" }
+
 internal actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle
 
 internal actual typealias DOMRect   = org.w3c.dom.DOMRect

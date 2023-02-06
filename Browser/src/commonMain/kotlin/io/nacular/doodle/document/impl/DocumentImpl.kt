@@ -74,14 +74,14 @@ internal class DocumentImpl(
     }
 
     override fun inline(text: StyledText) {
-        root.add(textFactory.wrapped(text, alignment = Left, lineSpacing = 1f).apply {
+        root.add(textFactory.wrapped(text, alignment = Left, lineSpacing = 1f, letterSpacing = 0.0).apply {
             style.setPosition(Static())
             style.setDisplay (Inline())
         })
     }
 
     override fun inline(text: String, font: Font?) {
-        root.add(textFactory.wrapped(text, font, alignment = Left, lineSpacing = 1f).apply {
+        root.add(textFactory.wrapped(text, font, alignment = Left, lineSpacing = 1f, letterSpacing = 0.0).apply {
             style.setPosition(Static())
             style.setDisplay (Inline())
         })

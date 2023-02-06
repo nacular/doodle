@@ -73,6 +73,7 @@ public actual abstract class CSSStyleDeclaration {
     public actual var borderRadius: String        = ""
     public actual var marginBottom: String        = ""
     public actual var outlineWidth: String        = ""
+    public actual var letterSpacing: String       = ""
     public actual var backgroundSize: String      = ""
     public actual var textDecoration: String      = ""
     public actual var backgroundImage: String     = ""
@@ -95,6 +96,12 @@ public actual var CSSStyleDeclaration.scrollBehavior         : String get() = sc
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
 public actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_ = new }
 public actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_ = new }
+
+public actual abstract class CanvasRenderingContext2D {
+    internal var _letterSpacing: String = ""
+}
+
+public actual var CanvasRenderingContext2D.letterSpacing: String get() = _letterSpacing; set(new) { _letterSpacing = new }
 
 public actual class DOMRect {
     public actual var x: Double      = 0.0

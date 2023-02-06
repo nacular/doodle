@@ -115,7 +115,7 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, at: Point = Origin, fill: Paint): Unit = text(text, null, at, fill)
+    public fun text(text: String, at: Point = Origin, fill: Paint, letterSpacing: Double = 0.0): Unit = text(text, null, at, fill, letterSpacing)
 
     /**
      * Draws unwrapped plain text.
@@ -125,7 +125,7 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, font: Font?, at: Point, fill: Paint)
+    public fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double = 0.0)
 
     /**
      * Draws styled text.
@@ -133,7 +133,7 @@ public interface CommonCanvas: Renderer {
      * @param text to draw
      * @param at this point
      */
-    public fun text(text: StyledText, at: Point = Origin)
+    public fun text(text: StyledText, at: Point = Origin, letterSpacing: Double = 0.0)
 
     /**
      * Draws wrapped plain text.
@@ -148,14 +148,15 @@ public interface CommonCanvas: Renderer {
      * @param lineSpacing of text (1 = spacing for this font)
      */
     public fun wrapped(
-        text       : String,
-        font       : Font? = null,
-        at         : Point = Origin,
-        leftMargin : Double,
-        rightMargin: Double,
-        fill       : Paint,
-        alignment  : HorizontalAlignment = Left,
-        lineSpacing: Float = 1f,
+        text         : String,
+        font         : Font? = null,
+        at           : Point = Origin,
+        leftMargin   : Double,
+        rightMargin  : Double,
+        fill         : Paint,
+        alignment    : HorizontalAlignment = Left,
+        lineSpacing  : Float  = 1f,
+        letterSpacing: Double = 0.0
     )
 
     /**
@@ -169,12 +170,13 @@ public interface CommonCanvas: Renderer {
      * @param lineSpacing of text (1 = spacing for this font)
      */
     public fun wrapped(
-        text       : StyledText,
-        at         : Point = Origin,
-        leftMargin : Double,
-        rightMargin: Double,
-        alignment  : HorizontalAlignment = Left,
-        lineSpacing: Float = 1f,
+        text         : StyledText,
+        at           : Point = Origin,
+        leftMargin   : Double,
+        rightMargin  : Double,
+        alignment    : HorizontalAlignment = Left,
+        lineSpacing  : Float  = 1f,
+        letterSpacing: Double = 0.0
     )
 
     /**

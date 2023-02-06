@@ -8,6 +8,7 @@ import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.letterSpacing
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
@@ -65,27 +66,30 @@ internal class TextMetricsImpl(
         private val fontSerializer: FontSerializer,
                     cacheLength   : Int
 ): TextMetrics {
+    private data class WidthInfo(val text: String, val font: Font?, val letterSpacing: Double = 0.0)
 
-    private val widths              = LeastRecentlyUsedCache<Pair<String, Font?>, Double>(maxSize = cacheLength)
-    private val styledWidths        = LeastRecentlyUsedCache<StyledText, Double>         (maxSize = cacheLength)
-    private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo, Double>        (maxSize = cacheLength)
-    private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double>   (maxSize = cacheLength)
+    private val widths              = LeastRecentlyUsedCache<WidthInfo, Double>        (maxSize = cacheLength)
+    private val styledWidths        = LeastRecentlyUsedCache<StyledText, Double>      (maxSize = cacheLength)
+    private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo, Double>     (maxSize = cacheLength)
+    private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double>(maxSize = cacheLength)
 
     private val fontHeights = mutableMapOf<Font?, Double>()
 
     private val renderingContext = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 
-    private fun textWidth(text: String, font: Font?): Double {
-        renderingContext.font = fontSerializer(font)
+    private fun textWidth(text: String, font: Font?, letterSpacing: Double): Double {
+        renderingContext.font          = fontSerializer(font)
+        renderingContext.letterSpacing = if (letterSpacing > 0.0) "${letterSpacing}px" else ""
 
         return renderingContext.measureText(text).width
     }
 
-    private fun textWidth(text: StyledText): Double {
+    private fun textWidth(text: StyledText, letterSpacing: Double): Double {
         var width = 0.0
 
         text.forEach { (string, style) ->
-            renderingContext.font = fontSerializer(style.font)
+            renderingContext.font          = fontSerializer(style.font)
+            renderingContext.letterSpacing = if (letterSpacing > 0.0) "${letterSpacing}px" else ""
 
             renderingContext.measureText(string).let {
                 width += it.width
@@ -95,33 +99,33 @@ internal class TextMetricsImpl(
         return width
     }
 
-    override fun width(text: String, font: Font?) = widths.getOrPut(text to font) {
-        textWidth(text, font)/*.also {
+    override fun width(text: String, font: Font?, letterSpacing: Double) = widths.getOrPut(WidthInfo(text, font, letterSpacing)) {
+        textWidth(text, font, letterSpacing)/*.also {
             if (text.isNotEmpty()) {
                 fontHeights[font] = it.height
             }
         }.width*/
     }
 
-    override fun width(text: StyledText) = styledWidths.getOrPut(text) {
-        textWidth(text)/*.also {
+    override fun width(text: StyledText, letterSpacing: Double) = styledWidths.getOrPut(text) {
+        textWidth(text, letterSpacing)/*.also {
             fontHeights[font] = it.height
         }*/
     }
 
-    override fun width(text: String, width: Double, indent: Double, font: Font?) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
+    override fun width(text: String, width: Double, indent: Double, font: Font?, letterSpacing: Double) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing = 1f))
+        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing = 1f, letterSpacing = letterSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
     }
 
-    override fun width(text: StyledText, width: Double, indent: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
+    override fun width(text: StyledText, width: Double, indent: Double, letterSpacing: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing = 1f))
+        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing = 1f, letterSpacing = letterSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -129,12 +133,12 @@ internal class TextMetricsImpl(
 
     // Special check for blank added to avoid font black-holing if first text checked is empty string
     override fun height(text: String, font: Font?) = if (text.isBlank()) 0.0 else fontHeights.getOrPut(font) {
-        elementRuler.size(textFactory.create(text, font)).also {
-            widths[text to font] = it.width
+        elementRuler.size(textFactory.create(text, font, letterSpacing = 0.0)).also {
+            widths[WidthInfo(text, font)] = it.width
         }.height
     }
 
-    override fun height(text: StyledText): Double  {
+    override fun height(text: StyledText, letterSpacing: Double): Double  {
         var maxHeight = 0.0
 
         text.forEach { (string, style) ->
@@ -144,9 +148,24 @@ internal class TextMetricsImpl(
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float) = elementRuler.height(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing))
+    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
+        text = text,
+        font = font,
+        width = width,
+        indent = indent,
+        alignment = Left,
+        lineSpacing = lineSpacing,
+        letterSpacing = letterSpacing,
+    ))
 
-    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float) = elementRuler.height(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing))
+    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
+        text = text,
+        width = width,
+        indent = indent,
+        alignment = Left,
+        lineSpacing = lineSpacing,
+        letterSpacing = letterSpacing,
+    ))
 }
 
 //class TextMetricsImpl2(private val textFactory: TextFactory, svgFactory: SvgFactory, private val elementRuler: ElementRuler, private val htmlFactory: HtmlFactory): TextMetrics {

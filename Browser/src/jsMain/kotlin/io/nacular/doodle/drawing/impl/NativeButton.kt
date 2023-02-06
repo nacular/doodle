@@ -380,7 +380,7 @@ internal class NativeButton internal constructor(
                 textElement?.let { buttonElement.remove(it) }
 
                 textElement = if (field.isNotEmpty()) {
-                    textFactory.create(field, button.font).also {
+                    textFactory.create(field, button.font, letterSpacing = 0.0).also {
                         buttonElement.insert(it, 0)
                     }
                 } else {

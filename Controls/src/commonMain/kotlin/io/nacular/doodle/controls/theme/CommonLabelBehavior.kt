@@ -59,11 +59,13 @@ public open class CommonLabelBehavior(
                 Bottom ->  height - textSize.height
             }
 
-            val x = when (horizontalAlignment) {
-                Left   -> 0.0
-                Center -> (width - textSize.width) / 2
-                Right  ->  width - textSize.width
-            }
+            val x = if (!wrapsWords) {
+                when (horizontalAlignment) {
+                    Left   -> 0.0
+                    Center -> (width - textSize.width) / 2
+                    Right  ->  width - textSize.width
+                }
+            } else 0.0
 
             val bgColor = when {
                 view.enabled -> backgroundColor
@@ -101,9 +103,9 @@ public open class CommonLabelBehavior(
             }
 
             if (wrapsWords) {
-                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.horizontalAlignment, lineSpacing = view.lineSpacing)
+                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.horizontalAlignment, lineSpacing = view.lineSpacing, letterSpacing = view.letterSpacing)
             } else {
-                canvas.text(renderedText, Point(x, y))
+                canvas.text(renderedText, Point(x, y), letterSpacing = letterSpacing)
             }
         }
     }
@@ -115,7 +117,7 @@ public open class CommonLabelBehavior(
         }
 
         val width = when {
-            Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width) else textMetrics.width(label.styledText)
+            Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, letterSpacing = label.letterSpacing) else textMetrics.width(label.styledText, letterSpacing = label.letterSpacing)
             else                                                        -> 0.0
         }
 

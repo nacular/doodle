@@ -128,22 +128,22 @@ internal open class CanvasImpl(
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
 
-    override fun text(text: StyledText, at: Point) {
+    override fun text(text: StyledText, at: Point, letterSpacing: Double) {
         when {
-            isSimple(text) -> { updateRenderPosition(); completeOperation(createStyledTextGlyph(text, at)) }
-            else           -> vectorRenderer.text(text, at)
+            isSimple(text) -> { updateRenderPosition(); completeOperation(createStyledTextGlyph(text, at, letterSpacing)) }
+            else           -> vectorRenderer.text(text, at, letterSpacing)
         }
     }
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint) {
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at)) }
-            else                            -> vectorRenderer.text(text, font, at, fill)
+            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at, letterSpacing)) }
+            else                            -> vectorRenderer.text(text, font, at, fill, letterSpacing)
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
         when {
             text.isEmpty() || !fill.visible -> return
             fill is ColorPaint              -> {
@@ -158,20 +158,21 @@ internal open class CanvasImpl(
                         rightMargin,
                         alignment,
                         lineSpacing,
+                        letterSpacing
                     )
                 )
             }
-            else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing)
+            else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing, letterSpacing)
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
         when {
             isSimple(text) -> {
                 updateRenderPosition()
-                completeOperation(createWrappedStyleTextGlyph(text, at, leftMargin, rightMargin, alignment, lineSpacing))
+                completeOperation(createWrappedStyleTextGlyph(text, at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing))
             }
-            else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin, alignment, lineSpacing)
+            else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
         }
     }
 
@@ -464,36 +465,38 @@ internal open class CanvasImpl(
         return element
     }
 
-    private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point) = configure(textFactory.create(text, font, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
+    private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, letterSpacing: Double) = configure(textFactory.create(text, font, letterSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
 
-    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float): HTMLElement {
+    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(
             text,
             font,
-            width       = rightMargin - leftMargin,
-            indent      = indent,
-            possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
-            alignment   = alignment,
-            lineSpacing = lineSpacing,
+            width         = rightMargin - leftMargin,
+            indent        = indent,
+            possible      = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
+            alignment     = alignment,
+            lineSpacing   = lineSpacing,
+            letterSpacing = letterSpacing
         )
 
         return configure(element, fill, at)
     }
 
-    private fun createStyledTextGlyph(text: StyledText, at: Point) = textFactory.create(text, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null).apply {
+    private fun createStyledTextGlyph(text: StyledText, at: Point, letterSpacing: Double) = textFactory.create(text, letterSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null).apply {
         style.translate(at)
     }
 
-    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float): HTMLElement {
+    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(
-            text        = text,
-            width       = rightMargin - leftMargin,
-            indent      = indent,
-            possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
-            alignment   = alignment,
-            lineSpacing = lineSpacing,
+            text          = text,
+            width         = rightMargin - leftMargin,
+            indent        = indent,
+            possible      = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
+            alignment     = alignment,
+            lineSpacing   = lineSpacing,
+            letterSpacing = letterSpacing,
         )
 
         element.style.translate(at)

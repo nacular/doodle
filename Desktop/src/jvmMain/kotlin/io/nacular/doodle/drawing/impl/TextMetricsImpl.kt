@@ -11,7 +11,7 @@ import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skia.paragraph.Paragraph
 import org.jetbrains.skia.paragraph.ParagraphBuilder
 import org.jetbrains.skia.paragraph.ParagraphStyle
-import org.jetbrains.skia.paragraph.PlaceholderAlignment
+import org.jetbrains.skia.paragraph.PlaceholderAlignment.BASELINE
 import org.jetbrains.skia.paragraph.PlaceholderStyle
 import org.jetbrains.skia.paragraph.TextStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
@@ -27,19 +27,21 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
         else -> defaultFont.textStyle()
     }
 
-    private fun Font?.newTextStyle(lineSpacing: Float) = this.newTextStyle.apply {
-        height = lineSpacing
+    private fun Font?.newTextStyle(lineSpacing: Float = 1f, letterSpacing: Double) = this.newTextStyle.apply {
+        height             = lineSpacing
+        this.letterSpacing = letterSpacing.toFloat()
     }
 
-    private fun StyledText.paragraph(indent: Double = 0.0, width: Double? = null, lineSpacing: Float = 1f): Paragraph {
+    private fun StyledText.paragraph(indent: Double = 0.0, width: Double? = null, lineSpacing: Float = 1f, letterSpacing: Double): Paragraph {
         val builder = ParagraphBuilder(ParagraphStyle(), fontCollection).also { builder ->
             this.forEach { (text, style) ->
                 builder.pushStyle(style.font.newTextStyle.apply {
-                    if (lineSpacing != 1f) height = lineSpacing
+                    if (lineSpacing != 1f   ) height = lineSpacing
+                    if (letterSpacing != 0.0) this.letterSpacing = letterSpacing.toFloat()
                 })
 
                 if (indent > 0.0) {
-                    builder.addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, PlaceholderAlignment.BASELINE, IDEOGRAPHIC, 0f))
+                    builder.addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
                 }
 
                 builder.addText(text)
@@ -63,7 +65,7 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
 
         val builder = ParagraphBuilder(style, fontCollection).also { builder ->
             if (indent > 0.0) {
-                builder.addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, PlaceholderAlignment.BASELINE, IDEOGRAPHIC, 0f))
+                builder.addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
             }
             builder.addText(this)
         }
@@ -77,15 +79,15 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
         }
     }
 
-    override fun width(text: String,                                    font: Font?                     ) = width(text,                font.newTextStyle)
-    override fun width(text: String,     width: Double, indent: Double, font: Font?                     ) = width(text, width, indent, font.newTextStyle)
-    override fun width(text: StyledText                                                                 ) = max(0.0, text.paragraph(                   ).longestWidth)
-    override fun width(text: StyledText, width: Double, indent: Double                                  ) = max(0.0, text.paragraph(indent,       width).longestWidth)
+    override fun width(text: String,                                    font: Font?, letterSpacing: Double) = width(text,                font.newTextStyle(letterSpacing = letterSpacing))
+    override fun width(text: String,     width: Double, indent: Double, font: Font?, letterSpacing: Double) = width(text, width, indent, font.newTextStyle(letterSpacing = letterSpacing))
+    override fun width(text: StyledText,                                             letterSpacing: Double) = max(0.0, text.paragraph(               letterSpacing = letterSpacing).longestWidth)
+    override fun width(text: StyledText, width: Double, indent: Double,              letterSpacing: Double) = max(0.0, text.paragraph(indent, width, letterSpacing = letterSpacing).longestWidth)
 
-    override fun height(text: String,                                    font: Font?                    ) = height(text,                font.newTextStyle)
-    override fun height(text: String,     width: Double, indent: Double, font: Font?, lineSpacing: Float) = height(text, width, indent, font.newTextStyle(lineSpacing))
-    override fun height(text: StyledText                                                                ) = max(0.0, text.paragraph(                          ).totalHeight)
-    override fun height(text: StyledText, width: Double, indent: Double             , lineSpacing: Float) = max(0.0, text.paragraph(indent, width, lineSpacing).totalHeight)
+    override fun height(text: String,                                    font: Font?                                           ) = height(text,                font.newTextStyle)
+    override fun height(text: String,     width: Double, indent: Double, font: Font?, lineSpacing: Float, letterSpacing: Double) = height(text, width, indent, font.newTextStyle(lineSpacing, letterSpacing))
+    override fun height(text: StyledText,                                                                 letterSpacing: Double) = max(0.0, text.paragraph(            letterSpacing = letterSpacing).totalHeight)
+    override fun height(text: StyledText, width: Double, indent: Double             , lineSpacing: Float, letterSpacing: Double) = max(0.0, text.paragraph(indent, width, lineSpacing, letterSpacing).totalHeight)
 
     internal fun width(text: String,                                    textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle               ).longestWidth)
     internal fun width(text: String,     width: Double, indent: Double, textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle, indent, width).longestWidth)

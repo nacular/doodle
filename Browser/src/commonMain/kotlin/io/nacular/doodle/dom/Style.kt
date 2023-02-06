@@ -58,6 +58,12 @@ internal fun Style.setLineHeight(value: Float) {
         else        -> ""
     }
 }
+internal fun Style.setLetterSpacing(value: Double) {
+    letterSpacing = when {
+        value != 0.0 -> "${value}px"
+        else         -> ""
+    }
+}
 
 internal inline fun Style.setTop   (value: Double) { top    = em(value) }
 internal inline fun Style.setLeft  (value: Double) { left   = em(value) }

@@ -264,8 +264,8 @@ internal class CanvasImpl(
         }
     }
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint) {
-        paragraph(text, font, at, fill = fill, alignment = Left, lineHeight = 1f).apply {
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double) {
+        paragraph(text, font, at, fill = fill, alignment = Left, lineHeight = 1f, letterSpacing = letterSpacing).apply {
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
@@ -276,16 +276,26 @@ internal class CanvasImpl(
         }
     }
 
-    override fun text(text: StyledText, at: Point) {
+    override fun text(text: StyledText, at: Point, letterSpacing: Double) {
         drawOuterShadows {
-            text.paragraph(paint = it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+            text.paragraph(paint = it, letterSpacing = letterSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
 
-        text.paragraph().paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        text.paragraph(letterSpacing = letterSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float) {
-        paragraph(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing).apply {
+    override fun wrapped(
+        text: String,
+        font: Font?,
+        at: Point,
+        leftMargin: Double,
+        rightMargin: Double,
+        fill: Paint,
+        alignment: HorizontalAlignment,
+        lineSpacing: Float,
+        letterSpacing: Double
+    ) {
+        paragraph(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing, letterSpacing).apply {
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
@@ -296,17 +306,25 @@ internal class CanvasImpl(
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float) {
+    override fun wrapped(
+        text: StyledText,
+        at: Point,
+        leftMargin: Double,
+        rightMargin: Double,
+        alignment: HorizontalAlignment,
+        lineSpacing: Float,
+        letterSpacing: Double
+    ) {
         val indent = at.x - leftMargin
 
         drawOuterShadows {
-            text.paragraph(paint = it, alignment = alignment, lineSpacing, indent = indent).apply {
+            text.paragraph(paint = it, alignment = alignment, lineSpacing, letterSpacing, indent = indent).apply {
                 layout(max(minIntrinsicWidth + 1, (rightMargin - leftMargin).toFloat()))
                 paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
             }
         }
 
-        text.paragraph(alignment = alignment, lineHeight = lineSpacing, indent = indent).apply {
+        text.paragraph(alignment = alignment, lineHeight = lineSpacing, letterSpacing = letterSpacing, indent = indent).apply {
             layout(max(minIntrinsicWidth + 1, (rightMargin - leftMargin).toFloat()))
             paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
         }
@@ -510,13 +528,34 @@ internal class CanvasImpl(
         drawInnerShadows(path)
     }
 
-    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, fill: Paint, alignment: HorizontalAlignment, lineHeight: Float = 1f) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia(), alignment, lineHeight)
+    private fun paragraph(
+        text         : String,
+        font         : Font?,
+        at           : Point,
+        leftMargin   : Double? = null,
+        rightMargin  : Double? = null,
+        fill         : Paint,
+        alignment    : HorizontalAlignment,
+        lineHeight   : Float  = 1f,
+        letterSpacing: Double = 0.0,
+    ) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia(), alignment, lineHeight, letterSpacing)
 
-    private fun paragraph(text: String, font: Font?, at: Point, leftMargin: Double? = null, rightMargin: Double? = null, paint: SkiaPaint, alignment: HorizontalAlignment, lineHeight: Float = 1f): Paragraph {
+    private fun paragraph(
+        text         : String,
+        font         : Font?,
+        at           : Point,
+        leftMargin   : Double? = null,
+        rightMargin  : Double? = null,
+        paint        : SkiaPaint,
+        alignment    : HorizontalAlignment,
+        lineHeight   : Float  = 1f,
+        letterSpacing: Double = 0.0
+    ): Paragraph {
         val style = ParagraphStyle().apply {
             textStyle = font.newTextStyle.apply {
                 foreground = paint
-                if (lineHeight != 1f) height = lineHeight
+                if (lineHeight    != 1f ) height = lineHeight
+                if (letterSpacing != 0.0) this.letterSpacing = letterSpacing.toFloat()
             }
             this.alignment = alignment.skia
         }
@@ -546,10 +585,11 @@ internal class CanvasImpl(
     }
 
     private fun StyledText.paragraph(
-        paint     : SkiaPaint?          = null,
-        alignment : HorizontalAlignment = Left,
-        lineHeight: Float               = 1f,
-        indent    : Double              = 0.0,
+        paint        : SkiaPaint?          = null,
+        alignment    : HorizontalAlignment = Left,
+        lineHeight   : Float               = 1f,
+        letterSpacing: Double              = 0.0,
+        indent       : Double              = 0.0,
     ): Paragraph {
         val builder = ParagraphBuilder(ParagraphStyle().apply {
             this.alignment = alignment.skia
@@ -582,6 +622,9 @@ internal class CanvasImpl(
                     }
                     if (lineHeight != 1f) {
                         height = lineHeight
+                    }
+                    if (letterSpacing != 0.0) {
+                        this.letterSpacing = letterSpacing.toFloat()
                     }
                 })
                 builder.addText(text)

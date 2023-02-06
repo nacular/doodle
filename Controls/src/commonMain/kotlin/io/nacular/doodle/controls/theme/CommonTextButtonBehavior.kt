@@ -46,9 +46,9 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
         view.textChanged -= textChanged
     }
 
-    public fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin): Point {
+    public fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin, letterSpacing: Double = 0.0): Point {
         var minX       = insets.left
-        val stringSize = textMetrics.size(text, font(button))
+        val stringSize = textMetrics.size(text, font(button), letterSpacing)
         var iconWidth  = 0.0
         var maxX       = bounds.width - stringSize.width - insets.right
 
@@ -83,7 +83,13 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
         return Point(x, y) + bounds.position
     }
 
-    public fun iconPosition(button: Button, text: String = button.text, icon: Icon<Button>, stringPosition: Point = textPosition(button, text, icon), bounds: Rectangle = button.bounds.atOrigin): Point {
+    public fun iconPosition(
+        button: Button,
+        text: String = button.text,
+        icon: Icon<Button>,
+        stringPosition: Point = textPosition(button, text, icon),
+        bounds: Rectangle = button.bounds.atOrigin
+    ): Point {
         val size = icon.size(button)
 
         val y = when (button.verticalAlignment) {
@@ -122,6 +128,15 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
 
         return Point(x, y) + bounds.position
     }
+
+    public fun iconPosition(
+        button: Button,
+        text: String = button.text,
+        icon: Icon<Button>,
+        letterSpacing: Double = 0.0,
+        stringPosition: Point = textPosition(button, text, icon, letterSpacing = letterSpacing),
+        bounds: Rectangle = button.bounds.atOrigin
+    ): Point = iconPosition(button = button, text = text, icon = icon, stringPosition = stringPosition, bounds = bounds)
 
     public fun font(button: Button): Font? = button.font ?: defaultFont
 }

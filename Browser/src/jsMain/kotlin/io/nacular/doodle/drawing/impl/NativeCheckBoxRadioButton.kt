@@ -229,7 +229,7 @@ internal class NativeCheckBoxRadioButton(
             textElement?.let { rootElement.remove(it) }
 
             textElement = field.takeIf { it.isNotBlank() }?.let {
-                textFactory.create(it, button.font).also { text ->
+                textFactory.create(it, button.font, letterSpacing = 0.0).also { text ->
                     rootElement.insert(text, 0)
 
                     text.style.setMargin (0.0     )
