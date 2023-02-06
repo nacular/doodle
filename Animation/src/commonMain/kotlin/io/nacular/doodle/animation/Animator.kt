@@ -1,6 +1,5 @@
 package io.nacular.doodle.animation
 
-import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Pool
 import kotlin.properties.ReadWriteProperty
@@ -132,7 +131,7 @@ public operator fun <T, V> Animator.invoke(
  * @param using the given animation
  * @param onChanged that notifies when the underlying property changes
  */
-public operator fun <V: View, T, K> Animator.invoke(default: T, using: NumericAnimationPlan<T, K>, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<V, T> = animatingProperty(
+public operator fun <V, T, K> Animator.invoke(default: T, using: NumericAnimationPlan<T, K>, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<V, T> = animatingProperty(
     default,
     this,
     { start, end -> animation(start, end, using) },
