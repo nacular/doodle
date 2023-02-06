@@ -17,6 +17,7 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.addIfNotPresent
+import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
@@ -60,6 +61,7 @@ import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.GradientPaint
 import io.nacular.doodle.drawing.InnerShadow
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
@@ -657,10 +659,10 @@ internal open class VectorRendererSvg constructor(
 
     private fun fillElement(element: SVGElement, fill: Paint, clearOutline: Boolean = true) {
         when (fill) {
-            is ColorPaint          -> SolidFillHandler.fill     (this, element, fill)
-            is PatternPaint        -> canvasFillHandler.fill    (this, element, fill)
-            is LinearGradientPaint -> LinearFillHandler  ().fill(this, element, fill)
-            is RadialGradientPaint -> GradientFillHandler().fill(this, element, fill)
+            is ColorPaint          -> SolidFillHandler.fill         (this, element, fill)
+            is PatternPaint        -> canvasFillHandler.fill        (this, element, fill)
+            is LinearGradientPaint -> linearGradientFillHandler.fill(this, element, fill)
+            is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill)
         }
 
         if (clearOutline) {
@@ -670,10 +672,10 @@ internal open class VectorRendererSvg constructor(
 
     private fun strokeElement(element: SVGElement, stroke: Stroke) {
         when (val fill = stroke.fill) {
-            is ColorPaint          -> SolidFillHandler.stroke     (this, element, fill)
-            is PatternPaint        -> canvasFillHandler.stroke    (this, element, fill)
-            is LinearGradientPaint -> LinearFillHandler  ().stroke(this, element, fill)
-            is RadialGradientPaint -> GradientFillHandler().stroke(this, element, fill)
+            is ColorPaint          -> SolidFillHandler.stroke         (this, element, fill)
+            is PatternPaint        -> canvasFillHandler.stroke        (this, element, fill)
+            is LinearGradientPaint -> linearGradientFillHandler.stroke(this, element, fill)
+            is RadialGradientPaint -> radialGradientFillHandler.stroke(this, element, fill)
         }
 
         element.setStroke(stroke)
@@ -988,77 +990,79 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private inner class LinearFillHandler: FillHandler<LinearGradientPaint> {
-        private fun makeFill(renderer: VectorRendererSvg, paint: LinearGradientPaint): SVGLinearGradientElement {
-            // FIXME: Re-use elements when possible
-            val gradient = createOrUse<SVGLinearGradientElement>("linearGradient").apply {
-                if (id.isBlank()) { setId(nextId()) }
+    private val linearGradientFillHandler by lazy {
+        object: FillHandler<LinearGradientPaint> {
+            private fun makeFill(renderer: VectorRendererSvg, paint: LinearGradientPaint): SVGLinearGradientElement {
+                val gradient = createOrUse<SVGLinearGradientElement>("linearGradient").apply {
+                    if (id.isBlank()) { setId(nextId()) }
 
-                setGradientUnits("userSpaceOnUse")
-                setX1(paint.start.x              )
-                setY1(paint.start.y              )
-                setX2(paint.end.x                )
-                setY2(paint.end.y                )
-                clear(                           )
+                    setGradientUnits("userSpaceOnUse")
+                    setX1(paint.start.x              )
+                    setY1(paint.start.y              )
+                    setX2(paint.end.x                )
+                    setY2(paint.end.y                )
 
-                paint.colors.forEach {
-                    // FIXME: Re-use elements when possible
-                    add(svgFactory<SVGElement>("stop").apply {
-                        setStopColor (it.color )
-                        setStopOffset(it.offset)
-                    })
+                    updateStops     (paint.colors    )
                 }
+
+                renderer.completeOperation(gradient)
+
+                return gradient
             }
 
-            renderer.completeOperation(gradient)
+            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+                element.setFillPattern(makeFill(renderer, paint))
+            }
 
-            return gradient
-        }
-
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
-            element.setFillPattern(makeFill(renderer, paint))
-        }
-
-        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
-            element.setStrokePattern(makeFill(renderer, paint))
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+                element.setStrokePattern(makeFill(renderer, paint))
+            }
         }
     }
 
-    private inner class GradientFillHandler: FillHandler<RadialGradientPaint> {
-        private fun makeFill(renderer: VectorRendererSvg, paint: RadialGradientPaint): SVGRadialGradientElement {
-            // FIXME: Re-use elements when possible
-            val gradient = createOrUse<SVGRadialGradientElement>("radialGradient").apply {
-                if (id.isBlank()) { setId(nextId()) }
+    private val radialGradientFillHandler by lazy {
+        object: FillHandler<RadialGradientPaint> {
+            private fun makeFill(renderer: VectorRendererSvg, paint: RadialGradientPaint): SVGRadialGradientElement {
+                val gradient = createOrUse<SVGRadialGradientElement>("radialGradient").apply {
+                    if (id.isBlank()) { setId(nextId()) }
 
-                setGradientUnits("userSpaceOnUse")
-                setStart(paint.start)
-                setEnd  (paint.end  )
-                clear   (          )
-
-                paint.colors.forEach {
-                    // FIXME: Re-use elements when possible
-                    add(svgFactory<SVGElement>("stop").apply {
-                        setStopColor (it.color )
-                        setStopOffset(it.offset)
-                    })
+                    setGradientUnits("userSpaceOnUse")
+                    setStart        (paint.start     )
+                    setEnd          (paint.end       )
+                    updateStops     (paint.colors    )
                 }
+
+                renderer.completeOperation(gradient)
+
+                return gradient
             }
 
-            renderer.completeOperation(gradient)
+            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+                element.setFillPattern(makeFill(renderer, paint))
+            }
 
-            return gradient
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+                element.setStrokePattern(makeFill(renderer, paint))
+            }
         }
+    }
 
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
-            element.setFillPattern(makeFill(renderer, paint))
-        }
-
-        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
-            element.setStrokePattern(makeFill(renderer, paint))
+    private fun SVGElement.updateStops(stops: List<GradientPaint.Stop>) {
+        stops.forEachIndexed { index, stop ->
+            when (val child = childAt(index)) {
+                is SVGElement -> child.apply {
+                    setStopColor (stop.color )
+                    setStopOffset(stop.offset)
+                }
+                else -> add(svgFactory<SVGElement>("stop").apply {
+                    setStopColor (stop.color )
+                    setStopOffset(stop.offset)
+                })
+            }
         }
     }
 
     private companion object {
-        private val containerElements = arrayOf("svg", "filter")
+        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient")
     }
 }
