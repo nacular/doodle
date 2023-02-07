@@ -183,7 +183,7 @@ internal open class CanvasImpl(
             if (source.size == image.size && source.position == Origin) {
                 completeOperation(createImage(image, destination, radius, opacity))
             } else {
-                getRect(destination)?.let { clipRect ->
+                getRect(destination, clear = false)?.let { clipRect ->
                     val oldRenderPosition = renderPosition
 
                     renderPosition = clipRect.firstChild
@@ -201,6 +201,7 @@ internal open class CanvasImpl(
                             opacity)
 
                     if (renderPosition !== imageElement) {
+                        clipRect.clear()
                         clipRect.add(imageElement)
                     }
 
@@ -397,8 +398,8 @@ internal open class CanvasImpl(
         it.style.setBorderRadius(null)
     }
 
-    private fun getRect(rectangle: Rectangle): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
-        getRectElement().also {
+    private fun getRect(rectangle: Rectangle, clear: Boolean = true): HTMLElement? = rectangle.takeIf { !it.empty }?.let {
+        getRectElement(clear).also {
             // This is done b/c there's an issue w/ handling half-pixels in Chrome: https://movier.me/blog/2017/realize-half-pixel-border-in-chrome/
 
             var width     = rectangle.width
