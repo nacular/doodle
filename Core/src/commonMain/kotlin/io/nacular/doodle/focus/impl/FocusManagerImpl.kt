@@ -154,10 +154,9 @@ public class FocusManagerImpl(
         view.parentChange        -= parentChanged
     }
 
-    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view, _, displayed ->
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { _,_, displayed ->
         // View ancestor removed from Display, since the view still has a parent.
-        // The other case--the view itself is removed--is handled by the parentChanged handler
-        if (!displayed && view.parent != null) {
+        if (!displayed) {
             // move focus to default since it is hard to reconstruct the right place to go
             moveFocusToDefault()
         }

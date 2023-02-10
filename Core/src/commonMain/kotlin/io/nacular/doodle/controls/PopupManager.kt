@@ -77,13 +77,20 @@ public class PopupManagerImpl(
     private val boundsMonitor: RelativePositionMonitor
 ): PopupManager {
     private abstract inner class Popup(val view: View) {
-        private var layingOut = false
+        private var layingOut   = false
+        private var needsLayout = false
 
         fun relayout() {
             if (!layingOut) {
                 layingOut = true
                 doLayout()
                 layingOut = false
+                if (needsLayout) {
+                    needsLayout = false
+                    relayout()
+                }
+            } else {
+                needsLayout = true
             }
         }
 
@@ -186,7 +193,7 @@ public class PopupManagerImpl(
         }
     }
 
-    private val boundsChanged = { view: View, old: Rectangle, new: Rectangle ->
+    private val boundsChanged = { view: View, _: Rectangle, _: Rectangle ->
         popups[view]?.relayout().let {}
     }
 
@@ -200,10 +207,10 @@ public class PopupManagerImpl(
 
         renderManager.popupShown(view)
 
-        popUp.relayout()
-
         view.parentChange  += parentChanged
         view.boundsChanged += boundsChanged
         view.displayChange += displayChanged
+
+        popUp.relayout()
     }
 }
