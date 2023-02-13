@@ -27,6 +27,7 @@ import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.firstOrNull
 import io.nacular.doodle.utils.ifTrue
+import kotlin.math.abs
 
 /** @suppress */
 @Internal
@@ -621,13 +622,15 @@ public open class RenderManagerImpl(
 
         if (!old.size.fastEquals(new.size)) {
             reRender = true
+
             if (view.children_.isNotEmpty() && view.layout_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true) {
                 when {
-                    layingOut !== view -> pendingLayout += view
+                    layingOut !== view                       -> pendingLayout += view
 
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
-                    else               -> view.doLayout_()
+                    old.size sufficientlyDifferentTo new.size -> view.doLayout_()
+                    else                                      -> return
                 }
             }
         }
@@ -642,6 +645,12 @@ public open class RenderManagerImpl(
             reRender -> render(view, true)
             else     -> schedulePaint()
         }
+    }
+
+    private infix fun Size.sufficientlyDifferentTo(other: Size): Boolean {
+        val epsilon = 1e-8
+
+        return abs(width - other.width) > epsilon || abs(height - other.height) > epsilon
     }
 
     override fun transformChanged(view: View, old: AffineTransform, new: AffineTransform) {
