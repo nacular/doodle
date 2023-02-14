@@ -14,6 +14,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.TextDecoration
+import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -36,19 +37,35 @@ public open class CommonLabelBehavior(
     /** Controls how [Color]s are changed when the rendered [Label] is disabled. */
     public var disabledColorMapper: (Color) -> Color = { it.lighter() }
 
+    private var labelDesiredForeground: Color? = null
+    private var labelDesiredBackground: Color? = null
+
     private val enabledChanged: PropertyObserver<View, Boolean> = { view,_,_ ->
         view.rerender()
     }
 
+    private val styleChanged: ChangeObserver<View> = {
+        labelDesiredForeground = it.foregroundColor
+        labelDesiredBackground = it.backgroundColor
+    }
+
     override fun install(view: Label) {
+        styleChanged(view)
+
         view.enabledChanged += enabledChanged
+
         foregroundColor?.let { view.foregroundColor = it }
         backgroundColor?.let { view.backgroundColor = it }
+
+        view.styleChanged += styleChanged
     }
 
     override fun uninstall(view: Label) {
         view.enabledChanged -= enabledChanged
-        view.foregroundColor = null // FIXME: This might override a user-pref
+        view.styleChanged   -= styleChanged
+
+        view.foregroundColor = labelDesiredForeground
+        view.backgroundColor = labelDesiredBackground
     }
 
     override fun render(view: Label, canvas: Canvas) {

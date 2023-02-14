@@ -66,8 +66,8 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     public constructor(
         text      : String,
         font      : Font?           = null,
-        foreground: Paint?           = null,
-        background: Paint?           = null,
+        foreground: Paint?          = null,
+        background: Paint?          = null,
         decoration: TextDecoration? = null): this(mutableListOf(MutablePair(text, StyleImpl(
             font,
             foreground = foreground,
