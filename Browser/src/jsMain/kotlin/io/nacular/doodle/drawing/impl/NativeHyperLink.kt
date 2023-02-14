@@ -61,12 +61,15 @@ internal class NativeHyperLink internal constructor(
     private val linkElement = htmlFactory.create<HTMLAnchorElement>("a").apply {
         href = hyperLink.url
 
-        if (customRenderer == null) {
-            style.setFont (hyperLink.font           )
-            style.setColor(hyperLink.foregroundColor)
-        } else {
-            style.cursor = "inherit"
+        when (customRenderer) {
+            null -> {
+                style.setFont (hyperLink.font           )
+                style.setColor(hyperLink.foregroundColor)
+            }
+            else -> style.cursor = "inherit"
         }
+
+        target = "_blank"
 
         style.setOverflow     (Visible())
         style.setWidthPercent (100.0    )
