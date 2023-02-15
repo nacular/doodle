@@ -201,7 +201,7 @@ internal open class VectorRendererSvg constructor(
     protected fun add(shadow: Shadow) {
         shadows.plusAssign(shadow)
 
-        pushClip(Rectangle(size = context.size).toPath())
+        pushSvg()
 
         when (shadow) {
             is InnerShadow -> innerShadow(shadow)
@@ -261,12 +261,17 @@ internal open class VectorRendererSvg constructor(
     }
 
     protected fun pushClip(path: io.nacular.doodle.geometry.Path) {
+        pushSvg {
+            style.setClipPath(path)
+        }
+    }
+
+    protected fun pushSvg(block: SVGElement.() -> Unit = {}) {
         val svg = createOrUse<SVGElement>("svg").apply {
             renderPosition = this.firstChild
 
-            style.setClipPath(path)
+            block(this)
 
-            // FIXME: Support rounding
             renderPosition = renderPosition?.nextSibling
         }
 

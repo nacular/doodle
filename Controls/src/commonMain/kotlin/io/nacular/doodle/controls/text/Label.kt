@@ -85,7 +85,7 @@ public open class Label(
 
     private var textSize = Empty
         set(new) {
-            field = new
+            field     = new
             idealSize = new
             if (Width  in fitText) width  = new.width
             if (Height in fitText) height = new.height
