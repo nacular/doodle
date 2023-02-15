@@ -50,7 +50,17 @@ public open class RenderManagerImpl(
         }
     }
 
-    private val generationComparator: (View, View) -> Int = { a: View, b: View -> a.generationNumber - b.generationNumber }
+    private val generationComparator: (View, View) -> Int = { a: View, b: View ->
+        when (val genDifference = a.generationNumber - b.generationNumber) {
+            0    -> {
+                when (a) {
+                    b    -> genDifference
+                    else -> -1
+                }
+            }
+            else -> genDifference
+        }
+    }
 
     protected open val views              : MutableSet<View>                   = fastMutableSetOf()
     protected open val dirtyViews         : MutableSet<View>                   = fastMutableSetOf()
@@ -414,9 +424,9 @@ public open class RenderManagerImpl(
                 releaseResources(it.parent, it)
             }
 
-            views -= view
-            dirtyViews -= view
-            pendingLayout -= view
+            views               -= view
+            dirtyViews          -= view
+            pendingLayout       -= view
             pendingBoundsChange -= view
 
             parent?.let {

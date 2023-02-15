@@ -104,8 +104,8 @@ class MutableTreeSetJsTests {
         }
     }
 
-    @Test
-    fun remove() {
+    @Test @JsName("sequentialRemove")
+    fun `sequential remove`() {
         val set      = MutableTreeSetJs<Int>()
         val expected = listOf(-5, 1, 2, 5, 8, 101)
 
@@ -116,10 +116,22 @@ class MutableTreeSetJsTests {
         expected.forEachIndexed { index, i ->
             expect(true) { set.remove(i) }
 
+            expect(false) { i in set }
             expect(expected.size - (index + 1)) { set.size }
         }
 
         expect(0) { set.size }
+    }
+
+    @Test @JsName("removeFromMiddle")
+    fun `remove from middle`() {
+        val set = MutableTreeSetJs(listOf(-5, 1, 2, 5, 8, 101))
+
+        set -= 2
+
+        expect(5                      ) { set.size }
+        expect(false                  ) { 2 in set }
+        expect(setOf(-5, 1, 5, 8, 101)) { set      }
     }
 
     @Test @JsName("removeNotPresent")
