@@ -1169,9 +1169,9 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
     override operator fun getValue(thisRef: T, property: KProperty<*>): B? = behavior
 
     override operator fun setValue(thisRef: T, property: KProperty<*>, value: B?) {
-        thisRef.childrenClipPath_    = null
-        thisRef.clipCanvasToBounds_  = true
-        thisRef.mirrorWhenRightLeft_ = true
+        val oldChildrenClipPath    = thisRef.childrenClipPath_
+        val oldClipCanvasToBounds  = thisRef.clipCanvasToBounds_
+        val oldMirrorWhenRightLeft = thisRef.mirrorWhenRightLeft_
 
         beforeChange(behavior, value)
 
@@ -1184,6 +1184,12 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
             thisRef.childrenClipPath_    = behavior.childrenClipPath     (thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
+        }
+
+        if (value == null) {
+            thisRef.childrenClipPath_    = oldChildrenClipPath
+            thisRef.clipCanvasToBounds_  = oldClipCanvasToBounds
+            thisRef.mirrorWhenRightLeft_ = oldMirrorWhenRightLeft
         }
 
         afterChange(old, behavior)
