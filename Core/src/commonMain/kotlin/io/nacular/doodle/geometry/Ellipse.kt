@@ -50,3 +50,10 @@ public open class Ellipse(public val center: Point, public val xRadius: Double, 
         public val Empty: Ellipse = Ellipse(0.0, 0.0)
     }
 }
+
+/**
+ * Creates an Ellipse that is inscribed within the rectangle
+ *
+ * @return the ellipse
+ */
+public fun Rectangle.inscribedEllipse(): Ellipse = Ellipse(xRadius = width / 2, yRadius = height / 2, center = center)

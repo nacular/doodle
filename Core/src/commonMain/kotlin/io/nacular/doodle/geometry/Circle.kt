@@ -2,6 +2,7 @@ package io.nacular.doodle.geometry
 
 
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import kotlin.math.min
 
 /**
  * A circle defined by a center point and radius.
@@ -55,3 +56,13 @@ public fun Circle.withRadius(radius: Double): Circle = Circle(center, radius)
  * @return a Circle with the same attributes as this, but with the radius shortened by [inset].
  */
 public fun Circle.inset(inset: Double): Circle = Circle(center, radius - inset)
+
+/** The circle's diameter (2 * [Circle.radius]) */
+public val Circle.diameter: Double get() = 2 * radius
+
+/**
+ * Creates a Circle that is inscribed within the rectangle
+ *
+ * @return the circle
+ */
+public fun Rectangle.inscribedCircle(): Circle = Circle(radius = min(width, height) / 2, center = center)
