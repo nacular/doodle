@@ -87,7 +87,7 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
     override fun height(text: String,                                    font: Font?                                           ) = height(text,                font.newTextStyle)
     override fun height(text: String,     width: Double, indent: Double, font: Font?, lineSpacing: Float, letterSpacing: Double) = height(text, width, indent, font.newTextStyle(lineSpacing, letterSpacing))
     override fun height(text: StyledText,                                                                 letterSpacing: Double) = max(0.0, text.paragraph(            letterSpacing = letterSpacing).totalHeight)
-    override fun height(text: StyledText, width: Double, indent: Double             , lineSpacing: Float, letterSpacing: Double) = max(0.0, text.paragraph(indent, width, lineSpacing, letterSpacing).totalHeight)
+    override fun height(text: StyledText, width: Double, indent: Double,              lineSpacing: Float, letterSpacing: Double) = max(0.0, text.paragraph(indent, width, lineSpacing, letterSpacing).totalHeight)
 
     internal fun width(text: String,                                    textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle               ).longestWidth)
     internal fun width(text: String,     width: Double, indent: Double, textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle, indent, width).longestWidth)

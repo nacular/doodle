@@ -71,8 +71,6 @@ internal actual var HTMLElement.role: String? get() = getAttribute("role")
 internal actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) = this.addEventListener   (to, listener, jsObject { passive = false })
 internal actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) = this.removeEventListener(to, listener, jsObject { passive = false })
 
-
-
 internal actual var HTMLInputElement.orient: String? get() = getAttribute("orient")
     set(new) {
         when (new) {
@@ -130,7 +128,9 @@ private class DynamicProperty<T, V>(private val name: String, private val onErro
     override fun setValue(thisRef: T, property: KProperty<*>, value: V) {
         try {
             thisRef.asDynamic()[name] = value
-        } catch (ignored: Throwable) {}
+        } catch (throwable: Throwable) {
+            onError?.invoke(throwable)
+        }
     }
 }
 
