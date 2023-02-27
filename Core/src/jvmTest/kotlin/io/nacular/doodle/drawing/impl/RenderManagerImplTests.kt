@@ -165,6 +165,95 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface setProperty "transform" value transform }
     }
 
+    @Test @JsName("rendersViewsMovedToNewTopLevelParent")
+    fun `renders views moved to new top-level parent`() {
+        val parent1  = container()
+        val parent2  = container()
+        val children = (0 .. 3).map { spyk(view()).apply { bounds = Rectangle(10, 15) } }
+
+        val display        = display()
+        val surfaces       = children.map { mockk<GraphicsSurface>() }
+        val graphicsDevice = graphicsDevice(children.mapIndexed { index, view -> view to surfaces[index] }.toMap())
+
+        val renderManager = renderManager(display, graphicsDevice = graphicsDevice)
+
+        parent1.children += children
+
+        display += parent1
+
+        children.forEachIndexed { index, it ->
+            verifyChildAddedProperly(renderManager, display, it)
+            verify(exactly = 1) { surfaces[index] setProperty "bounds" value Rectangle(10, 15) }
+        }
+
+        parent2.children += children
+
+        children.forEach {
+            verifyChildRemovedProperly(it)
+        }
+
+        display.children[0] = parent2
+
+        children.forEachIndexed { index, it ->
+            verifyChildAddedProperly(renderManager, display, it, times = 2)
+            verify(exactly = 2) { surfaces[index] setProperty "bounds" value Rectangle(10, 15) }
+        }
+    }
+
+    @Test @JsName("rendersViewsMovedToNewNestedParent")
+    fun `renders views moved to new nested parent`() {
+        val grandParent = container()
+        val parent1  = container()
+        val parent2  = container()
+        val children = (0 .. 3).map { spyk(view()).apply { bounds = Rectangle(10, 15) } }
+
+        val display        = display(grandParent)
+        val surfaces       = children.map { mockk<GraphicsSurface>() }
+        val graphicsDevice = graphicsDevice(children.mapIndexed { index, view -> view to surfaces[index] }.toMap())
+
+        val scheduler     = ManualAnimationScheduler()
+        val renderManager = renderManager(display, graphicsDevice = graphicsDevice, scheduler = scheduler)
+
+        parent1.children += children
+
+        grandParent.children += parent1
+
+        scheduler.runJobs()
+
+        children.forEachIndexed { index, it ->
+            verifyChildAddedProperly(renderManager, display, it)
+            verify(exactly = 1) { surfaces[index] setProperty "bounds" value Rectangle(10, 15) }
+        }
+
+        parent2.children += children
+        grandParent.children[0] = parent2
+
+        scheduler.runJobs()
+
+        children.forEach {
+            verifyChildRemovedProperly(it)
+        }
+
+        children.forEachIndexed { index, it ->
+            verifyChildAddedProperly(renderManager, display, it, times = 2)
+            verify(exactly = 2) { surfaces[index] setProperty "bounds" value Rectangle(10, 15) }
+        }
+
+        parent1.children += children
+        grandParent.children[0] = parent1
+
+        scheduler.runJobs()
+
+        children.forEach {
+            verifyChildRemovedProperly(it, times = 2)
+        }
+
+        children.forEachIndexed { index, it ->
+            verifyChildAddedProperly(renderManager, display, it, times = 3)
+            verify(exactly = 3) { surfaces[index] setProperty "bounds" value Rectangle(10, 15) }
+        }
+    }
+
     @Test @JsName("handlesBecomingInvisibleBeforeFirstRender")
     fun `handles becoming invisible before first render`() {
         val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
@@ -1130,8 +1219,8 @@ class RenderManagerImplTests {
         verify(exactly = times) { view.render        (any()                                             ) }
     }
 
-    private fun verifyChildRemovedProperly(view: View) {
-        verify(exactly = 1) { view.removedFromDisplay_() }
+    private fun verifyChildRemovedProperly(view: View, times: Int = 1) {
+        verify(exactly = times) { view.removedFromDisplay_() }
 
         view.children_.forEach { verifyChildRemovedProperly(it) }
     }

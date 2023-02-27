@@ -424,6 +424,10 @@ public open class RenderManagerImpl(
                 releaseResources(it.parent, it)
             }
 
+            pendingCleanup[view]?.forEach {
+                releaseResources(view, it)
+            }
+
             views               -= view
             dirtyViews          -= view
             pendingLayout       -= view
