@@ -448,7 +448,6 @@ internal open class CanvasImpl(
                     if (useShadowHack) {
                         element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
                     }
-                    element.style.setOverflow(Visible())
                 }
             }
         }
