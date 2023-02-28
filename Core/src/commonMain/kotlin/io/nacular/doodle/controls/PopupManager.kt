@@ -6,10 +6,12 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.RelativePositionMonitor
+import kotlin.math.abs
 
 /**
  * Provides a robust way to display temporary top-level [View]s that can be anchored to others. This
@@ -193,9 +195,18 @@ public class PopupManagerImpl(
         }
     }
 
-    private val boundsChanged = { view: View, _: Rectangle, _: Rectangle ->
-        popups[view]?.relayout().let {}
+    private val boundsChanged = { view: View, old: Rectangle, new: Rectangle ->
+        if (old.size sufficientlyDifferentTo new.size) {
+            popups[view]?.relayout().let {}
+        }
     }
+
+    private infix fun Size.sufficientlyDifferentTo(other: Size): Boolean {
+        val epsilon = 1e-8
+
+        return abs(width - other.width) > epsilon || abs(height - other.height) > epsilon
+    }
+
 
     private fun showInternal(view: View, block: (View) -> Popup) {
         hide(view)
