@@ -263,6 +263,8 @@ internal open class VectorRendererSvg constructor(
     protected fun pushClip(path: io.nacular.doodle.geometry.Path) {
         pushSvg {
             style.setClipPath(path)
+
+            renderPosition = renderPosition?.nextSibling
         }
     }
 
@@ -271,8 +273,6 @@ internal open class VectorRendererSvg constructor(
             renderPosition = this.firstChild
 
             block(this)
-
-            renderPosition = renderPosition?.nextSibling
         }
 
         if (svgElement == null || svg.parentNode != svgElement) {
@@ -345,8 +345,8 @@ internal open class VectorRendererSvg constructor(
         context.markDirty()
     }
 
-    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = null): T {
-        val element: Node? = possible ?: renderPosition
+    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = renderPosition): T {
+        val element: Node? = possible
 
         return when {
             element == null || element.nodeName != tag -> svgFactory(tag)
