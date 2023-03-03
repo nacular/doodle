@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
@@ -26,30 +27,33 @@ internal interface NativeHyperLinkFactory {
 }
 
 internal class NativeHyperLinkFactoryImpl internal constructor(
-        private val textMetrics              : TextMetrics,
-        private val htmlFactory              : HtmlFactory,
-        private val nativeEventHandlerFactory: NativeEventHandlerFactory,
-        private val canvasFactory            : CanvasFactory,
-        private val focusManager             : FocusManager?
+    private val textMetrics              : TextMetrics,
+    private val htmlFactory              : HtmlFactory,
+    private val nativeEventHandlerFactory: NativeEventHandlerFactory,
+    private val canvasFactory            : CanvasFactory,
+    private val focusManager             : FocusManager?,
+    private val accessibilityManager     : AccessibilityManager?
 ): NativeHyperLinkFactory {
     override fun invoke(hyperLink: HyperLink, customRenderer: ((HyperLink, Canvas) -> Unit)?) = NativeHyperLink(
-            textMetrics,
-            htmlFactory,
-            nativeEventHandlerFactory,
-            focusManager,
-            canvasFactory,
-            customRenderer,
-            hyperLink)
+        textMetrics,
+        htmlFactory,
+        nativeEventHandlerFactory,
+        focusManager,
+        accessibilityManager,
+        canvasFactory,
+        customRenderer,
+        hyperLink)
 }
 
 internal class NativeHyperLink internal constructor(
-        private val textMetrics   : TextMetrics,
-                    htmlFactory   : HtmlFactory,
-                    handlerFactory: NativeEventHandlerFactory,
-        private val focusManager  : FocusManager?,
-        private val canvasFactory : CanvasFactory,
-        private val customRenderer: ((HyperLink, Canvas) -> Unit)?,
-        private val hyperLink     : HyperLink): NativeEventListener {
+    private val textMetrics         : TextMetrics,
+                htmlFactory         : HtmlFactory,
+                handlerFactory      : NativeEventHandlerFactory,
+    private val focusManager        : FocusManager?,
+    private val accessibilityManager: AccessibilityManager?,
+    private val canvasFactory       : CanvasFactory,
+    private val customRenderer      : ((HyperLink, Canvas) -> Unit)?,
+    private val hyperLink           : HyperLink): NativeEventListener {
 
     var idealSize: Size? = null
         private set
@@ -70,6 +74,12 @@ internal class NativeHyperLink internal constructor(
         }
 
         target = "_blank"
+
+        if (accessibilityManager != null) {
+            hyperLink.accessibilityLabel?.let {
+                setAttribute("aria-label", it)
+            }
+        }
 
         style.setOverflow     (Visible())
         style.setWidthPercent (100.0    )

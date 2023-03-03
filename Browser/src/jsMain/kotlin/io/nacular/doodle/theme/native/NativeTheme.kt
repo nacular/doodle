@@ -119,8 +119,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull()) }
-            bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                      ) }
+            bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
+            bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                                        ) }
 
             bindBehavior<HyperLink>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
