@@ -220,7 +220,7 @@ internal class DisplayImpl(
         child in children
     } else false
 
-    override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at)?.as2d() ?: at).let { point ->
+    override fun child(at: Point): View? = fromAbsolute(at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
             null, LookupResult.Ignored -> {
                 var child = null as View?

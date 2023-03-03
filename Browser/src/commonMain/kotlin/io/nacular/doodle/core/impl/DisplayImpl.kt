@@ -230,7 +230,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = (resolvedTransform.inverse?.invoke(at)?.as2d() ?: at).let { point ->
+    override fun child(at: Point): View? = fromAbsolute(at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
             null, Ignored -> {
                 var child     = null as View?
@@ -320,8 +320,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     }
 
     private val resolvedTransform get() = when {
-        mirrored -> augmentedTransform.flipHorizontally(at = width / 2)
-        else     -> augmentedTransform
+        mirrored -> transform.flipHorizontally(at = width / 2)
+        else     -> transform
     }
 
     private fun updateTransform() {
