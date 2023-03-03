@@ -85,10 +85,12 @@ import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.IdGenerator
+import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Justify
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.splitMatches
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
@@ -168,7 +170,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
         StyledText(text, font, foreground = fill).first().let { (text, style) ->
@@ -176,7 +178,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
         var offset = at
@@ -440,7 +442,7 @@ internal open class VectorRendererSvg constructor(
         at: Point,
         leftMargin: Double,
         rightMargin: Double,
-        alignment: HorizontalAlignment,
+        alignment: TextAlignment,
         lineSpacing: Float,
         letterSpacing: Double
     ): Point {
@@ -460,9 +462,10 @@ internal open class VectorRendererSvg constructor(
 
             if (endX > rightMargin) {
                 val startX = when (alignment) {
-                    Left   -> currentPoint.x
-                    Center -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
-                    else   -> rightMargin - currentLineWidth
+                    Start   -> currentPoint.x
+                    Center  -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
+                    End     -> rightMargin - currentLineWidth
+                    Justify -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2 // FIXME: Implement
                 }
 
                 lines += line to Point(startX, currentPoint.y)
@@ -483,9 +486,10 @@ internal open class VectorRendererSvg constructor(
         if (line.isNotBlank()) {
             val lineWidth = textMetrics.width(line, style.font)
             val startX    = when (alignment) {
-                Left   -> currentPoint.x
-                Center -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2
-                else   -> rightMargin - lineWidth
+                Start   -> currentPoint.x
+                Center  -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2
+                End     -> rightMargin - lineWidth
+                Justify -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2 // FIXME: Implement
             }
             endX          = startX + lineWidth
 

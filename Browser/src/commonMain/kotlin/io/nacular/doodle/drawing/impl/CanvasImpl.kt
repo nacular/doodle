@@ -55,7 +55,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
@@ -143,7 +143,7 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         when {
             text.isEmpty() || !fill.visible -> return
             fill is ColorPaint              -> {
@@ -166,7 +166,7 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double) {
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         when {
             isSimple(text) -> {
                 updateRenderPosition()
@@ -467,7 +467,7 @@ internal open class CanvasImpl(
 
     private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, letterSpacing: Double) = configure(textFactory.create(text, font, letterSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
 
-    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
+    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(
             text,
@@ -487,7 +487,7 @@ internal open class CanvasImpl(
         style.translate(at)
     }
 
-    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
+    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double): HTMLElement {
         val indent  = max(0.0, at.x - leftMargin)
         val element = textFactory.wrapped(
             text          = text,

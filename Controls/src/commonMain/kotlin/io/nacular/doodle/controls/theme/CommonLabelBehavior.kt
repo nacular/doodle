@@ -17,10 +17,11 @@ import io.nacular.doodle.text.TextDecoration
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
-import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.HorizontalAlignment.Left
-import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.PropertyObserver
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Justify
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.VerticalAlignment.Bottom
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
@@ -77,10 +78,11 @@ public open class CommonLabelBehavior(
             }
 
             val x = if (!wrapsWords) {
-                when (horizontalAlignment) {
-                    Left   -> 0.0
-                    Center -> (width - textSize.width) / 2
-                    Right  ->  width - textSize.width
+                when (textAlignment) {
+                    Start   -> 0.0
+                    Center  -> (width - textSize.width) / 2
+                    End     ->  width - textSize.width
+                    Justify -> 0.0
                 }
             } else 0.0
 
@@ -120,7 +122,7 @@ public open class CommonLabelBehavior(
             }
 
             if (wrapsWords) {
-                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.horizontalAlignment, lineSpacing = view.lineSpacing, letterSpacing = view.letterSpacing)
+                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.textAlignment, lineSpacing = view.lineSpacing, letterSpacing = view.letterSpacing)
             } else {
                 canvas.text(renderedText, Point(x, y), letterSpacing = letterSpacing)
             }
@@ -129,13 +131,13 @@ public open class CommonLabelBehavior(
 
     override fun measureText(label: Label): Size {
         val height = when {
-            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing) else textMetrics.height(label.styledText)
+            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing, letterSpacing = label.letterSpacing) else textMetrics.height(label.styledText)
             else                                                      -> 0.0
         }
 
         val width = when {
-            Width in label.fitText || label.horizontalAlignment != Left -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, letterSpacing = label.letterSpacing) else textMetrics.width(label.styledText, letterSpacing = label.letterSpacing)
-            else                                                        -> 0.0
+            Width in label.fitText || label.textAlignment != Start    -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, letterSpacing = label.letterSpacing) else textMetrics.width(label.styledText, letterSpacing = label.letterSpacing)
+            else                                                      -> 0.0
         }
 
         return Size(width, height)

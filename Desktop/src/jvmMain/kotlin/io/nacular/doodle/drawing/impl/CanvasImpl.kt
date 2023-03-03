@@ -48,10 +48,11 @@ import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Style
 import io.nacular.doodle.theme.native.textStyle
-import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.HorizontalAlignment.Left
-import io.nacular.doodle.utils.HorizontalAlignment.Right
+import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Justify
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.isOdd
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.radians
@@ -88,9 +89,9 @@ import org.jetbrains.skia.paragraph.PlaceholderStyle
 import kotlin.Float.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 import org.jetbrains.skia.Canvas as SkiaCanvas
-import org.jetbrains.skia.Font   as SkiaFont
-import org.jetbrains.skia.Paint  as SkiaPaint
-import org.jetbrains.skia.Path   as SkiaPath
+import org.jetbrains.skia.Font as SkiaFont
+import org.jetbrains.skia.Paint as SkiaPaint
+import org.jetbrains.skia.Path as SkiaPath
 
 internal class PatternCanvasWrapper(private val canvas: Canvas): PatternCanvas, CommonCanvas by canvas {
     override fun transform(transform: AffineTransform, block: PatternCanvas.() -> Unit) = canvas.transform(transform) { block(this@PatternCanvasWrapper) }
@@ -265,7 +266,7 @@ internal class CanvasImpl(
     }
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double) {
-        paragraph(text, font, at, fill = fill, alignment = Left, lineHeight = 1f, letterSpacing = letterSpacing).apply {
+        paragraph(text, font, at, fill = fill, alignment = Start, lineHeight = 1f, letterSpacing = letterSpacing).apply {
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
@@ -291,7 +292,7 @@ internal class CanvasImpl(
         leftMargin: Double,
         rightMargin: Double,
         fill: Paint,
-        alignment: HorizontalAlignment,
+        alignment: TextAlignment,
         lineSpacing: Float,
         letterSpacing: Double
     ) {
@@ -311,7 +312,7 @@ internal class CanvasImpl(
         at: Point,
         leftMargin: Double,
         rightMargin: Double,
-        alignment: HorizontalAlignment,
+        alignment: TextAlignment,
         lineSpacing: Float,
         letterSpacing: Double
     ) {
@@ -535,7 +536,7 @@ internal class CanvasImpl(
         leftMargin   : Double? = null,
         rightMargin  : Double? = null,
         fill         : Paint,
-        alignment    : HorizontalAlignment,
+        alignment    : TextAlignment,
         lineHeight   : Float  = 1f,
         letterSpacing: Double = 0.0,
     ) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia(), alignment, lineHeight, letterSpacing)
@@ -547,7 +548,7 @@ internal class CanvasImpl(
         leftMargin   : Double? = null,
         rightMargin  : Double? = null,
         paint        : SkiaPaint,
-        alignment    : HorizontalAlignment,
+        alignment    : TextAlignment,
         lineHeight   : Float  = 1f,
         letterSpacing: Double = 0.0
     ): Paragraph {
@@ -578,18 +579,19 @@ internal class CanvasImpl(
         return paragraph
     }
 
-    private val HorizontalAlignment.skia: Alignment get() = when (this) {
-        Left   -> Alignment.LEFT
-        Center -> Alignment.CENTER
-        Right  -> Alignment.RIGHT
+    private val TextAlignment.skia: Alignment get() = when (this) {
+        Start   -> Alignment.LEFT
+        Center  -> Alignment.CENTER
+        End     -> Alignment.RIGHT
+        Justify -> Alignment.JUSTIFY
     }
 
     private fun StyledText.paragraph(
-        paint        : SkiaPaint?          = null,
-        alignment    : HorizontalAlignment = Left,
-        lineHeight   : Float               = 1f,
-        letterSpacing: Double              = 0.0,
-        indent       : Double              = 0.0,
+        paint        : SkiaPaint?    = null,
+        alignment    : TextAlignment = Start,
+        lineHeight   : Float         = 1f,
+        letterSpacing: Double        = 0.0,
+        indent       : Double        = 0.0,
     ): Paragraph {
         val builder = ParagraphBuilder(ParagraphStyle().apply {
             this.alignment = alignment.skia

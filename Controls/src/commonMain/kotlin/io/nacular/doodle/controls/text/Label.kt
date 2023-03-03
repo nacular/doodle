@@ -12,7 +12,10 @@ import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.HorizontalAlignment.Center
+import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.dimensionSetProperty
@@ -26,14 +29,10 @@ public interface LabelBehavior: Behavior<Label> {
 }
 
 public open class Label(
-    styledText         : StyledText          = StyledText(""),
-    verticalAlignment  : VerticalAlignment   = Middle,
-    horizontalAlignment: HorizontalAlignment = Center): View() {
-
-    public constructor(
-            text               : String,
-            verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment = Center): this(StyledText(text), verticalAlignment, horizontalAlignment)
+    styledText         : StyledText        = StyledText(""),
+    verticalAlignment  : VerticalAlignment = Middle,
+    horizontalAlignment: TextAlignment     = Center
+): View() {
 
     public var fitText: Set<Dimension> by dimensionSetProperty(setOf(Width, Height)) { _,_ -> measureText() }
 
@@ -53,7 +52,7 @@ public open class Label(
     // this is the styled-text that is set by a caller
     private var actualStyledText = styledText
         set(new) {
-            field = new
+            field             = new
             visibleStyledText = field.copy()
 
             measureText()
@@ -76,7 +75,13 @@ public open class Label(
         }
 
     public var verticalAlignment  : VerticalAlignment   by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
-    public var horizontalAlignment: HorizontalAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
+
+    @Deprecated("Use TextAlignment instead", ReplaceWith("textAlignment", imports = arrayOf("io.nacular.doodle.utils.TextAlignment")))
+    public var horizontalAlignment: HorizontalAlignment get() = textAlignment.horizontalAlignment; set(value) {
+        textAlignment = value.textAlignment
+    }
+
+    public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
 
     public var lineSpacing  : Float  by observable(1f) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
@@ -135,4 +140,35 @@ public open class Label(
     }
 
     override fun render(canvas: Canvas) { behavior?.render(this, canvas) }
+
+    public companion object {
+        private val HorizontalAlignment.textAlignment get() = when (this) {
+            HorizontalAlignment.Left  -> Start
+            HorizontalAlignment.Center -> Center
+            HorizontalAlignment.Right  -> End
+        }
+
+        private val TextAlignment.horizontalAlignment get() = when (this) {
+            Center -> HorizontalAlignment.Center
+            else   -> HorizontalAlignment.Center
+        }
+
+        public operator fun invoke(
+            text               : String,
+            verticalAlignment  : VerticalAlignment = Middle,
+            horizontalAlignment: TextAlignment     = Center
+        ): Label = Label(StyledText(text), verticalAlignment, horizontalAlignment)
+
+        public operator fun invoke(
+            text               : String,
+            verticalAlignment  : VerticalAlignment   = Middle,
+            horizontalAlignment: HorizontalAlignment
+        ): Label = Label(StyledText(text), verticalAlignment, horizontalAlignment)
+
+        public operator fun invoke(
+            styledText         : StyledText          = StyledText(""),
+            verticalAlignment  : VerticalAlignment   = Middle,
+            horizontalAlignment: HorizontalAlignment
+        ): Label = Label(styledText, verticalAlignment, horizontalAlignment)
+    }
 }

@@ -14,7 +14,10 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.HorizontalAlignment.Left
+import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 
@@ -145,7 +148,54 @@ public interface CommonCanvas: Renderer {
      * @param rightMargin where text wraps
      * @param fill to fill with
      * @param alignment of text
-     * @param lineSpacing of text (1 = spacing for this font)
+     */
+    @Deprecated("Use version with TextAlignment")
+    public fun wrapped(
+        text         : String,
+        font         : Font? = null,
+        at           : Point = Origin,
+        leftMargin   : Double,
+        rightMargin  : Double,
+        fill         : Paint,
+        alignment    : HorizontalAlignment = HorizontalAlignment.Left,
+    ): Unit = wrapped(text, font, at, leftMargin, rightMargin, fill, alignment.textAlignment)
+
+    /**
+     * Draws wrapped styled text.
+     *
+     * @param text to draw
+     * @param at this point
+     * @param leftMargin where text wraps
+     * @param rightMargin where text wraps
+     * @param alignment of text
+     */
+    @Deprecated("Use version with TextAlignment")
+    public fun wrapped(
+        text         : StyledText,
+        at           : Point = Origin,
+        leftMargin   : Double,
+        rightMargin  : Double,
+        alignment    : HorizontalAlignment = HorizontalAlignment.Left,
+    ): Unit = wrapped(text, at, leftMargin, rightMargin, alignment.textAlignment)
+
+    private val HorizontalAlignment.textAlignment get() = when (this) {
+        HorizontalAlignment.Left  -> Start
+        HorizontalAlignment.Center -> Center
+        HorizontalAlignment.Right  -> End
+    }
+
+    /**
+     * Draws wrapped plain text.
+     *
+     * @param text to draw
+     * @param font to use
+     * @param at this point
+     * @param leftMargin where text wraps
+     * @param rightMargin where text wraps
+     * @param fill to fill with
+     * @param alignment of text
+     * @param lineSpacing of text in % (1 = spacing for this font)
+     * @param letterSpacing of text in pixels
      */
     public fun wrapped(
         text         : String,
@@ -154,7 +204,7 @@ public interface CommonCanvas: Renderer {
         leftMargin   : Double,
         rightMargin  : Double,
         fill         : Paint,
-        alignment    : HorizontalAlignment = Left,
+        alignment    : TextAlignment = Start,
         lineSpacing  : Float  = 1f,
         letterSpacing: Double = 0.0
     )
@@ -167,14 +217,15 @@ public interface CommonCanvas: Renderer {
      * @param leftMargin where text wraps
      * @param rightMargin where text wraps
      * @param alignment of text
-     * @param lineSpacing of text (1 = spacing for this font)
+     * @param lineSpacing of text in % (1 = spacing for this font)
+     * @param letterSpacing of text in pixels
      */
     public fun wrapped(
         text         : StyledText,
         at           : Point = Origin,
         leftMargin   : Double,
         rightMargin  : Double,
-        alignment    : HorizontalAlignment = Left,
+        alignment    : TextAlignment = Start,
         lineSpacing  : Float  = 1f,
         letterSpacing: Double = 0.0
     )

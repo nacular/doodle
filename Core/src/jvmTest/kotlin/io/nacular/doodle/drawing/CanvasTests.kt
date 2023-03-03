@@ -17,7 +17,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.TextAlignment
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
@@ -50,13 +50,13 @@ private class TestCanvas: Canvas {
 
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) {}
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint) {}
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double) {}
 
-    override fun text(text: StyledText, at: Point) {}
+    override fun text(text: StyledText, at: Point, letterSpacing: Double) {}
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: HorizontalAlignment, lineSpacing: Float) {}
+    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {}
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: HorizontalAlignment, lineSpacing: Float) {}
+    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {}
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {}
 

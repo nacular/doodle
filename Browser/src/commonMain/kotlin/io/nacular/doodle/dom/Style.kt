@@ -26,11 +26,12 @@ import io.nacular.doodle.text.TextDecoration.Thickness
 import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
 import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.textDecorationThickness
-import io.nacular.doodle.utils.HorizontalAlignment
-import io.nacular.doodle.utils.HorizontalAlignment.Center
-import io.nacular.doodle.utils.HorizontalAlignment.Left
-import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.SquareMatrix
+import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.TextAlignment.Center
+import io.nacular.doodle.utils.TextAlignment.End
+import io.nacular.doodle.utils.TextAlignment.Justify
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.measured.units.Angle.Companion.degrees
 import kotlin.math.max
 
@@ -45,11 +46,12 @@ internal val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent   (value: Double) { textIndent = em(value, true) }
-internal fun Style.setTextAlignment(alignment: HorizontalAlignment) {
+internal fun Style.setTextAlignment(alignment: TextAlignment) {
     textAlign = when (alignment) {
-        Left   -> "left"
-        Center -> "center"
-        Right  -> "right"
+        Start   -> "left"
+        Center  -> "center"
+        End     -> "right"
+        Justify -> "justify"
     }
 }
 internal fun Style.setLineHeight(value: Float) {

@@ -10,5 +10,12 @@ public enum class VerticalAlignment {
 public enum class HorizontalAlignment {
     Left,
     Center,
-    Right
+    Right,
+}
+
+public enum class TextAlignment {
+    Start,
+    Center,
+    End,
+    Justify
 }

@@ -24,7 +24,7 @@ import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment
+import io.nacular.doodle.utils.TextAlignment
 
 internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
     override fun create(text: String, font: Font?, letterSpacing: Double, possible: HTMLElement?): HTMLElement {
@@ -78,7 +78,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         font: Font?,
         width: Double,
         indent: Double,
-        alignment: HorizontalAlignment,
+        alignment: TextAlignment,
         lineSpacing: Float,
         letterSpacing: Double,
         possible: HTMLElement?
@@ -94,7 +94,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: String, font: Font?, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
+    override fun wrapped(text: String, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
         text = text,
         font = font,
         letterSpacing = letterSpacing,
@@ -106,7 +106,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         applyWrap(it, indent)
     }
 
-    override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = wrapped(
+    override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = wrapped(
         text = text,
         indent = indent,
         alignment = alignment,
@@ -117,13 +117,13 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: StyledText, indent: Double, alignment: HorizontalAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
-        text = text,
+    override fun wrapped(text: StyledText, indent: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = create(
+        text          = text,
         letterSpacing = letterSpacing,
-        possible = possible
+        possible      = possible
     ).also {
-        it.style.setLineHeight   (lineSpacing )
-        it.style.setTextAlignment(alignment   )
+        it.style.setLineHeight   (lineSpacing  )
+        it.style.setTextAlignment(alignment    )
         it.style.setLetterSpacing(letterSpacing)
 
         if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {

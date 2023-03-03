@@ -10,54 +10,11 @@ import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.letterSpacing
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
+import io.nacular.doodle.utils.TextAlignment.Start
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.math.max
-
-
-private class WrappedInfo(val text: String, val width: Double, val indent: Double, val font: Font?) {
-    override fun hashCode(): Int {
-        var result = text.hashCode()
-        result = 31 * result + width.hashCode()
-        result = 31 * result + indent.hashCode()
-        result = 31 * result + (font?.hashCode() ?: 0)
-        return result
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is WrappedInfo) return false
-
-        if (text != other.text) return false
-        if (width != other.width) return false
-        if (indent != other.indent) return false
-        if (font != other.font) return false
-
-        return true
-    }
-}
-
-private class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is WrappedStyleInfo) return false
-
-        if (text != other.text) return false
-        if (width != other.width) return false
-        if (indent != other.indent) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = text.hashCode()
-        result = 31 * result + width.hashCode()
-        result = 31 * result + indent.hashCode()
-        return result
-    }
-}
 
 internal class TextMetricsImpl(
         private val textFactory   : TextFactory,
@@ -66,12 +23,15 @@ internal class TextMetricsImpl(
         private val fontSerializer: FontSerializer,
                     cacheLength   : Int
 ): TextMetrics {
-    private data class WidthInfo(val text: String, val font: Font?, val letterSpacing: Double = 0.0)
+    private data class TextInfo        (val text: String,     val font: Font?,  val letterSpacing: Double = 0.0)
+    private data class StyledTextInfo  (val text: StyledText,                   val letterSpacing: Double = 0.0)
+    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val letterSpacing: Double)
+    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double, val letterSpacing: Double)
 
-    private val widths              = LeastRecentlyUsedCache<WidthInfo, Double>        (maxSize = cacheLength)
-    private val styledWidths        = LeastRecentlyUsedCache<StyledText, Double>      (maxSize = cacheLength)
-    private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo, Double>     (maxSize = cacheLength)
-    private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double>(maxSize = cacheLength)
+    private val widths              = LeastRecentlyUsedCache<TextInfo,         Double> (maxSize = cacheLength)
+    private val styledWidths        = LeastRecentlyUsedCache<StyledTextInfo,   Double> (maxSize = cacheLength)
+    private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo,      Double> (maxSize = cacheLength)
+    private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double> (maxSize = cacheLength)
 
     private val fontHeights = mutableMapOf<Font?, Double>()
 
@@ -87,19 +47,19 @@ internal class TextMetricsImpl(
         textWidth(text, letterSpacing)
     }
 
-    override fun width(text: String, width: Double, indent: Double, font: Font?, letterSpacing: Double) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font)) {
+    override fun width(text: String, width: Double, indent: Double, font: Font?, letterSpacing: Double) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font, letterSpacing)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Left, lineSpacing = 1f, letterSpacing = letterSpacing))
+        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Start, lineSpacing = 1f, letterSpacing = letterSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
     }
 
-    override fun width(text: StyledText, width: Double, indent: Double, letterSpacing: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent)) {
+    override fun width(text: StyledText, width: Double, indent: Double, letterSpacing: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent, letterSpacing)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Left, lineSpacing = 1f, letterSpacing = letterSpacing))
+        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Start, lineSpacing = 1f, letterSpacing = letterSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -123,21 +83,21 @@ internal class TextMetricsImpl(
     }
 
     override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
-        text = text,
-        font = font,
-        width = width,
-        indent = indent,
-        alignment = Left,
-        lineSpacing = lineSpacing,
+        text          = text,
+        font          = font,
+        width         = width,
+        indent        = indent,
+        alignment     = Start,
+        lineSpacing   = lineSpacing,
         letterSpacing = letterSpacing,
     ))
 
     override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
-        text = text,
-        width = width,
-        indent = indent,
-        alignment = Left,
-        lineSpacing = lineSpacing,
+        text          = text,
+        width         = width,
+        indent        = indent,
+        alignment     = Start,
+        lineSpacing   = lineSpacing,
         letterSpacing = letterSpacing,
     ))
 
