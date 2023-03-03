@@ -19,7 +19,6 @@ import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.scrollTo
 import io.nacular.doodle.dom.setOverflow
-import io.nacular.doodle.dom.setOverflowX
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -109,9 +108,11 @@ internal class NativeScrollPanel internal constructor(
     private val contentChanged: (ScrollPanel, View?, View?) -> Unit = { _,old,new ->
         old?.let { view ->
             graphicsDevice[view].let {
+                it.rootElement.style.willChange = ""
+
                 it.removedFromNativeScroll()
                 rootElement.remove(spacerDiv)
-                rootElement.style.setOverflowX()
+                rootElement.style.setOverflow()
 
                 view.boundsChanged  -= contentBoundsChanged
                 panel.boundsChanged -= boundsChanged
