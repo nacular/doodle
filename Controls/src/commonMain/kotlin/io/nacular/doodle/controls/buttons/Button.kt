@@ -51,7 +51,11 @@ public abstract class Button protected constructor(
 
     public val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl(this) }
 
-    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>)
+    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>) { _,new ->
+        if (accessibilityLabel == null) {
+            accessibilityLabel = new
+        }
+    }
 
     public val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
 
@@ -101,6 +105,8 @@ public abstract class Button protected constructor(
         }
 
         registerModel(model)
+
+        accessibilityLabel = text
     }
 
     override fun render(canvas: Canvas) {

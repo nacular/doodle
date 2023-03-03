@@ -24,7 +24,7 @@ public open class ButtonModelImpl: ButtonModel {
         pressedChanged(old, new)
     }
 
-    override val pointerOverChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl<ButtonModel, Boolean>(this) }
+    override val pointerOverChanged: PropertyObserversImpl<ButtonModel, Boolean> by lazy { PropertyObserversImpl(this) }
     override var pointerOver       : Boolean by observable(false, pointerOverChanged)
 
     override var buttonGroup: ButtonGroup? = null
