@@ -63,6 +63,13 @@ public interface Style {
 }
 
 public class StyledText private constructor(internal val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
+    public constructor(text: String, style: Style): this(mutableListOf(MutablePair(text, StyleImpl(
+        font       = style.font,
+        foreground = style.foreground,
+        background = style.background,
+        decoration = style.decoration
+    ))))
+
     public constructor(
         text      : String,
         font      : Font?           = null,
