@@ -62,16 +62,8 @@ public open class ToggleButton protected constructor(
 
     private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
 
-    override fun addedToDisplay() {
-        super.addedToDisplay()
-
-        model.selectedChanged += selectedChanged_
-    }
-
-    override fun removedFromDisplay() {
-        super.removedFromDisplay()
-
-        model.selectedChanged -= selectedChanged_
+    init {
+        super.model.selectedChanged += selectedChanged_
     }
 
     // FIXME: It is possible to assign a non-ToggleButtonModel to these types.  Is that desirable?
@@ -84,8 +76,6 @@ public open class ToggleButton protected constructor(
 
             roleBinding = role.bind(new)
 
-            if (displayed) {
-                super.model.selectedChanged += selectedChanged_
-            }
+            super.model.selectedChanged += selectedChanged_
         }
 }
