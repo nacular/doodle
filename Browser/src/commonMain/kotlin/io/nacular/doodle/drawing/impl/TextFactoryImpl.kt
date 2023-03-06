@@ -107,12 +107,12 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     }
 
     override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double, possible: HTMLElement?) = wrapped(
-        text = text,
-        indent = indent,
-        alignment = alignment,
-        lineSpacing = lineSpacing,
+        text          = text,
+        indent        = indent,
+        alignment     = alignment,
+        lineSpacing   = lineSpacing,
         letterSpacing = letterSpacing,
-        possible = possible
+        possible      = possible
     ).also {
         it.style.setWidth(width)
     }
