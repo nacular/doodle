@@ -10,6 +10,7 @@ import io.nacular.doodle.text.Target.Foreground
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Style.Solid
+import kotlin.math.min
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
@@ -86,7 +87,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         override fun toString(): String = "($first, $second)"
     }
 
-    public val text : String get() = data.joinToString { it.first }
+    public val text : String get() = data.joinToString(separator = "") { it.first }
     public val count: Int    get() = data.size
 
     private var hashCode = data.hashCode()
@@ -106,6 +107,41 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     public operator fun rangeTo(text : StyledText): StyledText = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 
     public fun copy(): StyledText = StyledText(MutableList(data.size) { MutablePair(data[it].first, data[it].second.copy()) })
+
+    public fun isBlank   (): Boolean = data.isEmpty()
+    public fun isNotBlank(): Boolean = !isBlank()
+
+    public override fun toString(): String = data.toString()
+
+    @Internal
+    public fun subString(range: IntRange): StyledText {
+        var wordBoundary = 0
+
+        val newData = mutableListOf<MutablePair<String, StyleImpl>>()
+
+        loop@ for (token in data) {
+            val nextBoundary = wordBoundary + token.first.length
+
+            if (range.first >= nextBoundary) {
+                wordBoundary = nextBoundary
+                continue@loop
+            }
+
+            val (startIndex, endIndex) = when {
+                wordBoundary <= range.first -> range.first - wordBoundary to min(range.last + 1 - wordBoundary, token.first.length)
+                range.last < nextBoundary   -> 0 to range.last + 1 - wordBoundary
+                else                        -> 0 to token.first.length
+            }
+
+            newData += MutablePair(token.first.substring(startIndex, endIndex), token.second)
+
+            if (range.last < nextBoundary) break
+
+            wordBoundary = nextBoundary
+        }
+
+        return StyledText(newData)
+    }
 
     /** @suppress */
     @Internal
@@ -181,13 +217,28 @@ public enum class Target {
 }
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorPaint(it) }.let {
+public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorPaint(it) }.invoke(text, target)
+public operator fun Color?.invoke(text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(text)
+
+//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorFill(this).let {
+//    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
+//}
+//operator fun Color.get(text: StyledText) = text.apply {
+//    data.forEach { (_, style) ->
+//        if (style.foreground == null) {
+//            style.foreground = ColorFill(this@get)
+//        }
+//    }
+//}
+
+// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
+public operator fun Paint?.invoke(text: String, target: Target = Foreground): StyledText = this.let {
     StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
-public operator fun Color?.invoke(text: () -> StyledText): StyledText = text().apply {
+public operator fun Paint?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.foreground == null && this@invoke != null) {
-            style.foreground = ColorPaint(this@invoke)
+            style.foreground = this@invoke
         }
     }
 }

@@ -11,6 +11,7 @@ import io.nacular.doodle.SVGLinearGradientElement
 import io.nacular.doodle.SVGPatternElement
 import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
+import io.nacular.doodle.SVGTextElement
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.Color
@@ -160,6 +161,11 @@ internal fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fil
     null -> none
     else -> "url(#${pattern.id})"
 })
+
+internal fun SVGTextElement.setWordSpacing(spacing: Double) = when (spacing) {
+    0.0  -> removeAttribute("word-spacing"            )
+    else -> setAttribute   ("word-spacing", "$spacing")
+}
 
 internal fun SVGElement.setStroke(stroke: Stroke?) {
     when (stroke) {

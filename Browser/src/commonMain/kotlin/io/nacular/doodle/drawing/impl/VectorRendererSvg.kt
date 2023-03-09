@@ -10,6 +10,7 @@ import io.nacular.doodle.SVGPatternElement
 import io.nacular.doodle.SVGPolygonElement
 import io.nacular.doodle.SVGRadialGradientElement
 import io.nacular.doodle.SVGRectElement
+import io.nacular.doodle.SVGTextElement
 import io.nacular.doodle.clear
 import io.nacular.doodle.clipPath
 import io.nacular.doodle.dom.DominantBaseline.TextBeforeEdge
@@ -54,6 +55,7 @@ import io.nacular.doodle.dom.setStrokeColor
 import io.nacular.doodle.dom.setStrokePattern
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTransform
+import io.nacular.doodle.dom.setWordSpacing
 import io.nacular.doodle.dom.setX1
 import io.nacular.doodle.dom.setX2
 import io.nacular.doodle.dom.setY1
@@ -161,11 +163,15 @@ internal open class VectorRendererSvg constructor(
     }
 
     override fun text(text: StyledText, at: Point, letterSpacing: Double) {
+        textInternal(text, at, letterSpacing)
+    }
+
+    private fun textInternal(text: StyledText, at: Point, letterSpacing: Double, wordSpacing: Double = 0.0) {
         when {
             text.count > 0 -> {
                 syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
-                completeOperation(makeStyledText(text, at, letterSpacing))
+                completeOperation(makeStyledText(text, at, letterSpacing, wordSpacing))
             }
         }
     }
@@ -173,19 +179,13 @@ internal open class VectorRendererSvg constructor(
     override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
-        StyledText(text, font, foreground = fill).first().let { (text, style) ->
-            wrappedText(text, style, at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
-        }
+        wrappedText(StyledText(text, font, foreground = fill), at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
     }
 
     override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double) {
         syncShadows()
 
-        var offset = at
-
-        text.forEach { (text, style) ->
-            offset = wrappedText(text, style, offset, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
-        }
+        wrappedText(text, at, leftMargin, rightMargin, alignment, lineSpacing, letterSpacing)
     }
 
     private var shadows = mutableListOf<Shadow>()
@@ -387,28 +387,22 @@ internal open class VectorRendererSvg constructor(
         setStroke(null)
     }
 
-    private fun makeStyledText(text: StyledText, at: Point, letterSpacing: Double) = createOrUse<SVGElement>("text").apply {
+    private fun makeStyledText(text: StyledText, at: Point, letterSpacing: Double, wordSpacing: Double) = createOrUse<SVGTextElement>("text").apply {
         setPosition(at)
-
-        val oldRenderPosition = renderPosition
 
         text.forEach { (text, style) ->
             val background: SVGElement? = (style.background?.takeIf { it is ColorPaint } as? ColorPaint?)?.let { textBackground(it) }?.also {
                 completeOperation(it)
             }
 
+            setWordSpacing(wordSpacing)
+
             add(makeTextSegment(text, style, letterSpacing).also { segment ->
                 background?.let {
                     segment.style.filter = "url(#${it.id})"
                 }
             })
-
-            renderPosition = renderPosition?.nextSibling
         }
-
-        flush()
-
-        renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
     private fun makeTextSegment(text: String, style: Style, letterSpacing: Double) = createOrUse<SVGElement>("tspan").apply {
@@ -429,16 +423,17 @@ internal open class VectorRendererSvg constructor(
             this.style.setFont(it)
         }
 
-        // TODO: Support Background, TextDecoration
+        this.style.setTextDecoration(style.decoration)
 
         style.foreground?.let {
             fillElement(this, it, true)
         } ?: setDefaultFill()
     }
 
+    private data class LineInfo(val text: StyledText, val position: Point, val wordSpacing: Double)
+
     private fun wrappedText(
-        text: String,
-        style: Style,
+        text: StyledText,
         at: Point,
         leftMargin: Double,
         rightMargin: Double,
@@ -446,58 +441,84 @@ internal open class VectorRendererSvg constructor(
         lineSpacing: Float,
         letterSpacing: Double
     ): Point {
-        val lines              = mutableListOf<Pair<String, Point>>()
-        val (words, remaining) = text.splitMatches("""\s""".toRegex()).run { matches to remaining }
-        var line               = ""
-        var lineTest           : String
+        val lines              = mutableListOf<LineInfo>()
+        val (words, remaining) = text.text.splitMatches("""\s""".toRegex()).run { matches to remaining }
+        var line               = StyledText("")
+        var lineTest           : StyledText
         var currentPoint       = at
         var endX               = currentPoint.x
         var currentLineWidth   = 0.0
+        var oldLineWidth       = 0.0
+        var numWords           = 0
 
-        val handleWord = { word: String, delimiter: String ->
-            lineTest      = line + word + delimiter
-            val lineWidth = textMetrics.width(lineTest, style.font)
+        val calcStartX = { isLast: Boolean ->
+            var wordSpacing = 0.0
+
+            when (alignment) {
+                Start   -> currentPoint.x
+                Center  -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
+                End     -> rightMargin - currentLineWidth
+                Justify -> currentPoint.x.also {
+                    if (!isLast && numWords > 1) {
+                        wordSpacing = (rightMargin - leftMargin - oldLineWidth) / (numWords - 1)
+                        println("$wordSpacing = ($rightMargin - $leftMargin - $oldLineWidth) / ($numWords - 1)")
+                    }
+                }
+            } to wordSpacing
+        }
+
+        val handleWord = { delimiter: StyledText, word: StyledText ->
+            lineTest      = line.copy() + delimiter.copy() + word.copy()
+            val lineWidth = textMetrics.width(lineTest)
 
             endX = currentPoint.x + lineWidth
 
             if (endX > rightMargin) {
-                val startX = when (alignment) {
-                    Start   -> currentPoint.x
-                    Center  -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
-                    End     -> rightMargin - currentLineWidth
-                    Justify -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2 // FIXME: Implement
-                }
+                val (startX, wordSpacing) = calcStartX(false)
 
-                lines += line to Point(startX, currentPoint.y)
+                lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
 
-                line         = word + delimiter
-                currentPoint = Point(leftMargin, at.y + lines.size * (lineSpacing + (style.font?.size ?: defaultFontSize).toDouble()))
+                line            = word.copy()
+                val fontLeading = 1.2 // FIXME: Get real value from font
+                val offsetY     = lines.size * lineSpacing * fontLeading * word.maxOf { it.second.font?.size ?: defaultFontSize }
+
+                currentPoint = Point(leftMargin, at.y + offsetY)
                 endX         = startX + currentLineWidth
+                numWords     = 1
             } else {
-                line             = lineTest
-                currentLineWidth = lineWidth
+                ++numWords
+                line              = lineTest
+                currentLineWidth  = lineWidth
             }
+
+            oldLineWidth = lineWidth
         }
 
-        words.forEach { handleWord(it.match, it.delimiter) }
+        var startCharIndex = 0
+        var previousDelimiter = StyledText("")
 
-        handleWord(remaining, "")
+        words.forEach { chunk ->
+            val word        = text.subString(startCharIndex until startCharIndex + chunk.match.length)
+            startCharIndex += chunk.match.length
+
+            handleWord(previousDelimiter, word)
+
+            previousDelimiter = text.subString(startCharIndex until startCharIndex + chunk.delimiter.length)
+            startCharIndex += chunk.delimiter.length
+        }
+
+        handleWord(previousDelimiter, text.subString(startCharIndex until startCharIndex + remaining.length))
 
         if (line.isNotBlank()) {
-            val lineWidth = textMetrics.width(line, style.font)
-            val startX    = when (alignment) {
-                Start   -> currentPoint.x
-                Center  -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2
-                End     -> rightMargin - lineWidth
-                Justify -> currentPoint.x + (rightMargin - leftMargin - lineWidth) / 2 // FIXME: Implement
-            }
+            val (startX, wordSpacing) = calcStartX(true)
+            val lineWidth = textMetrics.width(line)
             endX          = startX + lineWidth
 
-            lines += line to Point(startX, currentPoint.y)
+            lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
         }
 
-        lines.filter { it.first.isNotBlank() }.forEach { (text, at) ->
-            text(StyledText(text, style.font, foreground = style.foreground, background = style.background, decoration = style.decoration), at, letterSpacing)
+        lines.filter { it.text.isNotBlank() }.forEach { (text, at, wordSpacing) ->
+            textInternal(text, at, letterSpacing, wordSpacing)
         }
 
         return Point(endX, currentPoint.y)
@@ -711,7 +732,7 @@ internal open class VectorRendererSvg constructor(
 
         addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
             setAttribute(`in`,       "SourceGraphic")
-            setAttribute("operator", "and"          )
+            setAttribute("operator", "over"         )
         }, index)
 
         renderPosition = renderPosition?.nextSibling
