@@ -169,6 +169,6 @@ public open class Label(
             styledText         : StyledText          = StyledText(""),
             verticalAlignment  : VerticalAlignment   = Middle,
             horizontalAlignment: HorizontalAlignment
-        ): Label = Label(styledText, verticalAlignment, horizontalAlignment)
+        ): Label = Label(styledText, verticalAlignment, horizontalAlignment.textAlignment)
     }
 }
