@@ -30,6 +30,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -380,7 +381,7 @@ internal class NativeButton internal constructor(
                 textElement?.let { buttonElement.remove(it) }
 
                 textElement = if (field.isNotEmpty()) {
-                    textFactory.create(field, button.font, letterSpacing = 0.0).also {
+                    textFactory.create(field, button.font, textSpacing = default).also {
                         buttonElement.insert(it, 0)
                     }
                 } else {

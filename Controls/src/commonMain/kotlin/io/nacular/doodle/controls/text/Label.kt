@@ -83,7 +83,8 @@ public open class Label(
 
     public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
 
-    public var lineSpacing  : Float  by observable(1f) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
+    public var lineSpacing  : Float  by observable(1f ) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
+    public var wordSpacing  : Double by observable(0.0) { _,_ -> measureText(); rerender() }
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
     internal val _textSize get() = textSize

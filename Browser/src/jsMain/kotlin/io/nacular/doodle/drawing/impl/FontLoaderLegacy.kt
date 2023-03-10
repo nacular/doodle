@@ -10,6 +10,7 @@ import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Found
 import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Pending
 import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -59,9 +60,9 @@ internal class FontLoaderLegacy(
                         fonts[hash] = Pending
                         val families = families.joinToString(",")
 
-                        val text1 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, serif"          ), letterSpacing = 0.0)
-                        val text2 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, san-serif"      ), letterSpacing = 0.0)
-                        val text3 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, $DEFAULT_FAMILY"), letterSpacing = 0.0)
+                        val text1 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, serif"          ), textSpacing = default)
+                        val text2 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, san-serif"      ), textSpacing = default)
+                        val text3 = textFactory.create(TEXT, FontImpl(size, weight, style, "$families, $DEFAULT_FAMILY"), textSpacing = default)
 
                         // TODO: Consider using approach that adds element and observes size/scroll like: https://github.com/bramstein/fontfaceobserver/blob/master/src/ruler.js
                         scheduler.delayUntil {

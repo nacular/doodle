@@ -25,6 +25,7 @@ import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Thickness
 import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
 import io.nacular.doodle.text.TextDecoration.Thickness.Percent
+import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.textDecorationThickness
 import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.doodle.utils.TextAlignment
@@ -54,16 +55,23 @@ internal fun Style.setTextAlignment(alignment: TextAlignment) {
         Justify -> "justify"
     }
 }
+
 internal fun Style.setLineHeight(value: Float) {
     lineHeight = when {
         value != 1f -> "$value"
         else        -> ""
     }
 }
-internal fun Style.setLetterSpacing(value: Double) {
+
+internal fun Style.setTextSpacing(textSpacing: TextSpacing) {
     letterSpacing = when {
-        value != 0.0 -> "${value}px"
-        else         -> ""
+        textSpacing.letterSpacing != 0.0 -> "${textSpacing.letterSpacing}px"
+        else                             -> ""
+    }
+
+    wordSpacing = when {
+        textSpacing.wordSpacing != 0.0 -> "${textSpacing.wordSpacing}px"
+        else                           -> ""
     }
 }
 

@@ -13,6 +13,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.TextSpacing
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
@@ -118,7 +120,7 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, at: Point = Origin, fill: Paint, letterSpacing: Double = 0.0): Unit = text(text, null, at, fill, letterSpacing)
+    public fun text(text: String, at: Point = Origin, fill: Paint, textSpacing: TextSpacing = default): Unit = text(text, null, at, fill, textSpacing)
 
     /**
      * Draws unwrapped plain text.
@@ -128,7 +130,7 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, font: Font?, at: Point, fill: Paint, letterSpacing: Double = 0.0)
+    public fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing = default)
 
     /**
      * Draws styled text.
@@ -136,7 +138,7 @@ public interface CommonCanvas: Renderer {
      * @param text to draw
      * @param at this point
      */
-    public fun text(text: StyledText, at: Point = Origin, letterSpacing: Double = 0.0)
+    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
 
     /**
      * Draws wrapped plain text.
@@ -195,7 +197,7 @@ public interface CommonCanvas: Renderer {
      * @param fill to fill with
      * @param alignment of text
      * @param lineSpacing of text in % (1 = spacing for this font)
-     * @param letterSpacing of text in pixels
+     * @param textSpacing of text
      */
     public fun wrapped(
         text         : String,
@@ -205,8 +207,8 @@ public interface CommonCanvas: Renderer {
         rightMargin  : Double,
         fill         : Paint,
         alignment    : TextAlignment = Start,
-        lineSpacing  : Float  = 1f,
-        letterSpacing: Double = 0.0
+        lineSpacing  : Float         = 1f,
+        textSpacing  : TextSpacing   = default,
     )
 
     /**
@@ -218,16 +220,16 @@ public interface CommonCanvas: Renderer {
      * @param rightMargin where text wraps
      * @param alignment of text
      * @param lineSpacing of text in % (1 = spacing for this font)
-     * @param letterSpacing of text in pixels
+     * @param textSpacing of text
      */
     public fun wrapped(
-        text         : StyledText,
-        at           : Point = Origin,
-        leftMargin   : Double,
-        rightMargin  : Double,
-        alignment    : TextAlignment = Start,
-        lineSpacing  : Float  = 1f,
-        letterSpacing: Double = 0.0
+        text       : StyledText,
+        at         : Point = Origin,
+        leftMargin : Double,
+        rightMargin: Double,
+        alignment  : TextAlignment = Start,
+        lineSpacing: Float       = 1f,
+        textSpacing: TextSpacing   = default,
     )
 
     /**

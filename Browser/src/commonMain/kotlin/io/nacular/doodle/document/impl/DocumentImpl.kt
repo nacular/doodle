@@ -25,6 +25,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.TextAlignment.Start
 
 /**
@@ -74,14 +75,14 @@ internal class DocumentImpl(
     }
 
     override fun inline(text: StyledText) {
-        root.add(textFactory.wrapped(text, alignment = Start, lineSpacing = 1f, letterSpacing = 0.0).apply {
+        root.add(textFactory.wrapped(text, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
             style.setPosition(Static())
             style.setDisplay (Inline())
         })
     }
 
     override fun inline(text: String, font: Font?) {
-        root.add(textFactory.wrapped(text, font, alignment = Start, lineSpacing = 1f, letterSpacing = 0.0).apply {
+        root.add(textFactory.wrapped(text, font, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
             style.setPosition(Static())
             style.setDisplay (Inline())
         })

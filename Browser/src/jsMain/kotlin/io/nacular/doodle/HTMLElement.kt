@@ -27,6 +27,7 @@ internal actual var CSSStyleDeclaration._webkit_appearance     : String by Dynam
 
 internal actual typealias CanvasRenderingContext2D = org.w3c.dom.CanvasRenderingContext2D
 
+internal actual var CanvasRenderingContext2D.wordSpacing  : String by DynamicProperty("wordSpacing"  ) { "" }
 internal actual var CanvasRenderingContext2D.letterSpacing: String by DynamicProperty("letterSpacing") { "" }
 
 internal actual typealias ElementCSSInlineStyle = org.w3c.dom.css.ElementCSSInlineStyle

@@ -11,6 +11,8 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
+import io.nacular.doodle.text.TextSpacing
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.Anchor
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Left
@@ -46,9 +48,9 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
         view.textChanged -= textChanged
     }
 
-    public fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin, letterSpacing: Double = 0.0): Point {
+    public fun textPosition(button: Button, text: String = button.text, icon: Icon<Button>? = button.icon, bounds: Rectangle = button.bounds.atOrigin, textSpacing: TextSpacing = default): Point {
         var minX       = insets.left
-        val stringSize = textMetrics.size(text, font(button), letterSpacing)
+        val stringSize = textMetrics.size(text, font(button), textSpacing)
         var iconWidth  = 0.0
         var maxX       = bounds.width - stringSize.width - insets.right
 
@@ -133,8 +135,8 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
         button: Button,
         text: String = button.text,
         icon: Icon<Button>,
-        letterSpacing: Double = 0.0,
-        stringPosition: Point = textPosition(button, text, icon, letterSpacing = letterSpacing),
+        textSpacing: TextSpacing = default,
+        stringPosition: Point = textPosition(button, text, icon, textSpacing = textSpacing),
         bounds: Rectangle = button.bounds.atOrigin
     ): Point = iconPosition(button = button, text = text, icon = icon, stringPosition = stringPosition, bounds = bounds)
 

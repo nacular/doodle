@@ -70,6 +70,7 @@ public actual abstract class CSSStyleDeclaration {
     public actual var borderStyle: String         = ""
     public actual var borderColor: String         = ""
     public actual var borderWidth: String         = ""
+    public actual var wordSpacing: String         = ""
     public actual var borderRadius: String        = ""
     public actual var marginBottom: String        = ""
     public actual var outlineWidth: String        = ""
@@ -98,9 +99,11 @@ public actual var CSSStyleDeclaration.touchAction            : String get() = to
 public actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_ = new }
 
 public actual abstract class CanvasRenderingContext2D {
+    internal var _wordSpacing: String = ""
     internal var _letterSpacing: String = ""
 }
 
+public actual var CanvasRenderingContext2D.wordSpacing  : String get() = _wordSpacing; set(new) { _wordSpacing = new }
 public actual var CanvasRenderingContext2D.letterSpacing: String get() = _letterSpacing; set(new) { _letterSpacing = new }
 
 public actual class DOMRect {

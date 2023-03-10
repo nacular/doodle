@@ -10,8 +10,11 @@ import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.letterSpacing
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.TextSpacing
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import io.nacular.doodle.utils.TextAlignment.Start
+import io.nacular.doodle.wordSpacing
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import kotlin.math.max
@@ -23,10 +26,10 @@ internal class TextMetricsImpl(
         private val fontSerializer: FontSerializer,
                     cacheLength   : Int
 ): TextMetrics {
-    private data class TextInfo        (val text: String,     val font: Font?,  val letterSpacing: Double = 0.0)
-    private data class StyledTextInfo  (val text: StyledText,                   val letterSpacing: Double = 0.0)
-    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val letterSpacing: Double)
-    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double, val letterSpacing: Double)
+    private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
+    private data class StyledTextInfo  (val text: StyledText,                    val textSpacing: TextSpacing = default)
+    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val textSpacing: TextSpacing)
+    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double, val textSpacing: TextSpacing)
 
     private val widths              = LeastRecentlyUsedCache<TextInfo,         Double> (maxSize = cacheLength)
     private val styledWidths        = LeastRecentlyUsedCache<StyledTextInfo,   Double> (maxSize = cacheLength)
@@ -37,29 +40,30 @@ internal class TextMetricsImpl(
 
     private val renderingContext = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 
+    private val noWordSpacingSupport   = (renderingContext.wordSpacing   == undefined)
     private val noLetterSpacingSupport = (renderingContext.letterSpacing == undefined)
 
-    override fun width(text: String, font: Font?, letterSpacing: Double) = widths.getOrPut(TextInfo(text, font, letterSpacing)) {
-        textWidth(text, font, letterSpacing)
+    override fun width(text: String, font: Font?, textSpacing: TextSpacing) = widths.getOrPut(TextInfo(text, font, textSpacing)) {
+        textWidth(text, font, textSpacing)
     }
 
-    override fun width(text: StyledText, letterSpacing: Double) = styledWidths.getOrPut(StyledTextInfo(text, letterSpacing)) {
-        textWidth(text, letterSpacing)
+    override fun width(text: StyledText, textSpacing: TextSpacing) = styledWidths.getOrPut(StyledTextInfo(text, textSpacing)) {
+        textWidth(text, textSpacing)
     }
 
-    override fun width(text: String, width: Double, indent: Double, font: Font?, letterSpacing: Double) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font, letterSpacing)) {
+    override fun width(text: String, width: Double, indent: Double, font: Font?, textSpacing: TextSpacing) = wrappedWidths.getOrPut(WrappedInfo(text, width, indent, font, textSpacing)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Start, lineSpacing = 1f, letterSpacing = letterSpacing))
+        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Start, lineSpacing = 1f, textSpacing = textSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
     }
 
-    override fun width(text: StyledText, width: Double, indent: Double, letterSpacing: Double) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent, letterSpacing)) {
+    override fun width(text: StyledText, width: Double, indent: Double, textSpacing: TextSpacing) = wrappedStyledWidths.getOrPut(WrappedStyleInfo(text, width, indent, textSpacing)) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Start, lineSpacing = 1f, letterSpacing = letterSpacing))
+        box.appendChild(textFactory.wrapped(text, width, indent, alignment = Start, lineSpacing = 1f, textSpacing = textSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -67,12 +71,12 @@ internal class TextMetricsImpl(
 
     // Special check for blank added to avoid font black-holing if first text checked is empty string
     override fun height(text: String, font: Font?) = if (text.isBlank()) 0.0 else fontHeights.getOrPut(font) {
-        elementRuler.size(textFactory.create(text, font, letterSpacing = 0.0)).also {
+        elementRuler.size(textFactory.create(text, font, textSpacing = default)).also {
             widths[TextInfo(text, font)] = it.width
         }.height
     }
 
-    override fun height(text: StyledText, letterSpacing: Double): Double  {
+    override fun height(text: StyledText, textSpacing: TextSpacing): Double  {
         var maxHeight = 0.0
 
         text.forEach { (string, style) ->
@@ -82,44 +86,53 @@ internal class TextMetricsImpl(
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
+    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
         text          = text,
         font          = font,
         width         = width,
         indent        = indent,
         alignment     = Start,
         lineSpacing   = lineSpacing,
-        letterSpacing = letterSpacing,
+        textSpacing = textSpacing,
     ))
 
-    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, letterSpacing: Double) = elementRuler.height(textFactory.wrapped(
+    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
         text          = text,
         width         = width,
         indent        = indent,
         alignment     = Start,
         lineSpacing   = lineSpacing,
-        letterSpacing = letterSpacing,
+        textSpacing = textSpacing,
     ))
 
-    private fun textWidth(text: String, font: Font?, letterSpacing: Double): Double {
+    private fun textWidth(text: String, font: Font?, textSpacing: TextSpacing): Double {
+        val notSupported = (textSpacing.wordSpacing   != 0.0 && noWordSpacingSupport  ) ||
+                           (textSpacing.letterSpacing != 0.0 && noLetterSpacingSupport)
+
+
         return when {
-            letterSpacing != 0.0 && noLetterSpacingSupport -> elementRuler.size(textFactory.create(text, font, letterSpacing)).width
+            notSupported -> elementRuler.size(textFactory.create(text, font, textSpacing)).width
             else                                           -> {
                 renderingContext.font = fontSerializer(font)
-                renderingContext.letterSpacing = if (letterSpacing > 0.0) "${letterSpacing}px" else ""
+                renderingContext.wordSpacing   = if (textSpacing.wordSpacing   > 0.0) "${textSpacing.wordSpacing}px"   else ""
+                renderingContext.letterSpacing = if (textSpacing.letterSpacing > 0.0) "${textSpacing.letterSpacing}px" else ""
 
                 renderingContext.measureText(text).width
             }
         }
     }
 
-    private fun textWidth(text: StyledText, letterSpacing: Double): Double {
-        var width = 0.0
+    private fun textWidth(text: StyledText, textSpacing: TextSpacing): Double {
+        var width    = 0.0
+        var numItems = 0
 
         text.forEach { (string, style) ->
-            width += textWidth(string, style.font, letterSpacing)
+            if (string.isNotBlank()) {
+                ++numItems
+                width += textWidth(string, style.font, textSpacing)
+            }
         }
 
-        return width
+        return width + (numItems - 1) * textSpacing.wordSpacing
     }
 }

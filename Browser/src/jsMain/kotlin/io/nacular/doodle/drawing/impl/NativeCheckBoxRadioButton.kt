@@ -26,6 +26,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.Anchor.Right
 import io.nacular.doodle.utils.Anchor.Trailing
 import org.w3c.dom.HTMLElement
@@ -229,7 +230,7 @@ internal class NativeCheckBoxRadioButton(
             textElement?.let { rootElement.remove(it) }
 
             textElement = field.takeIf { it.isNotBlank() }?.let {
-                textFactory.create(it, button.font, letterSpacing = 0.0).also { text ->
+                textFactory.create(it, button.font, textSpacing = default).also { text ->
                     rootElement.insert(text, 0)
 
                     text.style.setMargin (0.0     )

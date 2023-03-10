@@ -14,6 +14,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.TextDecoration
+import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
@@ -121,22 +122,25 @@ public open class CommonLabelBehavior(
                 }
             }
 
-            if (wrapsWords) {
-                canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = view.textAlignment, lineSpacing = view.lineSpacing, letterSpacing = view.letterSpacing)
-            } else {
-                canvas.text(renderedText, Point(x, y), letterSpacing = letterSpacing)
+            val textSpacing = TextSpacing(letterSpacing = letterSpacing, wordSpacing = wordSpacing)
+
+            when {
+                wrapsWords -> canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = textAlignment, lineSpacing = lineSpacing, textSpacing = textSpacing)
+                else       -> canvas.text(renderedText, Point(x, y), textSpacing)
             }
         }
     }
 
     override fun measureText(label: Label): Size {
+        val textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing)
+
         val height = when {
-            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing, letterSpacing = label.letterSpacing) else textMetrics.height(label.styledText)
+            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing, textSpacing = textSpacing) else textMetrics.height(label.styledText)
             else                                                      -> 0.0
         }
 
         val width = when {
-            Width in label.fitText || label.textAlignment != Start    -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, letterSpacing = label.letterSpacing) else textMetrics.width(label.styledText, letterSpacing = label.letterSpacing)
+            Width in label.fitText || label.textAlignment != Start    -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, textSpacing = textSpacing) else textMetrics.width(label.styledText, textSpacing = textSpacing)
             else                                                      -> 0.0
         }
 

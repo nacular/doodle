@@ -67,6 +67,7 @@ public expect abstract class CSSStyleDeclaration {
     internal var borderStyle        : String
     internal var borderColor        : String
     internal var borderWidth        : String
+    internal var wordSpacing        : String
     internal var borderRadius       : String
     internal var marginBottom       : String
     internal var outlineWidth       : String
@@ -90,6 +91,7 @@ internal expect var CSSStyleDeclaration._webkit_appearance     : String
 
 public expect abstract class CanvasRenderingContext2D
 
+internal expect var CanvasRenderingContext2D.wordSpacing  : String
 internal expect var CanvasRenderingContext2D.letterSpacing: String
 
 public expect class DOMRect {

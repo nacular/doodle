@@ -9,6 +9,7 @@ import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 
 
@@ -29,13 +30,13 @@ internal interface VectorRenderer: Renderer {
     fun ellipse(ellipse: Ellipse,           fill: Paint)
     fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint? = null)
 
-    fun text(text: String, font: Font? = null, at: Point, fill: Paint, letterSpacing: Double)
+    fun text(text: String, font: Font? = null, at: Point, fill: Paint, textSpacing: TextSpacing)
 
-    fun text(text: StyledText, at: Point, letterSpacing: Double)
+    fun text(text: StyledText, at: Point, textSpacing: TextSpacing)
 
-    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double)
+    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 
-    fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, letterSpacing: Double)
+    fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 }
 
 internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer
