@@ -6,7 +6,8 @@ include(
 "Controls",
 "Core",
 "Themes",
-"Desktop"
+"Desktop",
+"Modal"
 )
 
 project(":Animation").name = "animation"
@@ -15,3 +16,5 @@ project(":Controls" ).name = "controls"
 project(":Core"     ).name = "core"
 project(":Themes"   ).name = "themes"
 project(":Desktop"  ).name = "desktop"
+// Slowly add tutorial modules
+project(":Modal").name = "modal"
