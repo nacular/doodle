@@ -2,11 +2,58 @@ import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithJsPresetFunctions
+import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithPresetFunctions
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
+
+
+private fun KotlinJsTargetDsl.configure() {
+    compilations.all {
+        kotlinOptions {
+            moduleKind = "umd"
+            sourceMapEmbedSources = "always"
+            freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+        }
+    }
+    browser {
+        testTask {
+            enabled = false
+        }
+    }
+}
+
+
+fun KotlinJsProjectExtension.jsTargets(compiler: KotlinJsCompilerType = defaultJsCompilerType) {
+    js(compiler).configure()
+}
+
+
+fun KotlinTargetContainerWithJsPresetFunctions.jsTargets(compiler: KotlinJsCompilerType = defaultJsCompilerType) {
+    js(compiler).configure()
+}
+
+
+fun KotlinTargetContainerWithPresetFunctions.jvmTargets() {
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+                freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
+            }
+        }
+    }
+}
+
 
 fun KotlinMultiplatformExtension.jsTargets() {
     js {
@@ -14,11 +61,11 @@ fun KotlinMultiplatformExtension.jsTargets() {
 
         compilations.all {
             kotlinOptions {
-                sourceMap  = !releaseBuild
+                sourceMap = !releaseBuild
                 if (sourceMap) {
                     sourceMapEmbedSources = "always"
                 }
-                moduleKind       = "umd"
+                moduleKind = "umd"
                 freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
@@ -30,11 +77,11 @@ fun KotlinMultiplatformExtension.jsTargets() {
     }
 }
 
-fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
+fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
     jvm {
         compilations.all {
             kotlinOptions {
-                this.jvmTarget   = jvmTarget
+                this.jvmTarget = jvmTarget
                 freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
@@ -42,24 +89,24 @@ fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
 }
 
 fun MavenPom.setupPom() {
-    name.set       ("Doodle"                                 )
+    name.set("Doodle")
     description.set("A pure Kotlin, UI framework for the Web")
-    url.set        ("https://github.com/nacular/doodle"      )
+    url.set("https://github.com/nacular/doodle")
     licenses {
         license {
-            name.set("MIT"                                )
-            url.set ("https://opensource.org/licenses/MIT")
+            name.set("MIT")
+            url.set("https://opensource.org/licenses/MIT")
         }
     }
     developers {
         developer {
-            id.set  ("pusolito"     )
+            id.set("pusolito")
             name.set("Nicholas Eddy")
         }
     }
     scm {
-        url.set                ("https://github.com/nacular/doodle.git"      )
-        connection.set         ("scm:git:git://github.com/nacular/doodle.git")
+        url.set("https://github.com/nacular/doodle.git")
+        connection.set("scm:git:git://github.com/nacular/doodle.git")
         developerConnection.set("scm:git:git://github.com/nacular/doodle.git")
     }
 }
@@ -91,16 +138,43 @@ fun Project.setupPublication(dokkaJar: Jar) {
             maven {
                 val releaseBuild = project.hasProperty("release")
 
-                url = uri(when {
-                    releaseBuild -> "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-                    else         -> "https://oss.sonatype.org/content/repositories/snapshots"
-                })
+                url = uri(
+                    when {
+                        releaseBuild -> "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                        else -> "https://oss.sonatype.org/content/repositories/snapshots"
+                    }
+                )
 
                 credentials {
                     username = findProperty("suser")?.toString()
-                    password = findProperty("spwd" )?.toString()
+                    password = findProperty("spwd")?.toString()
                 }
             }
         }
+    }
+}
+
+fun Project.installFullScreenDemo(suffix: String) {
+    try {
+        val webPack = project.tasks.getByName(
+            "jsBrowser${suffix}Webpack",
+            org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack::class
+        )
+
+        tasks.register<Copy>("installFullScreenDemo$suffix") {
+            dependsOn(webPack)
+
+            val kotlinExtension = project.extensions.getByName("kotlin") as KotlinMultiplatformExtension
+            val kotlinSourceSets = kotlinExtension.sourceSets
+
+            val jsFile = webPack.outputFile
+            val commonResources = kotlinSourceSets.getByName("commonMain").resources
+            val jsResources = kotlinSourceSets.getByName("jsMain").resources
+            val docDirectory = "$buildDir/../../docs/${project.name.lowercase().removeSuffix("runner")}"
+
+            from(commonResources, jsResources, jsFile)
+            into(docDirectory)
+        }
+    } catch (ignored: Exception) {
     }
 }
