@@ -45,11 +45,11 @@ fun KotlinTargetContainerWithJsPresetFunctions.jsTargets(compiler: KotlinJsCompi
 }
 
 
-fun KotlinTargetContainerWithPresetFunctions.jvmTargets() {
+fun KotlinTargetContainerWithPresetFunctions.jvmTargets(jvmTarget: String = "11") {
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "11"
+                this.jvmTarget = jvmTarget
                 freeCompilerArgs = listOf("-Xuse-experimental=kotlin.ExperimentalUnsignedTypes")
             }
         }

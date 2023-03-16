@@ -42,7 +42,10 @@ kotlin {
                 val target = "${targetOs}-${targetArch}"
 
                 implementation("io.nacular.doodle:desktop-jvm-$target:$doodleVersion")
-                // api(project(":desktop?"))
+                // This incorrect syntax:  Cannot access class 'org.jetbrains.skia.PathMeasure'.
+                // implementation(project(":desktop"))
+                // I am not sure what the correct syntax should be to specify "desktop-jvm-x64",
+                // but I will not be creating any kotlin desktop apps.
             }
         }
     }
