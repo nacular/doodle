@@ -8,7 +8,8 @@ include(
 "Themes",
 "Desktop",
 "Modal",
-"Contacts"
+"Contacts",
+"ContactsRunner"
 )
 
 project(":Animation").name = "animation"
@@ -20,3 +21,4 @@ project(":Desktop"  ).name = "desktop"
 // Slowly add tutorial example modules
 project(":Modal").name = "modal"
 project(":Contacts").name = "contacts"
+project(":ContactsRunner").name = "contactsrunner"

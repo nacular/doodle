@@ -1,4 +1,3 @@
-
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 
@@ -10,27 +9,27 @@ buildscript {
     }
 
     dependencies {
-        classpath ("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath(kotlin("serialization", version = kotlinVersion))
     }
 }
 
 plugins {
-    id ("org.jetbrains.dokka"        ) version "1.7.20"
-    id ("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("org.jetbrains.dokka") version "1.7.20"
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
     signing
 }
 
 allprojects {
-    apply (plugin = "maven-publish"              )
-    apply (plugin = "signing"                    )
-    apply (plugin = "org.jetbrains.dokka"        )
-    apply (plugin = "org.jetbrains.kotlinx.kover")
+    apply(plugin = "maven-publish")
+    apply(plugin = "signing")
+    apply(plugin = "org.jetbrains.dokka")
+    apply(plugin = "org.jetbrains.kotlinx.kover")
 
     repositories {
         mavenCentral()
-        maven       { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-        mavenLocal  ()
+        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
+        mavenLocal()
     }
 
     val dokkaJar by tasks.creating(Jar::class) {
@@ -64,4 +63,20 @@ allprojects {
             }
         }
     }
+}
+
+
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().download = true
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.0.0"
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().versions.webpackCli.version =
+        "4.10.0"
+}
+
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    // To speed up build times, the Kotlin/JS Gradle plugin only installs the dependencies which are required for a
+    // particular Gradle task.  Such behavior can potentially bring problems when you run multiple Gradle processes in
+    // parallel. When the dependency requirements clash, the two installations of npm packages can cause errors.
+    // See https://kotlinlang.org/docs/whatsnew1420.html#disabling-granular-workspaces
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().disableGranularWorkspaces()
 }
