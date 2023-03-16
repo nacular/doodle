@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.DEVELOPMENT
-import org.jetbrains.kotlin.gradle.targets.js.webpack.WebpackDevtool.EVAL_SOURCE_MAP
-
 plugins {
     kotlin("multiplatform")
     application
@@ -8,37 +5,8 @@ plugins {
 
 kotlin {
 
-    // jsTargets()
+    jsTargetsWithWebpack()
     // jvmTargets()
-
-    js {
-        browser {
-            compilations.all {
-                kotlinOptions {
-                    metaInfo = true
-                    sourceMap = true
-                    sourceMapEmbedSources = "always"
-                    verbose = true
-                }
-            }
-            commonWebpackConfig {
-                devServer?.`open` = false
-                devServer?.`port` = 8080
-                mode = DEVELOPMENT
-                devtool = EVAL_SOURCE_MAP
-                sourceMaps = true
-                showProgress = true
-            }
-        }
-        binaries.executable()
-    }
-
-    /*
-    js {
-        browser()
-        binaries.executable()
-    }
-     */
 
     jvm {
         withJava()

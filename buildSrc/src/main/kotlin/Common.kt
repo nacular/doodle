@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithJsPresetFunction
 import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithPresetFunctions
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import org.jetbrains.kotlin.gradle.targets.js.webpack.WebpackDevtool
 
 
 private fun KotlinJsTargetDsl.configure() {
@@ -73,6 +75,35 @@ fun KotlinMultiplatformExtension.jsTargets() {
             testTask {
                 enabled = false
             }
+        }
+    }
+}
+
+fun KotlinMultiplatformExtension.jsTargetsWithWebpack() {
+    js {
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                sourceMapEmbedSources = "always"
+                moduleKind = "umd"
+                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                metaInfo = true
+                verbose = false
+            }
+        }
+        browser {
+            commonWebpackConfig {
+                devServer?.`open` = false
+                devServer?.`port` = 8080
+                mode = KotlinWebpackConfig.Mode.DEVELOPMENT
+                devtool = WebpackDevtool.EVAL_SOURCE_MAP
+                sourceMaps = true
+                showProgress = true
+            }
+            testTask {
+                enabled = false
+            }
+            binaries.executable()
         }
     }
 }
