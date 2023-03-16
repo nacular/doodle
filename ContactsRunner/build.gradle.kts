@@ -6,16 +6,7 @@ plugins {
 kotlin {
 
     jsTargetsWithWebpack()
-    // jvmTargets()
-
-    jvm {
-        withJava()
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
-    }
+    jvmTargets()
 
     val doodleVersion: String = "0.9.0"
 

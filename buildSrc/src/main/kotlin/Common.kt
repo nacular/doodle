@@ -110,6 +110,7 @@ fun KotlinMultiplatformExtension.jsTargetsWithWebpack() {
 
 fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
     jvm {
+        withJava()
         compilations.all {
             kotlinOptions {
                 this.jvmTarget = jvmTarget
