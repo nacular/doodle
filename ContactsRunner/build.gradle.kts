@@ -40,7 +40,7 @@ kotlin {
                 }
 
                 val target = "${targetOs}-${targetArch}"
-
+                print("Import io.nacular.doodle:desktop-jvm target:  $target") // linux-x64
                 implementation("io.nacular.doodle:desktop-jvm-$target:$doodleVersion")
                 // This incorrect syntax:  Cannot access class 'org.jetbrains.skia.PathMeasure'.
                 // implementation(project(":desktop"))
