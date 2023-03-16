@@ -13,7 +13,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":contacts"))
+                implementation(project(":photos"))
             }
         }
 
@@ -27,21 +27,21 @@ kotlin {
             dependencies {
                 val osName = System.getProperty("os.name")
                 val targetOs = when {
-                    osName == "Mac OS X" -> "macos"
-                    osName.startsWith("Win") -> "windows"
+                    osName == "Mac OS X"       -> "macos"
+                    osName.startsWith("Win"  ) -> "windows"
                     osName.startsWith("Linux") -> "linux"
-                    else -> error("Unsupported OS: $osName")
+                    else                       -> error("Unsupported OS: $osName")
                 }
 
                 val targetArch = when (val osArch = System.getProperty("os.arch")) {
                     "x86_64", "amd64" -> "x64"
-                    "aarch64" -> "arm64"
-                    else -> error("Unsupported arch: $osArch")
+                    "aarch64"         -> "arm64"
+                    else              -> error("Unsupported arch: $osArch")
                 }
 
                 val target = "${targetOs}-${targetArch}"
 
-                implementation("io.nacular.doodle:desktop-jvm-$target:$doodleVersion")
+                implementation ("io.nacular.doodle:desktop-jvm-$target:$doodleVersion")
                 // I want to replace the line above with:
                 //      implementation(project(":desktop"))
                 // But this is incorrect syntax:  Cannot access class 'org.jetbrains.skia.PathMeasure'.
@@ -53,8 +53,8 @@ kotlin {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("io.nacular.doodle.examples.MainKt")
 }
 
 installFullScreenDemo("Development")
-installFullScreenDemo("Production")
+installFullScreenDemo("Production" )

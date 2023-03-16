@@ -5,6 +5,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 [![Chat: on slack](https://img.shields.io/badge/slack-doodle-green.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 
+## My Fork With Tutorial Examples Included
+
+**Never** attempt to create a PR to be merged across forks into the **nacular** repo.
+
+**Never** attempt to merge anything from my fork to the **nacular** repo.
+
 ### Single Language
 Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle Web [Applications](https://nacular.github.io/doodle/docs/applications) do not use HTML,
 CSS styles or Javascript libraries. In fact, apps are not aware of the Browser (or Browser concepts) at all, and can be written entirely
