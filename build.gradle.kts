@@ -74,5 +74,9 @@ rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJ
 }
 
 rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    // To speed up build times, the Kotlin/JS Gradle plugin only installs the dependencies which are required for a
+    // particular Gradle task.  Such behavior can potentially bring problems when you run multiple Gradle processes in
+    // parallel. When the dependency requirements clash, the two installations of npm packages can cause errors.
+    // See https://kotlinlang.org/docs/whatsnew1420.html#disabling-granular-workspaces
     rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().disableGranularWorkspaces()
 }
