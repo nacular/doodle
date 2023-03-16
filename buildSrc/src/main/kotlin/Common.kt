@@ -68,7 +68,7 @@ fun KotlinMultiplatformExtension.jsTargets() {
                     sourceMapEmbedSources = "always"
                 }
                 moduleKind = "umd"
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
         browser {
@@ -86,7 +86,7 @@ fun KotlinMultiplatformExtension.jsTargetsWithWebpack() {
                 sourceMap = true
                 sourceMapEmbedSources = "always"
                 moduleKind = "umd"
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
                 metaInfo = true
                 verbose = false
             }
@@ -114,7 +114,7 @@ fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
         compilations.all {
             kotlinOptions {
                 this.jvmTarget = jvmTarget
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
     }
