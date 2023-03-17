@@ -11,7 +11,9 @@ include(
     "Contacts",
     "ContactsRunner",
     "Photos",
-    "PhotosRunner"
+    "PhotosRunner",
+    "TabStrip",
+    "TabStripRunner"
 )
 
 project(":Animation").name = "animation"
@@ -26,3 +28,6 @@ project(":Contacts").name = "contacts"
 project(":ContactsRunner").name = "contactsrunner"
 project(":Photos").name = "photos"
 project(":PhotosRunner").name = "photosrunner"
+project(":TabStrip").name = "tabstrip"
+project(":TabStripRunner").name = "tabstriprunner"
+
