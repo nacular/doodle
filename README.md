@@ -7,9 +7,25 @@
 
 ## My Fork With Tutorial Examples Included
 
+To learn Kotlin, I am developing my kotlin web apps inside this fork, always generating doodle source maps for debugging.  I keep it all together in one monorepo to make learning Kotlin, and doodle dev a bit more convenient.
+
+Notes to self:
+
 **Never** attempt to create a PR to be merged across forks into the **nacular** repo.
 
 **Never** attempt to merge anything from my fork to the **nacular** repo.
+
+## About Upgrading to Gradle 8.0.2
+
+I could not build (or clean) doodle on Ubnuntu 22.04 using Gradle v7.1.1 due to missing gradle script dedependency:
+
+    org.jetbrains.kotlin.com.intellij.pom.java.LanguageLevel
+
+Before upgrading to v8.0.2, I tried using the same version the `io.nacular.measured:measured` project uses (`v7.1.5`), and that did work, but I want to use the latest gradle version to keep it in line with the Gradle version used to build my java back-end services.  
+
+## About Not Using IR Compilation
+
+I cannot reference `measured` dependendencies from doodle's core if I use `IR`.  I tried including `:measured` in this project, and importing it into `:core` as a project dependency, but that did not work.  I do not think abandoning `IR` is a problem for me because I am not building mobile apps -- at least not this year.  I have a steep-enough learning curve already.
 
 ### Single Language
 Doodle is written entirely in [Kotlin](http://kotlinlang.org) and so are its apps. Doodle Web [Applications](https://nacular.github.io/doodle/docs/applications) do not use HTML,
