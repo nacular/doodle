@@ -13,7 +13,8 @@ include(
     "Photos",
     "PhotosRunner",
     "TabStrip",
-    "TabStripRunner"
+    "TabStripRunner",
+    "Natty"
 )
 
 project(":Animation").name = "animation"
@@ -22,7 +23,7 @@ project(":Controls").name = "controls"
 project(":Core").name = "core"
 project(":Themes").name = "themes"
 project(":Desktop").name = "desktop"
-// Slowly add tutorial example modules
+// Doodle Tutorial Example Modules
 project(":Modal").name = "modal"
 project(":Contacts").name = "contacts"
 project(":ContactsRunner").name = "contactsrunner"
@@ -30,4 +31,6 @@ project(":Photos").name = "photos"
 project(":PhotosRunner").name = "photosrunner"
 project(":TabStrip").name = "tabstrip"
 project(":TabStripRunner").name = "tabstriprunner"
+// Natty Modules
+project(":Natty").name = "natty"
 
