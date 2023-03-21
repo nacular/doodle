@@ -44,6 +44,7 @@ class MainView(
         // of a layout for one container affecting the children of another.
         // See https://nacular.github.io/doodle/docs/layout/constraints#non-siblings-constraints
         val mainContainer = container {
+            size = Size(1500, 600)
             children += menu
             layout = constrain(menu) { menu ->
                 menu.top eq 100
@@ -66,7 +67,7 @@ class MainView(
         }
          */
 
-        
+
         children += mainContainer
         // children += menu
 
