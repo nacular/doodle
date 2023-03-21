@@ -1,4 +1,4 @@
-package io.dongxi.natty.menu
+package io.dongxi.natty.view
 
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator
@@ -31,10 +31,17 @@ import kotlin.math.max
  * @param animate used for animations
  * @param pathMetrics used to measure [Path]s
  */
-class MenuView(private val animate: Animator, private val pathMetrics: PathMetrics) : View() {
+class Menu(
+    private val animate: Animator,
+    private val pathMetrics: PathMetrics
+) : View() {
 
     // Holds information about an item and it's current state
-    private inner class ItemState(val selected: Path, val deselected: Path, var selectionProgress: Float = 0f) {
+    private inner class ItemState(
+        val selected: Path,
+        val deselected: Path,
+        var selectionProgress: Float = 0f
+    ) {
         val x get() = position.x
         val y get() = position.y
         val width get() = size.width

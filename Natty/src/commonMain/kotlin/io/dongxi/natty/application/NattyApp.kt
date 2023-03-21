@@ -4,7 +4,7 @@ package io.dongxi.natty.application
 // import io.nacular.doodle.examples.DataStore.Filter
 // import io.nacular.doodle.examples.DataStore.Filter.Active
 // import io.nacular.doodle.examples.DataStore.Filter.Completed
-import io.dongxi.natty.menu.MenuView
+import io.dongxi.natty.view.Menu
 import io.dongxi.natty.storage.DataStore
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.application.Application
@@ -18,6 +18,7 @@ import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.ThemeManager
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import kotlinx.coroutines.*
 
 
@@ -63,6 +64,8 @@ class NattyApp(
     theme: DynamicTheme,
     themes: ThemeManager,
     images: ImageLoader,
+    textMetrics: TextMetrics,
+    linkStyler: NativeHyperLinkStyler,
     focusManager: FocusManager
 ) : Application {
 
@@ -91,7 +94,7 @@ class NattyApp(
             themes.selected = theme
 
             // display += TodoView(config, dataStore, linkStyler, textMetrics, focusManager, filterButtonProvider)
-            display += MenuView(animator, pathMetrics).apply {
+            display += Menu(animator, pathMetrics).apply {
                 size = Size(500, 100)
             }
 
@@ -103,21 +106,6 @@ class NattyApp(
 
             display.fill(config.appBackground.paint)
         }
-
-        /*
-        // create and display a single Menu
-        with(display) {
-
-            this += MenuView(animator, pathMetrics).apply {
-                size = Size(500, 100)
-            }
-
-            layout = constrain(first()) {
-                it.top eq 2
-                it.centerX eq parent.centerX
-            }
-        }
-         */
     }
 
     override fun shutdown() {
