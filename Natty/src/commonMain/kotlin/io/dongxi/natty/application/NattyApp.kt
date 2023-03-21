@@ -104,7 +104,7 @@ class NattyApp(
              */
 
             // Works
-            display += MainView(config, animator, pathMetrics, textMetrics).apply {
+            display += MainView(display, config, animator, pathMetrics, textMetrics).apply {
             }
             display.layout = constrain(display.children[0]) {
                 it.edges eq parent.edges
