@@ -4,12 +4,14 @@ package io.dongxi.natty.view
 import io.dongxi.natty.application.NattyAppConfig
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.container
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.*
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.constraints.constrain
 import kotlin.math.roundToInt
 
 /**
@@ -31,10 +33,42 @@ class MainView(
 
     private val menu = Menu(animator, pathMetrics).apply { size = Size(500, 100) }
 
+
     init {
         clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
 
-        children += menu
+        // You can constrain any set of Views, regardless of their hierarchy. But, the Constraint Layout will only
+        // update the Views that within the Container it is laying out. All other Views are treated as readOnly.
+        // This adjustment happens automatically as the View hierarchy changes. A key consequence is that Views
+        // outside the current parent will not conform to any constraints they "participate" in. This avoids the issue
+        // of a layout for one container affecting the children of another.
+        // See https://nacular.github.io/doodle/docs/layout/constraints#non-siblings-constraints
+        val mainContainer = container {
+            children += menu
+            layout = constrain(menu) { menu ->
+                menu.top eq 100
+                menu.centerX eq parent.centerX
+            }
+        }
+
+
+        /*
+        val mainContainer = object : Container() {
+            init {
+                clipCanvasToBounds = false
+                this += menu
+                Resizer(this)
+            }
+        }
+        mainContainer.layout = constrain(children[0]) {
+            it.top eq 40
+            it.centerX eq parent.centerX
+        }
+         */
+
+        
+        children += mainContainer
+        // children += menu
 
         boundsChanged += { _, old, new ->
             if (old.x != new.x) {
