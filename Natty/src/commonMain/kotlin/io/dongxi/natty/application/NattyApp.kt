@@ -4,15 +4,14 @@ package io.dongxi.natty.application
 // import io.nacular.doodle.examples.DataStore.Filter
 // import io.nacular.doodle.examples.DataStore.Filter.Active
 // import io.nacular.doodle.examples.DataStore.Filter.Completed
-import io.dongxi.natty.view.Menu
 import io.dongxi.natty.storage.DataStore
+import io.dongxi.natty.view.MainView
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.application.Application
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.drawing.*
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
@@ -75,9 +74,9 @@ class NattyApp(
         // Launch coroutine to fetch fonts/images
         appScope.launch(uiDispatcher) {
             val titleFont = fonts {
-                size = 100; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
+                size = 18; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
             }!!
-            val listFont = fonts(titleFont) { size = 24 }!! // !! -> raises NullPointerException ?
+            val listFont = fonts(titleFont) { size = 14 }!! // !! -> raises NullPointerException ?
             val footerFont = fonts(titleFont) { size = 10 }!!
             val config = NattyAppConfig(
                 listFont = listFont,
@@ -94,14 +93,23 @@ class NattyApp(
             themes.selected = theme
 
             // display += TodoView(config, dataStore, linkStyler, textMetrics, focusManager, filterButtonProvider)
-            display += Menu(animator, pathMetrics).apply {
-                size = Size(500, 100)
-            }
 
-            // display.layout = constrain(display.children[0]) { it.edges eq parent.edges }
+            /*
+            // Works
+            display += Menu(animator, pathMetrics).apply { size = Size(500, 100) }
             display.layout = constrain(display.children[0]) {
                 it.top eq 2
                 it.centerX eq parent.centerX
+            }
+             */
+
+            // Works
+            display += MainView(config, animator, pathMetrics, textMetrics).apply {
+            }
+            display.layout = constrain(display.children[0]) {
+                it.edges eq parent.edges
+                it.centerX eq parent.centerX
+                it.centerY eq parent.centerY
             }
 
             display.fill(config.appBackground.paint)

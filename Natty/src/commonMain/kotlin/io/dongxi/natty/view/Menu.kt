@@ -198,6 +198,7 @@ class Menu(
     init {
         clipCanvasToBounds = false
 
+        
         // Update paths etc. when bounds changes
         boundsChanged += { _, old, new ->
             if (old.size != new.size) {

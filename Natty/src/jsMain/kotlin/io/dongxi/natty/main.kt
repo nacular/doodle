@@ -38,26 +38,26 @@ fun main() {
         nativeHyperLinkBehavior(),
         nativeScrollPanelBehavior(smoothScrolling = true),
         Module(name = "AppModule") {
-            bindSingleton<Animator> { AnimatorImpl(instance() /*of Timer*/, instance() /*of AnimationScheduler*/) }
-            bindSingleton<PathMetrics> { PathMetricsImpl(instance() /*of SvgFactory*/) }
+            bindSingleton<Animator> { AnimatorImpl(timer = instance(), animationScheduler = instance()) }
+            bindSingleton<PathMetrics> { PathMetricsImpl(svgFactory = instance()) }
             bindSingleton<PersistentStore> { LocalStorePersistence() }
-            bindSingleton { DataStore(instance() /*of PersistentStore*/) }
+            bindSingleton { DataStore(persistentStore = instance()) }
             bindSingleton<Router> { TrivialRouter(window) }
         }
     )) {
         NattyApp(
-            instance(),
-            Dispatchers.UI,
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance(),
-            instance()
+            display = instance(),
+            uiDispatcher = Dispatchers.UI,
+            animator = instance(),
+            pathMetrics = instance(),
+            dataStore = instance(),
+            fonts = instance(),
+            theme = instance(),
+            themes = instance(),
+            images = instance(),
+            textMetrics = instance(),
+            linkStyler = instance(),
+            focusManager = instance()
         )
     }
 }
