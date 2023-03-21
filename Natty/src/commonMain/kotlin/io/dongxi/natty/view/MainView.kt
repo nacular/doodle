@@ -9,6 +9,7 @@ import io.nacular.doodle.drawing.*
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
 import kotlin.math.roundToInt
 
 /**
@@ -20,7 +21,7 @@ import kotlin.math.roundToInt
  */
 class MainView(
     private val config: NattyAppConfig,
-    private val animate: Animator,
+    private val animator: Animator,
     private val pathMetrics: PathMetrics,
     private val textMetrics: TextMetrics
 ) : View() {
@@ -28,8 +29,12 @@ class MainView(
     private var title by renderProperty("MainView") // var is not final (is mutable)
     private val titleWidth = textMetrics.width(title)     // val is final (immutable)
 
+    private val menu = Menu(animator, pathMetrics).apply { size = Size(500, 100) }
+
     init {
         clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
+
+        children += menu
 
         boundsChanged += { _, old, new ->
             if (old.x != new.x) {
@@ -37,7 +42,7 @@ class MainView(
             }
         }
     }
-    
+
     override fun render(canvas: Canvas) {
         val foreGround = (foregroundColor ?: Color.White).paint
         val backGround = (backgroundColor ?: Color.Orange).paint
