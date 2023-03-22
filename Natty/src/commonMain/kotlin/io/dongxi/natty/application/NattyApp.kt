@@ -92,8 +92,18 @@ class NattyApp(
             // install theme
             themes.selected = theme
 
-            display += MainView(display, config, animator, pathMetrics, textMetrics).apply {
-            }
+            display += MainView(
+                display,
+                config,
+                uiDispatcher,
+                animator,
+                pathMetrics,
+                textMetrics,
+                dataStore,
+                images,
+                linkStyler,
+                focusManager
+            ).apply {}
             display.layout = constrain(display.children[0]) {
                 it.edges eq parent.edges
                 it.centerX eq parent.centerX
