@@ -49,7 +49,7 @@ class MainView(
             layout = constrain(menu) { menu ->
                 menu.top eq 50
                 menu.centerX eq parent.centerX
-                menu.width eq parent.width
+                menu.width eq parent.width / 2
             }
 
             Resizer(this)
