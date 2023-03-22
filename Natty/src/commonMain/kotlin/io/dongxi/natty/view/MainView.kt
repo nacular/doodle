@@ -49,21 +49,23 @@ class MainView(
             layout = constrain(menu) { menu ->
                 menu.top eq 50
                 menu.centerX eq parent.centerX
+                menu.width eq parent.width
             }
-            Resizer(this).movable = false
+
+            Resizer(this)
         }
     }
 
     init {
         clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
 
-        children += mainContainer
-
-        boundsChanged += { _, old, new ->
-            if (old.x != new.x) {
-                this@MainView.relayout()
-            }
+        layout = constrain(mainContainer) {
+            it.edges eq parent.edges
+            it.centerX eq parent.centerX
+            it.centerY eq parent.centerY
         }
+
+        children += mainContainer
 
         Resizer(this)
     }

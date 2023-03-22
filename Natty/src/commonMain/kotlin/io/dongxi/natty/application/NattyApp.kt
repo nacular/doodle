@@ -92,18 +92,6 @@ class NattyApp(
             // install theme
             themes.selected = theme
 
-            // display += TodoView(config, dataStore, linkStyler, textMetrics, focusManager, filterButtonProvider)
-
-            /*
-            // Works
-            display += Menu(animator, pathMetrics).apply { size = Size(500, 100) }
-            display.layout = constrain(display.children[0]) {
-                it.top eq 2
-                it.centerX eq parent.centerX
-            }
-             */
-
-            // Works
             display += MainView(display, config, animator, pathMetrics, textMetrics).apply {
             }
             display.layout = constrain(display.children[0]) {
@@ -111,7 +99,6 @@ class NattyApp(
                 it.centerX eq parent.centerX
                 it.centerY eq parent.centerY
             }
-
             display.fill(config.appBackground.paint)
         }
     }
