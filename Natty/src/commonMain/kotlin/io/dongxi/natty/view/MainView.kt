@@ -2,16 +2,17 @@ package io.dongxi.natty.view
 
 
 import io.dongxi.natty.application.NattyAppConfig
+import io.dongxi.natty.util.ClassUtils.simpleClassName
+import io.dongxi.natty.util.PointUtils.textCenterXPoint
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.core.*
 import io.nacular.doodle.drawing.*
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.HorizontalFlowLayout
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Resizer
-import kotlin.math.roundToInt
 
 /**
  * The MainView is only direct descendent (child) of the Display.
@@ -28,7 +29,7 @@ class MainView(
     private val textMetrics: TextMetrics
 ) : View() {
 
-    private var title by renderProperty("MainView") // var is not final (is mutable)
+    private var title by renderProperty(simpleClassName(this))  // var is not final (is mutable)
     private val titleWidth = textMetrics.width(title)     // val is final (immutable)
 
     private val menu = Menu(animator, pathMetrics).apply {
@@ -56,6 +57,12 @@ class MainView(
         }
     }
 
+    private val horizontalLayoutContainer = object : Container() {
+        init {
+            layout = HorizontalFlowLayout() // Container exposes its layout
+        }
+    }
+
     init {
         clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
 
@@ -79,16 +86,10 @@ class MainView(
         canvas.text(
             text = title,
             font = config.titleFont,
-            at = centeredTitlePoint(),
+            at = textCenterXPoint(this.width, this.titleWidth, 10),
             color = Color.Black
         )
 
         this.menu.boundsChanged
-    }
-
-    private fun centeredTitlePoint(): Point {
-        val x = (this.width - this.titleWidth.roundToInt()) / 2
-        val y = 10
-        return Point(x, y)
     }
 }
