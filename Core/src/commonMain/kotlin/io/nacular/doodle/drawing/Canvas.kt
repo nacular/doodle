@@ -160,7 +160,7 @@ public interface CommonCanvas: Renderer {
         rightMargin  : Double,
         fill         : Paint,
         alignment    : HorizontalAlignment = HorizontalAlignment.Left,
-    ): Unit = wrapped(text, font, at, leftMargin, rightMargin, fill, alignment.textAlignment)
+    ): Unit = wrapped(text, at, rightMargin, fill, font, leftMargin, alignment.textAlignment)
 
     /**
      * Draws wrapped styled text.
@@ -190,25 +190,25 @@ public interface CommonCanvas: Renderer {
      * Draws wrapped plain text.
      *
      * @param text to draw
-     * @param font to use
      * @param at this point
-     * @param leftMargin where text wraps
-     * @param rightMargin where text wraps
+     * @param width of text, beyond which it wraps
      * @param fill to fill with
+     * @param font to use
+     * @param indent of first line
      * @param alignment of text
      * @param lineSpacing of text in % (1 = spacing for this font)
      * @param textSpacing of text
      */
     public fun wrapped(
-        text         : String,
-        font         : Font? = null,
-        at           : Point = Origin,
-        leftMargin   : Double,
-        rightMargin  : Double,
-        fill         : Paint,
-        alignment    : TextAlignment = Start,
-        lineSpacing  : Float         = 1f,
-        textSpacing  : TextSpacing   = default,
+        text       : String,
+        at         : Point         = Origin,
+        width      : Double,
+        fill       : Paint,
+        font       : Font?         = null,
+        indent     : Double        = 0.0,
+        alignment  : TextAlignment = Start,
+        lineSpacing: Float         = 1f,
+        textSpacing: TextSpacing   = default,
     )
 
     /**
@@ -216,19 +216,19 @@ public interface CommonCanvas: Renderer {
      *
      * @param text to draw
      * @param at this point
-     * @param leftMargin where text wraps
-     * @param rightMargin where text wraps
+     * @param width of text, beyond which it wraps
+     * @param indent of first line
      * @param alignment of text
      * @param lineSpacing of text in % (1 = spacing for this font)
      * @param textSpacing of text
      */
     public fun wrapped(
         text       : StyledText,
-        at         : Point = Origin,
-        leftMargin : Double,
-        rightMargin: Double,
+        at         : Point         = Origin,
+        width      : Double,
+        indent     : Double        = 0.0,
         alignment  : TextAlignment = Start,
-        lineSpacing: Float       = 1f,
+        lineSpacing: Float         = 1f,
         textSpacing: TextSpacing   = default,
     )
 

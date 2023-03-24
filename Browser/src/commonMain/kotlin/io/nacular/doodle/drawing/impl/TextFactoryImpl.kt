@@ -43,6 +43,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         if (element == possible) {
             element.style.setTextDecoration(null)
+            element.style.whiteSpace = ""
+            element.style.textIndent = ""
         }
 
         return element

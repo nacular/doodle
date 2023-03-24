@@ -42,6 +42,7 @@ import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
+import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Path
@@ -57,17 +58,18 @@ import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
+import io.nacular.doodle.utils.splitMatches
 import io.nacular.doodle.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.math.max
 
 internal open class CanvasImpl(
         private val renderParent   : HTMLElement,
         private val htmlFactory    : HtmlFactory,
         private val textFactory    : TextFactory,
+        private val textMetrics    : TextMetrics,
         private val useShadowHack  : Boolean,
                     rendererFactory: VectorRendererFactory): NativeCanvas {
 
@@ -144,36 +146,36 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         when {
             text.isEmpty() || !fill.visible -> return
             fill is ColorPaint              -> {
                 updateRenderPosition()
                 completeOperation(
                     createWrappedTextGlyph(
-                        fill,
-                        text,
-                        font,
-                        at,
-                        leftMargin,
-                        rightMargin,
-                        alignment,
-                        lineSpacing,
-                        textSpacing
+                        fill        = fill,
+                        text        = text,
+                        font        = font,
+                        at          = at,
+                        width       = width,
+                        indent      = indent,
+                        alignment   = alignment,
+                        lineSpacing = lineSpacing,
+                        textSpacing = textSpacing
                     )
                 )
             }
-            else                            -> vectorRenderer.wrapped(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing, textSpacing)
+            else                            -> vectorRenderer.wrapped(text, at, width, fill, font, indent, alignment, lineSpacing, textSpacing)
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         when {
             isSimple(text) -> {
                 updateRenderPosition()
-                completeOperation(createWrappedStyleTextGlyph(text, at, leftMargin, rightMargin, alignment, lineSpacing, textSpacing))
+                completeOperation(createWrappedStyleTextGlyph(text, at, width, indent, alignment, lineSpacing, textSpacing))
             }
-            else           -> vectorRenderer.wrapped(text, at, leftMargin, rightMargin, alignment, lineSpacing, textSpacing)
+            else           -> vectorRenderer.wrapped(text, at, width, indent, alignment, lineSpacing, textSpacing)
         }
     }
 
@@ -468,13 +470,17 @@ internal open class CanvasImpl(
 
     private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, textSpacing: TextSpacing) = configure(textFactory.create(text, font, textSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
 
-    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
-        val indent  = max(0.0, at.x - leftMargin)
+    private fun String.firstWord    (): String     = splitMatches("""\s""".toRegex()).matches.firstOrNull()?.match ?: ""
+    private fun StyledText.firstWord(): StyledText = this.subString(0 .. text.firstWord().length)
+
+    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
+        val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), font, textSpacing) else 0.0
+
         val element = textFactory.wrapped(
             text,
             font,
-            width       = rightMargin - leftMargin,
-            indent      = indent,
+            width       = width,
+            indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
             lineSpacing = lineSpacing,
@@ -488,12 +494,13 @@ internal open class CanvasImpl(
         style.translate(at)
     }
 
-    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
-        val indent  = max(0.0, at.x - leftMargin)
+    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, indent: Double, width: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
+        val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), textSpacing) else 0.0
+
         val element = textFactory.wrapped(
             text        = text,
-            width       = rightMargin - leftMargin,
-            indent      = indent,
+            width       = width,
+            indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
             lineSpacing = lineSpacing,

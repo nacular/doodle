@@ -34,9 +34,9 @@ internal interface VectorRenderer: Renderer {
 
     fun text(text: StyledText, at: Point, textSpacing: TextSpacing)
 
-    fun wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
+    fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font? = null, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 
-    fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
+    fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 }
 
 internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

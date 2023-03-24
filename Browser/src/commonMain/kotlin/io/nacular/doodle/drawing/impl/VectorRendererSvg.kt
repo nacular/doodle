@@ -175,16 +175,16 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    override fun wrapped(text: String, font: Font?, at: Point, leftMargin: Double, rightMargin: Double, fill: Paint, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         syncShadows()
 
-        wrappedText(StyledText(text, font, foreground = fill), at, leftMargin, rightMargin, alignment, lineSpacing, textSpacing)
+        wrappedText(StyledText(text, font, foreground = fill), at, indent, width, alignment, lineSpacing, textSpacing)
     }
 
-    override fun wrapped(text: StyledText, at: Point, leftMargin: Double, rightMargin: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         syncShadows()
 
-        wrappedText(text, at, leftMargin, rightMargin, alignment, lineSpacing, textSpacing)
+        wrappedText(text, at, indent, width, alignment, lineSpacing, textSpacing)
     }
 
     private var shadows = mutableListOf<Shadow>()
@@ -411,8 +411,6 @@ internal open class VectorRendererSvg constructor(
         setStroke          (null          )
         setDominantBaseline(TextBeforeEdge)
 
-        this.style.setTextDecoration(style.decoration)
-
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
 
@@ -432,8 +430,8 @@ internal open class VectorRendererSvg constructor(
     private fun wrappedText(
         text       : StyledText,
         at         : Point,
-        leftMargin : Double,
-        rightMargin: Double,
+        indent     : Double,
+        width      : Double,
         alignment  : TextAlignment,
         lineSpacing: Float,
         textSpacing: TextSpacing
@@ -442,7 +440,7 @@ internal open class VectorRendererSvg constructor(
         val (words, remaining) = text.text.splitMatches("""\s""".toRegex()).run { matches to remaining }
         var line               = StyledText("")
         var lineTest           : StyledText
-        var currentPoint       = at
+        var currentPoint       = at + Point(x = indent)
         var endX               = currentPoint.x
         var currentLineWidth   = 0.0
         var oldLineWidth       = 0.0
@@ -453,11 +451,11 @@ internal open class VectorRendererSvg constructor(
 
             when (alignment) {
                 Start   -> currentPoint.x
-                Center  -> currentPoint.x + (rightMargin - leftMargin - currentLineWidth) / 2
-                End     -> rightMargin - currentLineWidth
+                Center  -> currentPoint.x + (width - currentLineWidth) / 2
+                End     -> at.x + width - currentLineWidth
                 Justify -> currentPoint.x.also {
                     if (!isLast && numWords > 1) {
-                        wordSpacing = (rightMargin - leftMargin - oldLineWidth) / (numWords - 1)
+                        wordSpacing = (width - (currentPoint.x - at.x) - oldLineWidth) / (numWords - 1)
                     }
                 }
             } to wordSpacing
@@ -472,16 +470,19 @@ internal open class VectorRendererSvg constructor(
 
             endX = currentPoint.x + lineWidth
 
-            if (endX > rightMargin) {
+            if (endX > at.x + width) {
                 val (startX, wordSpacing) = calcStartX(false)
 
                 lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
 
                 val fontLeading  = 1.2 // FIXME: Get real value from font
                 line             = word.copy()
-                offsetY         += lineSpacing * /*fontLeading **/ lineSize.height
 
-                currentPoint = Point(leftMargin, at.y + offsetY)
+                if (numWords > 0) {
+                    offsetY += lineSpacing * /*fontLeading **/ lineSize.height
+                }
+
+                currentPoint = Point(at.x, at.y + offsetY)
                 endX         = startX + currentLineWidth
                 numWords     = 1
             } else {
@@ -493,7 +494,7 @@ internal open class VectorRendererSvg constructor(
             oldLineWidth = lineWidth
         }
 
-        var startCharIndex = 0
+        var startCharIndex    = 0
         var previousDelimiter = StyledText("")
 
         words.forEach { chunk ->

@@ -54,9 +54,7 @@ public open class Label(
         set(new) {
             field             = new
             visibleStyledText = field.copy()
-
             measureText()
-
             rerender()
         }
 
@@ -71,10 +69,11 @@ public open class Label(
             if (field != new) {
                 field = new
                 measureText()
+                rerender()
             }
         }
 
-    public var verticalAlignment  : VerticalAlignment   by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
+    public var verticalAlignment: VerticalAlignment by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
 
     @Deprecated("Use TextAlignment instead", ReplaceWith("textAlignment", imports = arrayOf("io.nacular.doodle.utils.TextAlignment")))
     public var horizontalAlignment: HorizontalAlignment get() = textAlignment.horizontalAlignment; set(value) {

@@ -267,7 +267,7 @@ internal class CanvasImpl(
     }
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
-        paragraph(text, font, at, fill = fill, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).apply {
+        paragraph(text, font, fill = fill, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).apply {
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
                 paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
@@ -288,47 +288,45 @@ internal class CanvasImpl(
 
     override fun wrapped(
         text       : String,
-        font       : Font?,
         at         : Point,
-        leftMargin : Double,
-        rightMargin: Double,
+        width      : Double,
         fill       : Paint,
+        font       : Font?,
+        indent     : Double,
         alignment  : TextAlignment,
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        paragraph(text, font, at, leftMargin, rightMargin, fill, alignment, lineSpacing, textSpacing).apply {
+        paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing).apply {
             drawOuterShadows {
                 updateForegroundPaint(0, text.length - 1, it)
-                paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
+                paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
                 updateForegroundPaint(0, text.length - 1, fill.skia())
             }
 
-            paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
+            paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
     }
 
     override fun wrapped(
         text       : StyledText,
         at         : Point,
-        leftMargin : Double,
-        rightMargin: Double,
+        width      : Double,
+        indent     : Double,
         alignment  : TextAlignment,
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        val indent = at.x - leftMargin
-
         drawOuterShadows {
             text.paragraph(paint = it, alignment = alignment, lineSpacing, textSpacing, indent = indent).apply {
-                layout(max(minIntrinsicWidth + 1, (rightMargin - leftMargin).toFloat()))
-                paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
+                layout(max(minIntrinsicWidth + 1, width.toFloat()))
+                paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
             }
         }
 
         text.paragraph(alignment = alignment, lineHeight = lineSpacing, textSpacing = textSpacing, indent = indent).apply {
-            layout(max(minIntrinsicWidth + 1, (rightMargin - leftMargin).toFloat()))
-            paint(skiaCanvas, leftMargin.toFloat(), at.y.toFloat())
+            layout(max(minIntrinsicWidth + 1, width.toFloat()))
+            paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
     }
 
@@ -533,21 +531,19 @@ internal class CanvasImpl(
     private fun paragraph(
         text       : String,
         font       : Font?,
-        at         : Point,
-        leftMargin : Double? = null,
-        rightMargin: Double? = null,
+        indent     : Double? = null,
+        width      : Double? = null,
         fill       : Paint,
         alignment  : TextAlignment,
         lineHeight : Float  = 1f,
         textSpacing: TextSpacing
-    ) = paragraph(text, font, at, leftMargin, rightMargin, fill.skia(), alignment, lineHeight, textSpacing)
+    ) = paragraph(text, font, indent, width, fill.skia(), alignment, lineHeight, textSpacing)
 
     private fun paragraph(
         text       : String,
         font       : Font?,
-        at         : Point,
-        leftMargin : Double? = null,
-        rightMargin: Double? = null,
+        indent     : Double? = null,
+        width      : Double? = null,
         paint      : SkiaPaint,
         alignment  : TextAlignment,
         lineHeight : Float  = 1f,
@@ -556,7 +552,7 @@ internal class CanvasImpl(
         val style = ParagraphStyle().apply {
             textStyle = font.newTextStyle.apply {
                 foreground = paint
-                if (lineHeight                != 1f ) height = lineHeight
+                if (lineHeight                != 1f ) height             = lineHeight
                 if (textSpacing.wordSpacing   != 0.0) this.wordSpacing   = textSpacing.wordSpacing.toFloat()
                 if (textSpacing.letterSpacing != 0.0) this.letterSpacing = textSpacing.letterSpacing.toFloat()
             }
@@ -564,8 +560,8 @@ internal class CanvasImpl(
         }
 
         val builder = ParagraphBuilder(style, fontCollection).run {
-            if (leftMargin != null) {
-                addPlaceholder(PlaceholderStyle((at.x - leftMargin).toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
+            if (indent != null) {
+                addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
             }
             addText(text)
         }
@@ -574,8 +570,8 @@ internal class CanvasImpl(
 
         paragraph.layout(POSITIVE_INFINITY)
 
-        if (leftMargin != null && rightMargin != null) {
-            paragraph.layout(max(paragraph.minIntrinsicWidth + 1, (rightMargin - leftMargin).toFloat()))
+        if (width != null) {
+            paragraph.layout(max(paragraph.minIntrinsicWidth + 1, width.toFloat()))
         }
 
         return paragraph
