@@ -21,6 +21,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
+import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,24 +45,52 @@ class TabbedPanelView(
     private var title by renderProperty(simpleClassName(this))  // var is not final (is mutable)
     private val titleWidth = textMetrics.width(title)     // val is final (immutable)
 
-    private val object1 = PlainView(config, textMetrics, tabName = "Tab A").apply { size = Size(50, 50) }
-    private val object2 = PlainView(config, textMetrics, tabName = "Tab B").apply { size = Size(50, 50) }
-    private val object3 = PlainView(config, textMetrics, tabName = "Tab C").apply { size = Size(50, 50) }
-    private val object4 = PlainView(config, textMetrics, tabName = "Tab D").apply { size = Size(50, 50) }
+    // Natty:  Categories: aneis, colares, escapulários, pulseiras, braceletes (=pulseiras), brincos e sobre.
+    private val homeView = PlainView(config, textMetrics, tabName = "Casa").apply { size = Size(50, 50) }
+    private val ringsView = PlainView(config, textMetrics, tabName = "Aneis").apply { size = Size(50, 50) }
+    private val necklacesView = PlainView(config, textMetrics, tabName = "Colares").apply { size = Size(50, 50) }
+    private val scapularsView = PlainView(config, textMetrics, tabName = "Escapulários").apply { size = Size(50, 50) }
+    private val braceletsView = PlainView(config, textMetrics, tabName = "Pulseiras").apply { size = Size(50, 50) }
+    private val earRingsView = PlainView(config, textMetrics, tabName = "Brincos").apply { size = Size(50, 50) }
+    private val aboutView = PlainView(config, textMetrics, tabName = "Sobre").apply { size = Size(50, 50) }
+    // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
-
-    // Each tab preview shows hardcoded names
-    private val defaultTabVisualizer = object : ItemVisualizer<View, Any> {
-        private val textVisualizer = TextVisualizer()
+    // Each tab preview shows names as StyledText.
+    private val styledTextTabVisualizer = object : ItemVisualizer<View, Any> {
+        private val textVisualizer = StyledTextVisualizer()
         private val mapping = mapOf(
-            object1 to object1.tabName,
-            object2 to object2.tabName,
-            object3 to object3.tabName,
-            object4 to object4.tabName
+            homeView to homeView.styledTabName,
+            ringsView to ringsView.styledTabName,
+            necklacesView to necklacesView.styledTabName,
+            scapularsView to scapularsView.styledTabName,
+            braceletsView to braceletsView.styledTabName,
+            earRingsView to earRingsView.styledTabName,
+            aboutView to aboutView.styledTabName
         )
 
         override fun invoke(item: View, previous: View?, context: Any): View {
-            return textVisualizer(mapping[item] ?: "Unknown")
+            return textVisualizer(
+                mapping[item] ?: StyledText("Desconhecido", config.tabPanelFont, Color.Red.paint)
+            )
+        }
+    }
+
+
+    // Each tab preview shows names as Strings.
+    private val defaultTabVisualizer = object : ItemVisualizer<View, Any> {
+        private val textVisualizer = TextVisualizer()
+        private val mapping = mapOf(
+            homeView to homeView.tabName,
+            ringsView to ringsView.tabName,
+            necklacesView to necklacesView.tabName,
+            scapularsView to scapularsView.tabName,
+            braceletsView to braceletsView.tabName,
+            earRingsView to earRingsView.tabName,
+            aboutView to aboutView.tabName
+        )
+
+        override fun invoke(item: View, previous: View?, context: Any): View {
+            return textVisualizer(mapping[item] ?: "Desconhecido")
         }
     }
 
@@ -69,11 +98,14 @@ class TabbedPanelView(
     // Each object is displayed within a ScrollPanel
     private val tabbedPanel = TabbedPanel(
         ScrollPanelVisualizer(),
-        defaultTabVisualizer,
-        object1,
-        object2,
-        object3,
-        object4
+        styledTextTabVisualizer,
+        homeView,
+        ringsView,
+        necklacesView,
+        scapularsView,
+        braceletsView,
+        earRingsView,
+        aboutView
     ).apply {
         size = Size(500, 300)
         Resizer(this).apply { movable = false }
