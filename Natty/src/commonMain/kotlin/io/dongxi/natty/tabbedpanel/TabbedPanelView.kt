@@ -5,7 +5,6 @@ import io.dongxi.natty.util.ClassUtils.simpleClassName
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ScrollPanelVisualizer
-import io.nacular.doodle.controls.TextVisualizer
 import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.core.Display
@@ -45,14 +44,19 @@ class TabbedPanelView(
     private var title by renderProperty(simpleClassName(this))  // var is not final (is mutable)
     private val titleWidth = textMetrics.width(title)     // val is final (immutable)
 
-    // Natty:  Categories: aneis, colares, escapulários, pulseiras, braceletes (=pulseiras), brincos e sobre.
-    private val homeView = PlainView(config, textMetrics, tabName = "Casa").apply { size = Size(50, 50) }
-    private val ringsView = PlainView(config, textMetrics, tabName = "Aneis").apply { size = Size(50, 50) }
-    private val necklacesView = PlainView(config, textMetrics, tabName = "Colares").apply { size = Size(50, 50) }
-    private val scapularsView = PlainView(config, textMetrics, tabName = "Escapulários").apply { size = Size(50, 50) }
-    private val braceletsView = PlainView(config, textMetrics, tabName = "Pulseiras").apply { size = Size(50, 50) }
-    private val earRingsView = PlainView(config, textMetrics, tabName = "Brincos").apply { size = Size(50, 50) }
-    private val aboutView = PlainView(config, textMetrics, tabName = "Sobre").apply { size = Size(50, 50) }
+
+    // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
+
+    private val homeView = PlainView(config, textMetrics, tabName = "Casa").apply {
+        size = Size(200, 200)
+    }
+
+    private val ringsView = PlainView(config, textMetrics, tabName = "Aneis").apply { size = Size(200, 200) }
+    private val necklacesView = PlainView(config, textMetrics, tabName = "Colares").apply { size = Size(200, 200) }
+    private val scapularsView = PlainView(config, textMetrics, tabName = "Escapulários").apply { size = Size(200, 200) }
+    private val braceletsView = PlainView(config, textMetrics, tabName = "Pulseiras").apply { size = Size(200, 200) }
+    private val earRingsView = PlainView(config, textMetrics, tabName = "Brincos").apply { size = Size(200, 200) }
+    private val aboutView = PlainView(config, textMetrics, tabName = "Sobre").apply { size = Size(200, 200) }
     // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
     // Each tab preview shows names as StyledText.
@@ -74,26 +78,6 @@ class TabbedPanelView(
             )
         }
     }
-
-
-    // Each tab preview shows names as Strings.
-    private val defaultTabVisualizer = object : ItemVisualizer<View, Any> {
-        private val textVisualizer = TextVisualizer()
-        private val mapping = mapOf(
-            homeView to homeView.tabName,
-            ringsView to ringsView.tabName,
-            necklacesView to necklacesView.tabName,
-            scapularsView to scapularsView.tabName,
-            braceletsView to braceletsView.tabName,
-            earRingsView to earRingsView.tabName,
-            aboutView to aboutView.tabName
-        )
-
-        override fun invoke(item: View, previous: View?, context: Any): View {
-            return textVisualizer(mapping[item] ?: "Desconhecido")
-        }
-    }
-
 
     // Each object is displayed within a ScrollPanel
     private val tabbedPanel = TabbedPanel(
@@ -122,16 +106,5 @@ class TabbedPanelView(
     }
 
     override fun render(canvas: Canvas) {
-        val foreGround = (foregroundColor ?: Color.White).paint
-        val backGround = (backgroundColor ?: Color.Orange).paint
-
-        /*
-        canvas.rect(bounds.atOrigin, backGround)
-
-        canvas.text(
-            StyledText(title, config.titleFont, Color.Blue.paint),
-            textCenterXPoint(this.width, this.titleWidth, 10)
-        )
-         */
     }
 }

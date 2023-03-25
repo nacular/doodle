@@ -3,7 +3,6 @@
 package io.dongxi.natty
 
 
-import io.dongxi.natty.application.NattyApp
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.storage.PersistentStore
 import io.dongxi.natty.tabbedpanel.TabbedPanelApp
@@ -15,9 +14,9 @@ import io.nacular.doodle.application.Modules.Companion.KeyboardModule
 import io.nacular.doodle.application.Modules.Companion.PointerModule
 import io.nacular.doodle.application.application
 import io.nacular.doodle.coroutines.Dispatchers
+import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.impl.PathMetricsImpl
-import io.nacular.doodle.theme.basic.BasicTheme
 import io.nacular.doodle.theme.basic.BasicTheme.*
 import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicLabelBehavior
 import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicTabbedPanelBehavior
@@ -31,7 +30,7 @@ import org.kodein.di.instance
 
 
 /**
- * Creates a [NattyApp]
+ * Creates a [TabbedPanelApp]
  */
 fun main() {
     application(modules = listOf(
@@ -43,7 +42,7 @@ fun main() {
         nativeTextFieldBehavior(),
         nativeHyperLinkBehavior(),
         nativeScrollPanelBehavior(smoothScrolling = true),
-        basicTabbedPanelBehavior(),
+        basicTabbedPanelBehavior(null, Color.White, null),
         Module(name = "AppModule") {
             bindSingleton<Animator> { AnimatorImpl(timer = instance(), animationScheduler = instance()) }
             bindSingleton<PathMetrics> { PathMetricsImpl(svgFactory = instance()) }

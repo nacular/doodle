@@ -24,6 +24,11 @@ import kotlinx.coroutines.*
  * General styling config
  */
 data class NattyAppConfig(
+
+    // Hex = Color
+    // #F5F5F5 = LightGrey
+    // #733236 = Dark Red in Natty's Color Tbl
+
     val listFont: Font,
     val titleFont: Font,
     val lineColor: Color = Color(0xEDEDEDu),
@@ -32,7 +37,8 @@ data class NattyAppConfig(
     val footerFont: Font,
     val headerColor: Color = Color(0xAF2F2Fu) opacity 0.15f,
     val deleteColor: Color = Color(0xCC9A9Au),
-    val appBackground: Color = Color(0xF5F5F5u),
+    // val appBackground: Color = Color(0xF5F5F5u),
+    val appBackground: Color = Color(0x733236u),
     val boldFooterFont: Font,
     val selectAllColor: Color = Color(0x737373u),
     val checkForeground: Image,
@@ -77,7 +83,7 @@ class TabbedPanelApp(
                 size = 18; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
             }!!
             val listFont = fonts(titleFont) { size = 14 }!! // !! -> raises NullPointerException ?
-            val tabPanelFont = fonts(titleFont) { size = 10 }!!
+            val tabPanelFont = fonts(titleFont) { size = 12; weight = 400 }!!
             val footerFont = fonts(titleFont) { size = 10 }!!
             val config = NattyAppConfig(
                 listFont = listFont,

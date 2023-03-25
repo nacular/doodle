@@ -27,28 +27,19 @@ class PlainView(
     private var title by renderProperty(ClassUtils.simpleClassName(this))  // var is not final (is mutable)
     private val titleWidth = textMetrics.width(title)     // val is final (immutable)
 
-    val styledTabName: StyledText = StyledText(tabName, config.tabPanelFont, Color.Blue.paint)
+    val styledTabName: StyledText = StyledText(tabName, config.tabPanelFont, Color(0x733236u).paint)
 
     init {
         clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
 
-        layout = constrain(this) {
-        }
+        // layout = constrain(this) {}
 
         Resizer(this)
     }
 
     override fun render(canvas: Canvas) {
-        val foreGround = (foregroundColor ?: Color.White).paint
-        val backGround = (backgroundColor ?: Color.Orange).paint
-
-        /*
+        val foreGround = (foregroundColor ?: Color.Cyan).paint
+        val backGround = (backgroundColor ?: Color.Gray).paint
         canvas.rect(bounds.atOrigin, backGround)
-
-        canvas.text(
-            StyledText(title, config.titleFont, Color.Blue.paint),
-            PointUtils.textCenterXPoint(this.width, this.titleWidth, 10)
-        )
-         */
     }
 }
