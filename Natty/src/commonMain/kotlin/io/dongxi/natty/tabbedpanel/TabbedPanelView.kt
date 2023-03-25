@@ -2,7 +2,6 @@ package io.dongxi.natty.tabbedpanel
 
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.util.ClassUtils.simpleClassName
-import io.dongxi.natty.util.PointUtils.textCenterXPoint
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ScrollPanelVisualizer
@@ -22,7 +21,6 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
-import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -53,7 +51,7 @@ class TabbedPanelView(
 
 
     // Each tab preview shows hardcoded names
-    private val tabVisualizer = object : ItemVisualizer<View, Any> {
+    private val defaultTabVisualizer = object : ItemVisualizer<View, Any> {
         private val textVisualizer = TextVisualizer()
         private val mapping = mapOf(
             object1 to object1.tabName,
@@ -71,7 +69,7 @@ class TabbedPanelView(
     // Each object is displayed within a ScrollPanel
     private val tabbedPanel = TabbedPanel(
         ScrollPanelVisualizer(),
-        tabVisualizer,
+        defaultTabVisualizer,
         object1,
         object2,
         object3,
