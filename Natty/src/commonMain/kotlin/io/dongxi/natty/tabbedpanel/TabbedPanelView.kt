@@ -42,9 +42,8 @@ class TabbedPanelView(
     private val focusManager: FocusManager
 ) : View() {
 
-    private var title by renderProperty(simpleClassName(this))  // var is not final (is mutable)
-    private val titleWidth = textMetrics.width(title)     // val is final (immutable)
-
+    private var title by renderProperty(simpleClassName(this))
+    private val titleWidth = textMetrics.width(title)
 
     // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
 
@@ -133,6 +132,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, SOBRE
     ).apply { }
+    
     // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
     // Each tab preview shows names as StyledText.
