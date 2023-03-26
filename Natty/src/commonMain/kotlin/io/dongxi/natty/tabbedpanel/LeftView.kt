@@ -27,8 +27,8 @@ class LeftView(
     private val focusManager: FocusManager
 ) : View() {
 
-    private var title by renderProperty(ClassUtils.simpleClassName(this))  // var is not final (is mutable)
-    private val titleWidth = textMetrics.width(title)     // val is final (immutable)
+    private var title by renderProperty(ClassUtils.simpleClassName(this))
+    private val titleWidth = textMetrics.width(title)
 
     init {
         clipCanvasToBounds = false
@@ -40,10 +40,7 @@ class LeftView(
     }
 
     override fun render(canvas: Canvas) {
-        val foreGround = (foregroundColor ?: Color.White).paint
-        val backGround = (backgroundColor ?: Color.Yellow).paint
-
-        canvas.rect(bounds.atOrigin, backGround)
+        canvas.rect(bounds.atOrigin, Color(0xe0bdbcu))  // From natty color tbl.
 
         canvas.text(
             text = title,

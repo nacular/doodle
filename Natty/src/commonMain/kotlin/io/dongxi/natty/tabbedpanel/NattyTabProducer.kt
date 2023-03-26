@@ -27,7 +27,7 @@ open class NattyTabProducer<T>(
         cancelMove,
         selectedColorMapper,
         hoverColorMapper
-    ).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+    ).apply { size = Size(95.0, tabHeight) } // FIXME: use dynamic width
 
     protected open val move: (TabbedPanel<T>, Int, Double) -> Unit = { _, _, _ -> }
 

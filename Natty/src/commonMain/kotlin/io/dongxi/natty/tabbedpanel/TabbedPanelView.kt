@@ -182,6 +182,6 @@ class TabbedPanelView(
     }
 
     override fun render(canvas: Canvas) {
-        tabbedPanel.render(canvas)
+        // tabbedPanel.render(canvas)  (unnecessary)
     }
 }

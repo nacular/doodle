@@ -18,6 +18,9 @@ import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
 
+/**
+ * The main view for each tab is the same, containing four nested views:  left, center, right and footer.
+ */
 class TabView(
     private val display: Display,
     private val config: NattyAppConfig,
@@ -52,7 +55,7 @@ class TabView(
         linkStyler,
         focusManager
     ).apply {
-        size = Size(display.width / 3, 700.00)
+        size = Size(display!!.width / 3, display!!.height - 105)
     }
     private val centerView = CenterView(
         config,
@@ -65,7 +68,7 @@ class TabView(
         linkStyler,
         focusManager
     ).apply {
-        size = Size(display.width / 3, 700.00)
+        size = Size(display!!.width / 3, display!!.height - 105)
     }
     private val rightView = RightView(
         config,
@@ -78,7 +81,7 @@ class TabView(
         linkStyler,
         focusManager
     ).apply {
-        size = Size(display.width / 3, 700.00)
+        size = Size(display!!.width / 3, display!!.height - 105)
     }
     private val footerView = FooterView(
         config,
@@ -91,7 +94,40 @@ class TabView(
         linkStyler,
         focusManager
     ).apply {
-        size = Size(1000, 100)
+        size = Size(display!!.width, 100.00)
+    }
+
+    private val contentContainer = object : Container() {
+        init {
+            clipCanvasToBounds = false
+
+            size = Size(display.width, display.height - 200)
+
+            children += listOf(leftView, centerView, rightView) // footerView excluded
+
+            layout = constrain(children[0], children[1], children[2]) { left, center, right ->
+                left.top eq 5
+                left.left eq 5
+                left.width eq display.width / 4
+                left.bottom eq display.height - 200
+
+                center.top eq left.top
+                center.left eq left.right + 5
+                center.width eq display.width / 2
+                center.bottom eq left.bottom
+
+                right.top eq left.top
+                right.left eq center.right + 5
+                right.right eq display.width - 5
+                right.bottom eq left.bottom
+
+                //footer.top eq left.bottom + 5
+                //footer.left eq left.left
+                //footer.right eq display.width - 5
+                //footer.bottom eq display.height - 5
+            }
+            Resizer(this)
+        }
     }
 
 
@@ -101,7 +137,12 @@ class TabView(
         this.size = Size(display.width, display.height)
 
         layout = constrain(this) {
+            it.edges eq parent.edges
+            it.centerX eq parent.centerX
+            it.centerY eq parent.centerY
         }
+
+        children += contentContainer
 
         Resizer(this)
     }
