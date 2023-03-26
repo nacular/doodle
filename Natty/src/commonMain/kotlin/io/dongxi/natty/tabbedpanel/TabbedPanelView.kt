@@ -48,7 +48,7 @@ class TabbedPanelView(
 
     // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
 
-    private val homeView = PlainView(
+    private val homeView = MainView(
         display,
         config,
         uiDispatcher,
@@ -61,7 +61,7 @@ class TabbedPanelView(
         focusManager,
         CASA
     ).apply { }
-    private val ringsView = PlainView(
+    private val ringsView = MainView(
         display,
         config,
         uiDispatcher,
@@ -73,7 +73,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, ANEIS
     ).apply { }
-    private val necklacesView = PlainView(
+    private val necklacesView = MainView(
         display,
         config,
         uiDispatcher,
@@ -85,7 +85,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, COLARES
     ).apply { }
-    private val scapularsView = PlainView(
+    private val scapularsView = MainView(
         display,
         config,
         uiDispatcher,
@@ -97,7 +97,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, ESCAPULARIOS
     ).apply { }
-    private val braceletsView = PlainView(
+    private val braceletsView = MainView(
         display,
         config,
         uiDispatcher,
@@ -109,7 +109,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, PULSEIRAS
     ).apply { }
-    private val earRingsView = PlainView(
+    private val earRingsView = MainView(
         display,
         config,
         uiDispatcher,
@@ -121,7 +121,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, BRINCOS
     ).apply { }
-    private val aboutView = PlainView(
+    private val aboutView = MainView(
         display,
         config,
         uiDispatcher,

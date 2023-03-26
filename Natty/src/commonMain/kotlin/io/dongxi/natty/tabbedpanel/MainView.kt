@@ -18,7 +18,7 @@ import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
 
-class PlainView(
+class MainView(
     private val display: Display,
     private val config: NattyAppConfig,
     private val uiDispatcher: CoroutineDispatcher,
