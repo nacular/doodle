@@ -48,13 +48,91 @@ class TabbedPanelView(
 
     // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
 
-    private val homeView = PlainView(display, config, textMetrics, CASA).apply { }
-    private val ringsView = PlainView(display, config, textMetrics, ANEIS).apply { }
-    private val necklacesView = PlainView(display, config, textMetrics, COLARES).apply { }
-    private val scapularsView = PlainView(display, config, textMetrics, ESCAPULARIOS).apply { }
-    private val braceletsView = PlainView(display, config, textMetrics, PULSEIRAS).apply { }
-    private val earRingsView = PlainView(display, config, textMetrics, BRINCOS).apply { }
-    private val aboutView = PlainView(display, config, textMetrics, SOBRE).apply { }
+    private val homeView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager,
+        CASA
+    ).apply { }
+    private val ringsView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, ANEIS
+    ).apply { }
+    private val necklacesView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, COLARES
+    ).apply { }
+    private val scapularsView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, ESCAPULARIOS
+    ).apply { }
+    private val braceletsView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, PULSEIRAS
+    ).apply { }
+    private val earRingsView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, BRINCOS
+    ).apply { }
+    private val aboutView = PlainView(
+        display,
+        config,
+        uiDispatcher,
+        animator,
+        pathMetrics,
+        textMetrics,
+        dataStore,
+        images,
+        linkStyler,
+        focusManager, SOBRE
+    ).apply { }
     // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
     // Each tab preview shows names as StyledText.
