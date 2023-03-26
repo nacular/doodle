@@ -1417,10 +1417,10 @@ public class NamedConfig internal constructor(public val label: Label) {
      * @param spacing that determines the space between the label and field
      * @return the default layout
      */
-    public fun defaultLayout(spacing: Double = DEFAULT_SPACING): (container: View, field: View) -> Layout? = { container,_ ->
+    public fun defaultLayout(spacing: Double = DEFAULT_SPACING, itemHeight: Double = DEFAULT_HEIGHT): (container: View, field: View) -> Layout? = { container,_ ->
         label.fitText = setOf(Width)
 
-        ExpandingVerticalLayout(container, spacing, DEFAULT_HEIGHT)
+        ExpandingVerticalLayout(container, spacing, itemHeight)
     }
 
     /**

@@ -62,6 +62,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         val element = htmlFactory.createOrUse("B", possible)
 
         element.clear()
+        element.style.width = ""
         element.style.setBackgroundColor(null)
 
         text.forEach { (text, style) ->
