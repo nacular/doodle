@@ -26,6 +26,7 @@ import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setPerspectiveTransform
 import io.nacular.doodle.dom.setSize
+import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.top
@@ -396,9 +397,10 @@ internal open class CanvasImpl(
         }
 
         it.style.filter = ""
-        it.style.setClipPath    (null)
-        it.style.setTransform   (    )
-        it.style.setBorderRadius(null)
+        it.style.setClipPath     (null)
+        it.style.setTransform    (    )
+        it.style.setBorderRadius (null)
+        it.style.setTextAlignment(null)
     }
 
     private fun getRect(rectangle: Rectangle, clear: Boolean = true): HTMLElement? = rectangle.takeIf { !it.empty }?.let {

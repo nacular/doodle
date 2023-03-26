@@ -48,12 +48,13 @@ internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { 
 
 internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value, true) }
 
-internal fun Style.setTextAlignment(alignment: TextAlignment) {
+internal fun Style.setTextAlignment(alignment: TextAlignment?) {
     textAlign = when (alignment) {
         Start   -> "left"
         Center  -> "center"
         End     -> "right"
         Justify -> "justify"
+        else    -> ""
     }
 }
 

@@ -3,10 +3,10 @@ package io.nacular.doodle.controls
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
-import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.Dimension
 import kotlin.math.max
 
 /**
@@ -37,14 +37,29 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
     override fun invoke(item: T, previous: View?, context: C) = block(item, previous, context)
 }
 
+@Deprecated(message = "Use StringVisualizer", replaceWith = ReplaceWith("StringVisualizer"))
+public typealias TextVisualizer = StringVisualizer
+
 /**
  * Visualizes Strings using [Label]s.
  */
-public open class TextVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<String, Any> {
+public open class StringVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
-        is Label -> previous.apply { text = item; this@TextVisualizer.fitText?.let { fitText = it } }
+        is Label -> previous.apply { text = item; this@StringVisualizer.fitText?.let { fitText = it } }
         else     -> Label(StyledText(item)).apply {
-            this@TextVisualizer.fitText?.let { fitText = it }
+            this@StringVisualizer.fitText?.let { fitText = it }
+        }
+    }
+}
+
+/**
+ * Visualizes [StyledText] using [Label]s.
+ */
+public open class StyledTextVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<StyledText, Any> {
+    override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
+        is Label -> previous.apply { styledText = item; this@StyledTextVisualizer.fitText?.let { fitText = it } }
+        else     -> Label(item).apply {
+            this@StyledTextVisualizer.fitText?.let { fitText = it }
         }
     }
 }

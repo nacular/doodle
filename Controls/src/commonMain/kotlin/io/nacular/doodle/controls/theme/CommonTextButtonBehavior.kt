@@ -105,26 +105,20 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
         val stringWidth = textMetrics.width(text, font(button))
 
         val x = when (button.iconAnchor) {
-            Anchor.Leading ->
-                if (stringWidth > 0) {
-                    max(minX, stringPosition.x - size.width - button.iconTextSpacing)
-                } else {
-                    max(minX, min(maxX, (bounds.width - size.width) / 2))
-                }
+            Anchor.Leading -> when {
+                stringWidth > 0 -> max(minX, stringPosition.x - size.width - button.iconTextSpacing)
+                else            -> max(minX, min(maxX, (bounds.width - size.width) / 2))
+            }
 
-            Anchor.Right ->
-                if (stringWidth > 0) {
-                    max(maxX, stringPosition.x + stringWidth + button.iconTextSpacing)
-                } else {
-                    max(maxX, minX)
-                }
+            Anchor.Right -> when {
+                stringWidth > 0 -> max(maxX, stringPosition.x + stringWidth + button.iconTextSpacing)
+                else            -> max(maxX, minX)
+            }
 
-            Anchor.Trailing ->
-                if (stringWidth > 0) {
-                    stringPosition.x + stringWidth + button.iconTextSpacing
-                } else {
-                    max(minX, min(maxX, (bounds.width - size.width) / 2))
-                }
+            Anchor.Trailing -> when {
+                stringWidth > 0 -> stringPosition.x + stringWidth + button.iconTextSpacing
+                else            -> max(minX, min(maxX, (bounds.width - size.width) / 2))
+            }
             else -> minX
         }
 
