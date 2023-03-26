@@ -5,6 +5,7 @@ package io.dongxi.natty
 
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.storage.PersistentStore
+import io.dongxi.natty.tabbedpanel.NattyTabProducer
 import io.dongxi.natty.tabbedpanel.TabbedPanelApp
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.AnimatorImpl
@@ -42,7 +43,7 @@ fun main() {
         nativeTextFieldBehavior(),
         nativeHyperLinkBehavior(),
         nativeScrollPanelBehavior(smoothScrolling = true),
-        basicTabbedPanelBehavior(null, Color.White, null),
+        basicTabbedPanelBehavior(NattyTabProducer(), Color(0xe4dfdeu), null),
         Module(name = "AppModule") {
             bindSingleton<Animator> { AnimatorImpl(timer = instance(), animationScheduler = instance()) }
             bindSingleton<PathMetrics> { PathMetricsImpl(svgFactory = instance()) }

@@ -1,6 +1,7 @@
 package io.dongxi.natty.tabbedpanel
 
 import io.dongxi.natty.storage.DataStore
+import io.dongxi.natty.tabbedpanel.TabAttributes.*
 import io.dongxi.natty.util.ClassUtils.simpleClassName
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer
@@ -47,16 +48,13 @@ class TabbedPanelView(
 
     // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
 
-    private val homeView = PlainView(config, textMetrics, tabName = "Casa").apply {
-        size = Size(200, 200)
-    }
-
-    private val ringsView = PlainView(config, textMetrics, tabName = "Aneis").apply { size = Size(200, 200) }
-    private val necklacesView = PlainView(config, textMetrics, tabName = "Colares").apply { size = Size(200, 200) }
-    private val scapularsView = PlainView(config, textMetrics, tabName = "Escapulários").apply { size = Size(200, 200) }
-    private val braceletsView = PlainView(config, textMetrics, tabName = "Pulseiras").apply { size = Size(200, 200) }
-    private val earRingsView = PlainView(config, textMetrics, tabName = "Brincos").apply { size = Size(200, 200) }
-    private val aboutView = PlainView(config, textMetrics, tabName = "Sobre").apply { size = Size(200, 200) }
+    private val homeView = PlainView(display, config, textMetrics, CASA).apply { }
+    private val ringsView = PlainView(display, config, textMetrics, ANEIS).apply { }
+    private val necklacesView = PlainView(display, config, textMetrics, COLARES).apply { }
+    private val scapularsView = PlainView(display, config, textMetrics, ESCAPULARIOS).apply { }
+    private val braceletsView = PlainView(display, config, textMetrics, PULSEIRAS).apply { }
+    private val earRingsView = PlainView(display, config, textMetrics, BRINCOS).apply { }
+    private val aboutView = PlainView(display, config, textMetrics, SOBRE).apply { }
     // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
     // Each tab preview shows names as StyledText.
@@ -106,5 +104,6 @@ class TabbedPanelView(
     }
 
     override fun render(canvas: Canvas) {
+        tabbedPanel.render(canvas)
     }
 }
