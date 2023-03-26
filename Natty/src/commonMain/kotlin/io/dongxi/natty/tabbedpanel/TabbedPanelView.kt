@@ -5,7 +5,6 @@ import io.dongxi.natty.tabbedpanel.TabAttributes.*
 import io.dongxi.natty.util.ClassUtils.simpleClassName
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer
-import io.nacular.doodle.controls.ScrollPanelVisualizer
 import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.core.Display
@@ -23,6 +22,7 @@ import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
+import io.nacular.doodle.utils.BoxOrientation
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -132,7 +132,7 @@ class TabbedPanelView(
         linkStyler,
         focusManager, SOBRE
     ).apply { }
-    
+
     // Natty:  Maybe Sub Categories, or ways the person could find big earrings, small earrings, for instance.
 
     // Each tab preview shows names as StyledText.
@@ -155,6 +155,37 @@ class TabbedPanelView(
         }
     }
 
+    private val tabbedPanel = TabbedPanel.invoke(
+        BoxOrientation.Top,
+        styledTextTabVisualizer,
+        homeView,
+        ringsView,
+        necklacesView,
+        scapularsView,
+        braceletsView,
+        earRingsView,
+        aboutView
+    ).apply {
+        size = Size(500, 300)
+        Resizer(this).apply { movable = false }
+    }
+
+    /*
+    private val tabbedPanel = TabbedPanel.invoke(
+        BoxOrientation.Top,
+        styledTextTabVisualizer,
+        homeView,
+        ringsView,
+        necklacesView,
+        scapularsView,
+        braceletsView,
+        earRingsView,
+        aboutView
+    ).apply {
+        size = Size(500, 300)
+        Resizer(this).apply { movable = false }
+    }
+
     // Each object is displayed within a ScrollPanel
     private val tabbedPanel = TabbedPanel(
         ScrollPanelVisualizer(),
@@ -170,6 +201,22 @@ class TabbedPanelView(
         size = Size(500, 300)
         Resizer(this).apply { movable = false }
     }
+
+     private val tabbedPanel = TabbedPanel(
+        ViewVisualizer,
+        styledTextTabVisualizer,
+        homeView,
+        ringsView,
+        necklacesView,
+        scapularsView,
+        braceletsView,
+        earRingsView,
+        aboutView
+    ).apply {
+        size = Size(500, 300)
+        Resizer(this).apply { movable = false }
+    }
+     */
 
     init {
         clipCanvasToBounds = false
