@@ -118,8 +118,8 @@ class TabView(
 
                 left.top eq 5
                 left.left eq 5
-                left.width eq display.width / 4
-                left.bottom eq display.height - 200
+                left.width eq parent.width / 4
+                left.bottom eq parent.height - 200
                 /*
                 left.top eq leftViewBoundaries!!.top
                 left.left eq leftViewBoundaries!!.left
@@ -129,7 +129,7 @@ class TabView(
 
                 center.top eq left.top
                 center.left eq left.right + 5
-                center.width eq display.width / 2
+                center.width eq parent.width / 2
                 center.bottom eq left.bottom
                 /*
                 center.top eq centerViewBoundaries!!.top
@@ -140,7 +140,7 @@ class TabView(
 
                 right.top eq left.top
                 right.left eq center.right + 5
-                right.right eq display.width - 5
+                right.right eq parent.width - 5
                 right.bottom eq left.bottom
                 /*
                 right.top eq rightViewBoundaries!!.top
@@ -163,11 +163,6 @@ class TabView(
         clipCanvasToBounds = false
 
         size = Size(display.width, display.height)
-
-        display.layout = constrain(this) {
-            it.edges eq parent.edges
-        }
-
 
         children += contentContainer
 
