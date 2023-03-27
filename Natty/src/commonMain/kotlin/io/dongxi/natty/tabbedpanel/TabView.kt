@@ -14,7 +14,6 @@ import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
-import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
@@ -103,7 +102,7 @@ class TabView(
         init {
             clipCanvasToBounds = false
 
-            size = Size(display.width, display.height - 200)
+            size = Size(display.width, display.height - 100)
 
             children += listOf(leftView, centerView, rightView) // footerView excluded
 
@@ -167,7 +166,29 @@ class TabView(
 
         // Never constrain `this` !!!
         // Constrain the child, not this.
-        layout = constrain(contentContainer, fill)
+        layout = constrain(
+            contentContainer,
+            contentContainer.children[0],
+            contentContainer.children[1],
+            contentContainer.children[2]
+        ) { container, left, center, right ->
+            container.edges eq parent.edges
+
+            left.top eq container.top + 5
+            left.left eq container.left + 5
+            left.width eq container.width / 4
+            left.bottom eq container.bottom - 100
+
+            center.top eq container.top + 5
+            center.left eq left.right + 5
+            center.width eq container.width / 2
+            center.bottom eq container.bottom - 100
+
+            right.top eq container.top + 5
+            right.left eq center.right + 5
+            right.width eq container.width / 4
+            right.bottom eq container.bottom - 100
+        }
 
         Resizer(this).apply { movable = false }
     }
