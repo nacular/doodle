@@ -83,7 +83,7 @@ class NattyApp(
                 size = 18; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
             }!!
             val listFont = fonts(titleFont) { size = 14 }!! // !! -> raises NullPointerException ?
-            val tabPanelFont = fonts(titleFont) { size = 14; weight = 500 }!!
+            val tabPanelFont = fonts(titleFont) { size = 12; weight = 450 }!!
             val footerFont = fonts(titleFont) { size = 10 }!!
             val config = NattyAppConfig(
                 listFont = listFont,

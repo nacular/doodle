@@ -3,18 +3,17 @@ package io.dongxi.natty.view
 import io.dongxi.natty.application.NattyAppConfig
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.util.ClassUtils
-import io.dongxi.natty.util.PointUtils
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.*
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
-import io.nacular.doodle.geometry.Point
 
 class RightView(
     private val config: NattyAppConfig,
