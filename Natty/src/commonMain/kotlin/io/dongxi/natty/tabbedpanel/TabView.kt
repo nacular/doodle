@@ -110,10 +110,10 @@ class TabView(
             layout = constrain(children[0], children[1], children[2]) { left, center, right ->
 
                 val contentViewBoundariesMap = ViewUtils.getContentViewBoundaries(display)
-                val leftViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[0]))
-                val centerViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[1]))
-                val rightViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[2]))
-                // val footerViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[0]))
+                val leftViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[0])]
+                val centerViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[1])]
+                val rightViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[2])]
+                // val footerViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[3])]
 
                 left.top eq 5
                 left.left eq 5
