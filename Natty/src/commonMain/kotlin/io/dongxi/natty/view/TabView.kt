@@ -101,9 +101,12 @@ class TabView(
         init {
             clipCanvasToBounds = false
 
-            children += listOf(leftView, centerView, rightView) // footerView excluded
+            children += listOf(leftView, centerView, rightView, footerView)
 
-            layout = constrain(children[0], children[1], children[2]) { left, center, right ->
+            layout = constrain(children[0], children[1], children[2], children[3]) { left,
+                                                                                     center,
+                                                                                     right,
+                                                                                     footer ->
 
                 left.top eq 5
                 left.left eq 5
@@ -120,10 +123,10 @@ class TabView(
                 right.right eq parent.width - 5
                 right.bottom eq left.bottom
 
-                //footer.top eq left.bottom + 5
-                //footer.left eq left.left
-                //footer.right eq display.width - 5
-                //footer.bottom eq display.height - 5
+                footer.top eq left.bottom + 5
+                footer.left eq left.left
+                footer.right eq parent.width - 5
+                footer.bottom eq parent.height - 5
             }
             Resizer(this)
         }
