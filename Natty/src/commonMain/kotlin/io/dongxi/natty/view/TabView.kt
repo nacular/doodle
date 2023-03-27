@@ -108,7 +108,7 @@ class TabView(
                 left.top eq 5
                 left.left eq 5
                 left.width eq parent.width / 4
-                left.bottom eq parent.height - 200
+                left.bottom eq parent.height - 100
 
                 center.top eq left.top
                 center.left eq left.right + 5
