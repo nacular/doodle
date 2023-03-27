@@ -2,8 +2,8 @@ package io.dongxi.natty.view
 
 import io.dongxi.natty.application.NattyAppConfig
 import io.dongxi.natty.storage.DataStore
-import io.dongxi.natty.view.TabAttributes.*
 import io.dongxi.natty.util.ClassUtils.simpleClassName
+import io.dongxi.natty.view.TabAttributes.*
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.invoke
@@ -17,7 +17,6 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
@@ -49,7 +48,6 @@ class TabbedPanelView(
     // Natty:  Categories: aneis, colares, escapulários, pulseiras, brincos e sobre.
 
     private val homeView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -62,7 +60,6 @@ class TabbedPanelView(
         CASA
     ).apply { }
     private val ringsView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -74,7 +71,6 @@ class TabbedPanelView(
         focusManager, ANEIS
     ).apply { }
     private val necklacesView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -86,7 +82,6 @@ class TabbedPanelView(
         focusManager, COLARES
     ).apply { }
     private val scapularsView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -98,7 +93,6 @@ class TabbedPanelView(
         focusManager, ESCAPULARIOS
     ).apply { }
     private val braceletsView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -110,7 +104,6 @@ class TabbedPanelView(
         focusManager, PULSEIRAS
     ).apply { }
     private val earRingsView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -122,7 +115,6 @@ class TabbedPanelView(
         focusManager, BRINCOS
     ).apply { }
     private val aboutView = TabView(
-        display,
         config,
         uiDispatcher,
         animator,
@@ -167,7 +159,6 @@ class TabbedPanelView(
         earRingsView,
         aboutView
     ).apply {
-        size = Size(500, 300)
         Resizer(this).apply { movable = false }
     }
 

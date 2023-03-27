@@ -3,16 +3,16 @@ package io.dongxi.natty.view
 import io.dongxi.natty.application.NattyAppConfig
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.util.ClassUtils
-import io.dongxi.natty.util.ViewUtils
 import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.core.*
+import io.nacular.doodle.core.Container
+import io.nacular.doodle.core.View
+import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineDispatcher
  * The main view for each tab is the same, containing four nested views:  left, center, right and footer.
  */
 class TabView(
-    private val display: Display,
     private val config: NattyAppConfig,
     private val uiDispatcher: CoroutineDispatcher,
     private val animator: Animator,
@@ -56,9 +55,8 @@ class TabView(
         images,
         linkStyler,
         focusManager
-    ).apply {
-        size = Size(display!!.width / 3, display!!.height - 105)
-    }
+    ).apply {}
+
     private val centerView = CenterView(
         config,
         uiDispatcher,
@@ -69,9 +67,8 @@ class TabView(
         images,
         linkStyler,
         focusManager
-    ).apply {
-        size = Size(display!!.width / 3, display!!.height - 105)
-    }
+    ).apply {}
+
     private val rightView = RightView(
         config,
         uiDispatcher,
@@ -82,9 +79,8 @@ class TabView(
         images,
         linkStyler,
         focusManager
-    ).apply {
-        size = Size(display!!.width / 3, display!!.height - 105)
-    }
+    ).apply {}
+
     private val footerView = FooterView(
         config,
         uiDispatcher,
@@ -95,58 +91,30 @@ class TabView(
         images,
         linkStyler,
         focusManager
-    ).apply {
-        size = Size(display!!.width, 100.00)
-    }
+    ).apply {}
 
     private val contentContainer = object : Container() {
         init {
             clipCanvasToBounds = false
 
-            size = Size(display.width, display.height - 100)
-
             children += listOf(leftView, centerView, rightView) // footerView excluded
 
             layout = constrain(children[0], children[1], children[2]) { left, center, right ->
-
-                val contentViewBoundariesMap = ViewUtils.getContentViewBoundaries(display)
-                val leftViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[0])]
-                val centerViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[1])]
-                val rightViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[2])]
-                // val footerViewBoundaries = contentViewBoundariesMap[ClassUtils.simpleClassName(children[3])]
 
                 left.top eq 5
                 left.left eq 5
                 left.width eq parent.width / 4
                 left.bottom eq parent.height - 200
-                /*
-                left.top eq leftViewBoundaries!!.top
-                left.left eq leftViewBoundaries!!.left
-                left.width eq leftViewBoundaries!!.width
-                left.bottom eq leftViewBoundaries!!.bottom
-                 */
 
                 center.top eq left.top
                 center.left eq left.right + 5
                 center.width eq parent.width / 2
                 center.bottom eq left.bottom
-                /*
-                center.top eq centerViewBoundaries!!.top
-                center.left eq centerViewBoundaries!!.left
-                center.width eq centerViewBoundaries!!.width
-                center.bottom eq centerViewBoundaries!!.bottom
-                 */
 
                 right.top eq left.top
                 right.left eq center.right + 5
                 right.right eq parent.width - 5
                 right.bottom eq left.bottom
-                /*
-                right.top eq rightViewBoundaries!!.top
-                right.left eq rightViewBoundaries!!.left
-                right.width eq rightViewBoundaries!!.width
-                right.bottom eq rightViewBoundaries!!.bottom
-                 */
 
                 //footer.top eq left.bottom + 5
                 //footer.left eq left.left
@@ -160,8 +128,6 @@ class TabView(
 
     init {
         clipCanvasToBounds = false
-
-        size = Size(display.width, display.height)
 
         children += contentContainer
 
