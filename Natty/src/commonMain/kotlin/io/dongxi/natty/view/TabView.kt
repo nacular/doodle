@@ -54,7 +54,8 @@ class TabView(
         dataStore,
         images,
         linkStyler,
-        focusManager
+        focusManager,
+        tabAttributes
     ).apply {}
 
     private val centerView = CenterView(
@@ -66,7 +67,8 @@ class TabView(
         dataStore,
         images,
         linkStyler,
-        focusManager
+        focusManager,
+        tabAttributes
     ).apply {}
 
     private val rightView = RightView(
@@ -78,7 +80,8 @@ class TabView(
         dataStore,
         images,
         linkStyler,
-        focusManager
+        focusManager,
+        tabAttributes
     ).apply {}
 
     private val footerView = FooterView(
@@ -90,7 +93,8 @@ class TabView(
         dataStore,
         images,
         linkStyler,
-        focusManager
+        focusManager,
+        tabAttributes
     ).apply {}
 
     private val contentContainer = object : Container() {

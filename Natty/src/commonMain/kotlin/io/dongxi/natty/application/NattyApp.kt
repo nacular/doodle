@@ -83,7 +83,7 @@ class NattyApp(
                 size = 18; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
             }!!
             val listFont = fonts(titleFont) { size = 14 }!! // !! -> raises NullPointerException ?
-            val tabPanelFont = fonts(titleFont) { size = 12; weight = 400 }!!
+            val tabPanelFont = fonts(titleFont) { size = 14; weight = 500 }!!
             val footerFont = fonts(titleFont) { size = 10 }!!
             val config = NattyAppConfig(
                 listFont = listFont,
@@ -114,9 +114,6 @@ class NattyApp(
             ).apply {}
             display.layout = constrain(display.children[0]) {
                 it.edges eq parent.edges
-                // It is redundant to set centerX/centerY once you've constrained a child's edges to match its parent's.
-                // it.centerX eq parent.centerX
-                // it.centerY eq parent.centerY
             }
             display.fill(config.appBackground.paint)
         }

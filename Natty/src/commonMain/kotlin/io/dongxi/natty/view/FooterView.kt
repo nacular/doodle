@@ -14,6 +14,7 @@ import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
+import io.nacular.doodle.geometry.Point
 
 class FooterView(
     private val config: NattyAppConfig,
@@ -24,7 +25,8 @@ class FooterView(
     private val dataStore: DataStore,
     private val images: ImageLoader,
     private val linkStyler: NativeHyperLinkStyler,
-    private val focusManager: FocusManager
+    private val focusManager: FocusManager,
+    private val tabAttributes: TabAttributes
 ) : View() {
 
     private var title by renderProperty(ClassUtils.simpleClassName(this))
@@ -42,7 +44,7 @@ class FooterView(
         canvas.text(
             text = title,
             font = config.titleFont,
-            at = PointUtils.textCenterXPoint(this.width, this.titleWidth, 10),
+            at = Point(10.0, 10.0),
             color = Color.Black
         )
     }

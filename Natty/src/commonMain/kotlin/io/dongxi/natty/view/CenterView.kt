@@ -24,7 +24,8 @@ class CenterView(
     private val dataStore: DataStore,
     private val images: ImageLoader,
     private val linkStyler: NativeHyperLinkStyler,
-    private val focusManager: FocusManager
+    private val focusManager: FocusManager,
+    private val tabAttributes: TabAttributes
 ) : View() {
 
     private var title by renderProperty(ClassUtils.simpleClassName(this))
@@ -40,7 +41,7 @@ class CenterView(
         canvas.rect(bounds.atOrigin, Color(0xe0bdbcu))  // From natty color tbl.
 
         canvas.text(
-            text = title,
+            text = tabAttributes.centerViewTitle,
             font = config.titleFont,
             at = PointUtils.textCenterXPoint(this.width, this.titleWidth, 10),
             color = Color.Black
