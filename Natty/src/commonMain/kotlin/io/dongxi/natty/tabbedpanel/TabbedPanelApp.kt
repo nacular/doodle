@@ -113,8 +113,9 @@ class TabbedPanelApp(
             ).apply {}
             display.layout = constrain(display.children[0]) {
                 it.edges eq parent.edges
-                it.centerX eq parent.centerX
-                it.centerY eq parent.centerY
+                // It is redundant to set centerX/centerY once you've constrained a child's edges to match its parent's.
+                // it.centerX eq parent.centerX
+                // it.centerY eq parent.centerY
             }
             display.fill(config.appBackground.paint)
         }

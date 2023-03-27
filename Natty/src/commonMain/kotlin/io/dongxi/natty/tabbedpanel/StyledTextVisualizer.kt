@@ -15,3 +15,4 @@ open class StyledTextVisualizer(private val fitText: Set<Dimension>? = null) : I
         }
     }
 }
+

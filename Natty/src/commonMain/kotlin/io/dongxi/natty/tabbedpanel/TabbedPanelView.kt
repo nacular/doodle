@@ -170,54 +170,6 @@ class TabbedPanelView(
         Resizer(this).apply { movable = false }
     }
 
-    /*
-    private val tabbedPanel = TabbedPanel.invoke(
-        BoxOrientation.Top,
-        styledTextTabVisualizer,
-        homeView,
-        ringsView,
-        necklacesView,
-        scapularsView,
-        braceletsView,
-        earRingsView,
-        aboutView
-    ).apply {
-        size = Size(500, 300)
-        Resizer(this).apply { movable = false }
-    }
-
-    // Each object is displayed within a ScrollPanel
-    private val tabbedPanel = TabbedPanel(
-        ScrollPanelVisualizer(),
-        styledTextTabVisualizer,
-        homeView,
-        ringsView,
-        necklacesView,
-        scapularsView,
-        braceletsView,
-        earRingsView,
-        aboutView
-    ).apply {
-        size = Size(500, 300)
-        Resizer(this).apply { movable = false }
-    }
-
-     private val tabbedPanel = TabbedPanel(
-        ViewVisualizer,
-        styledTextTabVisualizer,
-        homeView,
-        ringsView,
-        necklacesView,
-        scapularsView,
-        braceletsView,
-        earRingsView,
-        aboutView
-    ).apply {
-        size = Size(500, 300)
-        Resizer(this).apply { movable = false }
-    }
-     */
-
     init {
         clipCanvasToBounds = false
 
@@ -229,6 +181,5 @@ class TabbedPanelView(
     }
 
     override fun render(canvas: Canvas) {
-        // tabbedPanel.render(canvas)  (unnecessary)
     }
 }

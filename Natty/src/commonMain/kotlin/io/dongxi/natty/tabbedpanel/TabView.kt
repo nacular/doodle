@@ -2,6 +2,7 @@ package io.dongxi.natty.tabbedpanel
 
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.util.ClassUtils
+import io.dongxi.natty.util.ViewUtils
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.core.*
 import io.nacular.doodle.drawing.Canvas
@@ -13,6 +14,7 @@ import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
@@ -106,20 +108,46 @@ class TabView(
             children += listOf(leftView, centerView, rightView) // footerView excluded
 
             layout = constrain(children[0], children[1], children[2]) { left, center, right ->
+
+                val contentViewBoundariesMap = ViewUtils.getContentViewBoundaries(display)
+                val leftViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[0]))
+                val centerViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[1]))
+                val rightViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[2]))
+                // val footerViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[0]))
+
+
                 left.top eq 5
                 left.left eq 5
                 left.width eq display.width / 4
                 left.bottom eq display.height - 200
+                /*
+                left.top eq leftViewBoundaries!!.top
+                left.left eq leftViewBoundaries!!.left
+                left.width eq leftViewBoundaries!!.width
+                left.bottom eq leftViewBoundaries!!.bottom
+                 */
 
                 center.top eq left.top
                 center.left eq left.right + 5
                 center.width eq display.width / 2
                 center.bottom eq left.bottom
+                /*
+                center.top eq centerViewBoundaries!!.top
+                center.left eq centerViewBoundaries!!.left
+                center.width eq centerViewBoundaries!!.width
+                center.bottom eq centerViewBoundaries!!.bottom
+                 */
 
                 right.top eq left.top
                 right.left eq center.right + 5
                 right.right eq display.width - 5
                 right.bottom eq left.bottom
+                /*
+                right.top eq rightViewBoundaries!!.top
+                right.left eq rightViewBoundaries!!.left
+                right.width eq rightViewBoundaries!!.width
+                right.bottom eq rightViewBoundaries!!.bottom
+                 */
 
                 //footer.top eq left.bottom + 5
                 //footer.left eq left.left
@@ -132,19 +160,22 @@ class TabView(
 
 
     init {
-        clipCanvasToBounds = false // nothing rendered shows beyond its [bounds]
+        clipCanvasToBounds = false
 
-        this.size = Size(display.width, display.height)
+        size = Size(display.width, display.height)
 
-        layout = constrain(this) {
+        display.layout = constrain(this) {
             it.edges eq parent.edges
-            it.centerX eq parent.centerX
-            it.centerY eq parent.centerY
         }
+
 
         children += contentContainer
 
-        Resizer(this)
+        // Never constrain `this` !!!
+        // Constrain the child, not this.
+        layout = constrain(contentContainer, fill)
+
+        Resizer(this).apply { movable = false }
     }
 
     override fun render(canvas: Canvas) {

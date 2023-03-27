@@ -10,7 +10,6 @@ import io.nacular.doodle.drawing.*
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.image.ImageLoader
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,10 +32,7 @@ class RightView(
     init {
         clipCanvasToBounds = false
 
-        layout = constrain(this) {
-        }
-
-        Resizer(this)
+        Resizer(this).apply { movable = false }
     }
 
     override fun render(canvas: Canvas) {
