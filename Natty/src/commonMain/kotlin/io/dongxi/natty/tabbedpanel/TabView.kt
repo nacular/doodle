@@ -115,7 +115,6 @@ class TabView(
                 val rightViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[2]))
                 // val footerViewBoundaries = contentViewBoundariesMap.get(ClassUtils.simpleClassName(children[0]))
 
-
                 left.top eq 5
                 left.left eq 5
                 left.width eq parent.width / 4
