@@ -5,7 +5,7 @@ package io.dongxi.natty.application
 // import io.nacular.doodle.examples.DataStore.Filter.Active
 // import io.nacular.doodle.examples.DataStore.Filter.Completed
 import io.dongxi.natty.storage.DataStore
-import io.dongxi.natty.view.MainView
+import io.dongxi.natty.view.TabbedPanelView
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.application.Application
 import io.nacular.doodle.core.Display
@@ -25,10 +25,16 @@ import kotlinx.coroutines.*
  * General styling config
  */
 data class NattyAppConfig(
+
+    // Hex = Color
+    // #F5F5F5 = LightGrey
+    // #733236 = Dark Red in Natty's Color Tbl
+
     val listFont: Font,
     val titleFont: Font,
     val lineColor: Color = Color(0xEDEDEDu),
     val filterFont: Font,
+    val tabPanelFont: Font,
     val footerFont: Font,
     val headerColor: Color = Color(0xAF2F2Fu) opacity 0.15f,
     val deleteColor: Color = Color(0xCC9A9Au),
@@ -51,7 +57,7 @@ data class NattyAppConfig(
 
 
 /**
- * Natty App should be based on TodoMVC?
+ * TODO
  */
 class NattyApp(
     display: Display,
@@ -77,10 +83,12 @@ class NattyApp(
                 size = 18; weight = 100; families = listOf("Helvetica Neue", "Helvetica", "Arial", "sans-serif")
             }!!
             val listFont = fonts(titleFont) { size = 14 }!! // !! -> raises NullPointerException ?
+            val tabPanelFont = fonts(titleFont) { size = 12; weight = 400 }!!
             val footerFont = fonts(titleFont) { size = 10 }!!
             val config = NattyAppConfig(
                 listFont = listFont,
                 titleFont = titleFont,
+                tabPanelFont = tabPanelFont,
                 footerFont = footerFont,
                 filterFont = fonts(titleFont) { size = 14 }!!,
                 boldFooterFont = fonts(footerFont) { weight = 400 }!!,
@@ -92,7 +100,7 @@ class NattyApp(
             // install theme
             themes.selected = theme
 
-            display += MainView(
+            display += TabbedPanelView(
                 display,
                 config,
                 uiDispatcher,
@@ -106,8 +114,9 @@ class NattyApp(
             ).apply {}
             display.layout = constrain(display.children[0]) {
                 it.edges eq parent.edges
-                it.centerX eq parent.centerX
-                it.centerY eq parent.centerY
+                // It is redundant to set centerX/centerY once you've constrained a child's edges to match its parent's.
+                // it.centerX eq parent.centerX
+                // it.centerY eq parent.centerY
             }
             display.fill(config.appBackground.paint)
         }

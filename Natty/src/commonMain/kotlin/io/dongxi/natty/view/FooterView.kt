@@ -11,7 +11,6 @@ import io.nacular.doodle.drawing.*
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.image.ImageLoader
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.native.NativeHyperLinkStyler
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,23 +27,17 @@ class FooterView(
     private val focusManager: FocusManager
 ) : View() {
 
-    private var title by renderProperty(ClassUtils.simpleClassName(this))  // var is not final (is mutable)
-    private val titleWidth = textMetrics.width(title)     // val is final (immutable)
+    private var title by renderProperty(ClassUtils.simpleClassName(this))
+    private val titleWidth = textMetrics.width(title)
 
     init {
         clipCanvasToBounds = false
 
-        layout = constrain(this) {
-        }
-        
-        Resizer(this)
+        Resizer(this).apply { movable = false }
     }
 
     override fun render(canvas: Canvas) {
-        val foreGround = (foregroundColor ?: Color.White).paint
-        val backGround = (backgroundColor ?: Color.Darkgray).paint
-
-        canvas.rect(bounds.atOrigin, backGround)
+        canvas.rect(bounds.atOrigin, Color(0xe0bdbcu))  // From natty color tbl.
 
         canvas.text(
             text = title,

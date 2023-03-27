@@ -1,5 +1,6 @@
-package io.dongxi.natty.tabbedpanel
+package io.dongxi.natty.view
 
+import io.dongxi.natty.application.NattyAppConfig
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.util.ClassUtils
 import io.dongxi.natty.util.ViewUtils

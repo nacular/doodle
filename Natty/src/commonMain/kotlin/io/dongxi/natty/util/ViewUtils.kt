@@ -1,15 +1,16 @@
 package io.dongxi.natty.util
 
-import io.dongxi.natty.tabbedpanel.CenterView
-import io.dongxi.natty.tabbedpanel.FooterView
-import io.dongxi.natty.tabbedpanel.LeftView
-import io.dongxi.natty.tabbedpanel.RightView
 import io.dongxi.natty.util.ClassUtils.simpleClassName
+import io.dongxi.natty.view.CenterView
+import io.dongxi.natty.view.FooterView
+import io.dongxi.natty.view.LeftView
+import io.dongxi.natty.view.RightView
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 
+// TODO Redo -- never use display, use parent param instead.
 object ViewUtils {
 
     data class NattyViewBounds(

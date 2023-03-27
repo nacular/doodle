@@ -1,7 +1,8 @@
-package io.dongxi.natty.tabbedpanel
+package io.dongxi.natty.view
 
+import io.dongxi.natty.application.NattyAppConfig
 import io.dongxi.natty.storage.DataStore
-import io.dongxi.natty.tabbedpanel.TabAttributes.*
+import io.dongxi.natty.view.TabAttributes.*
 import io.dongxi.natty.util.ClassUtils.simpleClassName
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.controls.ItemVisualizer

@@ -5,8 +5,8 @@ package io.dongxi.natty
 
 import io.dongxi.natty.storage.DataStore
 import io.dongxi.natty.storage.PersistentStore
-import io.dongxi.natty.tabbedpanel.NattyTabProducer
-import io.dongxi.natty.tabbedpanel.TabbedPanelApp
+import io.dongxi.natty.view.NattyTabProducer
+import io.dongxi.natty.application.NattyApp
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.AnimatorImpl
 import io.nacular.doodle.application.Modules.Companion.FontModule
@@ -31,7 +31,7 @@ import org.kodein.di.instance
 
 
 /**
- * Creates a [TabbedPanelApp]
+ * Creates a [NattyApp]
  */
 fun main() {
     application(modules = listOf(
@@ -52,7 +52,7 @@ fun main() {
             bindSingleton<Router> { TrivialRouter(window) }
         }
     )) {
-        TabbedPanelApp(
+        NattyApp(
             display = instance(),
             uiDispatcher = Dispatchers.UI,
             animator = instance(),

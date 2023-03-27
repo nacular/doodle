@@ -1,4 +1,4 @@
-package io.dongxi.natty.tabbedpanel
+package io.dongxi.natty.view
 
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.text.Label
