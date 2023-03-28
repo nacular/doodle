@@ -93,7 +93,11 @@ fun KotlinMultiplatformExtension.jsTargetsWithWebpack() {
         }
         browser {
             commonWebpackConfig {
+                // DevServer:  see https://webpack.js.org/configuration/dev-server
+                // Tells dev-server to open the browser after server had been started.
+                // Set it to true to open your default browser.
                 devServer?.`open` = false
+                // Specify a port number to listen for requests on.
                 devServer?.`port` = 8080
                 mode = KotlinWebpackConfig.Mode.DEVELOPMENT
                 devtool = WebpackDevtool.EVAL_SOURCE_MAP

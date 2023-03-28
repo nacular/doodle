@@ -17,49 +17,49 @@ enum class TabAttributes(
         leftViewTitle = "Casa",
         centerViewTitle = "",
         rightViewTitle = "",
-        color = Color.Black
+        color = Color(0xe4dfdeu) // Color.Black
     ),
     ANEIS(
         tabName = "Aneis",
         leftViewTitle = "Aneis",
         centerViewTitle = "Anel",
         rightViewTitle = "Pedras",
-        color = Color.Blue
+        color = Color(0xe4dfdeu) // Color.Blue
     ),
     COLARES(
         tabName = "Colares",
         leftViewTitle = "Colares",
         centerViewTitle = "Colar",
         rightViewTitle = "Pingentes",
-        color = Color.Brown
+        color = Color(0xe4dfdeu) // Color.Brown
     ),
     ESCAPULARIOS(
         tabName = "Escapulários",
         leftViewTitle = "Escapulários",
         centerViewTitle = "Escapulário",
         rightViewTitle = "Que Texto?",
-        color = Color.Red
+        color = Color(0xe4dfdeu) // Color.Red
     ),
     PULSEIRAS(
         tabName = "Pulseiras",
         leftViewTitle = "Pulseiras",
         centerViewTitle = "Pulseira",
         rightViewTitle = "Que Texto?",
-        color = Color.Gray
+        color = Color(0xe4dfdeu) // Color.Gray
     ),
     BRINCOS(
         tabName = "Brincos",
         leftViewTitle = "Brincos",
         centerViewTitle = "Brinco",
         rightViewTitle = "Que Texto?",
-        color = Color.Green
+        color = Color(0xe4dfdeu) // Color.Green
     ),
     SOBRE(
         tabName = "Sobre",
         leftViewTitle = "Sobre",
         centerViewTitle = "",
         rightViewTitle = "",
-        color = Color.Cyan
+        color = Color(0xe4dfdeu) // Color.Cyan
     )
 }
 

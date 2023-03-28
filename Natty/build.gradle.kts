@@ -10,6 +10,8 @@ kotlin {
     jvmTargets()
 
     val coroutinesVersion: String by project
+    val ktorVersion: String by project
+    val logbackVersion: String by project
     val serializationVersion: String by project
 
     sourceSets {
@@ -35,6 +37,17 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
+
+                implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
+                implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+                implementation("io.ktor:ktor-server-compression:$ktorVersion")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation("io.ktor:ktor-server-cors:$ktorVersion")
+                implementation("io.ktor:ktor-server-html-builder-jvm:$ktorVersion")
+                implementation("io.ktor:ktor-server-netty:$ktorVersion")
+
+                implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
                 val osName = System.getProperty("os.name")
                 val targetOs = when {
                     osName == "Mac OS X" -> "macos"
@@ -63,3 +76,15 @@ kotlin {
 application {
     mainClass.set("io.dongxi.natty.server.Server.kt")
 }
+
+
+tasks.named<Copy>("jvmProcessResources") {
+    val jsBrowserDistribution = tasks.named("jsBrowserDistribution")
+    from(jsBrowserDistribution)
+}
+
+tasks.named<JavaExec>("run") {
+    dependsOn(tasks.named<Jar>("jvmJar"))
+    classpath(tasks.named<Jar>("jvmJar"))
+}
+
