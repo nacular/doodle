@@ -1184,6 +1184,7 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
             thisRef.childrenClipPath_    = behavior.childrenClipPath     (thisRef)
             thisRef.clipCanvasToBounds_  = behavior.clipCanvasToBounds   (thisRef)
             thisRef.mirrorWhenRightLeft_ = behavior.mirrorWhenRightToLeft(thisRef)
+            thisRef.rerender()
         }
 
         if (value == null) {

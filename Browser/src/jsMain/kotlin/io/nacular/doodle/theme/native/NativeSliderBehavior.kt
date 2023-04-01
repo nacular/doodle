@@ -28,8 +28,6 @@ internal class NativeSliderBehavior<T>(
         view.cursor              = Default
         view.pointerChanged       += this
         view.pointerMotionChanged += this
-
-        view.rerender()
     }
 
     override fun uninstall(view: Slider<T>) {

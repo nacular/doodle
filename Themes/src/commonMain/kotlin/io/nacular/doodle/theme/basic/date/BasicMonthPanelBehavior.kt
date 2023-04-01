@@ -25,11 +25,6 @@ public class BasicMonthPanelBehavior(
         }
     }
 ): MonthPanelBehavior {
-    override fun install(view: MonthPanel) {
-        super.install(view)
-        view.rerender()
-    }
-
     override fun itemVisualizer(of: MonthPanel): ItemVisualizer<LocalDate, MonthPanel> = of.itemVisualizer ?: defaultVisualizer
 
     override fun render(view: MonthPanel, canvas: Canvas) {

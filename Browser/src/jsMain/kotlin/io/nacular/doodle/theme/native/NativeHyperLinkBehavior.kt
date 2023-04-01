@@ -64,8 +64,6 @@ internal class NativeHyperLinkBehavior(
         view.idealSize?.let {
             view.size = it
         }
-
-        view.rerender()
     }
 
     override fun uninstall(view: HyperLink) {

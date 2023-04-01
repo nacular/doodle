@@ -21,9 +21,9 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.basic.HorizontalListPositioner
-import io.nacular.doodle.theme.basic.VerticalListPositioner
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
+import io.nacular.doodle.theme.basic.VerticalListPositioner
 
 /**
  * Created by Nicholas Eddy on 3/20/18.
@@ -64,8 +64,6 @@ public open class BasicListBehavior<T>(
     override fun install(view: List<T, *>) {
         view.keyChanged    += this
         view.pointerFilter += this
-
-        view.rerender()
     }
 
     override fun uninstall(view: List<T, *>) {

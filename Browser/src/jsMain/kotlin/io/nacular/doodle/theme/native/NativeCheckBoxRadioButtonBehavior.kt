@@ -49,8 +49,6 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
             cursor    = Default
             idealSize = nativePeer.idealSize
             idealSize?.let { size = it }
-
-            rerender()
         }
     }
 
@@ -77,6 +75,8 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
             model.armed   = false
         }
     }
+
+    override fun pointerChanged(button: ToggleButton) {}
 
     override fun released(event: KeyEvent) { /* intentional no-op */ }
 

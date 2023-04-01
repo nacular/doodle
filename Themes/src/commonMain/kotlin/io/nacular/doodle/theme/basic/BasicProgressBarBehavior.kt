@@ -24,12 +24,6 @@ public class BasicProgressBarBehavior(
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
-    override fun install(view: ProgressBar) {
-        super.install(view)
-
-        view.rerender()
-    }
-
     override fun render(view: ProgressBar, canvas: Canvas) {
         val bGround = (background ?: view.backgroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }
         val fGround = (foreground ?: view.foregroundColor?.paint)?.let { if (view.enabled) it else disabledPaintMapper(it) }

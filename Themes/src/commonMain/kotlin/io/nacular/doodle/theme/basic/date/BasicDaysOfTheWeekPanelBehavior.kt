@@ -11,11 +11,6 @@ import kotlinx.datetime.DayOfWeek
  * Created by Nicholas Eddy on 2/21/22.
  */
 public class BasicDaysOfTheWeekPanelBehavior(private val background: Paint, private val defaultVisualizer: ItemVisualizer<DayOfWeek, Unit>?): DaysOfTheWeekPanelBehavior {
-    override fun install(view: DaysOfTheWeekPanel) {
-        super.install(view)
-        view.rerender()
-    }
-
     override fun itemVisualizer(of: DaysOfTheWeekPanel): ItemVisualizer<DayOfWeek, Unit>? = of.itemVisualizer ?: defaultVisualizer
 
     override fun render(view: DaysOfTheWeekPanel, canvas: Canvas) {

@@ -34,8 +34,6 @@ internal class NativeButtonBehavior(
         view.apply {
             cursor    = Default
             idealSize = nativePeer.idealSize
-
-            rerender()
         }
     }
 
