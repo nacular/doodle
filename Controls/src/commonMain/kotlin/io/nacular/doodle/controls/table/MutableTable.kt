@@ -20,11 +20,38 @@ import io.nacular.doodle.utils.observable
 import kotlin.Result.Companion.failure
 
 /**
- * Created by Nicholas Eddy on 5/19/19.
+ * Defines how cells in a [MutableTable] are edited.
  */
-
 public interface TableCellEditor<T, R> {
+    /**
+     * Starts an edit operation for a cell within a [MutableTable].
+     *
+     * @param table being edited
+     * @param row data of cell within [table]
+     * @param column of cell within [table]
+     * @param index of the row
+     * @param current view used to render the row
+     */
     public operator fun invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T>
+}
+
+/**
+ * DSL for creating [TableCellEditor] from a lambda.
+ */
+public fun <T, R> tableCellEditor(block: (
+    table  : MutableTable<T, *>,
+    row    : T,
+    column : MutableColumn<T, R>,
+    index  : Int,
+    current: View
+) -> EditOperation<T>): TableCellEditor<T, R> = object: TableCellEditor<T, R> {
+    override fun invoke(
+        table  : MutableTable<T, *>,
+        row    : T,
+        column : MutableColumn<T, R>,
+        index  : Int,
+        current: View
+    ) = block(table, row, column, index, current)
 }
 
 /**
@@ -39,8 +66,7 @@ public fun <T, R> simpleTableCellEditor(
     cell      : T.(              ) -> R,
     result    : T.(updatedCell: R) -> T,
     cellEditor: (table: MutableTable<T, *>, column: MutableColumn<T, R>, cell: R, index: Int, current: View, result: (R) -> T) -> EditOperation<R>
-): TableCellEditor<T, R> = object: TableCellEditor<T, R> {
-    override fun invoke(table: MutableTable<T, *>, row: T, column: MutableColumn<T, R>, index: Int, current: View): EditOperation<T> = object: EditOperation<T> {
+): TableCellEditor<T, R> = tableCellEditor { table, row, column, index, current -> object: EditOperation<T> {
         val delegate = cellEditor(table, column, cell(row), index, current) { result(row, it) }
 
         override fun invoke  () = delegate()
@@ -49,6 +75,19 @@ public fun <T, R> simpleTableCellEditor(
     }
 }
 
+/**
+ * A visual component that renders a mutable list of items of type [T] using a [TableBehavior].
+ *
+ * @see Table
+ * @param model that holds the data for the Table
+ * @param selectionModel that manages the Table's selection state
+ * @param scrollCache determining how many "hidden" items are rendered above and below the Table's view-port. A value of 0 means
+ * only visible items are rendered, but quick scrolling is more likely to show blank areas.
+ * @param block factory to define the set of columns for the Table
+ *
+ * @property model that holds the data for the MutableTable
+ * @property selectionModel that manages the Table's selection state
+ */
 public class MutableTable<T, M: MutableListModel<T>>(
                       model         : M,
                       selectionModel: SelectionModel<Int>? = null,

@@ -258,6 +258,9 @@ public class TabbedPanel<T>(
     public operator fun set(at: Int, item: T): T = items.set(at, item)
 
     public companion object {
+        /**
+         * Creates a TabbedPanel that shows a set of Views. Each View is simply shown as the tab contents.
+         */
         public operator fun invoke(
                        orientation  : BoxOrientation = Top,
                        tabVisualizer: ItemVisualizer<View, Any>,

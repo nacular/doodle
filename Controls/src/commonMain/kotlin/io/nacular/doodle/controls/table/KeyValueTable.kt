@@ -27,8 +27,13 @@ public interface KeyValueModel<K, V>: ListModel<Pair<K, V>> {
     public fun containsValue(value: V): Boolean
 }
 
+/**
+ * KeyValueModel that simply wraps a [Map]
+ *
+ * @param map containing data
+ */
 public class SimpleKeyValueModel<K, V>(private val map: Map<K, V>): KeyValueModel<K, V>, SimpleListModel<Pair<K, V>>(map.toList()) {
-    public override fun containsKey(key: K): Boolean = map.containsKey(key)
+    public override fun containsKey  (key  : K): Boolean = map.containsKey  (key  )
     public override fun containsValue(value: V): Boolean = map.containsValue(value)
 }
 

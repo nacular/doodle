@@ -74,6 +74,9 @@ public open class BooleanVisualizer(private val defaultSize: Size = Size(16)): I
     }.apply { size = idealSize ?: Size(max(minimumSize.width, defaultSize.width), max(minimumSize.height, defaultSize.height)) }
 }
 
+/**
+ * Simply uses the item (which is a View) as its own visualizer
+ */
 public object ViewVisualizer: ItemVisualizer<View, Any> {
     override fun invoke(item: View, previous: View?, context: Any): View = item
 }
