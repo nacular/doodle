@@ -8,11 +8,12 @@ kotlin {
     jsTargets ()
     jvmTargets()
 
-    val mockkVersion   : String by project
-    val junitVersion   : String by project
-    val log4jVersion   : String by project
-    val logbackVersion : String by project
-    val dateTimeVersion: String by project
+    val mockkVersion     : String by project
+    val junitVersion     : String by project
+    val log4jVersion     : String by project
+    val logbackVersion   : String by project
+    val dateTimeVersion  : String by project
+    val coroutinesVersion: String by project
 
     sourceSets {
         all {
@@ -25,6 +26,7 @@ kotlin {
 
                 implementation(kotlin("reflect"))
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:$dateTimeVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
 
