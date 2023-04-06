@@ -496,7 +496,7 @@ internal open class CanvasImpl(
         style.translate(at)
     }
 
-    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, indent: Double, width: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
+    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
         val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), textSpacing) else 0.0
 
         val element = textFactory.wrapped(
