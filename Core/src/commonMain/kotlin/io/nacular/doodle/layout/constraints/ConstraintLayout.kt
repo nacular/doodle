@@ -232,14 +232,26 @@ public class Edges internal constructor(
     }
 }
 
-public interface AllowsForcedMutation<T> {
+public interface AllowsForcedMutation<T, V> {
     public val writable: T
+    public val readOnly: V
 }
 
-public class ConstEdges      internal constructor(public override val writable: Edges     ): AllowsForcedMutation<Edges>
-public class ConstProperty   internal constructor(public override val writable: Property  ): AllowsForcedMutation<Property>
-public class ConstPosition   internal constructor(public override val writable: Position  ): AllowsForcedMutation<Position>
-public class ConstExpression internal constructor(public override val writable: Expression): AllowsForcedMutation<Expression>
+public class ConstEdges internal constructor(public override val writable: Edges): AllowsForcedMutation<Edges, Rectangle> {
+    public override val readOnly: Rectangle get() = writable.readOnly
+}
+
+public class ConstProperty internal constructor(public override val writable: Property): AllowsForcedMutation<Property, Double> {
+    public override val readOnly: Double get() = writable.readOnly
+}
+
+public class ConstPosition internal constructor(public override val writable: Position): AllowsForcedMutation<Position, Point> {
+    public override val readOnly: Point get() = writable.readOnly
+}
+
+public class ConstExpression internal constructor(public override val writable: Expression): AllowsForcedMutation<Expression, Double> {
+    public override val readOnly: Double get() = writable.readOnly
+}
 
 /**
  * [Bounds] the refer to the external, bounding rectangle for the parent of a View that is being constrained.
