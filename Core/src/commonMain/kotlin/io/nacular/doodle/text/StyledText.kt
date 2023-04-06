@@ -113,6 +113,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
 
     public override fun toString(): String = data.toString()
 
+    /** @suppress */
     @Internal
     public fun subString(range: IntRange): StyledText {
         var wordBoundary = 0

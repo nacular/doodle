@@ -28,6 +28,9 @@ public class ApplicationViewFactory private constructor(public val htmlFactory: 
     ): View = ApplicationView(htmlFactory, nativeFocusManager) { view, root -> nestedApplication(view, root, allowDefaultDarkMode, modules, creator) }
 
     public companion object {
+        /**
+         * Module used to get access to [ApplicationViewFactory]
+         */
         public val AppViewModule: Module = Module(allowSilentOverride = true, name = "ApplicationView") {
             bindProvider { ApplicationViewFactory(instance(), instanceOrNull()) }
         }

@@ -72,6 +72,7 @@ public interface PopupManager {
     public fun active(view: View): Boolean
 }
 
+/** @suppress */
 @Internal
 public class PopupManagerImpl(
     private val display      : InternalDisplay,

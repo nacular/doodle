@@ -169,6 +169,7 @@ public inline val Display.height: Double get() = size.height
 
 public fun Display.fill(color: Color): Unit = fill(color.paint)
 
+/** @suppress */
 @Internal
 public interface InternalDisplay: Display {
     public fun repaint()

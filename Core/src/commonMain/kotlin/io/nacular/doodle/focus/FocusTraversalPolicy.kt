@@ -7,7 +7,6 @@ import io.nacular.doodle.core.View
 /**
  * This interface defines the way focus moves over the children of a [View].
  */
-
 public interface FocusTraversalPolicy {
     public enum class TraversalType {
         Forward,

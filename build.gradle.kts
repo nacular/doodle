@@ -1,4 +1,3 @@
-
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 
@@ -15,7 +14,7 @@ buildscript {
 }
 
 plugins {
-    id ("org.jetbrains.dokka"        ) version "1.7.20"
+    id ("org.jetbrains.dokka"        ) version "1.8.10"
     id ("org.jetbrains.kotlinx.kover") version "0.6.1"
     signing
 }
@@ -33,7 +32,7 @@ allprojects {
     }
 
     val dokkaJar by tasks.creating(Jar::class) {
-        group = JavaBasePlugin.DOCUMENTATION_GROUP
+        group       = JavaBasePlugin.DOCUMENTATION_GROUP
         description = "Assembles Kotlin docs with Dokka"
         archiveClassifier.set("javadoc")
         from(tasks.dokkaHtml)
@@ -46,21 +45,17 @@ allprojects {
     tasks.dokkaHtml {
         outputDirectory.set(buildDir.resolve("javadoc"))
 
-        dokkaSourceSets {
-            configureEach {
-                includeNonPublic.set(false)
+        dokkaSourceSets.configureEach {
+            // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+            skipDeprecated.set(false)
 
-                // Do not output deprecated members. Applies globally, can be overridden by packageOptions
-                skipDeprecated.set(true)
+            // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+            reportUndocumented.set(true)
 
-                // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
-                reportUndocumented.set(true)
+            // Do not create index pages for empty packages
+            skipEmptyPackages.set(true)
 
-                // Do not create index pages for empty packages
-                skipEmptyPackages.set(true)
-
-                documentedVisibilities.set(setOf(PUBLIC, PROTECTED))
-            }
+            documentedVisibilities.set(setOf(PUBLIC, PROTECTED))
         }
     }
 }

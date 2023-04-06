@@ -4,7 +4,9 @@ import io.nacular.doodle.accessibility.ButtonRole
 import io.nacular.doodle.core.Icon
 
 /**
- * Created by Nicholas Eddy on 11/14/17.
+ * Simple component that responds to the pointer and keyboard, allowing a user to "click".
+ *
+ * @author Nicholas Eddy
  */
 public open class PushButton protected constructor(
         text : String        = "",
@@ -12,6 +14,13 @@ public open class PushButton protected constructor(
         model: ButtonModel   = ButtonModelImpl(),
         role : ButtonRole): Button(text, icon, model, role) {
 
+    /**
+     * Creates a button.
+     *
+     * @param text displayed on the button
+     * @param icon displayed on the button
+     * @param model used to store the button's state
+     */
     public constructor(
             text : String        = "",
             icon : Icon<Button>? = null,
