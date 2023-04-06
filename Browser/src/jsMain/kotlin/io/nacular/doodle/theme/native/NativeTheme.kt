@@ -33,6 +33,7 @@ import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import kotlinx.browser.window
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
 import org.kodein.di.bindSingleton
@@ -119,8 +120,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull()) }
-            bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                                        ) }
+            bindSingleton<NativeHyperLinkFactory> { NativeHyperLinkFactoryImpl(instance(), instance(), instance(), instance(), instanceOrNull(), instanceOrNull(), window.location.host) }
+            bindSingleton<NativeHyperLinkStyler > { NativeHyperLinkStylerImpl (instance()                                                                                              ) }
 
             bindBehavior<HyperLink>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")

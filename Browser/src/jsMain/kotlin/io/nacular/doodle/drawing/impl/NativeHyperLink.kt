@@ -32,7 +32,8 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
     private val nativeEventHandlerFactory: NativeEventHandlerFactory,
     private val canvasFactory            : CanvasFactory,
     private val focusManager             : FocusManager?,
-    private val accessibilityManager     : AccessibilityManager?
+    private val accessibilityManager     : AccessibilityManager?,
+    private val hostName                 : String
 ): NativeHyperLinkFactory {
     override fun invoke(hyperLink: HyperLink, customRenderer: ((HyperLink, Canvas) -> Unit)?) = NativeHyperLink(
         textMetrics,
@@ -42,6 +43,7 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
         accessibilityManager,
         canvasFactory,
         customRenderer,
+        hostName,
         hyperLink)
 }
 
@@ -53,6 +55,7 @@ internal class NativeHyperLink internal constructor(
     private val accessibilityManager: AccessibilityManager?,
     private val canvasFactory       : CanvasFactory,
     private val customRenderer      : ((HyperLink, Canvas) -> Unit)?,
+    private val hostName            : String,
     private val hyperLink           : HyperLink): NativeEventListener {
 
     var idealSize: Size? = null
@@ -73,7 +76,9 @@ internal class NativeHyperLink internal constructor(
             else -> style.cursor = "inherit"
         }
 
-        target = "_blank"
+        if (host !== hostName) {
+            target = "_blank"
+        }
 
         if (accessibilityManager != null) {
             hyperLink.accessibilityLabel?.let {
