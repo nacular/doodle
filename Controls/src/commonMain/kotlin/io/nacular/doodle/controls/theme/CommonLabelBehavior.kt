@@ -125,7 +125,7 @@ public open class CommonLabelBehavior(
             val textSpacing = TextSpacing(letterSpacing = letterSpacing, wordSpacing = wordSpacing)
 
             when {
-                wrapsWords -> canvas.wrapped(renderedText, Point(x, y), 0.0, width, alignment = textAlignment, lineSpacing = lineSpacing, textSpacing = textSpacing)
+                wrapsWords -> canvas.wrapped(renderedText, Point(x, y), width = width, alignment = textAlignment, lineSpacing = lineSpacing, textSpacing = textSpacing)
                 else       -> canvas.text   (renderedText, Point(x, y), textSpacing)
             }
         }
