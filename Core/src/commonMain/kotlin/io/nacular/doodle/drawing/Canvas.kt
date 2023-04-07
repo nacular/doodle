@@ -160,7 +160,15 @@ public interface CommonCanvas: Renderer {
         rightMargin  : Double,
         fill         : Paint,
         alignment    : HorizontalAlignment = HorizontalAlignment.Left,
-    ): Unit = wrapped(text, at, rightMargin, fill, font, leftMargin, alignment.textAlignment)
+    ): Unit = wrapped(
+        text      = text,
+        at        = at,
+        fill      = fill,
+        font      = font,
+        width     = rightMargin - leftMargin,
+        indent    = at.x - leftMargin,
+        alignment = alignment.textAlignment
+    )
 
     /**
      * Draws wrapped styled text.
@@ -178,10 +186,16 @@ public interface CommonCanvas: Renderer {
         leftMargin   : Double,
         rightMargin  : Double,
         alignment    : HorizontalAlignment = HorizontalAlignment.Left,
-    ): Unit = wrapped(text, at, leftMargin, rightMargin, alignment.textAlignment)
+    ): Unit = wrapped(
+        text      = text,
+        at        = at,
+        width     = rightMargin - leftMargin,
+        indent    = at.x - leftMargin,
+        alignment = alignment.textAlignment
+    )
 
     private val HorizontalAlignment.textAlignment get() = when (this) {
-        HorizontalAlignment.Left  -> Start
+        HorizontalAlignment.Left   -> Start
         HorizontalAlignment.Center -> Center
         HorizontalAlignment.Right  -> End
     }

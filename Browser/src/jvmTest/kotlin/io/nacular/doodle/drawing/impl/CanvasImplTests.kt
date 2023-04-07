@@ -30,7 +30,6 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.LinearGradientPaint
@@ -39,6 +38,8 @@ import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextFactory
+import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Ellipse
@@ -50,7 +51,8 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.HorizontalAlignment.Left
+import io.nacular.doodle.text.TextSpacing
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
 import kotlin.reflect.KProperty1
@@ -93,7 +95,7 @@ class CanvasImplTests {
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
         val stroke = Stroke()
-        val fill   = ColorPaint(Red)
+        val fill   = Red.paint
         val rect   = Rectangle.Empty
         val circle = Circle.Empty
 
@@ -130,7 +132,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRect") fun `renders simple rect`() {
-        val fill = ColorPaint(Red)
+        val fill = Red.paint
         val rect = Rectangle(100, 100)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -159,7 +161,7 @@ class CanvasImplTests {
             every { htmlFactory.createOrUse("B", b    ) } returns   b
 
             listOf(Red, Black, Blue).forEach {
-                rect(rect, ColorPaint(it))
+                rect(rect, it.paint)
 
                 clear()
             }
@@ -191,7 +193,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleRoundedRect") fun `renders simple rounded-rect`() {
-        val fill   = ColorPaint(Red)
+        val fill   = Red.paint
         val rect   = Rectangle(100, 100)
         val radius = 12.0
 
@@ -224,7 +226,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleCircle") fun `renders simple circle`() {
-        val fill  = ColorPaint(Red)
+        val fill  = Red.paint
         val circle = Circle(center = Point(10, 10), radius = 100.0)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -255,7 +257,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleEllipse") fun `renders simple ellipse`() {
-        val fill   = ColorPaint(Red)
+        val fill   = Red.paint
         val ellipse = Ellipse(center = Point(10, 10), xRadius = 100.0, yRadius = 45.0)
 
         validateRender { renderParent, htmlFactory, _, _, _ ->
@@ -286,14 +288,14 @@ class CanvasImplTests {
     }
 
     @Test @JsName("rendersSimpleText") fun `renders simple text`() {
-        val fill = ColorPaint(Red)
+        val fill = Red.paint
         val text  = "some text"
         val font  = mockk<Font>()
         val at    = Point(34, 89)
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.create(text, font, null) } returns t
+            every { textFactory.create(text, font, any(), null) } returns t
 
             text(text, font, at, fill)
 
@@ -315,7 +317,7 @@ class CanvasImplTests {
 
             text(text, font, at, fill)
 
-            verify { renderer.text(text, font, at, fill) }
+            verify { renderer.text(text, font, at, fill, TextSpacing()) }
         }
     }
 
@@ -325,7 +327,7 @@ class CanvasImplTests {
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.create(text, null) } returns t
+            every { textFactory.create(text, any(), null) } returns t
 
             text(text, at)
 
@@ -346,20 +348,31 @@ class CanvasImplTests {
             text(text1, at)
             text(text2, at)
 
-            verify { renderer.text(text1, at) }
-            verify { renderer.text(text2, at) }
+            verify { renderer.text(text1, at, TextSpacing()) }
+            verify { renderer.text(text2, at, TextSpacing()) }
         }
     }
 
     @Test @JsName("rendersSimpleWrappedText") fun `renders simple wrapped text`() {
-        val fill = ColorPaint(Red)
+        val fill = Red.paint
         val text = "some text"
         val font = mockk<Font>()
         val at   = Point(150, 89)
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.wrapped(text, font, 100.0, 50.0, Left, 1f, null) } returns t
+            every {
+                textFactory.wrapped(
+                    text        = text,
+                    font        = font,
+                    width       = 100.0,
+                    indent      = 50.0,
+                    alignment   = Start,
+                    lineSpacing = 1f,
+                    textSpacing = any(),
+                    possible    = null
+                )
+            } returns t
 
             wrapped(text, font, at, 100.0, 200.0, fill)
 
@@ -379,9 +392,21 @@ class CanvasImplTests {
             val font = mockk<Font>()
             val at   = Point(150, 89)
 
-            wrapped(text, font, at, 100.0, 200.0, fill)
+            wrapped(text = text, font = font, at = at, leftMargin = 100.0, rightMargin = 200.0, fill = fill)
 
-            verify(exactly = 1) { renderer.wrapped(text, font, at, 100.0, 200.0, fill, Left, 1f) }
+            verify(exactly = 1) {
+                renderer.wrapped(
+                    text        = text,
+                    at          = at,
+                    width       = 100.0,
+                    font        = font,
+                    indent      = 50.0,
+                    fill       = fill,
+                    alignment   = Start,
+                    lineSpacing = 1f,
+                    textSpacing = TextSpacing()
+                )
+            }
         }
     }
 
@@ -391,7 +416,17 @@ class CanvasImplTests {
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.wrapped(text, 100.0, 50.0, Left, 1f, null) } returns t
+            every {
+                textFactory.wrapped(
+                    text        = text,
+                    width       = 100.0,
+                    indent      = 50.0,
+                    alignment   = Start,
+                    lineSpacing = 1f,
+                    textSpacing = TextSpacing(),
+                    possible    = null
+                )
+            } returns t
 
             wrapped(text, at, 100.0, 200.0)
 
@@ -411,8 +446,28 @@ class CanvasImplTests {
             wrapped(text1, at, 100.0, 200.0)
             wrapped(text2, at, 100.0, 200.0)
 
-            verify(exactly = 1) { renderer.wrapped(text1, at, 100.0, 200.0, Left, 1f) }
-            verify(exactly = 1) { renderer.wrapped(text2, at, 100.0, 200.0, Left, 1f) }
+            verify(exactly = 1) {
+                renderer.wrapped(
+                    text        = text1,
+                    at          = at,
+                    width       = 100.0,
+                    indent      =  50.0,
+                    alignment   = Start,
+                    lineSpacing = 1f,
+                    textSpacing = TextSpacing()
+                )
+            }
+            verify(exactly = 1) {
+                renderer.wrapped(
+                    text        = text2,
+                    at          = at,
+                    width       = 100.0,
+                    indent      = 50.0,
+                    alignment   = Start,
+                    lineSpacing = 1f,
+                    textSpacing = TextSpacing()
+                )
+            }
         }
     }
 
@@ -568,7 +623,7 @@ class CanvasImplTests {
     }
 
     @Test @JsName("clearWorks") fun `clear works`() = validateRender { _, _, _, renderer, _ ->
-        rect(Rectangle(10, 10), ColorPaint(Red))
+        rect(Rectangle(10, 10), Red.paint)
 
         clear()
 
@@ -576,8 +631,8 @@ class CanvasImplTests {
     }
 
     @Test @JsName("clearThenFlushWorks") fun `clear then flush works`() = validateRender { renderParent, _, _, renderer, _ ->
-        rect(Rectangle(10, 10), ColorPaint(Red))
-        text("hello", Origin, ColorPaint(Black))
+        rect(Rectangle(10, 10), Red.paint)
+        text("hello", Origin, Black.paint)
 
         expect(2) { renderParent.numChildren }
 
@@ -592,7 +647,7 @@ class CanvasImplTests {
         expect(0) { renderParent.numChildren }
     }
 
-    @Test @JsName("clearAllowsNewContent") fun `clear allows new content`() = validateRender { renderParent, htmlFactory, textFactory, _, _ ->
+    @Test @JsName("clearAllowsNewContent") fun `clear allows new content`() = validateRender { renderParent, htmlFactory, textFactory,_,_ ->
         val hello = mockk<HTMLElement>()
         val world = mockk<HTMLElement>()
         val r1    = mockk<HTMLElement>()
@@ -600,12 +655,12 @@ class CanvasImplTests {
 
         every { htmlFactory.createOrUse("B", any()) } returns r1 andThen r2
 
-        every { textFactory.create("hello", any(), any()) } returns hello
-        every { textFactory.create("world", any(), any()) } returns world
+        every { textFactory.create("hello", any(), any(), any()) } returns hello
+        every { textFactory.create("world", any(), any(), any()) } returns world
 
-        rect(Rectangle(10, 10), ColorPaint(Red))
-        text("world", Origin, ColorPaint(Black))
-        rect(Rectangle(100, 10), ColorPaint(Red))
+        rect(Rectangle(10, 10), Red.paint)
+        text("world", Origin, Black.paint)
+        rect(Rectangle(100, 10), Red.paint)
 
         expect(3) { renderParent.numChildren }
 
@@ -615,8 +670,8 @@ class CanvasImplTests {
 
         clear()
 
-        text("hello", Origin, ColorPaint(Black)) // Replaces first node
-        text("world", Origin, ColorPaint(Black))
+        text("hello", Origin, Black.paint) // Replaces first node
+        text("world", Origin, Black.paint)
 
         expect(3) { renderParent.numChildren }
 
@@ -661,15 +716,15 @@ class CanvasImplTests {
             htmlFactory    : HtmlFactory,
             textFactory    : TextFactory,
             renderer       : VectorRenderer,
-            rendererFactory: VectorRendererFactory
-    ) -> Unit) {
+            rendererFactory: VectorRendererFactory) -> Unit) {
         val renderer        = mockk<VectorRenderer>()
         val htmlFactory     = mockk<HtmlFactory>   ()
         val textFactory     = mockk<TextFactory>   ()
+        val textMetrics     = mockk<TextMetrics>   ()
         val renderParent    = htmlElement          ()
         val rendererFactory = rendererFactory      (renderer)
 
-        canvas(renderParent, htmlFactory, textFactory, rendererFactory).apply {
+        canvas(renderParent, htmlFactory, textFactory, textMetrics, rendererFactory).apply {
             block(this, renderParent, htmlFactory, textFactory, renderer, rendererFactory)
         }
     }
@@ -769,7 +824,15 @@ class CanvasImplTests {
     private fun canvas(renderParent   : HTMLElement           = mockk(),
                        htmlFactory    : HtmlFactory           = mockk(),
                        textFactory    : TextFactory           = mockk(),
-                       rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(renderParent, htmlFactory, textFactory, useShadowHack = false, rendererFactory)
+                       textMetrics    : TextMetrics           = mockk(),
+                       rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(
+        renderParent    = renderParent,
+        htmlFactory     = htmlFactory,
+        textFactory     = textFactory,
+        textMetrics     = textMetrics,
+        useShadowHack   = false,
+        rendererFactory = rendererFactory
+    )
 
     private fun <T> validateDefault(p: KProperty1<CanvasImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(canvas()) }
