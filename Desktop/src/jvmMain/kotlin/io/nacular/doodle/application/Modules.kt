@@ -2,6 +2,8 @@ package io.nacular.doodle.application
 
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.PopupManagerImpl
+import io.nacular.doodle.controls.modal.ModalManager
+import io.nacular.doodle.controls.modal.ModalManagerImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
@@ -106,6 +108,12 @@ public class Modules {
         public val PopupModule: Module = Module(allowSilentOverride = true, name = "Popup") {
             bindSingleton<RelativePositionMonitor> { RelativePositionMonitorImpl() }
             bindSingleton<PopupManager>            { PopupManagerImpl(instance(), instance(), instance()) }
+        }
+
+        public val ModalModule: Module = Module(allowSilentOverride = true, name = "Modal") {
+            importOnce(PopupModule)
+
+            bindSingleton<ModalManager>{ ModalManagerImpl(instance()) }
         }
     }
 }
