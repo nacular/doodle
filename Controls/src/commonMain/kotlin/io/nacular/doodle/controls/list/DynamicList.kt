@@ -43,6 +43,8 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         fitContent    : Set<Dimension>                  = setOf(Width, Height),
         scrollCache   : Int                             = 0): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
 
+    private var previousListSize = model.size
+
     private val modelChanged: ModelObserver<T> = { _,diffs ->
         val removed = mutableListOf<Int>()
         val added   = mutableListOf<Int>()
@@ -54,7 +56,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         diffs.computeMoves().forEach { diff ->
             when (diff) {
                 is Insert -> {
-                    if (selectionModel != null) {
+                    if (selectionModel != null && !selectionModel.isEmpty) {
                         (0 until diff.items.size).forEach {
                             selectionOffsets += index + it to 1
                         }
@@ -90,18 +92,20 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         selectionModel?.let {
             var delta            = 0
             var offsetIndex      = 0
-            val currentSelection = it.sorted().toMutableList()
+            val currentSelection = it.filter { it in 0 until previousListSize }.sorted().toMutableList()
 
-            currentSelection.forEachIndexed { index, selection ->
-                while (offsetIndex < selectionOffsets.size && selectionOffsets[offsetIndex].first <= selection) {
-                    delta += selectionOffsets[offsetIndex].second
-                    ++offsetIndex
+            if (currentSelection.isNotEmpty()) {
+                currentSelection.forEachIndexed { index, selection ->
+                    while (offsetIndex < selectionOffsets.size && selectionOffsets[offsetIndex].first <= selection) {
+                        delta += selectionOffsets[offsetIndex].second
+                        ++offsetIndex
+                    }
+
+                    currentSelection[index] += delta
                 }
 
-                currentSelection[index] += delta
+                setSelection(currentSelection.toSet())
             }
-
-            setSelection(currentSelection.toSet())
         }
 
         val oldVisibleRange = firstVisibleItem..lastVisibleItem
@@ -130,6 +134,8 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         }
 
         (itemsChanged as SetPool).forEach { it(this, diffs) }
+
+        previousListSize = model.size
     }
 
     /**
