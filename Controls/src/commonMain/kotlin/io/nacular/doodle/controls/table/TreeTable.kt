@@ -117,7 +117,7 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     override val changed: Pool<SetObserver<SelectionModel<R>, R>> = SetPool()
 
     init {
-        this@map.changed += { set, removed, added ->
+        this@map.changed += { _, removed, added ->
             // FIXME: Can this be optimized?
             (changed as SetPool).forEach {
                 it(this, removed.mapNotNull(mapper).toSet(), added.mapNotNull(mapper).toSet())
@@ -387,7 +387,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
         override val view = DynamicList(
             model          = FieldModel(model, extractor),
-            itemVisualizer = itemVisualizer { _: R, _: View?, context: Any -> object : View() {} },
+            itemVisualizer = itemVisualizer { _: R, _: View?, _: Any -> object : View() {} },
             selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }),
             scrollCache    = scrollCache,
             fitContent     = emptySet()
@@ -398,9 +398,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
-                    override val generator get() = itemGenerator { list: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
-                        it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
-                            this@InternalListColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
+                    override val generator get() = itemGenerator { _: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
+                        it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, itemVisualizer { cell: R, previous: View?, context: IndexedItem ->
+                            this@InternalListColumn.cellGenerator(cell, previous, object: CellInfo<T, R> {
                                 override val item     get() = this@TreeTable[this.index].getOrThrow()
                                 override val index    get() = context.index
                                 override val column   get() = this@InternalListColumn
@@ -445,6 +445,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     public var behavior: TreeTableBehavior<T>? by behavior(
         beforeChange = { _, new ->
             new?.also { behavior ->
@@ -564,7 +565,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
         }
     }
 
-    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { set,removed,added ->
+    @Suppress("PropertyName")
+    protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)
         }

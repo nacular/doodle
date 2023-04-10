@@ -137,8 +137,8 @@ public open class Table<T, M: ListModel<T>>(
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
                     override val generator get() = itemGenerator { _: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
-                        it.cellGenerator(this@Table, this@InternalListColumn, item, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
-                            this@InternalListColumn.cellGenerator(item, previous, object: CellInfo<T, R> {
+                        it.cellGenerator(this@Table, this@InternalListColumn, item, index, itemVisualizer { cell: R, previous: View?, context: IndexedItem ->
+                            this@InternalListColumn.cellGenerator(cell, previous, object: CellInfo<T, R> {
                                 override val item     get() = this@Table[this.index].getOrThrow()
                                 override val index    get() = context.index
                                 override val column   get() = this@InternalListColumn
@@ -174,6 +174,7 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     public var behavior: TableBehavior<T>? by behavior(
         beforeChange = { _, new ->
             new?.also { behavior ->

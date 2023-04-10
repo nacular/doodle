@@ -90,7 +90,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private class LocalSelectionModel(var root: Path<Int>, private val delegate: SelectionModel<Path<Int>>): SelectionModel<Int> { //MultiSelectionModel<Int>() {
 
-        private val changeObserver: (SelectionModel<Path<Int>>, Set<Path<Int>>, Set<Path<Int>>) -> Unit = { set, removed, added ->
+        private val changeObserver: (SelectionModel<Path<Int>>, Set<Path<Int>>, Set<Path<Int>>) -> Unit = { _, removed, added ->
             (changed as SetPool).forEach {
                 it(
                     this,

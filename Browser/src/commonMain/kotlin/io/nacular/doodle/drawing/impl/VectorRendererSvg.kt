@@ -475,7 +475,7 @@ internal open class VectorRendererSvg constructor(
 
                 lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
 
-                val fontLeading  = 1.2 // FIXME: Get real value from font
+//                val fontLeading  = 1.2 // FIXME: Get real value from font
                 line             = word.copy()
 
                 if (numWords > 0) {

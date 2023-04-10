@@ -61,7 +61,7 @@ public class PopupMenu(display: Display): MutableList<MenuItem, MutableListModel
     // View has an internal display property so have to create new one
     private  val _display                               = display
     override val subMenus    : Iterator<MenuItem> get() = model.iterator()
-    override var parentMenu  : MenuItem?                = null as MenuItem?
+    override var parentMenu  : MenuItem?                = null
     override var menuSelected: Boolean                  = false
         set(new) {
             if (field != new) {

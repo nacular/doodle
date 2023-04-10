@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.list
 
-import io.nacular.doodle.controls.TextVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
@@ -30,13 +30,14 @@ import io.nacular.doodle.theme.basic.VerticalListPositioner
  */
 
 public open class BasicItemGenerator<T>(private val selectionColor: Color? = null, private val selectionBlurredColor: Color? = null): ItemGenerator<T> {
+    @Suppress("UNCHECKED_CAST")
     override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
         is ListItem<*> -> (current as ListItem<T>).apply { update(list, item, index) }
         else           -> ListItem(
                 list                            = list,
                 item                            = item,
                 index                           = index,
-                itemVisualizer                  = list.itemVisualizer ?: toString(TextVisualizer()),
+                itemVisualizer                  = list.itemVisualizer ?: toString(StringVisualizer()),
                 backgroundSelectionColor        = selectionColor,
                 backgroundSelectionBlurredColor = selectionBlurredColor
         )
@@ -51,6 +52,7 @@ public fun <T> basicItemGenerator(
         configure            : ListItem<T>.() -> Unit
 ): ItemGenerator<T> = object: BasicItemGenerator<T>(selectionColor, selectionBlurredColor) {
     override fun invoke(list: List<T, *>, item: T, index: Int, current: View?) = super.invoke(list, item, index, current).apply {
+        @Suppress("UNCHECKED_CAST")
         if (current != this) configure(this as ListItem<T>)
     }
 }

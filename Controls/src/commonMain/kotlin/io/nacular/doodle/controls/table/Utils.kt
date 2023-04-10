@@ -81,6 +81,7 @@ internal class TablePanel(columns: List<InternalColumn<*,*,*,*>>, private val re
     public override fun doLayout() = super.doLayout()
 }
 
+@Suppress("LocalVariableName")
 internal fun <T: View> tableLayout(
     table           : T,
     header          : TableMetaRow,
@@ -90,19 +91,20 @@ internal fun <T: View> tableLayout(
     headerVisibility: () -> MetaRowVisibility,
     headerSticky    : () -> Boolean,
     footerVisibility: () -> MetaRowVisibility,
-    footerSticky    : () -> Boolean) = constrain(header, panel, footer) { header_, panel_, footer_ ->
+    footerSticky    : () -> Boolean
+) = constrain(header, panel, footer) { header_, panel_, footer_ ->
     val headerHeight : Double
     val headerPadding: Double
-    val headerSticky = headerSticky()
-    val footerSticky = footerSticky()
+    val isHeaderSticky = headerSticky()
+    val isFooterSticky = footerSticky()
 
-    val displayRect = if ((headerSticky || footerSticky) && table.monitorsDisplayRect) table.displayRect else table.bounds.atOrigin
+    val displayRect = if ((isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect) table.displayRect else table.bounds.atOrigin
 
     behavior.headerPositioner(table).apply {
         headerHeight  = metaRowHeight(header, headerVisibility(), height)
         headerPadding = if (headerHeight > 0) insetBottom else 0.0
 
-        header_.top    eq insetTop + if (headerSticky) displayRect.y else 0.0
+        header_.top    eq insetTop + if (isHeaderSticky) displayRect.y else 0.0
         header_.width  eq parent.width
         header_.height eq headerHeight
     }
@@ -115,14 +117,14 @@ internal fun <T: View> tableLayout(
 
         footer_.width  eq parent.width
         footer_.height eq footerHeight
-        (footer_.bottom eq parent.bottom - insetBottom - if (footerSticky) parent.height - displayRect.bottom else 0.0) .. Strong
+        (footer_.bottom eq parent.bottom - insetBottom - if (isFooterSticky) parent.height - displayRect.bottom else 0.0) .. Strong
     }
 
-    panel_.top    eq header_.bottom.readOnly - if (headerSticky) displayRect.y else 0.0 + headerPadding
+    panel_.top    eq header_.bottom.readOnly - if (isHeaderSticky) displayRect.y else 0.0 + headerPadding
     panel_.left   eq 0
     panel_.right  eq parent.right
 
-    if ((headerSticky || footerSticky) && table.monitorsDisplayRect && panel.idealSize != null) {
+    if ((isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect && panel.idealSize != null) {
         panel_.height greaterEq panel.idealSize!!.height
         (panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding)) .. Strong
         (parent.height.writable eq panel_.bottom.readOnly + footer_.height.readOnly + footerPadding) .. Strong

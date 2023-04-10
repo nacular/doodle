@@ -45,7 +45,7 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         }
 
         icon?.let {
-            val iconPosition = iconPosition(view, icon = this.icon as Icon<Button>)
+            @Suppress("UNCHECKED_CAST") val iconPosition = iconPosition(view, icon = this.icon as Icon<Button>)
             when {
                 view.mirrored -> canvas.flipHorizontally(around = iconPosition.x + icon.size(view).width / 2) {
                     icon.render(view, canvas, iconPosition(view, icon = this@CheckRadioButtonBehavior.icon))
@@ -62,6 +62,7 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         val textSize    = textMetrics.size(view.text, font(view))
         val idealWidth  = iconSize.width + 2 * iconInset + if (textSize.width  > 0) iconTextSpacing + textSize.width  else 0.0
 
+        @Suppress("UNCHECKED_CAST")
         view.icon                     = icon as Icon<Button>
         view.iconAnchor               = Anchor.Left
         view.iconTextSpacing          = iconTextSpacing

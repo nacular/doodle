@@ -1,9 +1,9 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.accessibility.TreeItemRole
+import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
-import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -140,7 +140,7 @@ public class TreeRow<T>(
 
     private lateinit var constraintLayout: ConstraintLayout
 
-    private val iconConstraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { icon, content ->
+    private val iconConstraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { icon,_ ->
         icon.width.preserve
         icon.right   eq iconWidth * (1 + depth)
         icon.centerY eq parent.centerY

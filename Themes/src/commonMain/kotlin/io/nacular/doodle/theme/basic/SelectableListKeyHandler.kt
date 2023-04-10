@@ -14,6 +14,7 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
  */
 public interface SelectableListKeyHandler {
     public fun pressed(event: KeyEvent) {
+        @Suppress("UNCHECKED_CAST")
         (event.source as? Selectable<Int>)?.let { list ->
             when (event.key){
                 ArrowUp, ArrowDown -> {

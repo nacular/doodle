@@ -19,10 +19,12 @@ import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 
 public abstract class CommonButtonBehavior<in T: Button>(private val focusManager: FocusManager? = null): Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
+    @Suppress("UNCHECKED_CAST")
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { button,_,_ ->
         enabledChanged(button as T)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private val stylesChanged: (View) -> Unit = {
         stylesChanged(it as T)
     }
@@ -81,6 +83,7 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 
     override fun exited(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
         val button = event.source as T
         val model  = button.model
 
@@ -94,6 +97,7 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 
     override fun entered(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
         val button = event.source as T
         val model  = button.model
 
@@ -107,6 +111,7 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 
     override fun pressed(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
         val button = event.source as T
         val model  = button.model
 
@@ -125,6 +130,7 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 
     override fun released(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
         val button = event.source as T
         val model  = button.model
 
@@ -139,6 +145,7 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 
     override fun dragged(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
         val button = event.source as T
         val model  = button.model
 

@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_PARAMETER", "PropertyName", "ObjectPropertyName")
+
 package io.nacular.doodle
 
 import io.nacular.doodle.dom.DataTransfer
@@ -256,5 +258,5 @@ public actual interface ResizeObserverInit {
 }
 
 public actual abstract class ResizeObserverEntry {
-    public actual open val contentRect   : DOMRect        get() = TODO("Not yet implemented")
+    public actual open val contentRect: DOMRect get() = TODO("Not yet implemented")
 }

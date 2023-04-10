@@ -6,7 +6,7 @@ import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.TextVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.dropdown.Dropdown
@@ -142,7 +142,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private val itemVisualizer by lazy { toString<T, IndexedItem>(TextVisualizer()) }
+    private val itemVisualizer by lazy { toString<T, IndexedItem>(StringVisualizer()) }
 
     private val changeObserver: ChangeObserver<Dropdown<T, M>> = {
         it.list?.setSelection(setOf(it.selection))
@@ -208,7 +208,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
                     row            = item,
                     index          = index,
                     cornerRadius   = cornerRadius,
-                    itemVisualizer = list.itemVisualizer ?: toString(TextVisualizer())
+                    itemVisualizer = list.itemVisualizer ?: toString(StringVisualizer())
             )
         }.apply {
             list.cellAlignment?.let { positioner = it }

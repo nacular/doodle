@@ -94,6 +94,7 @@ private class TableListRow<T>(
 }
 
 public open class BasicCellGenerator<T>: CellGenerator<T> {
+    @Suppress("UNCHECKED_CAST")
     override fun <A> invoke(table: Table<T, *>, column: Column<A>, cell: A, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
         is TableListRow<*> -> (current as TableListRow<A>).apply { update(table, cell, row) }
         else               -> TableListRow(column, table, cell, row, itemGenerator, selectionColor = null, selectionBlurredColor = null)
@@ -115,6 +116,7 @@ public open class BasicTableBehavior<T>(
     }
 
     private val focusChanged: PropertyObserver<View, Boolean> = { table,_,_ ->
+        @Suppress("UNCHECKED_CAST")
         (table as? Table<T, *>)?.bodyDirty()
     }
 
@@ -288,7 +290,10 @@ public open class BasicMutableTableBehavior<T>(
 
                 table.sortingChanged += { _,_,_ -> sortOrder = sortOrder(from = table, column) }
 
-                toggled += { table.toggleSort(by = column as MutableColumn<T, *>) }
+                toggled += {
+                    @Suppress("UNCHECKED_CAST")
+                    table.toggleSort(by = column as MutableColumn<T, *>)
+                }
             }
         }
 
@@ -305,6 +310,7 @@ public open class BasicMutableTableBehavior<T>(
                 it.pointerChanged += object: PointerListener {
                     override fun released(event: PointerEvent) {
                         if (event.clickCount == 2 && table is MutableTable && column is MutableColumn<*,*>) {
+                            @Suppress("UNCHECKED_CAST")
                             table.startEditing(result.index, column as MutableColumn<T, *>)
                         }
                     }
@@ -328,6 +334,7 @@ public open class TextEditOperation<T>(
     }
 
     init {
+        @Suppress("LeakingThis")
         text                = encoder.encode(row).getOrDefault("")
         fitText             = setOf(Dimension.Width, Dimension.Height)
         borderVisible       = false
@@ -466,8 +473,10 @@ public open class BooleanEditOperation<T>(
     }
 
     init {
+        @Suppress("LeakingThis")
         children += checkBox
 
+        @Suppress("LeakingThis", "LeakingThis")
         layout = constrain(checkBox) {
             column.cellAlignment?.let { alignment -> alignment(it) }
         }

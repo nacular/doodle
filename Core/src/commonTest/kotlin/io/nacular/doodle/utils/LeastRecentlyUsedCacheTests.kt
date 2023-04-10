@@ -60,7 +60,7 @@ class LeastRecentlyUsedCacheTests {
         cache.addAndVerify("c", "C")
 
         // touch "a" so "b" is now LRU
-        val a = cache["a"]
+        cache["a"]
 
         cache.addAndVerify("d", "D")
 
