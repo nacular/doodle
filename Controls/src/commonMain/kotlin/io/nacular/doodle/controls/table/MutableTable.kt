@@ -178,7 +178,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     init {
         MutableColumnFactoryImpl().apply(block)
 
-        model.changed += { _,diffs ->
+        model.changed += { _,_ ->
             updateSort()
         }
     }
@@ -251,6 +251,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     }
 
     public fun startEditing(index: Int, column: MutableColumn<T, *>) {
+        @Suppress("UNCHECKED_CAST")
         (column as? MutableInternalListColumn<T, *>)?.let {
             editingColumn = it
             it.view.startEditing(index)

@@ -166,6 +166,7 @@ public class RelativePositionMonitorImpl: RelativePositionMonitor {
 
     override operator fun get(view: View, relativeTo: View): PairMonitor = PairMonitorImpl(this, view, relativeTo)
 
+    @Suppress("UNUSED_PARAMETER")
     private fun boundsChanged(source: View, old: Rectangle, new: Rectangle) {
         updateListeners(source)
     }

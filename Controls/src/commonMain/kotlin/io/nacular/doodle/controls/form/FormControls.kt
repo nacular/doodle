@@ -13,7 +13,7 @@ import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.TextVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
@@ -725,7 +725,7 @@ public fun <T> dropDown(
     vararg rest  : T,
            label : (T) -> String = { "$it" },
            config: (Dropdown<T, *>) -> Unit = {}
-): FieldVisualizer<T> = dropDown(first, *rest, boxItemVisualizer = toString(TextVisualizer(), label), config = config)
+): FieldVisualizer<T> = dropDown(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
 
 /**
  * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
@@ -807,8 +807,8 @@ public fun <T: Any> dropDown(
 ): FieldVisualizer<T> = dropDown(
     first,
     *rest,
-    boxItemVisualizer           = toString(TextVisualizer(), label),
-    unselectedBoxItemVisualizer = toString(TextVisualizer()) { unselectedLabel },
+    boxItemVisualizer           = toString(StringVisualizer(), label),
+    unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
     config                      = config)
 
 /**
@@ -932,8 +932,8 @@ public fun <T: Any> optionalDropDown(
 ): FieldVisualizer<T?> = optionalDropDown(
     first,
     *rest,
-    boxItemVisualizer           = toString(TextVisualizer(), label),
-    unselectedBoxItemVisualizer = toString(TextVisualizer()) { unselectedLabel },
+    boxItemVisualizer           = toString(StringVisualizer(), label),
+    unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
     config                      = config)
 
 // endregion
@@ -953,7 +953,7 @@ public fun <T: Any> optionalDropDown(
  */
 public fun <T, M: SpinnerModel<T>> spinner(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, Spinner<T, M>> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, Spinner<T, M>> = toString(StringVisualizer()),
     config        : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
     Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
         spinner.changed += {
@@ -1011,7 +1011,7 @@ public fun <T> spinner(
     vararg rest  : T,
            label : (T) -> String = { "$it" },
            config: (Spinner<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(TextVisualizer(), label), config = config)
+): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
 
 // endregion
 
@@ -1030,7 +1030,7 @@ public fun <T> spinner(
  */
 public fun <T, M: ListModel<T>> optionalSingleChoiceList(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<T?> = field {
     io.nacular.doodle.controls.list.List(
@@ -1081,7 +1081,7 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
 public fun <T> optionalSingleChoiceList(
     first: T,
     vararg rest : T,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSingleChoiceList(
     SimpleListModel(listOf(first) + rest),
@@ -1102,7 +1102,7 @@ public fun <T> optionalSingleChoiceList(
  */
 public fun optionalSingleChoiceList(
     progression   : IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int?> = optionalSingleChoiceList(
     IntProgressionModel(progression),
@@ -1125,7 +1125,7 @@ public fun optionalSingleChoiceList(
 public fun <T, M: ListModel<T>> singleChoiceList(
     first: T,
     vararg rest : T,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = singleChoiceList(
     SimpleListModel(listOf(first) + rest),
@@ -1145,7 +1145,7 @@ public fun <T, M: ListModel<T>> singleChoiceList(
  */
 public fun singleChoiceList(
     progression: IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int> = singleChoiceList(
     IntProgressionModel(progression),
@@ -1155,7 +1155,7 @@ public fun singleChoiceList(
 )
 private fun <T, M: ListModel<T>> singleChoiceList(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
 
@@ -1318,7 +1318,7 @@ public fun <T> switchList(
  */
 public fun <T, M: ListModel<T>> list(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
@@ -1376,7 +1376,7 @@ public fun <T, M: ListModel<T>> list(
 public fun <T> list(
            first         : T,
     vararg rest          : T,
-           itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(TextVisualizer()),
+           itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
            fitContents   : Set<Dimension> = setOf(Height),
            config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
@@ -1397,7 +1397,7 @@ public fun <T> list(
  */
 public fun list(
     progression   : IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(TextVisualizer()),
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
     fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
     IntProgressionModel(progression),

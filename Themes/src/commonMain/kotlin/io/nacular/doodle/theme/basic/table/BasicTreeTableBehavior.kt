@@ -87,6 +87,7 @@ public open class BasicTreeTableBehavior<T>(
         treeTable.bodyDirty()
     }
 
+    @Suppress("UNCHECKED_CAST")
     private val focusChanged: PropertyObserver<View, Boolean> = { table ,_,_ ->
         (table as? TreeTable<T, *>)?.bodyDirty()
     }
@@ -101,6 +102,7 @@ public open class BasicTreeTableBehavior<T>(
 
     private val movingColumns = mutableSetOf<Column<*>>()
 
+    @Suppress("UNCHECKED_CAST")
     override val treeCellGenerator: TreeCellGenerator<T> = object: TreeCellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
@@ -110,6 +112,7 @@ public open class BasicTreeTableBehavior<T>(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override val cellGenerator: CellGenerator<T> = object: CellGenerator<T> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
             is ListItem<*> -> (current as ListItem<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }

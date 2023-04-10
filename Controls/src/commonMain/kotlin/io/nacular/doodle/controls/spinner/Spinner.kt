@@ -49,6 +49,7 @@ public abstract class SpinnerBehavior<T, M: SpinnerModel<T>>: Behavior<Spinner<T
      *
      * @param spinner with change
      */
+    @Suppress("UNUSED_PARAMETER")
     public fun alignmentChanged(spinner: Spinner<T, M>) {}
 }
 

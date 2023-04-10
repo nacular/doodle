@@ -18,9 +18,9 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
@@ -324,6 +324,7 @@ class ConstraintLayoutTests {
         expect(100.0) { view.width }
     }
 
+    @Suppress("LocalVariableName")
     @Test fun `non-required const updates`() {
         val header = view {}.apply { height = 117.0 }
         val main   = view {}.apply { height = 186.0 }
@@ -336,18 +337,18 @@ class ConstraintLayoutTests {
 
         val minHeight = 106.0
 
-        container.layout = constrain(header, main, footer) { header, main, footer ->
-            listOf(header, main, footer).forEach { it.centerX eq parent.centerX }
-            header.top    eq       9
-            header.height.preserve
+        container.layout = constrain(header, main, footer) { header_, main_, footer_ ->
+            listOf(header_, main_, footer_).forEach { it.centerX eq parent.centerX }
+            header_.top    eq       9
+            header_.height.preserve
 
-            main.top     eq        header.bottom + 5
-            main.height  greaterEq minHeight
-            (main.height eq        minHeight + targetHeight) .. Medium
+            main_.top     eq        header_.bottom + 5
+            main_.height  greaterEq minHeight
+            (main_.height eq        minHeight + targetHeight) .. Medium
 
-            footer.top   eq        main.bottom + 65
-            footer.height.preserve
-            (footer.bottom lessEq parent.bottom) .. Strong
+            footer_.top   eq        main_.bottom + 65
+            footer_.height.preserve
+            (footer_.bottom lessEq parent.bottom) .. Strong
         }
 
         container.height = 9 + header.height + 5 + minHeight + targetHeight + 65 + footer.height

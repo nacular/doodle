@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.spinner
 
-import io.nacular.doodle.controls.TextVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.spinner.Spinner
@@ -112,7 +112,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         }
     }
 
-    private val itemVisualizer by lazy { toString<T, Any>(TextVisualizer()) }
+    private val itemVisualizer by lazy { toString<T, Any>(StringVisualizer()) }
 
     override fun changed(spinner: Spinner<T, M>) {}
 
@@ -120,6 +120,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         canvas.rect(view.bounds.atOrigin, cornerRadius, ColorPaint(backgroundColor))
     }
 
+    @Suppress("LocalVariableName")
     override fun install(view: Spinner<T, M>) {
         super.install(view)
 
@@ -159,21 +160,21 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         view.children.clear()
         view.children += listOf(center, next, previous)
 
-        view.layout = constrain(center, next, previous) { center, next, previous ->
-            center.top      eq INSET
-            center.left     eq INSET
-            center.right    eq next.left     - INSET
-            center.bottom   eq parent.bottom - INSET
+        view.layout = constrain(center, next, previous) { center_, next_, previous_ ->
+            center_.top      eq INSET
+            center_.left     eq INSET
+            center_.right    eq next_.left     - INSET
+            center_.bottom   eq parent.bottom - INSET
 
-            next.top        eq INSET
-            next.right      eq parent.right - INSET
-            next.bottom     eq parent.centerY
-            next.width      eq buttonWidth
+            next_.top        eq INSET
+            next_.right      eq parent.right - INSET
+            next_.bottom     eq parent.centerY
+            next_.width      eq buttonWidth
 
-            previous.top    eq next.bottom
-            previous.left   eq next.left
-            previous.right  eq next.right
-            previous.bottom eq parent.bottom - INSET
+            previous_.top    eq next_.bottom
+            previous_.left   eq next_.left
+            previous_.right  eq next_.right
+            previous_.bottom eq parent.bottom - INSET
         }
 
         updateCenter(view)

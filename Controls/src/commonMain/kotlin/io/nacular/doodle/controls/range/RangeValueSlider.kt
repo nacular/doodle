@@ -92,6 +92,7 @@ public abstract class RangeValueSlider<T> internal constructor(
         limitsChanged(old, new)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun cast(value: Double): T {
         return when (type) {
             Int::class    -> value.roundToInt           () as T

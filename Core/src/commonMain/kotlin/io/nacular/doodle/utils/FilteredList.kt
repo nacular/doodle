@@ -87,7 +87,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                         }
 
                         is Insert -> {
-                            difference.items.indices.forEach { itemIndex ->
+                            repeat(difference.items.indices.count()) {
                                 adds += indexInSource - removes.size
 
                                 ++indexInSource
