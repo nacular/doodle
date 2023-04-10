@@ -8,9 +8,9 @@ kotlin {
     jsTargets ()
     jvmTargets()
 
+    val sl4jVersion   : String by project
     val mockkVersion  : String by project
     val junitVersion  : String by project
-    val log4jVersion  : String by project
     val logbackVersion: String by project
 
     sourceSets {
@@ -32,7 +32,7 @@ kotlin {
                 implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
                 implementation(kotlin("test-junit"))
 
-                implementation("org.slf4j:slf4j-api:$log4jVersion")
+                implementation("org.slf4j:slf4j-api:$sl4jVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("io.mockk:mockk:$mockkVersion")
             }
