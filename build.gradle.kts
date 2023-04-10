@@ -1,5 +1,9 @@
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
+import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 
 buildscript {
     val kotlinVersion: String by System.getProperties()
@@ -19,7 +23,11 @@ plugins {
     signing
 }
 
-allprojects {
+repositories {
+    mavenCentral()
+}
+
+subprojects {
     apply (plugin = "maven-publish"              )
     apply (plugin = "signing"                    )
     apply (plugin = "org.jetbrains.dokka"        )
@@ -42,7 +50,7 @@ allprojects {
 
     setupSigning()
 
-    tasks.dokkaHtml {
+    tasks.withType<DokkaTaskPartial>().configureEach {
         outputDirectory.set(buildDir.resolve("javadoc"))
 
         dokkaSourceSets.configureEach {

@@ -19,7 +19,7 @@ fun KotlinMultiplatformExtension.jsTargets() {
                     sourceMapEmbedSources = "always"
                 }
                 moduleKind       = "umd"
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
         browser {
@@ -35,7 +35,7 @@ fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
         compilations.all {
             kotlinOptions {
                 this.jvmTarget   = jvmTarget
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.ExperimentalUnsignedTypes")
+                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
     }
