@@ -411,7 +411,7 @@ private class ObservableProperty<S, T>(initial: T, private val equality: (T, T) 
     override operator fun getValue(thisRef: S, property: KProperty<*>): T = value
 
     override operator fun setValue(thisRef: S, property: KProperty<*>, value: T) {
-        if (!equality(value, this.value)) { //value != this.value) {
+        if (!equality(value, this.value)) {
             val old = this.value
 
             this.value = value
