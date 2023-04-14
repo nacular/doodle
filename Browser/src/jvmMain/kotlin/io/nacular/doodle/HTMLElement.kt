@@ -158,13 +158,14 @@ public actual abstract class HTMLElement: Element() {
     public actual var onload : ((Event) -> Any)? = null
     public actual var onerror: ((Any, String, Int, Int, Any?) -> Any)? = null
 
-    public actual var ondblclick   : ((MouseEvent  ) -> Any)? = null
-    public actual var onpointerup  : ((PointerEvent) -> Any)? = null
-    public actual var onpointerout : ((PointerEvent) -> Any)? = null
-    public actual var onpointerdown: ((PointerEvent) -> Any)? = null
-    public actual var onpointermove: ((PointerEvent) -> Any)? = null
-    public actual var onpointerover: ((PointerEvent) -> Any)? = null
+    public actual var ondblclick     : ((MouseEvent  ) -> Any)? = null
+    public actual var onpointerup    : ((PointerEvent) -> Any)? = null
+    public actual var onpointerout   : ((PointerEvent) -> Any)? = null
+    public actual var onpointerdown  : ((PointerEvent) -> Any)? = null
+    public actual var onpointermove  : ((PointerEvent) -> Any)? = null
+    public actual var onpointerover  : ((PointerEvent) -> Any)? = null
     public actual var onpointercancel: ((PointerEvent) -> Any)? = null
+    public actual var oncontextmenu  : ((MouseEvent  ) -> Any)? = null
 
     public actual var dir: String = ""
 
