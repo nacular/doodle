@@ -150,6 +150,7 @@ public expect abstract class HTMLElement: Element {
     public var onpointermove  : ((PointerEvent) -> Any)?
     public var onpointerover  : ((PointerEvent) -> Any)?
     public var onpointercancel: ((PointerEvent) -> Any)?
+    public var oncontextmenu  : ((MouseEvent  ) -> Any)?
 
     public var onresize   : ((Event) -> Unit)?
     public var ondragstart: ((DragEvent) -> Boolean)?

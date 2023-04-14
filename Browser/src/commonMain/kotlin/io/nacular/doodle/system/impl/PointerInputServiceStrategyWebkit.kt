@@ -72,11 +72,12 @@ internal open class PointerInputServiceStrategyWebkit(
 
     // tracks previous up event pointerId so it can continue on to double-click
     // which has no ID since it is a MouseEvent
-    private var lastUpId        = -1
-    private var inputDevice     = null as HTMLElement?
-    private var eventHandler    = null as EventHandler?
-    private val preventScroll   = mutableSetOf<Int>()
-    private var lastUpIsPointer = false
+    private var lastUpId           = -1
+    private var inputDevice        = null as HTMLElement?
+    private var eventHandler       = null as EventHandler?
+    private val preventScroll      = mutableSetOf<Int>()
+    private var lastUpIsPointer    = false
+    private var preventContextMenu = null as Int?
 
     override fun startUp(handler: EventHandler) {
         eventHandler = handler
@@ -105,6 +106,12 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun pointerCancel(event: PointerEvent) {
         preventScroll -= event.pointerId
+
+        // Clean-up context menu prevention initiated by the pointer-down for this event
+        if (event.pointerId == preventContextMenu) {
+            preventContextMenu = null
+        }
+
         eventHandler?.handle(createPointerEvent(event, Exit, 0))
     }
 
@@ -126,8 +133,14 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun pointerDown(event: PointerEvent) = true.also {
-        if (eventHandler?.handle(createPointerEvent(event, Down, 1)) == true) {
+        val systemPointerEvent = createPointerEvent(event, Down, 1)
+
+        if (eventHandler?.handle(systemPointerEvent) == true) {
             preventScroll += event.pointerId
+
+            if (Button2 in systemPointerEvent.buttons) {
+                preventContextMenu = event.pointerId
+            }
         }
     }
 
@@ -145,8 +158,13 @@ internal open class PointerInputServiceStrategyWebkit(
         }
     }
 
-    private fun pointerMove(event: PointerEvent)= true.also {
+    private fun pointerMove(event: PointerEvent) = true.also {
         eventHandler?.handle(createPointerEvent(event, Move, 0))
+    }
+
+    private fun contextMenu(event: MouseEvent) = (preventContextMenu == null).ifFalse {
+        event.preventBrowserDefault()
+        preventContextMenu = null
     }
 
     private fun createPointerEvent(event: PointerEvent, type: Type, clickCount: Int) = createPointerEvent(event, event.pointerId, type, clickCount)
@@ -181,14 +199,14 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun registerCallbacks(element: HTMLElement) = element.run {
         // TODO: Figure out fallback in case PointerEvent not present
-        ondblclick      = { doubleClick  (it)                     }
-        onpointerdown   = { pointerDown  (it); followPointer(this)}
-        onpointerover   = { pointerEnter (it)                     }
-        onpointercancel = { pointerCancel(it)                     }
+        ondblclick      = { doubleClick  (it)                      }
+        onpointerdown   = { pointerDown  (it); followPointer(this) }
+        onpointerover   = { pointerEnter (it)                      }
+        onpointercancel = { pointerCancel(it)                      }
 
-        addActiveEventListener("touchmove",    preventTouchDefault     )
-        addActiveEventListener("touchstart",   preventTouchStartDefault)
-        addActiveEventListener("gesturestart", preventTouchDefault     )
+        addActiveEventListener(TOUCH_MOVE,    preventTouchDefault     )
+        addActiveEventListener(TOUCH_START,   preventTouchStartDefault)
+        addActiveEventListener(GESTURE_START, preventTouchDefault     )
 
         registerPointerCallbacks(this)
     }
@@ -208,43 +226,54 @@ internal open class PointerInputServiceStrategyWebkit(
         stopPropagation()
     }
 
-    private val trackingPointerMove: (Event) -> Unit = { pointerMove(it as PointerEvent) }
     private val trackingPointerUp  : (Event) -> Unit = { pointerUp  (it as PointerEvent); registerPointerCallbacks(htmlFactory.root) }
+    private val trackingPointerMove: (Event) -> Unit = { pointerMove(it as PointerEvent) }
+    private val trackingContextMenu: (Event) -> Unit = { contextMenu(it as MouseEvent  ) }
 
     private fun followPointer(element: HTMLElement): Unit = element.run {
         onpointerup   = null
         onpointermove = null
+        oncontextmenu = null
 
         document.addEventListener(POINTER_UP,   trackingPointerUp  )
         document.addEventListener(POINTER_MOVE, trackingPointerMove)
+        document.addEventListener(CONTEXT_MENU, trackingContextMenu)
     }
 
     private fun registerPointerCallbacks(element: HTMLElement) = element.run {
         onpointerup   = { pointerUp  (it) }
         onpointermove = { pointerMove(it) }
+        oncontextmenu = { contextMenu(it) }
 
         document.removeEventListener(POINTER_UP,   trackingPointerUp  )
         document.removeEventListener(POINTER_MOVE, trackingPointerMove)
+        document.removeEventListener(CONTEXT_MENU, trackingContextMenu)
     }
 
     private fun unregisterCallbacks(element: HTMLElement) = element.run {
         ondblclick      = null
         onpointerup     = null
         onpointermove   = null
+        oncontextmenu   = null
         onpointerdown   = null
         onpointerover   = null
         onpointercancel = null
 
-        removeActiveEventListener("touchmove",    preventTouchDefault     )
-        removeActiveEventListener("touchstart",   preventTouchStartDefault)
-        removeActiveEventListener("gesturestart", preventTouchDefault     )
+        removeActiveEventListener(TOUCH_MOVE,    preventTouchDefault     )
+        removeActiveEventListener(TOUCH_START,   preventTouchStartDefault)
+        removeActiveEventListener(GESTURE_START, preventTouchDefault     )
 
         document.removeEventListener(POINTER_UP,   trackingPointerUp  )
         document.removeEventListener(POINTER_MOVE, trackingPointerMove)
+        document.removeEventListener(CONTEXT_MENU, trackingContextMenu)
     }
 
     private companion object {
-        private const val POINTER_UP   = "pointerup"
-        private const val POINTER_MOVE = "pointermove"
+        private const val TOUCH_MOVE    = "touchmove"
+        private const val POINTER_UP    = "pointerup"
+        private const val TOUCH_START   = "touchstart"
+        private const val POINTER_MOVE  = "pointermove"
+        private const val CONTEXT_MENU  = "contextmenu"
+        private const val GESTURE_START = "gesturestart"
     }
 }
