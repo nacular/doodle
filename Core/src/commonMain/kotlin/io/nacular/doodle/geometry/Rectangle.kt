@@ -272,3 +272,16 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
         public val Empty: Rectangle = Rectangle()
     }
 }
+
+/**
+ * Rectangle that has been adjusted as follows `[x + left, y + top, w - (left + right), h - (top + bottom)]`.
+ *
+ * @param top amount to adjust on the top
+ * @param left amount to adjust on the left
+ * @param right amount to adjust on the right
+ * @param bottom amount to adjust on the bottom
+ * @return adjusted Rectangle
+ */
+public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double = 0.0, bottom: Double = 0.0): Rectangle = inset(
+    Insets(top = top, left = left, bottom = bottom, right = right)
+)

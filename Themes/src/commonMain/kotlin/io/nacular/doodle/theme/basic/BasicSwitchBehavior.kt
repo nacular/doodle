@@ -8,10 +8,10 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lerp
 import io.nacular.doodle.drawing.lighter
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
@@ -66,11 +66,11 @@ public open class BasicSwitchBehavior(
         val circleColor     = color(view, offForeground, onForeground)
         val backgroundColor = color(view, offBackground, onBackground)
 
-        canvas.rect(view.bounds.atOrigin, radius, ColorPaint(backgroundColor))
+        canvas.rect(view.bounds.atOrigin, radius, backgroundColor.paint)
 
         val center = Point(radius + (view.width - 2 * radius) * progress, radius)
 
-        canvas.circle(Circle(center, radius - border), ColorPaint(circleColor))
+        canvas.circle(Circle(center, radius - border), circleColor.paint)
     }
 
     private fun color(button: Button, start: Color, end: Color) = lerp(start, end, progress).let {
