@@ -18,7 +18,7 @@ import io.nacular.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 12/5/17.
  */
-public open class PathIcon<in T: View>(
+public open class PathIcon<in T: View> private constructor(
         private val path       : Path,
         private val size       : Size?      = null,
         private val fill       : Paint?     = null,
@@ -52,5 +52,28 @@ public open class PathIcon<in T: View>(
                 }
             }
         }
+    }
+
+    public companion object {
+        public operator fun <T: View> invoke(
+            path       : Path,
+            size       : Size?      = null,
+            fill       : Paint,
+            fillRule   : FillRule   = EvenOdd,
+            pathMetrics: PathMetrics): PathIcon<T> = PathIcon(path, size, fill, stroke = null, fillRule, pathMetrics)
+
+        public operator fun <T: View> invoke(
+            path       : Path,
+            size       : Size?      = null,
+            stroke     : Stroke,
+            pathMetrics: PathMetrics): PathIcon<T> = PathIcon(path, size, fill = null, stroke = stroke, pathMetrics = pathMetrics)
+
+        public operator fun <T: View> invoke(
+            path       : Path,
+            size       : Size?      = null,
+            fill       : Paint,
+            stroke     : Stroke,
+            fillRule   : FillRule   = EvenOdd,
+            pathMetrics: PathMetrics): PathIcon<T> = PathIcon(path, size, fill, stroke, fillRule, pathMetrics)
     }
 }
