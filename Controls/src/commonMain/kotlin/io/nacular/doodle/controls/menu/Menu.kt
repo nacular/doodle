@@ -8,9 +8,7 @@ import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 
-/**
- * Created by Nicholas Eddy on 4/30/18.
- */
+@Deprecated(message = "Use popupmenu.Menu instead")
 public class Menu(
         private val menuSelectionManager: MenuSelectionManager,
                     popupFactory        : PopupFactory,

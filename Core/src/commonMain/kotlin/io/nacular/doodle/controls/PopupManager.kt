@@ -146,6 +146,10 @@ public class PopupManagerImpl(
 
             boundsMonitor[relativeTo] -= monitor
         }
+
+        private fun calculateRelativeBounds() {
+            relativeBounds = Rectangle(display.fromAbsolute(relativeTo.toAbsolute(Origin)), relativeTo.size)
+        }
     }
 
     private val popups = LinkedHashMap<View, Popup>()

@@ -26,6 +26,7 @@ import io.nacular.doodle.controls.list.VerticalMutableList
 import io.nacular.doodle.controls.panels.GridPanel
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.controls.popupmenu.Menu
 import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
@@ -72,6 +73,7 @@ import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
 import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
 import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
@@ -881,33 +883,51 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        public fun basicMenuBehavior(): Module = basicThemeModule(name = "BasicMenuBehavior") {
+            bindBehavior<Menu>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicMenuBehavior(instance(), instance(), config = Config(
+                        menuFillPaint           = this.backgroundColor.paint,
+                        itemTextPaint           = this.foregroundColor.paint,
+                        itemDisabledTextPaint   = this.disabledPaintMapper(this.foregroundColor.paint),
+                        subMenuIconPaint         = this.foregroundColor.paint,
+                        itemHighlightPaint      = this.selectionColor.paint,
+                        itemTextSelectedPaint   = White.paint,
+                        subMenuIconSelectedPaint = White.paint,
+                        separatorPaint          = this.darkBackgroundColor.paint
+                    ))
+                }
+            }
+        }
+
         public val basicThemeBehaviors: kotlin.collections.List<Module> = listOf(
-                basicListBehavior(),
-                basicTreeBehavior(),
-                basicLabelBehavior(),
-                basicTableBehavior(),
-                basicButtonBehavior(),
-                basicSwitchBehavior(),
-                basicSliderBehavior(),
-                basicRangeSliderBehavior(),
-                basicCircularSliderBehavior(),
-                basicCircularRangeSliderBehavior(),
-                basicSpinnerBehavior(),
-                basicCheckBoxBehavior(),
-                basicDropdownBehavior(),
-                basicSplitPanelBehavior(),
-                basicRadioButtonBehavior(),
-                basicMutableListBehavior(),
-                basicProgressBarBehavior(foregroundRadius = null),
-                basicMutableTreeBehavior(),
-                basicTreeColumnsBehavior(),
-                basicTabbedPanelBehavior(),
-                basicMutableTableBehavior(),
-                basicMutableSpinnerBehavior(),
-                basicMutableDropdownBehavior(),
-                basicMonthPanelBehavior(),
-                basicDaysOfTheWeekPanelBehavior(),
-                basicGridPanelBehavior(),
+            basicListBehavior(),
+            basicTreeBehavior(),
+            basicLabelBehavior(),
+            basicTableBehavior(),
+            basicButtonBehavior(),
+            basicSwitchBehavior(),
+            basicSliderBehavior(),
+            basicRangeSliderBehavior(),
+            basicCircularSliderBehavior(),
+            basicCircularRangeSliderBehavior(),
+            basicSpinnerBehavior(),
+            basicCheckBoxBehavior(),
+            basicDropdownBehavior(),
+            basicSplitPanelBehavior(),
+            basicRadioButtonBehavior(),
+            basicMutableListBehavior(),
+            basicProgressBarBehavior(foregroundRadius = null),
+            basicMutableTreeBehavior(),
+            basicTreeColumnsBehavior(),
+            basicTabbedPanelBehavior(),
+            basicMutableTableBehavior(),
+            basicMutableSpinnerBehavior(),
+            basicMutableDropdownBehavior(),
+            basicMonthPanelBehavior(),
+            basicDaysOfTheWeekPanelBehavior(),
+            basicGridPanelBehavior(),
+            basicMenuBehavior(),
         )
     }
 }
