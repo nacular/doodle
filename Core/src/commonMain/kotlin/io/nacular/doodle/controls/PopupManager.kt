@@ -123,13 +123,13 @@ public class PopupManagerImpl(
         lateinit var relativeBounds: Rectangle
 
         private val monitor = { _: View, _: Rectangle, _: Rectangle ->
-            relativeBounds = Rectangle(relativeTo.toAbsolute(Origin), relativeTo.size)
+            calculateRelativeBounds()
             relayout()
         }
 
         override fun doLayout() {
             if (!this::relativeBounds.isInitialized) {
-                relativeBounds = Rectangle(relativeTo.toAbsolute(Origin), relativeTo.size)
+                calculateRelativeBounds()
             }
 
             viewList.constrain({ constraints(it, relativeBounds) }) { _,_ ->
