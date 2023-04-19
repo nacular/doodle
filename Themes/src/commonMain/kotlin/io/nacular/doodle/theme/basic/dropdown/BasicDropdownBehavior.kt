@@ -230,7 +230,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
             when (popupManager) {
                 null -> {
-                    val viewAbsolute = view.toAbsolute(Origin)
+                    val viewAbsolute = display.fromAbsolute(view.toAbsolute(Origin))
                     it.x     = viewAbsolute.x
                     it.y     = viewAbsolute.y - view.selection * (view.height - 2 * INSET)
                     display += it
