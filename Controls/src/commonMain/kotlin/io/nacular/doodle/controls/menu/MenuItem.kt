@@ -5,6 +5,7 @@ import io.nacular.doodle.utils.PropertyObservers
 /**
  * Created by Nicholas Eddy on 4/30/18.
  */
+@Deprecated(message = "Use popupmenu.Menu instead")
 public interface MenuItem {
     // TODO: Naming is sub-optimal here b/c of collisions w/ View
     public val parentMenu     : MenuItem?
