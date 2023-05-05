@@ -878,7 +878,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    public fun toAbsolute(point: Point): Point = resolvedTransform(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
+    public fun toAbsolute(point: Point): Point = transform.invoke(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
@@ -890,7 +890,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             parent?.fromAbsolute (point) ?:
             display?.fromAbsolute(point) ?:
             point
-    ).let { resolvedTransform.inverse?.invoke(toPlane(it))?.as2d() ?: it } - position
+    ).let { transform.inverse?.invoke(toPlane(it))?.as2d() ?: it } - position
 
     /**
      * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from
