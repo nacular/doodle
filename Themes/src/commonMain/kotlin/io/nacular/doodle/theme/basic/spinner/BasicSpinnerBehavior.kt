@@ -16,6 +16,8 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap
+import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
@@ -67,7 +69,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
             val stroke = Stroke(when {
                 view.enabled -> foregroundColor
                 else         -> disabledColorMapper(foregroundColor)
-            }, 1.5)
+            }.paint, 1.5, lineJoint = LineJoint.Round, lineCap = LineCap.Round)
 
             canvas.transform(transform) {
                 path(listOf(

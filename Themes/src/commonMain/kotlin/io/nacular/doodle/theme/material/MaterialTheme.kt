@@ -10,9 +10,9 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
+import org.kodein.di.erasedSet
 import org.kodein.di.instance
 import org.kodein.di.singleton
-import org.kodein.di.erasedSet
 
 /**
  * Created by Nicholas Eddy on 1/8/20.
