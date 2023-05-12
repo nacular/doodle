@@ -34,8 +34,14 @@ public open class Label(
     horizontalAlignment: TextAlignment     = Center
 ): View() {
 
+    /**
+     * Determines whether the Label resizes to fit its text's width, height, or both.
+     */
     public var fitText: Set<Dimension> by dimensionSetProperty(setOf(Width, Height)) { _,_ -> measureText() }
 
+    /**
+     * Text displayed by the Label.
+     */
     public var text: String get() = styledText.text
         set(new) {
             styledText = StyledText(new)
@@ -58,12 +64,19 @@ public open class Label(
             rerender()
         }
 
+    /**
+     * Text displayed by the label with styles.
+     */
     public var styledText: StyledText
         get(   ) = visibleStyledText
         set(new) {
             actualStyledText = new
         }
 
+    /**
+     * Determines if the Label will wrap text when its width is too short to
+     * show it all.
+     */
     public var wrapsWords: Boolean = false
         set(new) {
             if (field != new) {
@@ -73,17 +86,37 @@ public open class Label(
             }
         }
 
+    /**
+     * Alignment of text along the vertical axis.
+     */
     public var verticalAlignment: VerticalAlignment by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
 
+    /**
+     * Alignment of text along the horizontal axis.
+     */
+    public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
+
+    /**
+     * Alignment of text along the horizontal axis.
+     */
     @Deprecated("Use TextAlignment instead", ReplaceWith("textAlignment", imports = arrayOf("io.nacular.doodle.utils.TextAlignment")))
     public var horizontalAlignment: HorizontalAlignment get() = textAlignment.horizontalAlignment; set(value) {
         textAlignment = value.textAlignment
     }
 
-    public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
+    /**
+     * Space between lines in [text] (when [wrapsWords] == `true`) in terms of the [font] height.
+     */
+    public var lineSpacing: Float  by observable(1f ) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
 
-    public var lineSpacing  : Float  by observable(1f ) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
-    public var wordSpacing  : Double by observable(0.0) { _,_ -> measureText(); rerender() }
+    /**
+     * Space between the words in [text].
+     */
+    public var wordSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
+
+    /**
+     * Space between the letters in [text].
+     */
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
     internal val _textSize get() = textSize

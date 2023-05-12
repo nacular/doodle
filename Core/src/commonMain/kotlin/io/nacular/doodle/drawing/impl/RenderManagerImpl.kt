@@ -355,10 +355,12 @@ public open class RenderManagerImpl(
                 graphicsSurface.transform = view.transform
                 graphicsSurface.camera    = view.camera
                 graphicsSurface.opacity   = view.opacity
-                graphicsSurface.zOrder    = view.zOrder
                 graphicsSurface.index     = when (val parent = view.parent) {
-                    null -> display.indexOf         (view)
+                    null -> display.indexOf(view)
                     else -> parent.children_.indexOf(view)
+                }
+                if (view !in popups) {
+                    graphicsSurface.zOrder = view.zOrder
                 }
             }
 
@@ -580,7 +582,9 @@ public open class RenderManagerImpl(
     }
 
     override fun zOrderChanged(view: View, old: Int, new: Int) {
-        graphicsDevice[view].zOrder = new
+        if (view !in popups) {
+            graphicsDevice[view].zOrder = new
+        }
     }
 
     override fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean) {
@@ -777,7 +781,7 @@ public open class RenderManagerImpl(
     }
 
     override fun popupHidden(view: View) {
-        if (/*view.parent == null &&*/ view.displayed) {
+        if (view.displayed) {
             childRemoved(null, view)
         }
         popups -= view

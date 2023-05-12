@@ -105,7 +105,7 @@ public expect interface ElementCSSInlineStyle {
     public val style: CSSStyleDeclaration
 }
 
-public expect abstract class Element: Node {
+public expect abstract class Element: Node, ParentNode {
     public open var id        : String
     public open var className : String
     public open var scrollTop : Double
@@ -113,6 +113,8 @@ public expect abstract class Element: Node {
 
     public open val clientWidth : Int
     public open val clientHeight: Int
+
+    public open var outerHTML: String
 
     public fun getBoundingClientRect(): DOMRect
 
@@ -127,6 +129,18 @@ public expect abstract class Element: Node {
 
 public expect class DragEvent {
     internal val dataTransfer: DataTransfer?
+}
+
+public expect abstract class HTMLCollection() {
+    public abstract val length: Int
+
+    public open fun item(index: Int): Element?
+}
+
+internal expect inline operator fun HTMLCollection.get(index: Int): Element?
+
+public expect interface ParentNode {
+    public val children: HTMLCollection
 }
 
 public expect abstract class HTMLElement: Element {

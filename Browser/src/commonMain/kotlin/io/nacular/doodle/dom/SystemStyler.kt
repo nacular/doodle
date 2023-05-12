@@ -66,7 +66,7 @@ internal class SystemStylerImpl(
                 }
 
                 // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
-                insertRule("${prefix("body")} { -webkit-tap-highlight-color: transparent;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale }", numStyles)
+                insertRule("${prefix("body")} { -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale }", numStyles)
 
                 insertRule("${prefix("html")} { border:0;box-sizing:border-box }", numStyles)
                 insertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0;font-weight:$defaultFontWeight;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)

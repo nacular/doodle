@@ -397,6 +397,7 @@ internal open class CanvasImpl(
         }
 
         it.style.filter = ""
+        it.style.setOverflow     (null)
         it.style.setClipPath     (null)
         it.style.setTransform    (    )
         it.style.setBorderRadius (null)
@@ -452,6 +453,7 @@ internal open class CanvasImpl(
                     element.style.filter += "drop-shadow($shadow)"
                     if (useShadowHack) {
                         element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
+                        element.style.setOverflow(Visible())
                     }
                 }
             }
@@ -541,6 +543,7 @@ internal open class CanvasImpl(
             result.src              = image.src
             result.style.filter     = ""
             result.style.willChange = ""
+            result.style.setOverflow(null)
         }
 
         return result as HTMLImageElement

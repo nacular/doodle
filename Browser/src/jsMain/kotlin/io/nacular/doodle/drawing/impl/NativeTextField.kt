@@ -5,6 +5,14 @@ import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLInputElement
 import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.controls.text.TextField.Purpose
+import io.nacular.doodle.controls.text.TextField.Purpose.Email
+import io.nacular.doodle.controls.text.TextField.Purpose.Integer
+import io.nacular.doodle.controls.text.TextField.Purpose.Number
+import io.nacular.doodle.controls.text.TextField.Purpose.Password
+import io.nacular.doodle.controls.text.TextField.Purpose.Search
+import io.nacular.doodle.controls.text.TextField.Purpose.Telephone
+import io.nacular.doodle.controls.text.TextField.Purpose.Url
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
@@ -130,15 +138,19 @@ internal class NativeTextField(
     private val eventHandler   : NativeEventHandler
     private var elementFocused = false
 
-    private val textChanged = { _: TextInput, _: String, new: String ->
-        text = new
+    private val textChanged = { _: TextInput, _: String, _: String ->
+        text = textField.text
     }
 
     private val maskChanged = { _: TextInput, _: Char?, new: Char? ->
-        inputElement.type = when (new) {
-            null -> "text"
-            else -> "password"
+        when (new) {
+            null -> updatePurpose(textField.purpose)
+            else -> updatePurpose(Password)
         }
+    }
+
+    private val purposeChanged = { _: TextField, _: Purpose, new: Purpose ->
+        updatePurpose(new)
     }
 
     private val focusChanged = { _: View, _: Boolean, new: Boolean ->
@@ -232,9 +244,10 @@ internal class NativeTextField(
             style.setHeightPercent(100.0)
             style.lineHeight = "${textField.height}px"
 
-            type         = if (textField.masked) "password" else "text"
-            spellcheck   = spellCheck
+            spellcheck = spellCheck
         }
+
+        updatePurpose(textField.purpose)
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
             registerKeyListener      ()
@@ -250,6 +263,7 @@ internal class NativeTextField(
             focusChanged        += this@NativeTextField.focusChanged
             styleChanged        += this@NativeTextField.styleChanged
             boundsChanged       += this@NativeTextField.boundsChanged
+            purposeChanged      += this@NativeTextField.purposeChanged
             enabledChanged      += this@NativeTextField.enabledChanged
             selectionChanged    += this@NativeTextField.selectionChanged
             focusabilityChanged += this@NativeTextField.focusabilityChanged
@@ -266,6 +280,8 @@ internal class NativeTextField(
             maskChanged         -= this@NativeTextField.maskChanged
             focusChanged        -= this@NativeTextField.focusChanged
             styleChanged        -= this@NativeTextField.styleChanged
+            boundsChanged       -= this@NativeTextField.boundsChanged
+            purposeChanged      -= this@NativeTextField.purposeChanged
             enabledChanged      -= this@NativeTextField.enabledChanged
             selectionChanged    -= this@NativeTextField.selectionChanged
             focusabilityChanged -= this@NativeTextField.focusabilityChanged
@@ -348,5 +364,21 @@ internal class NativeTextField(
 
         textField.textChanged      += textChanged
         textField.selectionChanged += selectionChanged
+    }
+
+    private fun updatePurpose(purpose: Purpose) {
+        inputElement.type = when (purpose) {
+            Password        -> "password"
+            Email           -> "email"
+            Search          -> "search"
+            Telephone       -> "tel"
+            Number, Integer -> "number"
+            Url             -> "url"
+            else            -> "text"
+        }
+
+        if (purpose == Integer) {
+            inputElement.pattern = "[0-9]*"
+        }
     }
 }

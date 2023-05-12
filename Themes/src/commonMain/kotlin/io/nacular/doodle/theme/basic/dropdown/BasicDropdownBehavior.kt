@@ -23,6 +23,8 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap
+import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.lighter
@@ -95,7 +97,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             val stroke = Stroke(when {
                 view.enabled -> foregroundColor
                 else         -> disabledColorMapper(foregroundColor)
-            }, 1.5)
+            }.paint, 1.5, lineJoint = LineJoint.Round, lineCap = LineCap.Round)
 
             val points = listOf(
                     Point(arrowPosition.x,                       arrowPosition.y + arrowSize.height * 0.3),

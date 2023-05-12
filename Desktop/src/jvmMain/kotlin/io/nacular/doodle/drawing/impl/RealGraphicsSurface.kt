@@ -1,8 +1,8 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.core.Camera
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsSurface
 import io.nacular.doodle.geometry.Path
@@ -51,7 +51,7 @@ internal class RealGraphicsSurface(
             parent?.let {
                 it.children.remove(this)
                 it.children.addOrAppend(new, this)
-                it.needsRerender()
+                updateParentChildrenSort()
             }
         }
     override var zOrder                     by parentRedrawProperty (0                  ) { _,_ ->   updateParentChildrenSort(        ) }

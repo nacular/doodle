@@ -192,7 +192,12 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             is ColorPaint -> {
                 canvasElement.parentNode?.removeChild(canvasElement)
 
-                rootElement.style.setBackgroundColor(fill.color)
+                rootElement.style.setBackgroundColor(
+                    when {
+                        fill.color.visible -> fill.color
+                        else               -> null
+                    }
+                )
             }
             is ImagePaint  -> {
                 when (fill.opacity) {
@@ -245,7 +250,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                 if (child == null) {
                     children.asReversed().forEach {
                         if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
-                            child = it
+                            child     = it
                             topZOrder = it.zOrder
                         }
                     }

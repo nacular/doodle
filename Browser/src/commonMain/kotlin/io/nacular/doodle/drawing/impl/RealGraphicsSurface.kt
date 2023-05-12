@@ -24,8 +24,8 @@ import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.translate
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsSurface
@@ -41,16 +41,17 @@ import io.nacular.doodle.utils.observable
 private fun canvasElement(@Suppress("UNUSED_PARAMETER") view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
 
 internal class RealGraphicsSurface private constructor(
-        private val htmlFactory        : HtmlFactory,
-        private val canvasFactory      : CanvasFactory,
-        private var parent             : RealGraphicsSurface?,
-                    isContainer        : Boolean,
-                    canvasElement      : HTMLElement,
-                    addToRootIfNoParent: Boolean): GraphicsSurface {
+        private val htmlFactory             : HtmlFactory,
+        private val canvasFactory           : CanvasFactory,
+        private var parent                  : RealGraphicsSurface?,
+                    isContainer             : Boolean,
+                    canvasElement           : HTMLElement,
+                    addToRootIfNoParent     : Boolean,
+        private val nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): GraphicsSurface {
 
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement): this(htmlFactory, canvasFactory, null, false, element, true)
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
-            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): this(htmlFactory, canvasFactory, null, false, element, true, nonPopupTopLevelSurfaces)
+    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
+            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent, nonPopupTopLevelSurfaces)
 
     override var visible = true
         set(new) {
@@ -66,27 +67,53 @@ internal class RealGraphicsSurface private constructor(
             rootElement.style.setOpacity(new)
         }
 
-    override var index = 0; set(new) {
-        field = new
+    override var index by observable(0) { _,new ->
+        if (new < 0) {
+            nonPopupTopLevelSurfaces -= this
+        }
 
-        when {
-            parent == null && rootElement.parentNode == htmlFactory.root -> {
-                htmlFactory.root.remove(rootElement       )
-                htmlFactory.root.insert(rootElement, index)
+        updateIndex()
+    }
+
+    // FIXME: popups will have negative index, so use that fact for now to differentiate
+    private val isPopup: Boolean get() = index < 0
+
+    private val realIndex:Int get() {
+        return when {
+            isPopup -> index
+            else    -> {
+                val peers = parent?.children ?: nonPopupTopLevelSurfaces
+
+                val numParentChildren = peers.size
+
+                var result = peers.indexOf(this).takeIf { it > 0 } ?: index
+
+                // Check if there is any item after this one w/ a lower zOrder
+                (result + 1 until numParentChildren).forEach {
+                    if (zOrder > peers[it].zOrder) {
+                        result += 1
+                    }
+                }
+
+                // Check if there is any item before this one w/ a greater zOrder
+                (result - 1 downTo 0).forEach {
+                    if (zOrder < peers[it].zOrder) {
+                        result -= 1
+                    }
+                }
+
+                result
             }
-            else -> parent?.setIndex(this, new)
         }
     }
 
-    override var zOrder = 0; set(new) {
-        field = new
-        rootElement.style.zIndex = if (new == 0) "" else "$new"
+    override var zOrder by observable(0) { _,_ ->
+        updateIndex()
     }
 
     lateinit var canvas: Canvas
         private set
 
-    private var numChildren   = 0
     private var canvasElement = canvasElement as HTMLElement?
 
     override var mirrored                   by observable(false              ) { _,_ -> updateTransform(position)    }
@@ -270,7 +297,14 @@ internal class RealGraphicsSurface private constructor(
 
         when {
             parent != null      -> parent?.add(this)
-            addToRootIfNoParent -> htmlFactory.root.add(rootElement)
+            addToRootIfNoParent -> {
+                htmlFactory.root.add(rootElement)
+
+                when {
+                    index != 0 || zOrder != 0 -> updateIndex()
+                    else                      -> nonPopupTopLevelSurfaces.add(this)
+                }
+            }
         }
     }
 
@@ -333,17 +367,21 @@ internal class RealGraphicsSurface private constructor(
     }
 
     override fun release() {
-        if (parent != null) {
-            parent?.remove(this)
-        } else {
-            try {
+        when {
+            parent != null -> parent?.remove(this)
+            else           -> try {
                 htmlFactory.root.remove(rootElement)
+                nonPopupTopLevelSurfaces -= this
             } catch (ignore: Throwable) {}
         }
     }
 
+    private val children = mutableListOf<RealGraphicsSurface>()
+
     private fun add(child: RealGraphicsSurface) {
-        if (++numChildren == 1) {
+        children += child
+
+        if (children.size == 1) {
             isContainer = true
             setupChildrenClipPath()
         }
@@ -365,13 +403,33 @@ internal class RealGraphicsSurface private constructor(
 
             child.parent = null
 
-            --numChildren // TODO: is it worth reverting to not container?
+            children -= child // TODO: is it worth reverting to not container?
+        }
+    }
+
+    private fun updateIndex() {
+        when {
+            parent == null && rootElement.parentNode == htmlFactory.root -> {
+                val realIndex = this.realIndex
+
+                htmlFactory.root.remove(rootElement           )
+                htmlFactory.root.insert(rootElement, realIndex)
+
+                if (realIndex >= 0) {
+                    val currentIndex = nonPopupTopLevelSurfaces.indexOf(this)
+                    val offset       = if (currentIndex > -1 && currentIndex < realIndex) -1 else 0
+
+                    nonPopupTopLevelSurfaces.remove(this)
+                    nonPopupTopLevelSurfaces.add(realIndex + offset, this)
+                }
+            }
+            else -> parent?.setIndex(this, realIndex)
         }
     }
 
     private fun setIndex(child: RealGraphicsSurface, index: Int) {
         if (child.rootElement.parentNode == rootElement) {
-            childrenElement.remove(child.rootElement                    )
+            childrenElement.remove(child.rootElement)
             childrenElement.insert(child.rootElement, indexStart + index)
         }
     }

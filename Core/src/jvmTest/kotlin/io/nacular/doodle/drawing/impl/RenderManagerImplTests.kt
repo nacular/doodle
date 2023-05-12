@@ -254,6 +254,29 @@ class RenderManagerImplTests {
         }
     }
 
+    @Test @JsName("rendersNewPopups")
+    fun `renders new popups`() {
+        val child = spyk(view())
+
+        val display        = display()
+        val surface        = mockk<GraphicsSurface>()
+        val graphicsDevice = graphicsDevice(mapOf(child to surface))
+
+        val renderManager = renderManager(display, graphicsDevice = graphicsDevice)
+
+        verify(exactly = 0) { child.render(any()) }
+
+        renderManager.first.popupShown(child)
+
+        verifyChildAddedProperly(renderManager, display, child)
+
+        val bounds    = child.bounds
+        val transform = child.transform
+
+        verify(exactly = 1) { surface setProperty "bounds"    value bounds    }
+        verify(exactly = 1) { surface setProperty "transform" value transform }
+    }
+
     @Test @JsName("handlesBecomingInvisibleBeforeFirstRender")
     fun `handles becoming invisible before first render`() {
         val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
@@ -304,6 +327,58 @@ class RenderManagerImplTests {
         scheduler.runJobs()
 
         verifyChildRemovedProperly(container)
+    }
+
+    @Test @JsName("removesPopups")
+    fun `removes popups`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val display   = display()
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        renderManager.first.popupShown(container)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, container)
+
+        renderManager.first.popupHidden(container)
+
+        scheduler.runJobs()
+
+        verifyChildRemovedProperly(container)
+    }
+
+    @Test @JsName("onlyUpdatesIndexViewConvertedPopup")
+    fun `only updates index view converted to popup`() {
+        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val display   = display(container)
+        val scheduler = ManualAnimationScheduler()
+        val surface   = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(display, scheduler = scheduler, graphicsDevice = graphicsDevice(mapOf(container to surface)))
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, container)
+
+        renderManager.first.popupHidden(container)
+
+        // show popup as PopupManager would
+        display.hidePopup(container)
+        display.showPopup(container)
+        renderManager.first.popupShown (container)
+
+        scheduler.runJobs()
+
+        verifyChildRemovedProperly(container)
+        verifyChildAddedProperly(renderManager, display, container, times = 2)
+
+        verifyOrder {
+            surface.index =  0
+            surface.index = -1
+        }
     }
 
     @Test @JsName("noopRemoveAddTopLevelViews")
@@ -469,8 +544,27 @@ class RenderManagerImplTests {
 
         verifyChildAddedProperly(renderManager, display, view)
 
-        verify(exactly = 1) { surface.opacity   = 0.56f    }
+        verify(exactly = 1) { surface.index     = 0        }
         verify(exactly = 1) { surface.zOrder    = 4        }
+        verify(exactly = 1) { surface.opacity   = 0.56f    }
+        verify(exactly = 1) { surface.transform = Identity }
+    }
+
+    @Test @JsName("initializesPopupGraphicsSurface")
+    fun `initializes popup graphics surface`() {
+        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
+        val display = display()
+        val surface = mockk<GraphicsSurface>()
+
+        val renderManager = renderManager(display = display, graphicsDevice = graphicsDevice(mapOf(view to surface)))
+
+        renderManager.first.popupShown(view)
+
+        verifyChildAddedProperly(renderManager, display, view)
+
+        verify(exactly = 1) { surface.index     = -1       }
+        verify(exactly = 0) { surface.zOrder    = any()    }
+        verify(exactly = 1) { surface.opacity   = 0.56f    }
         verify(exactly = 1) { surface.transform = Identity }
     }
 
@@ -1328,6 +1422,7 @@ class RenderManagerImplTests {
         every { this@apply -= capture(view )         } answers { displayChildren -= view.captured  }
         every { this@apply += capture(views)         } answers { displayChildren += views.captured }
         every { this@apply -= capture(views)         } answers { displayChildren -= views.captured }
+        every { showPopup(capture(view))             } answers { displayChildren -= view.captured  }
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler>().apply {

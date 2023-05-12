@@ -1116,7 +1116,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             styleChanged(filter)
         }
 
-        public fun <T> observableStyleProperty(initial: T, filter: (View) -> Boolean = { true }, onChanged: (old: T, new: T) -> Unit): ReadWriteProperty<View, T> = observable(initial) { old, new ->
+        public fun <T> observableStyleProperty(initial: T, filter: (View) -> Boolean = { true }, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
             styleChanged(filter)
             onChanged(old, new)
         }
