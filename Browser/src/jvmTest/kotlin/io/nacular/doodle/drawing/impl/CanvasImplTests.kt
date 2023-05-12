@@ -4,6 +4,7 @@ import JsName
 import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
@@ -66,6 +67,7 @@ import kotlin.test.expect
 class CanvasImplTests {
     init {
         mockkStatic("io.nacular.doodle.dom.ElementKt")
+        mockkStatic(Node::childAt)
     }
 
     @Test @JsName("defaultsValid") fun `defaults valid`() {
@@ -745,10 +747,10 @@ class CanvasImplTests {
         }
 
         every { add(capture(node)) } answers {
-            node.captured.also { n ->
-                children += n
+            node.captured.also {
+                children += it
 
-                mockAdd(n)
+                mockAdd(it)
             }
         }
         every { remove(capture(node)) } answers {
@@ -780,6 +782,9 @@ class CanvasImplTests {
             children.indexOf(node.captured)
         }
         every { childAt(capture(index)) } answers {
+            children.getOrNull(index.captured)
+        }
+        every { any<Node>().childAt(capture(index)) } answers {
             children.getOrNull(index.captured)
         }
         every { replaceChild(capture(node), capture(needle)) } answers {
