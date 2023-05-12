@@ -6,6 +6,11 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.get
 
 
+internal fun HTMLElement.childAt(index: Int): Node? = when {
+    index >= 0 && index < children.length -> children[index]
+    else                                  -> null
+}
+
 internal fun Node.childAt(index: Int): Node? = when {
     index >= 0 && index < childNodes.length -> childNodes[index]
     else                                    -> null
@@ -45,3 +50,5 @@ internal fun HTMLElement.scrollTo(point: Point) {
         scrollLeft = point.x
     }
 }
+
+internal inline fun HTMLElement.insert(element: Node, index: Int) = insertBefore(element, childAt(index))

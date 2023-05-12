@@ -115,13 +115,37 @@ public actual class DOMRect {
     public actual var height: Double = 0.0
 }
 
-public actual abstract class Element: Node() {
+public actual abstract class HTMLCollection public actual constructor() {
+    protected val values: List<Element> = mutableListOf()
+
+    public actual abstract val length: Int
+
+    public actual open fun item(index: Int): Element? = try {
+        values[index]
+    } catch (e: Exception) {
+        null
+    }
+}
+
+public actual inline operator fun HTMLCollection.get(index: Int): Element? = item(index)
+
+private class HTMLCollectionImpl: HTMLCollection() {
+    override val length: Int get() = values.size
+}
+
+public actual interface ParentNode {
+    public actual val children: HTMLCollection
+}
+
+public actual abstract class Element: Node(), ParentNode {
     public actual open var id        : String = ""
     public actual open var className : String = ""
     public actual open var scrollTop : Double = 0.0
     public actual open var scrollLeft: Double = 0.0
     public actual open val clientWidth: Int = 0
     public actual open val clientHeight: Int = 0
+
+    public actual open var outerHTML: String = ""
 
     public actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
@@ -190,9 +214,13 @@ public actual class Document {
     public actual var body: HTMLElement?     = null
     public actual val head: HTMLHeadElement? = null
 
-    public actual fun createElement(localName: String, options: ElementCreationOptions): Element = object: Element() {}
+    public actual fun createElement(localName: String, options: ElementCreationOptions): Element = object: Element() {
+        override val children: HTMLCollection get() = HTMLCollectionImpl()
+    }
     public actual fun createTextNode(data: String): Text = Text()
-    public actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = object: Element() {}
+    public actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = object: Element() {
+        override val children: HTMLCollection get() = HTMLCollectionImpl()
+    }
     public actual val styleSheets: StyleSheetList = object: StyleSheetList() {
         override val length get() = values.size
     }

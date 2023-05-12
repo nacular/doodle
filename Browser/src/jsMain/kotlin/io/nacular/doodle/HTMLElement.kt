@@ -4,6 +4,7 @@ import io.nacular.doodle.dom.Event
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Vertical
 import org.w3c.dom.Node
+import org.w3c.dom.get
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -36,7 +37,12 @@ internal actual typealias DOMRect   = org.w3c.dom.DOMRect
 internal actual typealias Element   = org.w3c.dom.Element
 internal actual typealias DragEvent = org.w3c.dom.DragEvent
 
+public actual typealias ParentNode = org.w3c.dom.ParentNode
 public actual typealias HTMLElement = org.w3c.dom.HTMLElement
+
+public actual typealias HTMLCollection = org.w3c.dom.HTMLCollection
+
+internal actual inline operator fun HTMLCollection.get(index: Int): Element? = get(index)
 
 private val SIZE_OBSERVERS = mutableMapOf<HTMLElement, dynamic>()
 
