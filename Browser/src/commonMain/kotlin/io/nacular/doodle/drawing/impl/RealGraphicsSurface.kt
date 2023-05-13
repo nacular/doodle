@@ -338,14 +338,14 @@ internal class RealGraphicsSurface private constructor(
             return
         }
 
-        when {
-            (rootElement.parent as HTMLElement).hasScrollOverflow -> {
+        when ((rootElement.parent as? HTMLElement)?.hasScrollOverflow) {
+            true -> {
                 when {
                     mirrored -> rootElement.style.setTransform(Identity.flipHorizontally())
                     else     -> rootElement.style.setTransform(null)
                 }
             }
-            else                                                -> {
+            else -> {
                 when {
                     !mirrored && augmentedTransform.isIdentity -> rootElement.style.translate(new)
                     else                                       -> {
@@ -355,9 +355,7 @@ internal class RealGraphicsSurface private constructor(
                         }
 
                         when {
-                            transform.is3d -> {
-                                rootElement.style.setPerspectiveTransform((projectionTransform * transform).matrix)
-                            }
+                            transform.is3d -> rootElement.style.setPerspectiveTransform((projectionTransform * transform).matrix)
                             else           -> rootElement.style.setTransform(transform)
                         }
                     }
