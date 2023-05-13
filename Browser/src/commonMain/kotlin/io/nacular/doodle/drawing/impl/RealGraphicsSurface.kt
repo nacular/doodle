@@ -67,12 +67,26 @@ internal class RealGraphicsSurface private constructor(
             rootElement.style.setOpacity(new)
         }
 
-    override var index by observable(0) { _,new ->
+    private var internalIndex = 0
+
+    override var index get() = internalIndex; set(new) {
+        if (internalIndex == new) return
+
+        internalIndex = new
+
         if (new < 0) {
+            val currentIndex = nonPopupTopLevelSurfaces.indexOf(this)
+            nonPopupTopLevelSurfaces.drop(currentIndex + 1).forEach { it.shiftIndex(-1) }
             nonPopupTopLevelSurfaces -= this
+
+            parent?.remove(this)
         }
 
         updateIndex()
+    }
+
+    private fun shiftIndex(delta: Int) {
+        internalIndex += delta
     }
 
     // FIXME: popups will have negative index, so use that fact for now to differentiate
@@ -86,7 +100,7 @@ internal class RealGraphicsSurface private constructor(
 
                 val numParentChildren = peers.size
 
-                var result = peers.indexOf(this).takeIf { it > 0 } ?: index
+                var result = index
 
                 // Check if there is any item after this one w/ a lower zOrder
                 (result + 1 until numParentChildren).forEach {
@@ -299,11 +313,8 @@ internal class RealGraphicsSurface private constructor(
             parent != null      -> parent?.add(this)
             addToRootIfNoParent -> {
                 htmlFactory.root.add(rootElement)
-
-                when {
-                    index != 0 || zOrder != 0 -> updateIndex()
-                    else                      -> nonPopupTopLevelSurfaces.add(this)
-                }
+                nonPopupTopLevelSurfaces.add(this)
+                internalIndex = nonPopupTopLevelSurfaces.size - 1
             }
         }
     }
@@ -390,10 +401,16 @@ internal class RealGraphicsSurface private constructor(
             child.inNativeScroll -> child.rootElement.parent?.let { sticky -> childrenElement.add(sticky) }
             else                 -> childrenElement.add(child.rootElement)
         }
+
+        child.internalIndex = children.size - 1
     }
 
     private fun remove(child: RealGraphicsSurface) {
         if (child.parent === this) {
+            val currentIndex = children.indexOf(child)
+
+            if (currentIndex < 0) return
+
             try {
                 when {
                     child.inNativeScroll -> child.rootElement.parent?.let { sticky -> childrenElement.remove(sticky) }
@@ -402,6 +419,8 @@ internal class RealGraphicsSurface private constructor(
             } catch (ignore: Throwable) {}
 
             child.parent = null
+
+            children.drop(currentIndex + 1).forEach { it.shiftIndex(-1) }
 
             children -= child // TODO: is it worth reverting to not container?
         }

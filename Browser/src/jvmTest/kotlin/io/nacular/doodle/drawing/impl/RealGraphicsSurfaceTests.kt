@@ -5,12 +5,15 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.nacular.doodle.Element
+import io.nacular.doodle.HTMLCollection
 import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.Node
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.index
+import io.nacular.doodle.dom.remove
 import io.nacular.doodle.drawing.CanvasFactory
 import kotlin.test.Test
 import kotlin.test.expect
@@ -20,25 +23,39 @@ class RealGraphicsSurfaceTests {
 
     init {
         mockkStatic(HTMLElement::childAt)
+        mockkStatic(Node::removeChild)
+    }
+
+    @Test fun `default sort order correct (top level)`() {
+        val root = createHtmlElement()
+
+        val data = (0 .. 3).map {
+            createSurface(root)
+        }
+
+        val surfaceRoots = data.map { it.root }
+
+        expect(surfaceRoots) { root.children.toList() }
     }
 
     @Test fun `default sort order correct`() {
-        val root = createRoot()
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
 
         val data = (0 .. 3).map {
-            createSurface(root.htmlElement)
+            createSurface(root, parent)
         }
 
-        val surfaceRoots = data.map { it.root    }
+        val surfaceRoots = data.map { it.root }
 
-        expect(surfaceRoots) { root.children }
+        expect(surfaceRoots) { parent.rootElement.children.toList().drop(1) }
     }
 
-    @Test fun `setting index in order correct`() {
-        val root = createRoot()
+    @Test fun `setting index in order correct (top level)`() {
+        val root = createHtmlElement()
 
         val data = (0 .. 3).map {
-            createSurface(root.htmlElement)
+            createSurface(root)
         }
 
         val surfaces     = data.map { it.surface }
@@ -46,14 +63,30 @@ class RealGraphicsSurfaceTests {
 
         surfaces.forEachIndexed { index, surface -> surface.index = index }
 
-        expect(surfaceRoots) { root.children }
+        expect(surfaceRoots) { root.children.toList() }
     }
 
-    @Test fun `setting zOrder correct`() {
-        val root = createRoot()
+    @Test fun `setting index in order correct`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
 
         val data = (0 .. 3).map {
-            createSurface(root.htmlElement)
+            createSurface(root, parent)
+        }
+
+        val surfaces     = data.map { it.surface }
+        val surfaceRoots = data.map { it.root    }
+
+        surfaces.forEachIndexed { index, surface -> surface.index = index }
+
+        expect(surfaceRoots) { parent.rootElement.children.toList().drop(1) }
+    }
+
+    @Test fun `setting zOrder correct (top level)`() {
+        val root = createHtmlElement()
+
+        val data = (0 .. 3).map {
+            createSurface(root)
         }
 
         val surfaces     = data.map { it.surface }
@@ -69,14 +102,38 @@ class RealGraphicsSurfaceTests {
             surfaceRoots[2],
             surfaceRoots[0],
             surfaceRoots[3],
-        )) { root.children }
+        )) { root.children.toList() }
+    }
+
+    @Test fun `setting zOrder correct`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val data = (0 .. 3).map {
+            createSurface(root, parent)
+        }
+
+        val surfaces     = data.map { it.surface }
+        val surfaceRoots = data.map { it.root    }
+
+        surfaces.forEachIndexed { index, surface -> surface.index = index }
+
+        surfaces[0].zOrder = 2
+        surfaces[3].zOrder = 3
+
+        expect(listOf(
+            surfaceRoots[1],
+            surfaceRoots[2],
+            surfaceRoots[0],
+            surfaceRoots[3],
+        )) { parent.rootElement.children.toList().drop(1) }
     }
 
     @Test fun `popups always on top`() {
-        val root = createRoot()
+        val root = createHtmlElement()
 
         val data = (0 .. 3).map {
-            createSurface(root.htmlElement)
+            createSurface(root)
         }
 
         val surfaces     = data.map { it.surface }
@@ -92,14 +149,14 @@ class RealGraphicsSurfaceTests {
             surfaceRoots[1],
             surfaceRoots[3],
             surfaceRoots[2],
-        )) { root.children }
+        )) { root.children.toList() }
     }
 
     @Test fun `zOrder cannot take over popup`() {
-        val root = createRoot()
+        val root = createHtmlElement()
 
         val data = (0 .. 3).map {
-            createSurface(root.htmlElement)
+            createSurface(root)
         }
 
         val surfaces     = data.map { it.surface }
@@ -117,61 +174,77 @@ class RealGraphicsSurfaceTests {
             surfaceRoots[2],
             surfaceRoots[1],
             surfaceRoots[3],
-        )) { root.children }
+        )) { root.children.toList() }
     }
 
-    private data class Root(val htmlElement: HTMLElement, val children: List<Element>)
+    private fun HTMLCollection.toList(): List<Element> = mutableListOf<Element>().also { elements ->
+        repeat(length) {
+            elements += item(it)!!
+        }
+    }
+
     private data class Surface(val surface: RealGraphicsSurface, val root: HTMLElement)
 
-    private fun createRoot(): Root {
+    private fun createHtmlElement(): HTMLElement {
         val indexSlot   = slot<Int>()
         val elementSlot = slot<Element>()
         val siblingSlot = mutableListOf<Element?>() // FIXME: work-around for slot not supporting nullables https://github.com/mockk/mockk/issues/293
+        val childList   = mutableListOf<Element>()
 
-        val childrenInRoot = mutableListOf<Element>()
-
-        return Root(mockk<HTMLElement>().apply {
-            every { index(capture(elementSlot)) } answers {
-                childrenInRoot.indexOf(elementSlot.captured)
+        return mockk<HTMLElement>().apply {
+            every { children } returns mockk<HTMLCollection>().apply {
+                every { length } answers { childList.size }
+                every { item(capture(indexSlot)) } answers {
+                    childList[indexSlot.captured]
+                }
             }
 
-            every { removeChild(capture(elementSlot)) } answers {
-                childrenInRoot.remove(elementSlot.captured)
-                elementSlot.captured
+            every { index(capture(elementSlot)) } answers {
+                childList.indexOf(elementSlot.captured)
             }
 
             every { childAt(capture(indexSlot)) } answers {
-                childrenInRoot.getOrNull(indexSlot.captured)
+                childList.getOrNull(indexSlot.captured)
             }
 
             every { add(capture(elementSlot)) } answers {
-                elementSlot.captured.also { childrenInRoot.add(it) }
+                elementSlot.captured.also {
+                    childList += it
+                    every { it.parentNode } returns this@apply
+                }
+            }
+
+            every { remove(capture(elementSlot)) } answers {
+                elementSlot.captured.also {
+                    childList -= it
+                    every { it.parentNode } returns null
+                }
             }
 
             every { insertBefore(capture(elementSlot), captureNullable(siblingSlot)) } answers {
                 when (val sibling = siblingSlot.captured()) {
-                    null -> childrenInRoot.add(elementSlot.captured)
-                    else -> childrenInRoot.add(childrenInRoot.indexOf(sibling), elementSlot.captured)
+                    null -> childList.add(elementSlot.captured)
+                    else -> childList.add(childList.indexOf(sibling), elementSlot.captured)
                 }
                 elementSlot.captured
             }
-        }, childrenInRoot)
+        }
     }
 
-    private fun createSurface(root: HTMLElement): Surface {
-        val surfaceRoot = mockk<HTMLElement>().apply { every { parentNode } returns root }
+    private fun createSurface(root: HTMLElement, parent: RealGraphicsSurface? = null): Surface {
+        val surfaceRoot = createHtmlElement()
 
         val htmlFactory = mockk<HtmlFactory>().apply {
             every { this@apply.root } returns root
             every { create<HTMLElement>() } returns surfaceRoot andThen mockk<HTMLElement>()
         }
 
-        return Surface(createSurface(htmlFactory), surfaceRoot)
+        return Surface(createSurface(htmlFactory, parent), surfaceRoot)
     }
 
-    private fun createSurface(htmlFactory: HtmlFactory = mockk(), canvasFactory: CanvasFactory = mockk()): RealGraphicsSurface {
+    private fun createSurface(htmlFactory: HtmlFactory = mockk(), parent: RealGraphicsSurface? = null, canvasFactory: CanvasFactory = mockk()): RealGraphicsSurface {
         val view = mockk< View>()
 
-        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = null, view)
+        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = parent, view)
     }
 }
