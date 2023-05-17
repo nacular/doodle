@@ -81,12 +81,12 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(instance(), instance(), instanceOrNull(), it) }
         }
 
-        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false): Module = Module(name = "NativeScrollPanelBehavior") {
+        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false, managedScrolling: Boolean = true): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeScrollPanelFactory> { NativeScrollPanelFactoryImpl(smoothScrolling, instance(), instance(), instance(), instance()) }
 
-            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it) }
+            bindBehavior<ScrollPanel>(NTheme::class) { it.behavior = NativeScrollPanelBehavior(instance(), it, managedScrolling) }
         }
 
         public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {

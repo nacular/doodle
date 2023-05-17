@@ -10,7 +10,11 @@ import io.nacular.doodle.geometry.Point
 /**
  * Created by Nicholas Eddy on 2/5/18.
  */
-internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollPanelFactory, scrollPanel: ScrollPanel): ScrollPanelBehavior {
+internal class NativeScrollPanelBehavior(
+    nativeScrollPanelFactory: NativeScrollPanelFactory,
+    scrollPanel             : ScrollPanel,
+    managedScrolling        : Boolean,
+): ScrollPanelBehavior {
     private var hasRendered     = false
     private var pendingScrollTo = null as Point?
 
@@ -26,7 +30,7 @@ internal class NativeScrollPanelBehavior(nativeScrollPanelFactory: NativeScrollP
     override var scrollBarSizeChanged: ((ScrollBarType, Double) -> Unit)? = null
 
     private val nativePeer by lazy {
-        nativeScrollPanelFactory(scrollPanel, barChanged = { type, size -> scrollBarSizeChanged?.invoke(type, size) }) {
+        nativeScrollPanelFactory(scrollPanel, managedScrolling, barChanged = { type, size -> scrollBarSizeChanged?.invoke(type, size) }) {
             onScroll?.invoke(it)
         }
     }

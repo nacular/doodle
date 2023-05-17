@@ -36,16 +36,26 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 2/5/18.
  */
 internal interface NativeScrollPanelFactory {
-    operator fun invoke(scrollPanel: ScrollPanel, barChanged: (ScrollBarType, Double) -> Unit, onScroll: (Point) -> Unit): NativeScrollPanel
+    operator fun invoke(
+        scrollPanel     : ScrollPanel,
+        managedScrolling: Boolean = true,
+        barChanged      : (ScrollBarType, Double) -> Unit,
+        onScroll        : (Point) -> Unit
+    ): NativeScrollPanel
 }
 
 internal class NativeScrollPanelFactoryImpl internal constructor(
-        private val smoothScroll  : Boolean = false,
-        private val scheduler     : Scheduler,
-        private val htmlFactory   : HtmlFactory,
-        private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
-        private val handlerFactory: NativeEventHandlerFactory): NativeScrollPanelFactory {
-    override fun invoke(scrollPanel: ScrollPanel, barChanged: (ScrollBarType, Double) -> Unit, onScroll: (Point) -> Unit) = NativeScrollPanel(
+        private val smoothScroll    : Boolean = false,
+        private val scheduler       : Scheduler,
+        private val htmlFactory     : HtmlFactory,
+        private val graphicsDevice  : GraphicsDevice<RealGraphicsSurface>,
+        private val handlerFactory  : NativeEventHandlerFactory): NativeScrollPanelFactory {
+    override fun invoke(
+        scrollPanel     : ScrollPanel,
+        managedScrolling: Boolean,
+        barChanged      : (ScrollBarType, Double) -> Unit,
+        onScroll        : (Point) -> Unit
+    ) = NativeScrollPanel(
         scheduler,
         htmlFactory,
         handlerFactory,
@@ -53,6 +63,7 @@ internal class NativeScrollPanelFactoryImpl internal constructor(
         scrollBarWidth,
         scrollPanel,
         smoothScroll,
+        managedScrolling,
         barChanged,
         onScroll
     )
@@ -77,15 +88,16 @@ internal class NativeScrollPanelFactoryImpl internal constructor(
 }
 
 internal class NativeScrollPanel internal constructor(
-        private val scheduler     : Scheduler,
-                    htmlFactory   : HtmlFactory,
-                    handlerFactory: NativeEventHandlerFactory,
-                    graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
-        private val scrollBarSize : Double,
-        private val panel         : ScrollPanel,
-        private val smoothScroll  : Boolean,
-        private val barChanged    : (ScrollBarType, Double) -> Unit,
-        private val scrolled      : (Point) -> Unit): NativeEventListener {
+        private val scheduler       : Scheduler,
+                    htmlFactory     : HtmlFactory,
+                    handlerFactory  : NativeEventHandlerFactory,
+                    graphicsDevice  : GraphicsDevice<RealGraphicsSurface>,
+        private val scrollBarSize   : Double,
+        private val panel           : ScrollPanel,
+        private val smoothScroll    : Boolean,
+        private val managedScrolling: Boolean,
+        private val barChanged      : (ScrollBarType, Double) -> Unit,
+        private val scrolled        : (Point) -> Unit): NativeEventListener {
 
     private val eventHandler: NativeEventHandler
     private val rootElement = graphicsDevice[panel].rootElement.apply {
@@ -110,30 +122,35 @@ internal class NativeScrollPanel internal constructor(
             graphicsDevice[view].let {
                 it.rootElement.style.willChange = ""
 
-                it.removedFromNativeScroll()
-                rootElement.remove(spacerDiv)
-                rootElement.style.setOverflow()
+                if (managedScrolling) {
+                    it.removedFromNativeScroll()
+                    rootElement.remove(spacerDiv)
+                    rootElement.style.setOverflow()
 
-                view.boundsChanged  -= contentBoundsChanged
-                panel.boundsChanged -= boundsChanged
+                    view.boundsChanged  -= contentBoundsChanged
+                    panel.boundsChanged -= boundsChanged
+                }
             }
         }
 
         new?.let { view ->
             graphicsDevice[view].let {
-                it.addedToNativeScroll()
                 it.rootElement.style.willChange = "transform"
 
-                rootElement.style.setOverflow(Auto())
-                rootElement.add(spacerDiv)
+                if (managedScrolling) {
+                    it.addedToNativeScroll()
 
-                spacerDiv.add(it.rootElement.parent!!)
-                updateScroll()
+                    rootElement.style.setOverflow(Auto())
+                    rootElement.add(spacerDiv)
 
-                spacerDiv.style.setSize(view.size)
+                    spacerDiv.add(it.rootElement.parent!!)
+                    updateScroll()
 
-                view.boundsChanged  += contentBoundsChanged
-                panel.boundsChanged += boundsChanged
+                    spacerDiv.style.setSize(view.size)
+
+                    view.boundsChanged  += contentBoundsChanged
+                    panel.boundsChanged += boundsChanged
+                }
             }
         }
     }
@@ -229,11 +246,16 @@ internal class NativeScrollPanel internal constructor(
     }
 
     private fun updateScroll() {
-        val size = when (val content = panel.content) {
-            null -> panel.size
-            else -> Size(min(content.width, max(0.0, panel.width - barWidth)), min(content.height, max(0.0, panel.height - barHeight)))
-        }
+        when {
+            managedScrolling -> {
+                val size = when (val content = panel.content) {
+                    null -> panel.size
+                    else -> Size(min(content.width, max(0.0, panel.width - barWidth)), min(content.height, max(0.0, panel.height - barHeight)))
+                }
 
-        (spacerDiv.firstChild as? HTMLElement)?.style?.setSize(size)
+                (spacerDiv.firstChild as? HTMLElement)?.style?.setSize(size)
+            }
+            else             -> rootElement.style.setOverflow(Scroll())
+        }
     }
 }
