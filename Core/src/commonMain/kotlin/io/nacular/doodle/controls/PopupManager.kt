@@ -212,7 +212,6 @@ public class PopupManagerImpl(
         return abs(width - other.width) > epsilon || abs(height - other.height) > epsilon
     }
 
-
     private fun showInternal(view: View, block: (View) -> Popup) {
         hide(view)
 

@@ -11,6 +11,7 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityRole
+import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Found
@@ -1156,6 +1157,26 @@ class ViewTests {
         child.addedToDisplay(mockk(), mockk(), mockk())
 
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
+    }
+
+    @Test
+    fun `scroll to works`() {
+        val view  = view { size = Size(100) }
+
+        val panel = spyk<ScrollPanel>().apply {
+            size = Size(50)
+        }
+
+        panel.content = view
+
+        val rect = Rectangle(0, 55, 10, 10)
+
+        view.scrollTo(rect)
+
+        verify {
+            panel.scrollToVisible(rect)
+            panel.scrollTo       (any()) // FIXME: This causes mockk to hang, maybe b/c it's a recursive method
+        }
     }
 
     private class SubView: View() {
