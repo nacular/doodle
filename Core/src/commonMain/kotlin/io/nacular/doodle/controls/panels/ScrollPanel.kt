@@ -32,12 +32,25 @@ import kotlin.math.min
  * Configures how a [ScrollPanel] behaves.
  */
 public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
-    public enum class ScrollBarType { Horizontal, Vertical }
+    /**
+     * Indicates whether a ScrollPanel's scroll bar is vertical or horizontal
+     */
+    public enum class ScrollBarType {
+        Horizontal,
+        Vertical
+    }
 
-    public val ScrollPanel.children        : ObservableList<View> get() = _children
-    public var ScrollPanel.insets          : Insets               get() = _insets;           set(new) { _insets           = new }
-    public var ScrollPanel.layout          : Layout?              get() = _layout;           set(new) { _layout           = new }
-    public var ScrollPanel.isFocusCycleRoot: Boolean              get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
+    /** Children within a [ScrollPanel] */
+    public val ScrollPanel.children: ObservableList<View> get() = _children
+
+    /** A [ScrollPanel]'s insets */
+    public var ScrollPanel.insets: Insets get() = _insets;  set(new) { _insets = new }
+
+    /** A [ScrollPanel]'s layout */
+    public var ScrollPanel.layout: Layout? get() = _layout; set(new) { _layout = new }
+
+    /** Whether a [ScrollPanel] is a focus-cycle-root */
+    public var ScrollPanel.isFocusCycleRoot: Boolean get() = _isFocusCycleRoot; set(new) { _isFocusCycleRoot = new }
 
     /**
      * Listener registered by [ScrollPanel] to listen for scroll events from
@@ -79,10 +92,15 @@ public open class ScrollPanel(content: View? = null): View() {
         if (matchContentIdealSize) idealSize = new.idealSize
     }
 
-    public var verticalScrollBarWidth   : Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
+    /** Width of the panel's vertical scroll bar */
+    public var verticalScrollBarWidth: Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
+
+    /** Height of the panel's horizontal scroll bar */
     public var horizontalScrollBarHeight: Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
 
     private val scrollBarDimensionsChanged_ by lazy { ChangeObserversImpl(this) }
+
+    /** Notified when the panel's scroll bars change size or are hidden/shown */
     public val scrollBarDimensionsChanged: ChangeObservers<ScrollPanel> get() = scrollBarDimensionsChanged_
 
     /** The content being shown within the panel */

@@ -15,17 +15,42 @@ import io.nacular.doodle.layout.Insets
  * @see View
  */
 public interface Positionable {
-    public var x          : Double
-    public var y          : Double
-    public var size       : Size
-    public var width      : Double
-    public var height     : Double
-    public var bounds     : Rectangle
-    public val visible    : Boolean
-    public var position   : Point
-    public val idealSize  : Size?
+    /** Left edge of [bounds] */
+    public var x: Double
+
+    /** Top edge of [bounds] */
+    public var y: Double
+
+    /** Top-left corner of [bounds] */
+    public var position: Point
+
+    /** Horizontal extent of [bounds] */
+    public var width: Double
+
+    /** Vertical extent of [bounds] */
+    public var height: Double
+
+    /** Width-height of [bounds]*/
+    public var size: Size
+
+    /** The top, left, width, and height. */
+    public var bounds: Rectangle
+
+    /** Whether this item is visible. */
+    public val visible: Boolean
+
+    /** Size that would best display this item, or `null` if no preference */
+    public val idealSize: Size?
+
+    /** Minimum size preferred by this item */
     public val minimumSize: Size
 
+    /**
+     * Checks whether this item contains [point].
+     *
+     * @param point within the item's parent
+     * @return `true` IFF the point falls within the item
+     */
     public operator fun contains(point: Point): Boolean
 }
 
@@ -35,12 +60,25 @@ public interface Positionable {
  * @see Container
  */
 public interface PositionableContainer {
-    public val size       : Size
-    public val width      : Double
-    public val height     : Double
-    public val insets     : Insets
-    public val children   : List<Positionable>
-    public var idealSize  : Size?
+    /** Horizontal extent of this item */
+    public val width: Double
+
+    /** Vertical extent of this item */
+    public val height: Double
+
+    /** Width-height of this item */
+    public val size: Size
+
+    /** Hint that children should be inset from the edges */
+    public val insets: Insets
+
+    /** The list of children within this item */
+    public val children: List<Positionable>
+
+    /** Size that would best display this item, or `null` if no preference */
+    public var idealSize: Size?
+
+    /** Minimum size preferred by this item */
     public var minimumSize: Size
 }
 
@@ -72,7 +110,11 @@ public sealed class LookupResult {
     /** Indicates that nothing was found */
     public object Empty: LookupResult()
 
-    /** The item that was found */
+    /**
+     * The item that was found
+     *
+     * @property child that was found
+     */
     public class Found(public val child: Positionable): LookupResult()
 }
 

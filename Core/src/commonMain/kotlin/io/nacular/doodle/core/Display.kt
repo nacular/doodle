@@ -167,6 +167,10 @@ public inline val Display.width: Double get() = size.width
  */
 public inline val Display.height: Double get() = size.height
 
+/**
+ * Fills the Display with [color].paint
+ * @see Display.fill
+ */
 public fun Display.fill(color: Color): Unit = fill(color.paint)
 
 /** @suppress */

@@ -55,6 +55,11 @@ public interface PopupManager {
      */
     public fun show(view: View, relativeTo: View, constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): View
 
+    /**
+     * Trigger re-layout of [view] if it is currently [active].
+     *
+     * @param view to act on
+     */
     public fun relayout(view: View)
 
     /**

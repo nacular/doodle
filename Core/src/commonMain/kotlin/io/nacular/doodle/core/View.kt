@@ -247,6 +247,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         renderManager?.transformChanged(this, old, new)
     }
 
+    /** Notifies changes to [camera] */
     public val cameraChanged: PropertyObservers<View, Camera> by lazy { PropertyObserversImpl(this) }
 
     /**
@@ -279,7 +280,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             notifySizePreferencesChanged(SizePreferences(idealSize, old), SizePreferences(idealSize, new))
         }
 
-    /** Indicates the minimum and ideal sizes for a View. */
+    /**
+     * Indicates the minimum and ideal sizes for a View.
+     *
+     * @property idealSize preferred
+     * @property minimumSize preferred
+     */
     public class SizePreferences(public val idealSize: Size?, public val minimumSize: Size)
 
     /** Notifies changes to [idealSize] or [minimumSize] */
@@ -318,6 +324,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityManager?.syncVisibility(this)
     }
 
+    /** Notifies changes to [opacity] */
     public val opacityChanged: PropertyObservers<View, Float> by lazy { PropertyObserversImpl(this) }
 
     /**
@@ -1112,10 +1119,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
          * @param initial value of the property
          * @param filter passed to [View.styleChanged] when it is called
          */
-        public fun <T> styleProperty(initial: T, filter: (View) -> Boolean = { true }): ReadWriteProperty<View, T> = observable(initial) { _,_ ->
-            styleChanged(filter)
-        }
+        public fun <T> styleProperty(initial: T, filter: (View) -> Boolean = { true }): ReadWriteProperty<View, T> = observableStyleProperty(initial, filter)
 
+        /**
+         * Delegate for properties that should trigger [View.styleChanged] when changed.
+         *
+         * @param initial value of the property
+         * @param filter passed to [View.styleChanged] when it is called
+         * @param onChanged called whenever the property changes
+         */
         public fun <T> observableStyleProperty(initial: T, filter: (View) -> Boolean = { true }, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
             styleChanged(filter)
             onChanged(old, new)
