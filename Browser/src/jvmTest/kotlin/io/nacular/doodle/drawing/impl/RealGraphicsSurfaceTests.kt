@@ -82,6 +82,84 @@ class RealGraphicsSurfaceTests {
         expect(surfaceRoots) { parent.rootElement.children.toList().drop(1) }
     }
 
+    @Test fun `setting index with gaps correct (top level)`() {
+        val root = createHtmlElement()
+
+        val second = createSurface(root).apply { surface.index = 1 }
+        val fourth = createSurface(root).apply { surface.index = 3 }
+
+        expect(listOf(second, fourth).map { it.root }) { root.children.toList() }
+
+        val third = createSurface(root).apply { surface.index = 2 }
+        val first = createSurface(root).apply { surface.index = 0 }
+
+        expect(listOf(first, second, third, fourth).map { it.root }) { root.children.toList() }
+    }
+
+    @Test fun `setting index with gaps correct`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val second = createSurface(root, parent).apply { surface.index = 1 }
+        val fourth = createSurface(root, parent).apply { surface.index = 3 }
+
+        expect(listOf(second, fourth).map { it.root }) { parent.rootElement.children.toList().drop(1) }
+
+        val third = createSurface(root, parent).apply { surface.index = 2 }
+        val first = createSurface(root, parent).apply { surface.index = 0 }
+
+        expect(listOf(first, second, third, fourth).map { it.root }) { parent.rootElement.children.toList().drop(1) }
+    }
+
+    @Test fun `changing index in correct (top level)`() {
+        val root = createHtmlElement()
+
+        val data = (0 .. 3).map {
+            createSurface(root)
+        }
+
+        val surfaces     = data.map { it.surface }
+        val surfaceRoots = data.map { it.root    }
+
+        surfaces.forEachIndexed { index, surface -> surface.index = index }
+
+        expect(surfaceRoots) { root.children.toList() }
+
+        surfaces[1].index = surfaces.size - 1
+
+        expect(listOf(
+            surfaceRoots[0],
+            surfaceRoots[2],
+            surfaceRoots[3],
+            surfaceRoots[1],
+        )) { root.children.toList() }
+    }
+
+    @Test fun `changing index in correct`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val data = (0 .. 3).map {
+            createSurface(root, parent)
+        }
+
+        val surfaces     = data.map { it.surface }
+        val surfaceRoots = data.map { it.root    }
+
+        surfaces.forEachIndexed { index, surface -> surface.index = index }
+
+        expect(surfaceRoots) { parent.rootElement.children.toList().drop(1) }
+
+        surfaces[1].index = surfaces.size - 1
+
+        expect(listOf(
+            surfaceRoots[0],
+            surfaceRoots[2],
+            surfaceRoots[3],
+            surfaceRoots[1],
+        )) { parent.rootElement.children.toList().drop(1) }
+    }
+
     @Test fun `setting zOrder correct (top level)`() {
         val root = createHtmlElement()
 
@@ -222,11 +300,13 @@ class RealGraphicsSurfaceTests {
             }
 
             every { insertBefore(capture(elementSlot), captureNullable(siblingSlot)) } answers {
-                when (val sibling = siblingSlot.captured()) {
-                    null -> childList.add(elementSlot.captured)
-                    else -> childList.add(childList.indexOf(sibling), elementSlot.captured)
+                elementSlot.captured.also {
+                    when (val sibling = siblingSlot.captured()) {
+                        null -> childList.add(it)
+                        else -> childList.add(childList.indexOf(sibling), it)
+                    }
+                    every { it.parentNode } returns this@apply
                 }
-                elementSlot.captured
             }
         }
     }

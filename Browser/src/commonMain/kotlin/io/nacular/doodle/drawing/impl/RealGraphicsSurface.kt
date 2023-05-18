@@ -35,7 +35,9 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
+import kotlin.math.min
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
 private fun canvasElement(@Suppress("UNUSED_PARAMETER") view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
@@ -53,26 +55,24 @@ internal class RealGraphicsSurface private constructor(
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
             htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent, nonPopupTopLevelSurfaces)
 
-    override var visible = true
-        set(new) {
-            field = new
+    override var visible = true; set(new) {
+        field = new
 
-            rootElement.style.setDisplay(if (new) null else None())
-        }
+        rootElement.style.setDisplay(if (new) null else None())
+    }
 
-    override var opacity = 1f
-        set(new) {
-            field = new
+    override var opacity = 1f; set(new) {
+        field = new
 
-            rootElement.style.setOpacity(new)
-        }
+        rootElement.style.setOpacity(new)
+    }
 
-    private var internalIndex = 0
+    private var internalIndex      = 0
+    private var explicitlySetIndex = 0
 
     override var index get() = internalIndex; set(new) {
-        if (internalIndex == new) return
-
-        internalIndex = new
+        internalIndex      = new
+        explicitlySetIndex = new
 
         if (new < 0) {
             val currentIndex = nonPopupTopLevelSurfaces.indexOf(this)
@@ -82,7 +82,7 @@ internal class RealGraphicsSurface private constructor(
             parent?.remove(this)
         }
 
-        updateIndex()
+        updateIndex(shift = true)
     }
 
     private fun shiftIndex(delta: Int) {
@@ -96,23 +96,25 @@ internal class RealGraphicsSurface private constructor(
         return when {
             isPopup -> index
             else    -> {
-                val peers = parent?.children ?: nonPopupTopLevelSurfaces
-
+                var result            = index
+                val peers             = parent?.children ?: nonPopupTopLevelSurfaces
                 val numParentChildren = peers.size
 
-                var result = index
-
                 // Check if there is any item after this one w/ a lower zOrder
-                (result + 1 until numParentChildren).forEach {
-                    if (zOrder > peers[it].zOrder) {
-                        result += 1
+                (result + 1 until numParentChildren).forEach { index ->
+                    peers[index].let { peer ->
+                        if (zOrder > peer.zOrder || zOrder == peer.zOrder && explicitlySetIndex > peer.explicitlySetIndex) {
+                            result += 1
+                        }
                     }
                 }
 
                 // Check if there is any item before this one w/ a greater zOrder
-                (result - 1 downTo 0).forEach {
-                    if (zOrder < peers[it].zOrder) {
-                        result -= 1
+                (min(numParentChildren, result) - 1 downTo 0).forEach {
+                    peers[it].let { peer ->
+                        if (zOrder < peer.zOrder || zOrder == peer.zOrder && explicitlySetIndex < peer.explicitlySetIndex) {
+                            result -= 1
+                        }
                     }
                 }
 
@@ -122,11 +124,12 @@ internal class RealGraphicsSurface private constructor(
     }
 
     override var zOrder by observable(0) { _,_ ->
-        updateIndex()
+        updateIndex(shift = false)
     }
 
-    lateinit var canvas: Canvas
-        private set
+    private val children = mutableListOf<RealGraphicsSurface>()
+
+    lateinit var canvas: Canvas; private set
 
     private var canvasElement = canvasElement as HTMLElement?
 
@@ -134,75 +137,34 @@ internal class RealGraphicsSurface private constructor(
     override var transform: AffineTransform by observable(Identity           ) { _,_ -> refreshAugmentedTransform () }
     override var camera                     by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
 
-    private fun refreshProjectionTransform() {
-        projectionTransform = camera.projection(-Point(size.width/2, size.height/2))
-    }
-
     private var projectionTransform by observable(ProjectionTransform.Identity) { _,_ -> updateTransform(position) }
 
-    private fun setupChildrenClipPath() {
-        val needsClipping = !(clipCanvasToBounds && childrenClipPath == null)
+    override var clipCanvasToBounds = true; set(new) {
+        if (field != new) {
+            field = new
 
-        when {
-            needsClipping -> if (isContainer && childrenElement == rootElement) {
-                childrenElement = htmlFactory.create<HTMLElement>().apply {
-                    style.setWidthPercent (100.0)
-                    style.setHeightPercent(100.0)
+            setupChildrenClipPath()
 
-                    while(rootElement.numChildren > indexStart) {
-                        rootElement.childAt(indexStart)?.let { rootElement.remove(it); add(it) }
-                    }
-
-                    rootElement.appendChild(this)
-
-                    indexStart = 0
+            when (field) {
+                true -> {
+                    rootElement.style.setOverflow    (null)
+                    canvasElement?.style?.setOverflow(null)
+                }
+                else -> {
+                    rootElement.style.setOverflow    (Visible())
+                    canvasElement?.style?.setOverflow(Visible())
                 }
             }
-            else -> if(isContainer && childrenElement != rootElement) {
-                // Move all children into rootNode
-                while(childrenElement.numChildren > 0) {
-                    childrenElement.firstChild?.let { childrenElement.remove(it); rootElement.add(it) }
-                }
-
-                rootElement.remove(childrenElement)
-                childrenElement = rootElement
-                indexStart = 1
-            }
-        }
-
-        if (childrenElement != rootElement) {
-            childrenElement.style.setClipPath(childrenClipPath)
         }
     }
 
-    override var clipCanvasToBounds = true
-        set(new) {
-            if (field != new) {
-                field = new
+    override var childrenClipPath: Path? = null; set(new) {
+        if (field != new) {
+            field = new
 
-                setupChildrenClipPath()
-
-                when (field) {
-                    true -> {
-                        rootElement.style.setOverflow    (null)
-                        canvasElement?.style?.setOverflow(null)
-                    }
-                    else -> {
-                        rootElement.style.setOverflow    (Visible())
-                        canvasElement?.style?.setOverflow(Visible())
-                    }
-                }
-            }
+            setupChildrenClipPath()
         }
-
-    override var childrenClipPath: Path? = null
-        set(new) {
-            if (field != new) {
-                field = new
-
-                setupChildrenClipPath()
-            }
-        }
+    }
 
     private var augmentedTransform: AffineTransform by observable(Identity) { _,_ -> updateTransform(position) }
 
@@ -230,41 +192,40 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    private var isContainer = false
-        set(new) {
-            if (field == new) { return }
+    private var isContainer = false; set(new) {
+        if (field == new) { return }
 
-            field = new
+        field = new
 
-            val oldClipping = clipCanvasToBounds
+        val oldClipping = clipCanvasToBounds
 
-            clipCanvasToBounds = true
+        clipCanvasToBounds = true
 
-            canvasElement = if (field) {
-                htmlFactory.create<HTMLElement>().apply {
-                    style.setWidthPercent (100.0)
-                    style.setHeightPercent(100.0)
+        canvasElement = if (field) {
+            htmlFactory.create<HTMLElement>().apply {
+                style.setWidthPercent (100.0)
+                style.setHeightPercent(100.0)
 
-                    while(rootElement.numChildren > 0) {
-                        rootElement.firstChild?.let { rootElement.remove(it); add(it) }
-                    }
-
-                    rootElement.insert(this, 0)
-
-                    canvas = canvasFactory(this).also { it.size = size }
-
-                    indexStart = 1
+                while(rootElement.numChildren > 0) {
+                    rootElement.firstChild?.let { rootElement.remove(it); add(it) }
                 }
-            } else {
-                canvasElement?.let { it.parent?.remove(it) }
-                canvas          = canvasFactory(rootElement) // TODO: Import contents from old canvas
-                indexStart      = 0
-                childrenElement = rootElement
-                null
-            }
 
-            clipCanvasToBounds = oldClipping
+                rootElement.insert(this, 0)
+
+                canvas = canvasFactory(this).also { it.size = size }
+
+                indexStart = 1
+            }
+        } else {
+            canvasElement?.let { it.parent?.remove(it) }
+            canvas          = canvasFactory(rootElement) // TODO: Import contents from old canvas
+            indexStart      = 0
+            childrenElement = rootElement
+            null
         }
+
+        clipCanvasToBounds = oldClipping
+    }
 
     private  var indexStart      = 0
     internal val rootElement     = canvasElement
@@ -385,7 +346,43 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    private val children = mutableListOf<RealGraphicsSurface>()
+    private fun refreshProjectionTransform() {
+        projectionTransform = camera.projection(-Point(size.width/2, size.height/2))
+    }
+    private fun setupChildrenClipPath() {
+        val needsClipping = !(clipCanvasToBounds && childrenClipPath == null)
+
+        when {
+            needsClipping -> if (isContainer && childrenElement == rootElement) {
+                childrenElement = htmlFactory.create<HTMLElement>().apply {
+                    style.setWidthPercent (100.0)
+                    style.setHeightPercent(100.0)
+
+                    while(rootElement.numChildren > indexStart) {
+                        rootElement.childAt(indexStart)?.let { rootElement.remove(it); add(it) }
+                    }
+
+                    rootElement.appendChild(this)
+
+                    indexStart = 0
+                }
+            }
+            else -> if(isContainer && childrenElement != rootElement) {
+                // Move all children into rootNode
+                while(childrenElement.numChildren > 0) {
+                    childrenElement.firstChild?.let { childrenElement.remove(it); rootElement.add(it) }
+                }
+
+                rootElement.remove(childrenElement)
+                childrenElement = rootElement
+                indexStart = 1
+            }
+        }
+
+        if (childrenElement != rootElement) {
+            childrenElement.style.setClipPath(childrenClipPath)
+        }
+    }
 
     private fun add(child: RealGraphicsSurface) {
         children += child
@@ -424,30 +421,47 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    private fun updateIndex() {
+    private fun updateIndex(shift: Boolean) {
         when {
             parent == null && rootElement.parentNode == htmlFactory.root -> {
-                val realIndex = this.realIndex
+                val realIndex    = this.realIndex
+                val currentIndex = nonPopupTopLevelSurfaces.indexOf(this)
+                internalIndex    = realIndex
+
+                if (shift && currentIndex >= 0) {
+                    (currentIndex + 1 .. min(realIndex, nonPopupTopLevelSurfaces.size - 1)).forEach {
+                        nonPopupTopLevelSurfaces[it].shiftIndex(-1)
+                    }
+                }
+
+                if (realIndex >= 0) {
+                    nonPopupTopLevelSurfaces.remove(this)
+                    nonPopupTopLevelSurfaces.addOrAppend(realIndex, this)
+                }
 
                 htmlFactory.root.remove(rootElement           )
                 htmlFactory.root.insert(rootElement, realIndex)
-
-                if (realIndex >= 0) {
-                    val currentIndex = nonPopupTopLevelSurfaces.indexOf(this)
-                    val offset       = if (currentIndex > -1 && currentIndex < realIndex) -1 else 0
-
-                    nonPopupTopLevelSurfaces.remove(this)
-                    nonPopupTopLevelSurfaces.add(realIndex + offset, this)
-                }
             }
-            else -> parent?.setIndex(this, realIndex)
+            else -> parent?.setIndex(this, realIndex, shift)
         }
     }
 
-    private fun setIndex(child: RealGraphicsSurface, index: Int) {
+    private fun setIndex(child: RealGraphicsSurface, index: Int, shift: Boolean) {
         if (child.rootElement.parentNode == rootElement) {
+            if (shift) {
+                val currentIndex = children.indexOf(child)
+
+                (currentIndex + 1 .. min(children.size - 1, index)).forEach {
+                    children[it].shiftIndex(-1)
+                }
+
+                children.remove(child)
+                children.addOrAppend(index, child)
+            }
+
             childrenElement.remove(child.rootElement)
             childrenElement.insert(child.rootElement, indexStart + index)
+            internalIndex = index
         }
     }
 }
