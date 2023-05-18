@@ -5,6 +5,9 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.utils.zeroMillis
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
 
 /**
  * Specifies [Behavior] used to manage a [Menu]'s look/feel.
@@ -52,6 +55,16 @@ public abstract class MenuBehavior: Behavior<Menu> {
     }
 
     /**
+     * Configuration for [SubMenuInfo]
+     */
+    public interface SubMenuConfig: ItemConfig<SubMenuInfo> {
+        /**
+         * Time to delay showing a sub-menu popup
+         */
+        public val showDelay: Measure<Time> get() = zeroMillis
+    }
+
+    /**
      * Configuration for a separator within a [Menu].
      */
     public interface SeparatorConfig {
@@ -74,14 +87,14 @@ public abstract class MenuBehavior: Behavior<Menu> {
     public abstract fun actionConfig(): ItemConfig<ItemInfo>
 
     /**
-     * Provides a configuration for promt items in a [Menu].
+     * Provides a configuration for prompt items in a [Menu].
      */
     public abstract fun promptConfig(): ItemConfig<ItemInfo>
 
     /**
      * Provides a configuration for submenu items in a [Menu].
      */
-    public abstract fun subMenuConfig(): ItemConfig<SubMenuInfo>
+    public abstract fun subMenuConfig(): SubMenuConfig
 
     /**
      * Provides a configuration for separators in a [Menu].

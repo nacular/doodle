@@ -887,14 +887,14 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             bindBehavior<Menu>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMenuBehavior(instance(), instance(), config = Config(
-                        menuFillPaint           = this.backgroundColor.paint,
-                        itemTextPaint           = this.foregroundColor.paint,
-                        itemDisabledTextPaint   = this.disabledPaintMapper(this.foregroundColor.paint),
+                        menuFillPaint            = this.backgroundColor.paint,
+                        itemTextPaint            = this.foregroundColor.paint,
+                        itemDisabledTextPaint    = this.disabledPaintMapper(this.foregroundColor.paint),
                         subMenuIconPaint         = this.foregroundColor.paint,
-                        itemHighlightPaint      = this.selectionColor.paint,
-                        itemTextSelectedPaint   = White.paint,
+                        itemHighlightPaint       = this.selectionColor.paint,
+                        itemTextSelectedPaint    = White.paint,
                         subMenuIconSelectedPaint = White.paint,
-                        separatorPaint          = this.darkBackgroundColor.paint
+                        separatorPaint           = this.darkBackgroundColor.paint,
                     ))
                 }
             }

@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemConfig
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.SeparatorConfig
+import io.nacular.doodle.controls.popupmenu.MenuBehavior.SubMenuConfig
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.SubMenuInfo
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
@@ -27,7 +28,11 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.scheduler.Task
+import io.nacular.doodle.utils.autoCanceling
 import io.nacular.doodle.utils.observable
+import io.nacular.doodle.utils.zeroMillis
 
 /**
  * A component that contains a set of sub-menus that perform some action when triggered.
@@ -96,6 +101,10 @@ public class Menu private constructor(
             }
 
             size = Size(maxWidth + insets.right, height = y + insets.bottom)
+        }
+
+        enabledChanged += { _,_,enabled ->
+            if (!enabled) hideDrawer()
         }
 
         pointerChanged += on(
@@ -256,10 +265,13 @@ public class Menu private constructor(
                     parentMenu  : Menu,
                     text        : String,
         private val popups      : PopupManager,
+        private val scheduler   : Scheduler,
         private val menu        : Menu? = null
     ): InteractiveMenu(parentMenu, text) {
 
-        private var renderer: ItemConfig<SubMenuInfo>? by renderProperty(null) { _,_ -> updateBounds() }
+        private var renderer: SubMenuConfig? by renderProperty(null) { _,_ -> updateBounds() }
+
+        private var popupTask: Task? by autoCanceling()
 
         val menuVisible get() = menu != null && popups.active(menu)
 
@@ -275,29 +287,32 @@ public class Menu private constructor(
 
         fun hideSubMenu() {
             menu?.let {
+                popupTask?.cancel()
                 popups.hide(it)
             }
         }
 
         override fun trigger() {
             if (!menuVisible) {
-                menu?.let {
-                    popups.show(it, relativeTo = this) { menu, self ->
-                        (menu.top eq self.y - 5)..Strong
+                menu?.let { menu ->
+                    popupTask = scheduler.after(renderer?.showDelay ?: zeroMillis) {
+                        popups.show(menu, relativeTo = this) { menu, self ->
+                            (menu.top eq self.y - 5)..Strong
 
-                        when {
-                            parent.width.readOnly - self.right > menu.width.readOnly - 2 -> (menu.left  eq self.right - 2)..Strong
-                            else                                                         -> (menu.right eq self.x     + 2)..Strong
+                            when {
+                                parent.width.readOnly - self.right > menu.width.readOnly - 2 -> (menu.left eq self.right - 2)..Strong
+                                else                                                         -> (menu.right eq self.x + 2)..Strong
+                            }
+
+                            (menu.top greaterEq 5)..Strong
+                            (menu.left greaterEq 5)..Strong
+
+                            menu.width.preserve
+                            menu.height.preserve
+
+                            menu.right lessEq parent.right - 5
+                            menu.bottom lessEq parent.bottom - 5
                         }
-
-                        (menu.top  greaterEq 5)..Strong
-                        (menu.left greaterEq 5)..Strong
-
-                        menu.width.preserve
-                        menu.height.preserve
-
-                        menu.right  lessEq parent.right  - 5
-                        menu.bottom lessEq parent.bottom - 5
                     }
                 }
             }
@@ -402,6 +417,7 @@ public class Menu private constructor(
     private class MenuCreationContextImpl(
         private val focusManager: FocusManager?,
         private val popups      : PopupManager,
+        private val scheduler   : Scheduler,
         private val parent      : Menu
     ): MenuCreationContext {
 
@@ -411,7 +427,7 @@ public class Menu private constructor(
             val subMenu = Menu(focusManager, parent) {
                 parent.close()
             }
-            val subContext = MenuCreationContextImpl(focusManager, popups, subMenu)
+            val subContext = MenuCreationContextImpl(focusManager, popups, scheduler, subMenu)
 
             context(subContext)
 
@@ -419,6 +435,7 @@ public class Menu private constructor(
 
             return SubMenu(
                 popups      = popups,
+                scheduler   = scheduler,
                 parentMenu  = parent,
                 text        = title,
                 menu        = if (subMenu.menus.isNotEmpty()) subMenu else null
@@ -452,11 +469,12 @@ public class Menu private constructor(
         internal operator fun invoke(
             focusManager: FocusManager?,
             popups      : PopupManager,
+            scheduler   : Scheduler,
             close       : (Menu) -> Unit,
             block       : MenuCreationContext.() -> Unit): Menu {
 
             val menu    = Menu(focusManager, parentMenu = null, close)
-            val context = MenuCreationContextImpl(focusManager, popups, menu)
+            val context = MenuCreationContextImpl(focusManager, popups, scheduler, menu)
 
             block(context)
 

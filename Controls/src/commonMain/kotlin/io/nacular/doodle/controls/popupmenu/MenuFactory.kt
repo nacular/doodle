@@ -2,6 +2,7 @@ package io.nacular.doodle.controls.popupmenu
 
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.scheduler.Scheduler
 
 /**
  * Item added to a [Menu] via [MenuCreationContext].
@@ -62,10 +63,15 @@ public interface MenuFactory {
     public operator fun invoke(close: (Menu) -> Unit, block: MenuCreationContext.() -> Unit): Menu
 }
 
-public class MenuFactoryImpl(private val popups: PopupManager, private val focusManager: FocusManager?): MenuFactory {
+public class MenuFactoryImpl(
+    private val popups      : PopupManager,
+    private val scheduler   : Scheduler,
+    private val focusManager: FocusManager?,
+): MenuFactory {
     override fun invoke(close: (Menu) -> Unit, block: MenuCreationContext.() -> Unit): Menu = Menu(
         focusManager = focusManager,
         popups       = popups,
+        scheduler    = scheduler,
         close        = close,
         block        = block
     )

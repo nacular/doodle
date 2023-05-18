@@ -16,6 +16,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.width
+import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -23,6 +24,10 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.path
 import io.nacular.doodle.layout.Insets
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
 
 /**
  * Controls the look/feel of [Menu]s and their subcomponents.
@@ -54,12 +59,14 @@ public class BasicMenuBehavior(
         val subMenuIconSelectedPaint: Paint  = subMenuIconPaint,
         val separatorPaint          : Paint  = (Black opacity 0.07f).paint,
         val separatorHeight         : Double = 11.0,
+        val subMenuIconPath         : Path   = path("M1 1L5 5L1 9")!!,
+        val subMenuShowDelay        : Measure<Time> = 100 * milliseconds,
     )
 
     private open inner class BaseItemConfig<T: ItemInfo>: ItemConfig<T> {
         override fun preferredSize(item: T): Size {
             val textSize = textMetrics.size(item.text)
-            val height = textSize.height     + 2 * config.itemVerticalPadding
+            val height   = textSize.height + 2 * config.itemVerticalPadding
 
             return Size(textSize.width + 2 * config.itemHorizontalPadding, height)
         }
@@ -113,9 +120,9 @@ public class BasicMenuBehavior(
         private fun itemText(item: ItemInfo) = "${item.text}..."
     }
 
-    private val subMenuConfig = object: BaseItemConfig<SubMenuInfo>() {
-        private val icon     = path("M1 1L5 5L1 9")!!
-        private val iconSize = pathMetrics.size(icon)
+    private val subMenuConfig = object: BaseItemConfig<SubMenuInfo>(), SubMenuConfig {
+        private val iconSize         = pathMetrics.size(config.subMenuIconPath)
+        override val showDelay get() = config.subMenuShowDelay
 
         override fun render(item: SubMenuInfo, canvas: Canvas) {
             super.render(item, canvas)
@@ -125,7 +132,7 @@ public class BasicMenuBehavior(
 
                 canvas.translate(Point(canvas.size.width - iconSize.width - 16, (canvas.size.height - iconSize.height) / 2)) {
                     path(
-                        icon,
+                        config.subMenuIconPath,
                         stroke = Stroke(iconPaint, 1.5, lineJoint = LineJoint.Round, lineCap = LineCap.Round)
                     )
                 }
@@ -147,10 +154,10 @@ public class BasicMenuBehavior(
         }
     }
 
-    override fun actionConfig   (): ItemConfig<ItemInfo>    = actionConfig
-    override fun promptConfig   (): ItemConfig<ItemInfo>    = promptConfig
-    override fun subMenuConfig  (): ItemConfig<SubMenuInfo> = subMenuConfig
-    override fun separatorConfig(): SeparatorConfig         = separatorConfig
+    override fun actionConfig   (): ItemConfig<ItemInfo> = actionConfig
+    override fun promptConfig   (): ItemConfig<ItemInfo> = promptConfig
+    override fun subMenuConfig  (): SubMenuConfig        = subMenuConfig
+    override fun separatorConfig(): SeparatorConfig      = separatorConfig
 
     override fun render(view: Menu, canvas: Canvas) {
         canvas.shadow(MENU_TIGHT_SHADOW) {
