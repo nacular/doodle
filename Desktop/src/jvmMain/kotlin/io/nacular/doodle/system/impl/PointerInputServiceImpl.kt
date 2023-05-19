@@ -182,8 +182,8 @@ internal class PointerInputServiceImpl(
     private fun notifyPointerEvent(pointerEvent: SkikoPointerEvent, type: Type): Boolean {
         val event = pointerEvent.toDoodle(type)
 
-        preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
-        listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
+        preprocessors.takeWhile { !event.consumed }.forEach { it(event) }
+        listeners.takeWhile     { !event.consumed }.forEach { it(event) }
 
         return event.consumed
     }

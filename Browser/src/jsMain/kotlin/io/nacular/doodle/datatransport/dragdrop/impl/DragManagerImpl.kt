@@ -125,7 +125,7 @@ internal class DragManagerImpl(
 
     init {
         pointerInputService += object: Preprocessor {
-            override fun preprocess(event: SystemPointerEvent) {
+            override fun invoke(event: SystemPointerEvent) {
                 when (event.type) {
                     Up   -> pointerUp  (     )
                     Down -> pointerDown(event)

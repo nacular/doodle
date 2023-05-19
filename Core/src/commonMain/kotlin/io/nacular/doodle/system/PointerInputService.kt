@@ -12,10 +12,16 @@ public interface PointerInputService {
     public operator fun minusAssign(preprocessor: Preprocessor)
 
     public interface Listener {
-        public fun changed(event: SystemPointerEvent)
+        @Deprecated("Use invoke instead", replaceWith = ReplaceWith("invoke(event)"))
+        public fun changed(event: SystemPointerEvent) {}
+
+        public operator fun invoke(event: SystemPointerEvent): Unit = changed(event)
     }
 
     public interface Preprocessor {
+        @Deprecated("Use invoke instead", replaceWith = ReplaceWith("invoke(event)"))
         public fun preprocess(event: SystemPointerEvent) {}
+
+        public operator fun invoke(event: SystemPointerEvent): Unit = preprocess(event)
     }
 }

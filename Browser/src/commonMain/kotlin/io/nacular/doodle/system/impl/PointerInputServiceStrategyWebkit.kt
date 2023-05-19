@@ -34,7 +34,6 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import io.nacular.doodle.utils.ifFalse
 import io.nacular.doodle.utils.ifTrue
 
-
 internal class PointerLocationResolverImpl(private val document: Document, private val htmlFactory: HtmlFactory): PointerLocationResolver {
     var nested = false
 
@@ -55,19 +54,17 @@ internal open class PointerInputServiceStrategyWebkit(
         private val pointerLocationResolver: PointerLocationResolver
 ): PointerInputServiceStrategy {
 
-    override var toolTipText: String = ""
-        set(new) {
-            field              = new
-            inputDevice?.title = new
+    override var toolTipText: String = ""; set(new) {
+        field              = new
+        inputDevice?.title = new
+    }
+
+    override var cursor: Cursor? = null; set(new) {
+        if (new != field) {
+            inputDevice?.style?.setCursor(new)
+
+            field = new
         }
-
-    override var cursor: Cursor? = null
-        set(new) {
-            if (new != field) {
-                inputDevice?.style?.setCursor(new)
-
-                field = new
-            }
     }
 
     // tracks previous up event pointerId so it can continue on to double-click
@@ -101,7 +98,7 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun pointerEnter(event: PointerEvent) {
-        eventHandler?.handle(createPointerEvent(event, Enter, 0))
+        eventHandler?.invoke(createPointerEvent(event, Enter, 0))
     }
 
     private fun pointerCancel(event: PointerEvent) {
@@ -112,7 +109,7 @@ internal open class PointerInputServiceStrategyWebkit(
             preventContextMenu = null
         }
 
-        eventHandler?.handle(createPointerEvent(event, Exit, 0))
+        eventHandler?.invoke(createPointerEvent(event, Exit, 0))
     }
 
     private fun pointerUp(event: PointerEvent): Boolean {
@@ -120,11 +117,11 @@ internal open class PointerInputServiceStrategyWebkit(
         preventScroll   -= event.pointerId
         lastUpIsPointer  = (event as? PointerEvent)?.pointerType == "touch"
 
-        eventHandler?.handle(createPointerEvent(event, Up, 1))
+        eventHandler?.invoke(createPointerEvent(event, Up, 1))
 
         // Fake exit when dealing w/ touch event
         if (lastUpIsPointer) {
-            eventHandler?.handle(createPointerEvent(event, Exit, 1))
+            eventHandler?.invoke(createPointerEvent(event, Exit, 1))
         }
 
         return isNativeElement(event.target).ifFalse {
@@ -135,7 +132,7 @@ internal open class PointerInputServiceStrategyWebkit(
     private fun pointerDown(event: PointerEvent) = true.also {
         val systemPointerEvent = createPointerEvent(event, Down, 1)
 
-        if (eventHandler?.handle(systemPointerEvent) == true) {
+        if (eventHandler?.invoke(systemPointerEvent) == true) {
             preventScroll += event.pointerId
 
             if (Button2 in systemPointerEvent.buttons) {
@@ -146,11 +143,11 @@ internal open class PointerInputServiceStrategyWebkit(
 
     // TODO: Remove this and just rely on vanilla down/up events since you usually get a single up right before a double click up
     private fun doubleClick(event: MouseEvent): Boolean {
-        eventHandler?.handle(createPointerEvent(event, lastUpId, Up, 2))
+        eventHandler?.invoke(createPointerEvent(event, lastUpId, Up, 2))
 
         // Fake exit when dealing w/ touch event
         if (lastUpIsPointer) {
-            eventHandler?.handle(createPointerEvent(event, lastUpId, Exit, 2))
+            eventHandler?.invoke(createPointerEvent(event, lastUpId, Exit, 2))
         }
 
         return isNativeElement(event.target).ifFalse {
@@ -159,7 +156,7 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun pointerMove(event: PointerEvent) = true.also {
-        eventHandler?.handle(createPointerEvent(event, Move, 0))
+        eventHandler?.invoke(createPointerEvent(event, Move, 0))
     }
 
     private fun contextMenu(event: MouseEvent) = (preventContextMenu == null).ifFalse {

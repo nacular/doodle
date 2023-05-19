@@ -5,6 +5,7 @@ import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Listener
 import io.nacular.doodle.system.PointerInputService.Preprocessor
 import io.nacular.doodle.system.SystemPointerEvent
+import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 
 
 internal class PointerInputServiceImpl(private val strategy: PointerInputServiceStrategy): PointerInputService {
@@ -28,8 +29,8 @@ internal class PointerInputServiceImpl(private val strategy: PointerInputService
 
     private fun startUp() {
         if (!started) {
-            strategy.startUp(object: PointerInputServiceStrategy.EventHandler {
-                override fun handle(event: SystemPointerEvent) = notifyPointerEvent(event)
+            strategy.startUp(object: EventHandler {
+                override fun invoke(event: SystemPointerEvent) = notifyPointerEvent(event)
             })
 
             started = true
@@ -45,8 +46,8 @@ internal class PointerInputServiceImpl(private val strategy: PointerInputService
     }
 
     private fun notifyPointerEvent(event: SystemPointerEvent): Boolean {
-        preprocessors.takeWhile { !event.consumed }.forEach { it.preprocess(event) }
-        listeners.takeWhile     { !event.consumed }.forEach { it.changed   (event) }
+        preprocessors.takeWhile { !event.consumed }.forEach { it(event) }
+        listeners.takeWhile     { !event.consumed }.forEach { it(event) }
 
         return event.consumed
     }
