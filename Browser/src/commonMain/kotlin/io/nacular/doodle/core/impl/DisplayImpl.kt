@@ -207,6 +207,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                         rootElement.style.setBackgroundImage(fill.image)
                     }
                     else -> {
+                        rootElement.style.setBackgroundColor(null)
                         rootElement.addIfNotPresent(canvasElement, 0)
 
                         canvasElement.clear()
@@ -217,6 +218,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
                 }
             }
             else         -> {
+                rootElement.style.setBackgroundColor(null)
+
                 this.fill = fill
                 rootElement.addIfNotPresent(canvasElement, 0)
 

@@ -5,7 +5,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
+import io.nacular.doodle.CSSStyleDeclaration
 import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.clear
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -14,13 +16,24 @@ import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.fill
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.addIfNotPresent
+import io.nacular.doodle.dom.setBackgroundColor
+import io.nacular.doodle.dom.setBackgroundImage
+import io.nacular.doodle.dom.setBackgroundSize
+import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
+import io.nacular.doodle.drawing.Color.Companion.Red
+import io.nacular.doodle.drawing.ImagePaint
+import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -311,6 +324,140 @@ class DisplayImplTests {
 
         expect(1     ) { display.children.size    }
         expect(child2) { display.children.first() }
+    }
+
+    @Test fun `fill color works`() {
+        val style = mockk<CSSStyleDeclaration>()
+        val root  = mockk<HTMLElement>().apply {
+            every { this@apply.style } returns style
+        }
+
+        val display = display(rootElement = root)
+
+        display.fill(Red)
+
+        verify(exactly = 1) { style.setBackgroundColor(Red) }
+    }
+
+    @Test fun `fill invisible color works`() {
+        val style = mockk<CSSStyleDeclaration>()
+        val root  = mockk<HTMLElement>().apply {
+            every { this@apply.style } returns style
+        }
+
+        val display = display(rootElement = root)
+
+        display.fill(Red opacity 0f)
+
+        verify(exactly = 1) { style.setBackgroundColor(null) }
+    }
+
+    @Test fun `fill opaque image works`() {
+        val canvasParent = mockk<HTMLElement>()
+        val canvasElement = mockk<HTMLElement>().apply { every { parentNode } returns canvasParent }
+        val factory = mockk<HtmlFactory>().apply {
+            every { create<HTMLElement>() } returns canvasElement
+        }
+
+        val style = mockk<CSSStyleDeclaration>()
+        val root  = mockk<HTMLElement>().apply {
+            every { this@apply.style } returns style
+        }
+
+        val display = display(factory, rootElement = root)
+
+        val paint = mockk<ImagePaint>().apply { every { opacity } returns 1.0f }
+
+        display.fill(paint)
+
+        verify(exactly = 1) {
+            canvasParent.removeChild(canvasElement)
+            style.setBackgroundSize (paint.size )
+            style.setBackgroundImage(paint.image)
+        }
+    }
+
+    @Test fun `fill translucent image works`() {
+        val canvasParent  = mockk<HTMLElement>()
+        val canvasStyle   = mockk<CSSStyleDeclaration>()
+        val canvasElement = mockk<HTMLElement>().apply {
+            every { parentNode } returns canvasParent
+            every { this@apply.style } returns canvasStyle
+        }
+
+        val factory = mockk<HtmlFactory>().apply {
+            every { create<HTMLElement>() } returns canvasElement
+        }
+
+        val rootStyle = mockk<CSSStyleDeclaration>()
+        val root      = mockk<HTMLElement>().apply {
+            every { this@apply.style } returns rootStyle
+        }
+
+        val display = display(factory, rootElement = root)
+
+        val paint = mockk<ImagePaint>().apply { every { opacity } returns 0.5f }
+
+        val paintSize    = paint.size
+        val paintImage   = paint.image
+        val paintOpacity = paint.opacity
+
+        display.fill(paint)
+
+        verify {
+            root.addIfNotPresent(canvasElement, 0)
+        }
+
+        verify(exactly = 1) {
+            rootStyle.setBackgroundColor(null)
+
+            canvasElement.clear()
+            canvasStyle.setOpacity        (paintOpacity)
+            canvasStyle.setBackgroundSize (paintSize   )
+            canvasStyle.setBackgroundImage(paintImage  )
+        }
+    }
+
+    @Test fun `fill arbitrary paint works`() {
+        val canvasParent  = mockk<HTMLElement>()
+        val canvasStyle   = mockk<CSSStyleDeclaration>()
+        val canvasElement = mockk<HTMLElement>().apply {
+            every { parentNode } returns canvasParent
+            every { this@apply.style } returns canvasStyle
+        }
+
+        val htmlFactory = mockk<HtmlFactory>().apply {
+            every { create<HTMLElement>() } returns canvasElement
+        }
+
+        val canvas = mockk<Canvas>()
+
+        val canvasFactory = mockk<CanvasFactory>().apply {
+            every { this@apply(canvasElement) } returns canvas
+        }
+
+        val rootStyle = mockk<CSSStyleDeclaration>()
+        val root      = mockk<HTMLElement>().apply {
+            every { this@apply.style } returns rootStyle
+        }
+
+        val display = display(htmlFactory, canvasFactory, rootElement = root)
+
+        val paint = mockk<Paint>()
+
+        display.fill(paint)
+
+        verify {
+            root.addIfNotPresent(canvasElement, 0)
+        }
+
+        verify(exactly = 1) {
+            rootStyle.setBackgroundColor(null)
+
+            canvasElement.clear()
+            canvas.clear()
+            canvas.rect(Rectangle(size = display.size), paint)
+        }
     }
 
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }

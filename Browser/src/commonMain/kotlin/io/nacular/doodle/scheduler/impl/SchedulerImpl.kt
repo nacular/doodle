@@ -24,7 +24,7 @@ import kotlin.coroutines.suspendCoroutine
 private class SimpleTask(private val window: Window, timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private val start = timer.now
-    private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time  `in` milliseconds).toInt())
+    private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time `in` milliseconds).toInt())
 
     override var completed = false
 
@@ -65,7 +65,7 @@ private class RecurringTask(private val window: Window, timer: Timer, time : Mea
 internal class SchedulerImpl(private val window: Window, private val timer: Timer): Scheduler {
     private var shutdown = false
 
-    override suspend fun delay(time: Measure<Time>) = suspendCoroutine<Unit> { coroutine ->
+    override suspend fun delay(time: Measure<Time>) = suspendCoroutine { coroutine ->
         after(time) {
             try {
                 coroutine.context.ensureActive()
@@ -76,7 +76,7 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
         }
     }
 
-    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine<Unit> { coroutine ->
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine { coroutine ->
         try {
             check(predicate, coroutine.context) {
                 coroutine.resume(Unit)

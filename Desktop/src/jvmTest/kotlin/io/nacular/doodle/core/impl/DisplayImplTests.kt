@@ -2,6 +2,7 @@ package io.nacular.doodle.core.impl
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.application.CustomSkikoView
@@ -18,6 +19,7 @@ import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.GraphicsDevice
+import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -34,6 +36,7 @@ import io.nacular.doodle.utils.diff.Insert
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaLayer
@@ -274,15 +277,91 @@ class DisplayImplTests {
         expect(child2) { display.children.first() }
     }
 
+    @Test fun `fill works`() {
+        var onRender        = slot<(Canvas, Int, Int, Long) -> Unit>()
+        val customSkikoView = mockk<CustomSkikoView>().apply {
+            every { this@apply.onRender = captureLambda() } answers {
+                onRender = lambda()
+            }
+        }
+
+        val skiaLayer = mockk<SkiaLayer>().apply {
+            every { this@apply.skikoView } returns customSkikoView
+        }
+
+        val display   = display(skiaLayer = skiaLayer)
+        val paint     = mockk<Paint>()
+
+        verify(exactly = 0) {
+            skiaLayer.needRedraw()
+        }
+
+        display.fill(paint)
+
+        verify(exactly = 1) {
+            skiaLayer.needRedraw()
+        }
+
+        val canvas = mockk<Canvas>()
+
+        onRender.captured(canvas, 400, 500, 1000L)
+
+        verify(exactly = 1) {
+            canvas.drawRect(any(), any())
+        }
+    }
+
+    @Test fun `renders correctly`() {
+        var onRender        = slot<(Canvas, Int, Int, Long) -> Unit>()
+        val customSkikoView = mockk<CustomSkikoView>().apply {
+            every { this@apply.onRender = captureLambda() } answers {
+                onRender = lambda()
+            }
+        }
+
+        val skiaLayer = mockk<SkiaLayer>().apply {
+            every { this@apply.skikoView } returns customSkikoView
+        }
+
+        val child = mockk<View>()
+        val popup = mockk<View>()
+
+        val surfaces  = listOf(child, popup).associateWith { mockk<RealGraphicsSurface>() }
+        val device    = mockk<GraphicsDevice<RealGraphicsSurface>>().apply {
+            val view = slot<View>()
+
+            every { this@apply[capture(view)] } answers {
+                surfaces[view.captured]!!
+            }
+        }
+
+        val display = display(skiaLayer = skiaLayer, device = device)
+
+        display += child
+        display.showPopup(popup)
+
+        val canvas = mockk<Canvas>()
+
+        onRender.captured(canvas, 400, 500, 1000L)
+
+        verify(exactly = 1) {
+            surfaces.values.forEach {
+                it.onRender(canvas)
+            }
+        }
+    }
+
     private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
     private fun display(
         appScope      : CoroutineScope                      = CoroutineScope(SupervisorJob() + Dispatchers.Default),
         uiDispatcher  : CoroutineContext                    = EmptyCoroutineContext,
-        skiaLayer     : SkiaLayer                           = mockk<SkiaLayer>().apply { every { skikoView } returns mockk<CustomSkikoView>() },
+        skiaLayer     : SkiaLayer                           = skiaLayer(),
         defaultFont   : Font                                = mockk(),
         fontCollection: FontCollection                      = mockk(),
         device        : GraphicsDevice<RealGraphicsSurface> = mockk()) = DisplayImpl(appScope, uiDispatcher, skiaLayer, defaultFont, fontCollection, device)
+
+    private fun skiaLayer() = mockk<SkiaLayer>().apply { every { skikoView } returns mockk<CustomSkikoView>() }
 
     private fun <T> validateDefault(p: KProperty1<DisplayImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(display()) }

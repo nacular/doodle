@@ -15,10 +15,7 @@ public actual abstract class SVGGraphicsElement      : SVGElement        ()
 public actual abstract class SVGLinearGradientElement: SVGGradientElement()
 public actual abstract class SVGRadialGradientElement: SVGGradientElement()
 
-public actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-}
-
+public actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = DOMRect()
 
 public actual abstract class SVGGeometryElement: SVGGraphicsElement() {
     public actual fun getTotalLength(): Float = 0f

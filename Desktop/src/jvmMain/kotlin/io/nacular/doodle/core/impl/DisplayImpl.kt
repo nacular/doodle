@@ -168,8 +168,8 @@ internal class DisplayImpl(
         }
 
     private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, @Suppress("UNUSED_PARAMETER") nano: Long) {
-        skiaCanvas.save     ()
-        skiaCanvas.scale    (skiaLayer.contentScale, skiaLayer.contentScale)
+        skiaCanvas.save ()
+        skiaCanvas.scale(skiaLayer.contentScale, skiaLayer.contentScale)
 
         when {
             resolvedTransform.is3d -> skiaCanvas.concat(resolvedTransform.skia44())
