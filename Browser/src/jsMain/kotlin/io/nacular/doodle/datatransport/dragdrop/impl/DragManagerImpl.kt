@@ -436,10 +436,12 @@ internal class DragManagerImpl(
         // TODO: Make this a general purpose View -> Image generator
         visualCanvas = graphicsDevice.create()
 
-        visualCanvas.rootElement.style.setPosition(position)
+        visualCanvas.apply {
+            rootElement.style.setPosition(position)
+            rootElement.style.zIndex = "${-Int.MAX_VALUE}"
 
-        visualCanvas.zOrder = -Int.MAX_VALUE
-        visualCanvas.size   = visual.size
+            size = visual.size
+        }
 
         (visualCanvas.canvas as? NativeCanvas)?.let {
             visual.render(CanvasWrapper(it))
