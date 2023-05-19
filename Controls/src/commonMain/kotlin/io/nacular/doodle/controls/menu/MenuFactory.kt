@@ -5,7 +5,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
 
 /**
- * Created by Nicholas Eddy on 4/30/18.
+ * @see [io.nacular.doodle.controls.popupmenu.Menu]
  */
 @Deprecated(message = "Use popupmenu.Menu along with PopupManager instead")
 public interface PopupFactory {
@@ -17,6 +17,9 @@ public class PopupFactoryImpl(private val display: Display): PopupFactory {
     override fun invoke(): PopupMenu = PopupMenu(display)
 }
 
+/**
+ * @see [io.nacular.doodle.controls.popupmenu.MenuFactory]
+ */
 @Deprecated(message = "Use popupmenu.MenuFactory instead")
 public interface MenuFactory {
     public operator fun invoke(text: String = "", icon: Icon<Button>? = null): Menu
