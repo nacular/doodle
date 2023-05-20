@@ -72,7 +72,7 @@ public class BasicMenuBehavior(
         }
 
         override fun render(item: T, canvas: Canvas) {
-            val textSize = textMetrics.size(item.text)
+            val textSize = textMetrics.size(item.text, item.font)
 
             if (item.selected) {
                 canvas.rect(
