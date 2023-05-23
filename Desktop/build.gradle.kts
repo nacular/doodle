@@ -2,20 +2,10 @@ plugins {
     kotlin("multiplatform")
 }
 
-val skikoVersion: String by project
-
 kotlin {
     explicitApi()
 
     jvmTargets("11")
-
-    val sl4jVersion      : String by project
-    val mockkVersion     : String by project
-    val junitVersion     : String by project
-    val kodeinVersion    : String by project
-    val logbackVersion   : String by project
-    val dateTimeVersion  : String by project
-    val coroutinesVersion: String by project
 
     val osName = System.getProperty("os.name")
     val targetOs = when {
@@ -32,50 +22,50 @@ kotlin {
         else              -> error("Unsupported arch: $osArch")
     }
 
-    val target = "${targetOs}-${targetArch}"
+    val skikoLib = "org.jetbrains.skiko:skiko-awt-runtime-$targetOs-$targetArch:${libs.versions.skikoVersion.get()}"
 
     sourceSets {
         all {
             languageSettings.optIn("io.nacular.doodle.core.Internal")
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api(project(":core"    ))
                 api(project(":controls"))
                 api(project(":themes"  ))
 
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:$coroutinesVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:$dateTimeVersion")
+                implementation(libs.datetime        )
+                implementation(libs.coroutines.core )
+                implementation(libs.coroutines.swing)
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
+                implementation(kotlin("test-common"            ))
                 implementation(kotlin("test-annotations-common"))
             }
         }
 
-        jvm().compilations["main"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jvmMain by getting {
             dependencies {
-                api("org.kodein.di:kodein-di:$kodeinVersion")
-                compileOnly("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
+                api(libs.kodein.di)
+
+                compileOnly(skikoLib)
             }
         }
 
-        jvm().compilations["test"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-                implementation(kotlin("test-junit"))
-
-                implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:$skikoVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
-
-                implementation("org.slf4j:slf4j-api:$sl4jVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
-                implementation("io.mockk:mockk:$mockkVersion")
+                implementation(kotlin("test-junit")  )
+                implementation(libs.coroutines.test  )
+                implementation(libs.bundles.test.libs)
+                implementation(skikoLib              )
             }
         }
     }
@@ -113,10 +103,10 @@ fun PublicationContainer.jvmOs(name: String, skikoArtifactId: String) {
                 }
 
                 dependenciesNode.appendNode("dependency").apply {
-                    appendNode("groupId",    "org.jetbrains.skiko")
-                    appendNode("artifactId", skikoArtifactId      )
-                    appendNode("version",    skikoVersion         )
-                    appendNode("scope",      "compile"            )
+                    appendNode("groupId",    "org.jetbrains.skiko"           )
+                    appendNode("artifactId", skikoArtifactId                 )
+                    appendNode("version",    libs.versions.skikoVersion.get())
+                    appendNode("scope",      "compile"                       )
                 }
             }
         }

@@ -3,20 +3,18 @@ import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 
 buildscript {
-    val kotlinVersion: String by System.getProperties()
-
     repositories {
         mavenCentral()
     }
 
     dependencies {
-        classpath ("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath ("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlinVersion.get()}")
     }
 }
 
 plugins {
-    id ("org.jetbrains.dokka"        ) version "1.8.10"
-    id ("org.jetbrains.kotlinx.kover") version "0.6.1"
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
     signing
 }
 

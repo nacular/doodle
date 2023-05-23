@@ -8,28 +8,23 @@ kotlin {
     jsTargets ()
     jvmTargets()
 
-    val sl4jVersion      : String by project
-    val mockkVersion     : String by project
-    val junitVersion     : String by project
-    val kodeinVersion    : String by project
-    val logbackVersion   : String by project
-    val coroutinesVersion: String by project
-
     sourceSets {
         all {
             languageSettings.optIn("io.nacular.doodle.core.Internal")
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api(project(":core"    ))
                 api(project(":controls"))
                 api(project(":themes"  ))
 
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+                implementation(libs.coroutines.core)
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
@@ -37,24 +32,23 @@ kotlin {
             }
         }
 
-        jvm().compilations["test"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
                 implementation(kotlin("test-junit"))
-
-                implementation("org.slf4j:slf4j-api:$sl4jVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
-                implementation("io.mockk:mockk:$mockkVersion")
+                implementation(libs.bundles.test.libs)
             }
         }
 
-        js().compilations["main"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jsMain by getting {
             dependencies {
-                api("org.kodein.di:kodein-di:$kodeinVersion")
+                api(libs.kodein.di)
             }
         }
 
-        js().compilations["test"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
             }

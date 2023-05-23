@@ -8,37 +8,32 @@ kotlin {
     jsTargets ()
     jvmTargets()
 
-    val sl4jVersion   : String by project
-    val mockkVersion  : String by project
-    val junitVersion  : String by project
-    val logbackVersion: String by project
-
     sourceSets {
+        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 api(project(":core"))
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
+                implementation(kotlin("test-common"            ))
                 implementation(kotlin("test-annotations-common"))
             }
         }
 
-        jvm().compilations["test"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-                implementation(kotlin("test-junit"))
-
-                implementation("org.slf4j:slf4j-api:$sl4jVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
-                implementation("io.mockk:mockk:$mockkVersion")
+                implementation(kotlin("test-junit")  )
+                implementation(libs.bundles.test.libs)
             }
         }
 
-        js().compilations["test"].defaultSourceSet {
+        @Suppress("UNUSED_VARIABLE")
+        val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
             }

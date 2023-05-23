@@ -1,0 +1,32 @@
+[versions]
+slf4jVersion      = { strictly = "2.0.4"  }
+mockkVersion      = { strictly = "1.13.5" }
+skikoVersion      = { strictly = "0.7.44" }
+kodeinVersion     = { strictly = "7.16.0" }
+kotlinVersion     = { strictly = "1.7.21" }
+jupiterVersion    = { strictly = "5.9.1"  }
+logbackVersion    = { strictly = "1.4.7"  }
+measuredVersion   = { strictly = "0.3.2"  }
+dateTimeVersion   = { strictly = "0.4.0"  }
+coroutinesVersion = { strictly = "1.6.4"  }
+dokkaVersion      = { strictly = "1.8.10" }
+koverVersion      = { strictly = "0.6.1"  }
+
+[libraries]
+mockk             = { module = "io.mockk:mockk",                                 version.ref = "mockkVersion"      }
+measured          = { module = "io.nacular.measured:measured",                   version.ref = "measuredVersion"   }
+datetime          = { module = "org.jetbrains.kotlinx:kotlinx-datetime",         version.ref = "dateTimeVersion"   }
+slf4j-api         = { module = "org.slf4j:slf4j-api",                            version.ref = "slf4jVersion"      }
+kodein-di         = { module = "org.kodein.di:kodein-di",                        version.ref = "kodeinVersion"     }
+junit-jupiter     = { module = "org.junit.jupiter:junit-jupiter",                version.ref = "jupiterVersion"    }
+coroutines-core   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",  version.ref = "coroutinesVersion" }
+coroutines-test   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test",  version.ref = "coroutinesVersion" }
+logback-classic   = { module = "ch.qos.logback:logback-classic",                 version.ref = "logbackVersion"    }
+coroutines-swing  = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutinesVersion" }
+
+[bundles]
+test-libs         = ["mockk", "slf4j-api", "junit-jupiter", "logback-classic"]
+
+[plugins]
+dokka             = { id = "org.jetbrains.dokka",         version.ref = "dokkaVersion"  }
+kover             = { id = "org.jetbrains.kotlinx.kover", version.ref = 'koverVersion'  }
