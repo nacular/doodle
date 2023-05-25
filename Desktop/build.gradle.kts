@@ -73,12 +73,36 @@ kotlin {
 
 afterEvaluate {
     publishing {
+        val pubs = mapOf(
+            "linux-x64"   to "skiko-awt-runtime-linux-x64",
+            "linux-arm64" to "skiko-awt-runtime-linux-arm64",
+            "macos-x64"   to "skiko-awt-runtime-macos-x64",
+            "macos-arm64" to "skiko-awt-runtime-macos-arm64",
+            "windows-x64" to "skiko-awt-runtime-windows-x64",
+        )
+
         publications {
-            jvmOs("linux-x64",   "skiko-awt-runtime-linux-x64"  )
-            jvmOs("linux-arm64", "skiko-awt-runtime-linux-arm64")
-            jvmOs("macos-x64",   "skiko-awt-runtime-macos-x64"  )
-            jvmOs("macos-arm64", "skiko-awt-runtime-macos-arm64")
-            jvmOs("windows-x64", "skiko-awt-runtime-windows-x64")
+            pubs.forEach { (name, artifact) ->
+                jvmOs(name, artifact)
+            }
+        }
+
+        // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
+        val publishTasks = pubs.keys.map { "publish${"Jvm$it"}PublicationToMavenRepository" }
+        val signingTasks = listOf("signKotlinMultiplatformPublication", "signJvmPublication", ) + pubs.keys.map { "sign${"Jvm$it"}Publication" }
+
+        tasks.getByName("publishKotlinMultiplatformPublicationToMavenRepository") {
+            dependsOn(signingTasks)
+        }
+
+        tasks.getByName("publishJvmPublicationToMavenRepository") {
+            dependsOn(signingTasks)
+        }
+
+        publishTasks.forEach {
+            tasks.getByName(it) {
+                dependsOn(signingTasks)
+            }
         }
     }
 }

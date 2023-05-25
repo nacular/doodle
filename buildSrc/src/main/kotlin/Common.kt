@@ -102,5 +102,23 @@ fun Project.setupPublication(dokkaJar: Jar) {
                 }
             }
         }
+
+        // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
+        afterEvaluate {
+            val signJs  = getTasksByName("signJsPublication",  false).map { it.name }
+            val signJvm = getTasksByName("signJvmPublication", false).map { it.name }
+
+            val publishTasks = listOf(
+                "KotlinMultiplatform",
+                "Js",
+                "Jvm",
+            ).map { "publish${it}PublicationToMavenRepository" }
+
+            publishTasks.forEach {
+                runCatching { tasks.getByName(it) }.getOrNull()?.let {
+                    it.dependsOn(listOf("signKotlinMultiplatformPublication") + signJs + signJvm)
+                }
+            }
+        }
     }
 }
