@@ -1,6 +1,8 @@
 package io.nacular.doodle.controls.popupmenu
 
 import io.nacular.doodle.controls.PopupManager
+import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
+import io.nacular.doodle.core.Icon
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.scheduler.Scheduler
 
@@ -32,18 +34,20 @@ public interface MenuCreationContext {
      * Adds an action item to the menu that will invoke [fired] when it is triggered.
      *
      * @param title of the item
+     * @param icon of the item
      * @param fired invoked when this item is triggered
      */
-    public fun action(title: String, fired: (MenuItem) -> Unit): MenuItem
+    public fun action(title: String, icon: Icon<ItemInfo>? = null, fired: (MenuItem) -> Unit): MenuItem
 
     /**
      * Adds an item to the menu that will invoke [fired] when it is triggered. These items
      * should be used when the user will be prompted before taking any action.
      *
      * @param title of the item
+     * @param icon of the item
      * @param fired invoked when this item is triggered
      */
-    public fun prompt(title: String, fired: (MenuItem) -> Unit): MenuItem
+    public fun prompt(title: String, icon: Icon<ItemInfo>? = null, fired: (MenuItem) -> Unit): MenuItem
 
     /**
      * Adds a separator to the menu.

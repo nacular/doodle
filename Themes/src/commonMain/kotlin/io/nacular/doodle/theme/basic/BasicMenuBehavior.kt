@@ -13,6 +13,7 @@ import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Stroke.LineCap
 import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.height
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.width
@@ -45,34 +46,43 @@ public class BasicMenuBehavior(
      * Configuration for [BasicMenuBehavior].
      */
     public data class Config(
-        val menuInset               : Double =  5.0,
-        val menuRadius              : Double =  6.0,
-        val menuFillPaint           : Paint  = White.paint,
-        val itemTextPaint           : Paint  = Black.paint,
-        val itemSelectedRadius      : Double =  4.0,
-        val itemHighlightPaint      : Paint  = Color(0xD2DEFAu).paint,
-        val itemVerticalPadding     : Double =  4.0,
-        val itemHorizontalPadding   : Double = 14.0,
-        val itemTextSelectedPaint   : Paint  = itemTextPaint,
-        val itemDisabledTextPaint   : Paint  = Color(0xA9ADBCu).paint,
-        val subMenuIconPaint        : Paint  = Color(0x818593u).paint,
-        val subMenuIconSelectedPaint: Paint  = subMenuIconPaint,
-        val separatorPaint          : Paint  = (Black opacity 0.07f).paint,
-        val separatorHeight         : Double = 11.0,
-        val subMenuIconPath         : Path   = path("M1 1L5 5L1 9")!!,
-        val subMenuShowDelay        : Measure<Time> = 100 * milliseconds,
+        val menuInset               : Double        =  5.0,
+        val menuRadius              : Double        =  6.0,
+        val menuFillPaint           : Paint         = White.paint,
+        val itemTextPaint           : Paint         = Black.paint,
+        val itemIconWidth           : Double        = 20.0,
+        val itemSelectedRadius      : Double        =  4.0,
+        val itemIconTextSpacing     : Double        =  6.0,
+        val itemHighlightPaint      : Paint         = Color(0xD2DEFAu).paint,
+        val itemVerticalPadding     : Double        =  4.0,
+        val itemHorizontalPadding   : Double        = 14.0,
+        val itemTextSelectedPaint   : Paint         = itemTextPaint,
+        val itemDisabledTextPaint   : Paint         = Color(0xA9ADBCu).paint,
+        val subMenuIconPaint        : Paint         = Color(0x818593u).paint,
+        val subMenuIconSelectedPaint: Paint         = subMenuIconPaint,
+        val subMenuIconDisabledPaint: Paint         = itemDisabledTextPaint,
+        val subMenuIconTextSpacing  : Double        = itemHorizontalPadding,
+        val separatorPaint          : Paint         = (Black opacity 0.07f).paint,
+        val separatorHeight         : Double        = 11.0,
+        val subMenuIconPath         : Path          = path("M1 1L5 5L1 9")!!,
+        val subMenuShowDelay        : Measure<Time> = 100 * milliseconds
     )
 
-    private open inner class BaseItemConfig<T: ItemInfo>: ItemConfig<T> {
+    private open inner class BaseItemConfig<T: ItemInfo>(adjustForIcon: Boolean): ItemConfig<T> {
+        private val iconAdjustment = if (adjustForIcon) config.itemIconWidth + config.itemIconTextSpacing else 0.0
+
+        private fun textSize(item: T) = textMetrics.size(item.text, item.font)
+
         override fun preferredSize(item: T): Size {
-            val textSize = textMetrics.size(item.text)
+            val textSize = textSize(item)
             val height   = textSize.height + 2 * config.itemVerticalPadding
 
-            return Size(textSize.width + 2 * config.itemHorizontalPadding, height)
+            return Size(textSize.width + 2 * config.itemHorizontalPadding + iconAdjustment, height)
         }
 
         override fun render(item: T, canvas: Canvas) {
-            val textSize = textMetrics.size(item.text, item.font)
+            val textSize   = textSize(item)
+            val textOffset = config.itemHorizontalPadding + iconAdjustment
 
             if (item.selected) {
                 canvas.rect(
@@ -83,8 +93,8 @@ public class BasicMenuBehavior(
             }
 
             val (transform, at) = when {
-                item.mirrored -> Identity.flipHorizontally(canvas.width / 2) to Point(canvas.width - textSize.width - config.itemHorizontalPadding, (canvas.size.height - textSize.height) / 2)
-                else          -> Identity to Point(config.itemHorizontalPadding, (canvas.size.height - textSize.height) / 2)
+                item.mirrored -> Identity.flipHorizontally(canvas.width / 2) to Point(canvas.width - textSize.width - textOffset, (canvas.size.height - textSize.height) / 2)
+                else          -> Identity to Point(textOffset, (canvas.size.height - textSize.height) / 2)
             }
 
             canvas.transform(transform) {
@@ -102,17 +112,42 @@ public class BasicMenuBehavior(
         }
     }
 
-    private val actionConfig = object: BaseItemConfig<ItemInfo>() {}
+    private open inner class ActionItemConfig(adjustForIcon: Boolean): BaseItemConfig<ActionItemInfo>(adjustForIcon) {
+        override fun render(item: ActionItemInfo, canvas: Canvas) {
+            super.render(item, canvas)
 
-    private val promptConfig = object: BaseItemConfig<ItemInfo>() {
-        override fun preferredSize(item: ItemInfo): Size {
-            return super.preferredSize(object: ItemInfo by item {
+            item.icon?.let {
+                val iconSize  = it.size(item)
+                var xScale    = config.itemIconWidth / iconSize.width
+                var yScale    = iconSize.height      / iconSize.width * xScale
+                val maxHeight = canvas.height - 2 * config.itemVerticalPadding
+
+                if (iconSize.height * yScale > maxHeight) {
+                    yScale = maxHeight      / iconSize.height
+                    xScale = iconSize.width / iconSize.height * yScale
+                }
+
+                val at = Point(
+                    config.itemHorizontalPadding + (config.itemIconWidth - iconSize.width  * xScale) / 2,
+                    config.itemVerticalPadding   + (maxHeight            - iconSize.height * yScale) / 2
+                )
+
+                canvas.scale(around = at, xScale, yScale){
+                    it.render(item, this, at)
+                }
+            }
+        }
+    }
+
+    private inner class PromptMenuItemConfig(adjustForIcon: Boolean): ActionItemConfig(adjustForIcon) {
+        override fun preferredSize(item: ActionItemInfo): Size {
+            return super.preferredSize(object: ActionItemInfo by item {
                 override val text: String get() = itemText(item)
             })
         }
 
-        override fun render(item: ItemInfo, canvas: Canvas) {
-            super.render(object: ItemInfo by item {
+        override fun render(item: ActionItemInfo, canvas: Canvas) {
+            super.render(object: ActionItemInfo by item {
                 override val text: String get() = itemText(item)
             }, canvas)
         }
@@ -120,17 +155,25 @@ public class BasicMenuBehavior(
         private fun itemText(item: ItemInfo) = "${item.text}..."
     }
 
-    private val subMenuConfig = object: BaseItemConfig<SubMenuInfo>(), SubMenuConfig {
-        private val iconSize         = pathMetrics.size(config.subMenuIconPath)
+    private inner class SubMenuItemConfig(adjustForIcon: Boolean): BaseItemConfig<SubMenuInfo>(adjustForIcon), SubMenuConfig {
+        private  val iconSize        = pathMetrics.size(config.subMenuIconPath)
         override val showDelay get() = config.subMenuShowDelay
+
+        override fun preferredSize(item: SubMenuInfo): Size = super.preferredSize(item).run {
+            Size(width + iconSize.width + config.subMenuIconTextSpacing, height).also { println("$this vs $it") }
+        }
 
         override fun render(item: SubMenuInfo, canvas: Canvas) {
             super.render(item, canvas)
 
             if (item.hasChildren) {
-                val iconPaint = if (item.selected) config.subMenuIconSelectedPaint else config.subMenuIconPaint
+                val iconPaint = when {
+                    item.selected -> config.subMenuIconSelectedPaint
+                    !item.enabled -> config.subMenuIconDisabledPaint
+                    else          -> config.subMenuIconPaint
+                }
 
-                canvas.translate(Point(canvas.size.width - iconSize.width - 16, (canvas.size.height - iconSize.height) / 2)) {
+                canvas.translate(Point(canvas.size.width - iconSize.width - config.itemHorizontalPadding - 2.0, (canvas.size.height - iconSize.height) / 2)) {
                     path(
                         config.subMenuIconPath,
                         stroke = Stroke(iconPaint, 1.5, lineJoint = LineJoint.Round, lineCap = LineCap.Round)
@@ -140,7 +183,13 @@ public class BasicMenuBehavior(
         }
     }
 
-    private val separatorConfig = object: SeparatorConfig {
+    private val noIconActionConfig  by lazy { ActionItemConfig    (adjustForIcon = false) }
+    private val iconActionConfig    by lazy { ActionItemConfig    (adjustForIcon = true ) }
+    private val noIconPromptConfig  by lazy { PromptMenuItemConfig(adjustForIcon = false) }
+    private val iconPromptConfig    by lazy { PromptMenuItemConfig(adjustForIcon = true ) }
+    private val noIconSubMenuConfig by lazy { SubMenuItemConfig   (adjustForIcon = false) }
+    private val iconSubMenuConfig   by lazy { SubMenuItemConfig   (adjustForIcon = true ) }
+    private val separatorConfig     =  object: SeparatorConfig {
         override fun preferredSize(): Size = Size(0.0, config.separatorHeight)
 
         override fun render(canvas: Canvas) {
@@ -154,10 +203,10 @@ public class BasicMenuBehavior(
         }
     }
 
-    override fun actionConfig   (): ItemConfig<ItemInfo> = actionConfig
-    override fun promptConfig   (): ItemConfig<ItemInfo> = promptConfig
-    override fun subMenuConfig  (): SubMenuConfig        = subMenuConfig
-    override fun separatorConfig(): SeparatorConfig      = separatorConfig
+    override fun actionConfig   (menu: Menu): ItemConfig<ActionItemInfo> = if (menu.anyItemWithIcon) iconActionConfig  else noIconActionConfig
+    override fun promptConfig   (menu: Menu): ItemConfig<ActionItemInfo> = if (menu.anyItemWithIcon) iconPromptConfig  else noIconPromptConfig
+    override fun subMenuConfig  (menu: Menu): SubMenuConfig              = if (menu.anyItemWithIcon) iconSubMenuConfig else noIconSubMenuConfig
+    override fun separatorConfig(menu: Menu): SeparatorConfig            = separatorConfig
 
     override fun render(view: Menu, canvas: Canvas) {
         canvas.shadow(MENU_TIGHT_SHADOW) {

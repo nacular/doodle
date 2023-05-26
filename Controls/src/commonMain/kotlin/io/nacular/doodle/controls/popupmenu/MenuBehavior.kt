@@ -1,6 +1,8 @@
 package io.nacular.doodle.controls.popupmenu
 
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
@@ -17,10 +19,23 @@ public abstract class MenuBehavior: Behavior<Menu> {
      * Context for an item in a [Menu].
      */
     public interface ItemInfo {
-        public val text    : String
-        public val font    : Font?
-        public val enabled : Boolean
+        /** The item's text */
+        public val text: String
+
+        /** The item's font */
+        public val font: Font?
+
+        /** Whether the item is enabled */
+        public val enabled: Boolean
+
+        /** Whether the item is selected */
         public val selected: Boolean
+
+        /**
+         * Whether the item is mirrored
+         *
+         * @see View.mirrored
+         */
         public val mirrored: Boolean
     }
 
@@ -32,6 +47,16 @@ public abstract class MenuBehavior: Behavior<Menu> {
          * `true` if the submenu has items to show
          */
         public val hasChildren: Boolean
+    }
+
+    /**
+     * Configuration for an [ActionItemInfo].
+     */
+    public interface ActionItemInfo: ItemInfo {
+        /**
+         * The item's icon if any
+         */
+        public val icon: Icon<ActionItemInfo>?
     }
 
     /**
@@ -84,25 +109,30 @@ public abstract class MenuBehavior: Behavior<Menu> {
     /**
      * Provides a configuration for action items in a [Menu].
      */
-    public abstract fun actionConfig(): ItemConfig<ItemInfo>
+    public abstract fun actionConfig(menu: Menu): ItemConfig<ActionItemInfo>
 
     /**
      * Provides a configuration for prompt items in a [Menu].
      */
-    public abstract fun promptConfig(): ItemConfig<ItemInfo>
+    public abstract fun promptConfig(menu: Menu): ItemConfig<ActionItemInfo>
 
     /**
      * Provides a configuration for submenu items in a [Menu].
      */
-    public abstract fun subMenuConfig(): SubMenuConfig
+    public abstract fun subMenuConfig(menu: Menu): SubMenuConfig
 
     /**
      * Provides a configuration for separators in a [Menu].
      */
-    public abstract fun separatorConfig(): SeparatorConfig
+    public abstract fun separatorConfig(menu: Menu): SeparatorConfig
 
     /**
      * Allows implementors to specify a [Menu]'s insets.
      */
     public var Menu.insets: Insets get() = this.insets_; set(value) { this.insets_ = value }
+
+    /**
+     * Allows implementors to check whether any of the [Menu]'s items have an icon.
+     */
+    public val Menu.anyItemWithIcon: Boolean get() = this.anyItemWithIcon_
 }

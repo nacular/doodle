@@ -1,12 +1,14 @@
 package io.nacular.doodle.controls.popupmenu
 
 import io.nacular.doodle.controls.PopupManager
+import io.nacular.doodle.controls.popupmenu.MenuBehavior.ActionItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemConfig
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.SeparatorConfig
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.SubMenuConfig
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.SubMenuInfo
 import io.nacular.doodle.core.ContentDirection.LeftRight
+import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
@@ -20,7 +22,7 @@ import io.nacular.doodle.event.KeyCode.Companion.Enter
 import io.nacular.doodle.event.KeyCode.Companion.Escape
 import io.nacular.doodle.event.KeyCode.Companion.Space
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.event.PointerListener.Companion.entered
 import io.nacular.doodle.event.PointerListener.Companion.on
 import io.nacular.doodle.focus.FocusManager
@@ -74,10 +76,16 @@ public class Menu private constructor(
 
         new.forEach { menu ->
             menu.setRenderer(behavior)
+
+            if (menu is Action && menu.icon != null) {
+                anyItemWithIcon_ = true
+            }
         }
     }
 
     internal var insets_: Insets get() = insets; set(new) { insets = new }
+
+    internal var anyItemWithIcon_: Boolean = false; private set
 
     /**
      * Controls the look/feel of the Menu and all its sub-menus
@@ -344,7 +352,7 @@ public class Menu private constructor(
         }
 
         override fun setRenderer(behavior: MenuBehavior?) {
-            renderer = behavior?.subMenuConfig()
+            renderer = behavior?.subMenuConfig(parentMenu)
         }
 
         override fun updateBounds() {
@@ -356,15 +364,16 @@ public class Menu private constructor(
     }
 
     private open class Action(
-                    parentMenu  : Menu,
-                    text        : String,
-        private val fired       : (MenuItem) -> Unit
-    ): InteractiveMenu(parentMenu, text) {
+                      parentMenu: Menu,
+                      text      : String,
+         override val icon      : Icon<ItemInfo>? = null,
+        private   val fired     : (MenuItem) -> Unit
+    ): InteractiveMenu(parentMenu, text), ActionItemInfo {
 
-        protected var renderer: ItemConfig<ItemInfo>? by renderProperty(null) { _,_ -> updateBounds() }
+        protected var renderer: ItemConfig<ActionItemInfo>? by renderProperty(null) { _,_ -> updateBounds() }
 
         init {
-            pointerChanged += PointerListener.pressed { trigger() }
+            pointerChanged += clicked { trigger() }
         }
 
         override fun trigger() {
@@ -373,11 +382,13 @@ public class Menu private constructor(
         }
 
         override fun render(canvas: Canvas) {
-            renderer?.render(this, canvas)
+            renderer?.apply {
+                render(this@Action, canvas)
+            }
         }
 
         override fun setRenderer(behavior: MenuBehavior?) {
-            renderer = behavior?.actionConfig()
+            renderer = behavior?.actionConfig(parentMenu)
         }
 
         override fun updateBounds() {
@@ -391,13 +402,14 @@ public class Menu private constructor(
     private class Prompt(
         parentMenu  : Menu,
         text        : String,
-        fired       : (MenuItem) -> Unit): Action(parentMenu, text, fired) {
+        icon        : Icon<ItemInfo>? = null,
+        fired       : (MenuItem) -> Unit): Action(parentMenu, text, icon, fired) {
         override fun setRenderer(behavior: MenuBehavior?) {
-            renderer = behavior?.promptConfig()
+            renderer = behavior?.promptConfig(parentMenu)
         }
     }
 
-    private class Separator: Item() {
+    private class Separator(private val parentMenu: Menu): Item() {
         private var renderer: SeparatorConfig? by renderProperty(null) { _,new ->
             height = new?.preferredSize()?.height ?: height
         }
@@ -408,7 +420,7 @@ public class Menu private constructor(
         }
 
         override fun setRenderer(behavior: MenuBehavior?) {
-            renderer = behavior?.separatorConfig()
+            renderer = behavior?.separatorConfig(parentMenu)
         }
 
         override fun render(canvas: Canvas) { renderer?.render(canvas) }
@@ -448,20 +460,22 @@ public class Menu private constructor(
             }
         }
 
-        override fun action(title: String, fired: (MenuItem) -> Unit): MenuItem = Action(
+        override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem = Action(
             parent,
             title,
+            icon,
             fired
         ).also { items += it }
 
-        override fun prompt(title: String, fired: (MenuItem) -> Unit): MenuItem = Prompt(
+        override fun prompt(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem = Prompt(
             parent,
             title,
+            icon,
             fired
         ).also { items += it }
 
         override fun separator() {
-            items += Separator()
+            items += Separator(parent)
         }
     }
 
