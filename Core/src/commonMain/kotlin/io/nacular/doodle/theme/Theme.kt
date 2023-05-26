@@ -2,6 +2,7 @@ package io.nacular.doodle.theme
 
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Internal
+import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.BreadthFirstTreeIterator
 import io.nacular.doodle.utils.Node
@@ -53,7 +54,7 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 
 /** @suppress */
 @Internal
-public class ThemeManagerImpl(private val display: Display): InternalThemeManager() {
+public class ThemeManagerImpl(private val display: InternalDisplay): InternalThemeManager() {
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
     override var selected: Theme? by observable(null) { old,new ->
@@ -73,7 +74,9 @@ public class ThemeManagerImpl(private val display: Display): InternalThemeManage
         }
     }
 
-    private val allViews: Sequence<View> get() = Sequence { BreadthFirstTreeIterator(DummyRoot(display.children)) }.drop(1).filter { it.acceptsThemes }
+    private val allViews: Sequence<View> get() = Sequence {
+        BreadthFirstTreeIterator(DummyRoot(display.popups + display.children))
+    }.drop(1).filter { it.acceptsThemes }
 }
 
 private class DummyRoot(children: List<View>): Node<View> {

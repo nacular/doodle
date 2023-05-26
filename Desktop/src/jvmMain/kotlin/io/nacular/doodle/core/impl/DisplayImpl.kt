@@ -68,6 +68,8 @@ internal class DisplayImpl(
         relayout()
     }
 
+    override val popups get() = popUps
+
     private val popUps by lazy { mutableListOf<View>() }
 
     override val children by lazy { ObservableList<View>().apply {

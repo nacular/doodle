@@ -176,6 +176,8 @@ public fun Display.fill(color: Color): Unit = fill(color.paint)
 /** @suppress */
 @Internal
 public interface InternalDisplay: Display {
+    public val popups: List<View>
+
     public fun repaint()
 
     public fun showPopup(view: View)

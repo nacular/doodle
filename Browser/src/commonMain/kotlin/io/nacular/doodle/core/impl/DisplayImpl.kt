@@ -61,6 +61,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         relayout()
     }
 
+    override val popups get() = popUps
+
     private val popUps by lazy { mutableListOf<View>() }
 
     override val children by lazy { ObservableList<View>().apply {
