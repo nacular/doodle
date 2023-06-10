@@ -480,7 +480,7 @@ internal class CanvasImpl(
 
     private val Font?.newTextStyle get() = when (this) {
         is FontImpl -> this.textStyle()
-        else -> defaultFont.textStyle()
+        else        -> defaultFont.textStyle()
     }
 
     private fun drawOuterShadows(operation: SkiaCanvas.(SkiaPaint) -> Unit) {
@@ -552,9 +552,9 @@ internal class CanvasImpl(
         val style = ParagraphStyle().apply {
             textStyle = font.newTextStyle.apply {
                 foreground = paint
-                if (lineHeight                != 1f ) height             = lineHeight
-                if (textSpacing.wordSpacing   != 0.0) this.wordSpacing   = textSpacing.wordSpacing.toFloat()
-                if (textSpacing.letterSpacing != 0.0) this.letterSpacing = textSpacing.letterSpacing.toFloat()
+                if (lineHeight                != 1f ) height        = lineHeight
+                if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
+                if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
             }
             this.alignment = alignment.skia
         }

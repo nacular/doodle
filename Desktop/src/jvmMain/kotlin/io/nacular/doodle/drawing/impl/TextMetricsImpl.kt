@@ -25,13 +25,13 @@ import org.jetbrains.skia.Font as SkiaFont
 internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fontCollection: FontCollection): TextMetrics {
     private val Font?.newTextStyle get() = when (this) {
         is FontImpl -> this.textStyle()
-        else -> defaultFont.textStyle()
+        else        -> defaultFont.textStyle()
     }
 
     private fun Font?.newTextStyle(lineSpacing: Float = 1f, textSpacing: TextSpacing) = this.newTextStyle.apply {
-        height             = lineSpacing
-        this.wordSpacing   = textSpacing.wordSpacing.toFloat()
-        this.letterSpacing = textSpacing.letterSpacing.toFloat()
+        if (lineSpacing               != 1f ) height        = lineSpacing
+        if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
+        if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
     }
 
     private fun StyledText.paragraph(indent: Double = 0.0, width: Double? = null, lineSpacing: Float = 1f, textSpacing: TextSpacing): Paragraph {
@@ -87,9 +87,9 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
     override fun width(text: StyledText,                                             textSpacing: TextSpacing) = max(0.0, text.paragraph(               textSpacing = textSpacing).longestWidth)
     override fun width(text: StyledText, width: Double, indent: Double,              textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, textSpacing = textSpacing).longestWidth)
 
-    override fun height(text: String,                                    font: Font?                                           ) = height(text,                font.newTextStyle)
+    override fun height(text: String,                                    font: Font?                                              ) = height(text,                font.newTextStyle)
     override fun height(text: String,     width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = height(text, width, indent, font.newTextStyle(lineSpacing, textSpacing))
-    override fun height(text: StyledText,                                                                 textSpacing: TextSpacing) = max(0.0, text.paragraph(            textSpacing = textSpacing).totalHeight)
+    override fun height(text: StyledText,                                                                 textSpacing: TextSpacing) = max(0.0, text.paragraph(              textSpacing = textSpacing).totalHeight)
     override fun height(text: StyledText, width: Double, indent: Double,              lineSpacing: Float, textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, lineSpacing, textSpacing).totalHeight)
 
     internal fun width(text: String,                                    textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle               ).longestWidth)
