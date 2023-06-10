@@ -144,13 +144,13 @@ internal class NativeTextField(
 
     private val maskChanged = { _: TextInput, _: Char?, new: Char? ->
         when (new) {
-            null -> updatePurpose(textField.purpose)
-            else -> updatePurpose(Password)
+            null -> updatePurpose(textField)
+            else -> inputElement.type = PASSWORD // force hide
         }
     }
 
-    private val purposeChanged = { _: TextField, _: Purpose, new: Purpose ->
-        updatePurpose(new)
+    private val purposeChanged = { _: TextField, _: Purpose, _: Purpose ->
+        updatePurpose(textField)
     }
 
     private val focusChanged = { _: View, _: Boolean, new: Boolean ->
@@ -247,7 +247,8 @@ internal class NativeTextField(
             spellcheck = spellCheck
         }
 
-        updatePurpose(textField.purpose)
+        maskChanged(textField, textField.mask, textField.mask)
+        updatePurpose(textField)
 
         eventHandler = eventHandlerFactory(inputElement, this).apply {
             registerKeyListener      ()
@@ -366,19 +367,26 @@ internal class NativeTextField(
         textField.selectionChanged += selectionChanged
     }
 
-    private fun updatePurpose(purpose: Purpose) {
-        inputElement.type = when (purpose) {
-            Password        -> "password"
+    private fun updatePurpose(textField: TextField) {
+        inputElement.type = when (textField.purpose) {
+            Password        -> PASSWORD
             Email           -> "email"
             Search          -> "search"
             Telephone       -> "tel"
             Number, Integer -> "number"
             Url             -> "url"
-            else            -> "text"
+            else            -> when (textField.mask) {
+                null -> "text"
+                else -> PASSWORD
+            }
         }
 
-        if (purpose == Integer) {
+        if (textField.purpose == Integer) {
             inputElement.pattern = "[0-9]*"
         }
+    }
+
+    private companion object {
+        const val PASSWORD = "password"
     }
 }
