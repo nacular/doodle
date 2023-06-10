@@ -285,3 +285,18 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
 public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double = 0.0, bottom: Double = 0.0): Rectangle = inset(
     Insets(top = top, left = left, bottom = bottom, right = right)
 )
+
+/**
+ * Returns a new Rectangle with the specified [width], [height], and all the other dimensions from this one.
+ *
+ * @param width the new Rectangle should have
+ * @param height the new Rectangle should have
+ */
+public fun Rectangle.with(width: Double = this.width, height: Double = this.height): Rectangle = Rectangle(x, y, width, height)
+
+/**
+ * Returns a new Rectangle with the specified [size], and all the other dimensions from this one.
+ *
+ * @param size the new Rectangle should have
+ */
+public fun Rectangle.with(size: Size): Rectangle = Rectangle(x, y, size.width, size.height)

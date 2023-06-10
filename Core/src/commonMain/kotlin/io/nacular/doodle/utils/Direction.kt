@@ -12,3 +12,8 @@ public enum class RotationDirection {
     Clockwise,
     CounterClockwise
 }
+
+public enum class TemporalDirection {
+    Forward,
+    Backward
+}

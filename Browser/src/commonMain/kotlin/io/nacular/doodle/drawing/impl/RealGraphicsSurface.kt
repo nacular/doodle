@@ -127,8 +127,6 @@ internal class RealGraphicsSurface private constructor(
                     }
                 }
 
-//                println("zOrder: $zOrder vs realIndex: $result")
-
                 result
             }
         }
