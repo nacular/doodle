@@ -87,7 +87,7 @@ public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
     override val size: Int get() = list.size
 
-    override fun get     (index: Int             ): Result<T>   = runCatching { list[index]}
+    override fun get     (index: Int             ): Result<T>   = runCatching { list[index] }
     override fun section (range: ClosedRange<Int>): List<T>     = list.subList (range.start, range.endInclusive + 1)
     override fun contains(value: T               ): Boolean     = list.contains(value                              )
     override fun iterator(                       ): Iterator<T> = list.iterator(                                   )

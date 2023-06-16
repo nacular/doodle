@@ -160,7 +160,7 @@ public class BasicMenuBehavior(
         override val showDelay get() = config.subMenuShowDelay
 
         override fun preferredSize(item: SubMenuInfo): Size = super.preferredSize(item).run {
-            Size(width + iconSize.width + config.subMenuIconTextSpacing, height).also { println("$this vs $it") }
+            Size(width + iconSize.width + config.subMenuIconTextSpacing, height)
         }
 
         override fun render(item: SubMenuInfo, canvas: Canvas) {
