@@ -1,12 +1,10 @@
 package io.nacular.doodle.animation
 
 import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.Pausable
 import io.nacular.doodle.utils.Pool
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-
-/** A running animation produced by an [Animator] */
-public sealed interface Animation<T>: Completable
 
 /**
  * Manages a set of [AnimationPlan]s and updates them over time.
@@ -108,6 +106,9 @@ public sealed interface Animator {
      */
     public val listeners: Pool<Listener>
 }
+
+/** A running animation produced by an [Animator] */
+public sealed interface Animation<T>: Pausable
 
 /**
  * Starts an animation from `range.first` to `range.second`.

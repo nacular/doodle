@@ -29,10 +29,19 @@ import kotlin.test.expect
  */
 class AnimatorImplTests {
     private class MonotonicTimer(private val increment: Measure<Time> = 2 * milliseconds): Timer {
-        var actual = 100 * milliseconds
-            private set
+        var actual = 100 * milliseconds; private set
 
         override val now get() = actual.also { actual += increment }
+    }
+
+    private class ManualTimer(private val increment: Measure<Time> = 2 * milliseconds): Timer {
+        var actual = 100 * milliseconds; private set
+
+        fun increment() {
+            actual += increment
+        }
+
+        override val now get() = actual
     }
 
     private class ImmediateAnimationScheduler: AnimationScheduler {
@@ -194,6 +203,39 @@ class AnimatorImplTests {
         verify(exactly = 1) { onCompleted(animation) }
     }
 
+    @Test fun `pauses number animation`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        val animation = animate(0f to 1f, loop(tweenFloat(linear, 3 * milliseconds))) { outputs += it }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        animation.pause()
+
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+
+        animation.resume()
+
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3, 2f/3)) { outputs }
+    }
+
     @Test fun `cancels number animation`() {
         val timer              = MonotonicTimer()
         val animationScheduler = ManualAnimationScheduler()
@@ -220,6 +262,57 @@ class AnimatorImplTests {
         verify(exactly = 0) { listener.changed  (animate, match { animation1 in it }) }
         verify(exactly = 0) { listener.completed(animate, any()                     ) }
         verify(exactly = 1) { listener.canceled (animate, setOf(animation1)         ) }
+    }
+
+    @Test fun `animation block pauses & resumes nested`() {
+        val timer              = ManualTimer(1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs1 = mutableListOf<Float>()
+        val outputs2 = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        var animation1 = null as Animation<Float>?
+        var animation2 = null as Animation<Float>?
+
+        val topLevel = animate {
+            animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
+
+            animate {
+                animation2 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
+            }
+        }
+
+        topLevel.pause()
+
+        timer.increment()
+        animationScheduler.runOutstandingTasks()
+        timer.increment()
+        animationScheduler.runOutstandingTasks()
+
+        expect(true) { outputs1.isEmpty() }
+        expect(true) { outputs2.isEmpty() }
+
+        verify(exactly = 0) { listener.changed  (animate, any()) }
+        verify(exactly = 0) { listener.completed(animate, any()) }
+
+        topLevel.resume()
+
+        println("resumed @: ${timer.actual}")
+
+        timer.increment()
+        animationScheduler.runOutstandingTasks()
+
+        timer.increment()
+        animationScheduler.runOutstandingTasks()
+
+        println("final time: ${timer.actual}")
+
+        expect(listOf(0f, 1f/3)) { outputs1 }
+        expect(listOf(0f, 1f/3)) { outputs2 }
     }
 
     @Test fun `animation block cancels nested`() {

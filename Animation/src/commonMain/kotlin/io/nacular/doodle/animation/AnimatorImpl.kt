@@ -6,15 +6,19 @@ import io.nacular.doodle.animation.Animator.NumericAnimationInfo
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
+import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.CompletableImpl
 import io.nacular.doodle.utils.CompletableImpl.State.Active
 import io.nacular.doodle.utils.CompletableImpl.State.Canceled
 import io.nacular.doodle.utils.ObservableSet
+import io.nacular.doodle.utils.Pausable
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.observable
 import io.nacular.doodle.utils.zeroMillis
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
+import kotlin.math.max
 
 /**
  * Animator implementation that uses a [Timer] and [AnimationScheduler].
@@ -29,28 +33,69 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
     private inner class AnimationData<T>(private val animation: AnimationPlan<T>, private val block: (T) -> Unit): Animation<T>, CompletableImpl() {
         private lateinit var startTime: Measure<Time>
         private var previousValue = animation.value(zeroMillis)
+        private var completedTime = zeroMillis
+        private var pausing       = false
+        private var resuming      = false
+        private var isPaused      = false
 
         val isCanceled: Boolean get() = state == Canceled
 
+        private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+        private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+
+        override val paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ )
+        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_)
+
         fun run(currentTime: Measure<Time>): Result<T> {
-            if (!::startTime.isInitialized) {
+            if (isPaused) {
+                return Result(false, previousValue, previousValue)
+            }
+
+            if (!::startTime.isInitialized || resuming) {
+                if (resuming) {
+                    resumed_.forEach { it(this@AnimationData) }
+                }
+
+                resuming  = false
                 startTime = currentTime
             }
 
-            val totalElapsedTime = currentTime - startTime
-            val currentValue     = animation.value(totalElapsedTime)
+            val totalElapsedTime = currentTime - startTime + completedTime
+            val currentValue     = when {
+                pausing -> {
+                    isPaused      = true
+                    completedTime = totalElapsedTime
+                    previousValue
+                }
+                else    -> animation.value(totalElapsedTime)
+            }
 
             return Result(animation.finished(totalElapsedTime), previousValue, currentValue).apply {
-                if (new != old || totalElapsedTime == zeroMillis) {
+                if (new != old || (totalElapsedTime == zeroMillis && !isPaused)) {
                     block(new)
                 }
 
-                if (finished) {
-                    completed()
+                when {
+                    finished -> completed()
+                    pausing  -> {
+                        pausing = false
+                        paused_.forEach { it(this@AnimationData) }
+                    }
                 }
 
                 previousValue = currentValue
             }
+        }
+
+        override fun pause() {
+            pausing  = true
+            resuming = false
+        }
+
+        override fun resume() {
+            pausing  = false
+            isPaused = false
+            resuming = true
         }
 
         override fun cancel() {
@@ -73,7 +118,19 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
     private inner class GroupAnimation(private val animations: Set<AnimationData<*>>): Animation<Any>, CompletableImpl() {
         private var numCompleted = 0
         private var numCanceled  = 0
-        private var initiatingCancel = false
+        private var canceling    = false
+        private var numPaused    by observable(0) { old,new ->
+            when {
+                new == animations.size -> paused_.forEach  { it(this) }
+                old == animations.size -> resumed_.forEach { it(this) }
+            }
+        }
+
+        private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+        private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+
+        override val paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ )
+        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_)
 
         init {
             animations.forEach {
@@ -83,21 +140,35 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
                     }
                 }
                 it.canceled += {
-                    if (!initiatingCancel && ++numCanceled + numCompleted == animations.size) {
+                    if (!canceling && ++numCanceled + numCompleted == animations.size) {
                         cancel()
                     }
+                }
+                it.paused += {
+                    numPaused = max(animations.size, numPaused + 1)
+                }
+                it.resumed += {
+                    numPaused = max(0, numPaused - 1)
                 }
             }
         }
 
+        override fun pause() {
+            animations.forEach { it.pause() }
+        }
+
+        override fun resume() {
+            animations.forEach { it.resume() }
+        }
+
         override fun cancel() {
-            initiatingCancel = true
+            canceling = true
             animations.forEach { it.cancel() }
 
             (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, animations) }
 
             super.cancel()
-            initiatingCancel = false
+            canceling = false
         }
     }
 
