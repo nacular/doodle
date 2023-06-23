@@ -96,12 +96,21 @@ internal class RealGraphicsSurface private constructor(
         return when {
             isPopup -> index
             else    -> {
+                val parentChildren    = parent?.children ?: nonPopupTopLevelSurfaces
                 var result            = index
-                val peers             = parent?.children ?: nonPopupTopLevelSurfaces
+                val peers             = parentChildren.filter { it != this }
                 val numParentChildren = peers.size
 
+                // 0 1 2 3 4    0 1 2 3 4
+                // a B c d e -> a c d e
+                // a c d B e
+
+                // 0 1 2 3 4    0 1 2 3 4
+                // a b c D e -> a b c e
+                // a D b c e
+
                 // Check if there is any item after this one w/ a lower zOrder
-                (result + 1 until numParentChildren).forEach { index ->
+                (result until numParentChildren).forEach { index ->
                     peers[index].let { peer ->
                         if (zOrder > peer.zOrder || zOrder == peer.zOrder && explicitlySetIndex > peer.explicitlySetIndex) {
                             result += 1
@@ -117,6 +126,8 @@ internal class RealGraphicsSurface private constructor(
                         }
                     }
                 }
+
+//                println("zOrder: $zOrder vs realIndex: $result")
 
                 result
             }
@@ -398,6 +409,10 @@ internal class RealGraphicsSurface private constructor(
         }
 
         child.internalIndex = children.size - 1
+
+        if (children.size > 1) {
+            child.updateIndex(shift = true)
+        }
     }
 
     private fun remove(child: RealGraphicsSurface) {
@@ -451,12 +466,19 @@ internal class RealGraphicsSurface private constructor(
             if (shift) {
                 val currentIndex = children.indexOf(child)
 
-                (currentIndex + 1 .. min(children.size - 1, index)).forEach {
-                    children[it].shiftIndex(-1)
+                when {
+                    index > currentIndex -> (currentIndex + 1..min(children.size - 1, index)).forEach {
+                        children[it].shiftIndex(-1)
+                    }
+                    else                 -> (index until min(children.size - 1, currentIndex)).forEach {
+                        children[it].shiftIndex(1)
+                    }
                 }
 
                 children.remove(child)
                 children.addOrAppend(index, child)
+
+                child.internalIndex = children.indexOf(child)
             }
 
             childrenElement.remove(child.rootElement)

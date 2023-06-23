@@ -106,6 +106,9 @@ class RealGraphicsSurfaceTests {
         expect(listOf(second, fourth).map { it.root }) { parent.rootElement.children.toList().drop(1) }
 
         val third = createSurface(root, parent).apply { surface.index = 2 }
+
+        expect(listOf(second, third, fourth).map { it.root }) { parent.rootElement.children.toList().drop(1) }
+
         val first = createSurface(root, parent).apply { surface.index = 0 }
 
         expect(listOf(first, second, third, fourth).map { it.root }) { parent.rootElement.children.toList().drop(1) }
@@ -135,7 +138,7 @@ class RealGraphicsSurfaceTests {
         )) { root.children.toList() }
     }
 
-    @Test fun `changing index in correct`() {
+    @Test fun `changing index is correct`() {
         val root   = createHtmlElement()
         val parent = createSurface(root).surface
 
@@ -204,6 +207,28 @@ class RealGraphicsSurfaceTests {
             surfaceRoots[2],
             surfaceRoots[0],
             surfaceRoots[3],
+        )) { parent.rootElement.children.toList().drop(1) }
+    }
+
+    @Test fun `setting zOrder correct (2)`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val data = (0 .. 1).map {
+            createSurface(root, parent)
+        }
+
+        val surfaces     = data.map { it.surface }
+        val surfaceRoots = data.map { it.root    }
+
+        surfaces.forEachIndexed { index, surface -> surface.index = index }
+
+        surfaces[0].zOrder = 1
+        surfaces[1].zOrder = 0
+
+        expect(listOf(
+            surfaceRoots[1],
+            surfaceRoots[0],
         )) { parent.rootElement.children.toList().drop(1) }
     }
 
