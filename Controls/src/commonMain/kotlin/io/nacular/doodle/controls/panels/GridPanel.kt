@@ -12,8 +12,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
@@ -183,6 +183,8 @@ public open class GridPanel: View() {
     }
 
     private inner class GridLayout: Layout {
+        private val constrainer = Constrainer()
+
         private var idealWidth  = null as Double?
         private var idealHeight = null as Double?
 
@@ -231,13 +233,13 @@ public open class GridPanel: View() {
 
             idealWidth = offset - if (columnDimensions.size > 1) horizontalSpacing else 0.0
 
-            children.constrain(using = cellAlignment) { _,view ->
+            children.forEach {
                 var x       = null as Double?
                 var y       = null as Double?
                 val widths  = mutableSetOf<Dimensions>()
                 val heights = mutableSetOf<Dimensions>()
 
-                locations[view]?.forEach {
+                locations[it]?.forEach {
                     val rowDim = rowDimensions.getValue   (it.row   )
                     val colDim = columnDimensions.getValue(it.column)
 
@@ -247,10 +249,18 @@ public open class GridPanel: View() {
                     heights.add(rowDim)
                 }
 
-                Rectangle((x ?: 0.0) + insets.left,
-                          (y ?: 0.0) + insets.top,
-                          widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
-                          heights.sumOf { it.size } + verticalSpacing   * (heights.size - 1))
+                it.bounds = constrainer(
+                    it.bounds,
+                    within = Rectangle(
+                        (x ?: 0.0) + insets.left,
+                        (y ?: 0.0) + insets.top,
+                        widths.sumOf  { it.size } + horizontalSpacing * (widths.size - 1),
+                        heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
+                    ),
+                    minimumSize   = it.minimumSize,
+                    idealSize = it.idealSize,
+                    using     = cellAlignment
+                )
             }
 
             container.idealSize = Size(idealWidth!!, idealHeight!!)

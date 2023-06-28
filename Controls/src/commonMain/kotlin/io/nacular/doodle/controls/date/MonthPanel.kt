@@ -15,8 +15,8 @@ import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
@@ -58,6 +58,8 @@ public class MonthPanel(
                 weekStart     : DayOfWeek = SUNDAY
 ): View(), Selectable<LocalDate> {
     private inner class MonthLayout: Layout {
+        private val constrainer = Constrainer()
+
         override fun layout(container: PositionableContainer) {
             var row         = 0
             var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
@@ -79,7 +81,7 @@ public class MonthPanel(
 
                     it.bounds = rect
                 }
-                else -> container.children.constrain(using = cellAlignment) { _,_ ->
+                else -> container.children.forEach {
                     val within = Rectangle(
                         x      = columnWidth * col,
                         y      = rowHeight   * row,
@@ -91,7 +93,7 @@ public class MonthPanel(
 
                     if (col == 0) row++
 
-                    within
+                    it.bounds = constrainer(it.bounds, within = within, minimumSize = it.minimumSize, idealSize = it.idealSize, using = cellAlignment)
                 }
             }
         }
