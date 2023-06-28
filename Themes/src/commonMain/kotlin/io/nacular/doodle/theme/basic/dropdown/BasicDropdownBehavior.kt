@@ -18,7 +18,6 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -388,7 +387,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     private fun centerView(dropdown: Dropdown<T, M>) = dropdown.value.fold(
         onSuccess = { (dropdown.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(dropdown.selection, true)) },
-        onFailure = { view {  } }
+        onFailure = { object: View() {} }
     )
 
     private  fun viewContainer  (dropdown: Dropdown<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container

@@ -5,7 +5,8 @@ import io.nacular.doodle.controls.modal.ModalManager.Modal
 import io.nacular.doodle.controls.modal.ModalManager.ModalContext
 import io.nacular.doodle.controls.modal.ModalManager.ModalType
 import io.nacular.doodle.core.Internal
-import io.nacular.doodle.core.view
+import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.paint
@@ -33,9 +34,9 @@ public class ModalManagerImpl(private val popupManager: PopupManager): ModalMana
         overlay.rerenderNow()
     }
 
-    private val overlay = view {
-        render = {
-            background?.let { rect(bounds.atOrigin, fill = it) }
+    private val overlay = object: View() {
+        override fun render(canvas: Canvas) {
+            background?.let { canvas.rect(bounds.atOrigin, fill = it) }
         }
     }
 

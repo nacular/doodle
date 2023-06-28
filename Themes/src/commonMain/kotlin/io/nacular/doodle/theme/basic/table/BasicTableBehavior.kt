@@ -18,9 +18,9 @@ import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TableBehavior
 import io.nacular.doodle.controls.table.TableBehavior.CellGenerator
 import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.container
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -366,15 +366,16 @@ public open class TextEditOperation<T>(
         selectAll()
     }
 
-    override fun invoke(): View = container {
-        children += this@TextEditOperation
-
-        layout = constrain(this@TextEditOperation) {
-            column.cellAlignment?.let { alignment -> alignment(it) }
+    override fun invoke(): View = object: Container() {
+        init {
+            children += this@TextEditOperation
+            layout    = constrain(this@TextEditOperation) {
+                column.cellAlignment?.let { alignment -> alignment(it) }
+            }
         }
 
-        render = {
-            this@TextEditOperation.backgroundColor?.let { rect(bounds.atOrigin, ColorPaint(it)) }
+        override fun render(canvas: Canvas) {
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorPaint(it)) }
         }
     }
 

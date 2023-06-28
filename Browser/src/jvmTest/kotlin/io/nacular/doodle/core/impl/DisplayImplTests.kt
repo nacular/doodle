@@ -460,7 +460,7 @@ class DisplayImplTests {
         }
     }
 
-    private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun view(): View = view { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
     private fun display(htmlFactory  : HtmlFactory   = mockk(),
                         canvasFactory: CanvasFactory = mockk(),

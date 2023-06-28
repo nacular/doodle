@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls.panels
 
+import JsName
 import io.mockk.Called
 import io.mockk.CapturingSlot
 import io.mockk.Runs
@@ -11,12 +12,12 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.PropertyObserver
-import JsName
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.expect
@@ -250,7 +251,7 @@ class ScrollPanelTests {
 
     @Test @JsName("idealSizeTracksContent")
     fun `ideal size tracks content`() {
-        val content = object: View() {}
+        val content = view {}
         val panel   = ScrollPanel(content)
 
         expect(null) { panel.idealSize }

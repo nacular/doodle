@@ -18,6 +18,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -1319,7 +1320,7 @@ class RenderManagerImplTests {
         view.children_.forEach { verifyChildRemovedProperly(it) }
     }
 
-    private fun view     (): View = object: View() {}.apply { size = Size(10, 10) }
+    private fun view     (): View = view { size = Size(10, 10) }
     private fun container(): Container = io.nacular.doodle.core.container { size = Size(10, 10) }
 
     private fun doesNotRender(view: View) {

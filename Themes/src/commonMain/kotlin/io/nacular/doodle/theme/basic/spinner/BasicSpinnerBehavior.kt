@@ -10,7 +10,6 @@ import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -224,7 +223,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
 
     private fun centerView(spinner: Spinner<T, M>, oldCenter: View?) = spinner.value.fold(
         onSuccess = { (spinner.itemVisualizer ?: itemVisualizer)(it, oldCenter, spinner) },
-        onFailure = { view {  } }
+        onFailure = { object: View() {} }
     )
 
     private fun updateAlignment(spinner: Spinner<T, M>, centerView: Container) {

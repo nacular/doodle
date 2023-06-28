@@ -2,7 +2,7 @@ package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.theme.CommonSplitPanelBehavior
-import io.nacular.doodle.core.view
+import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Paint
 
@@ -12,10 +12,10 @@ import io.nacular.doodle.drawing.Paint
 public class BasicSplitPanelBehavior(
     private val background       : Paint? = null,
     private val dividerBackground: Paint? = background
-): CommonSplitPanelBehavior(divider = view {
-    render = {
+): CommonSplitPanelBehavior(divider = object: View() {
+    override fun render(canvas: Canvas) {
         dividerBackground?.let {
-            rect(bounds.atOrigin, fill = it)
+            canvas.rect(bounds.atOrigin, fill = it)
         }
     }
 }, size = 7.0, dividerVisible = dividerBackground != null) {
