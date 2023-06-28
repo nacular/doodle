@@ -16,7 +16,7 @@ import io.nacular.doodle.utils.VerticalAlignment.Top
 import kotlin.math.max
 
 /**
- * Created by Nicholas Eddy on 3/17/19.
+ * [Layout] that positions children in order horizontally and wraps.
  */
 public class HorizontalFlowLayout(private val justification    : HorizontalAlignment = Left,
                                   private val verticalSpacing  : Double              = 1.0,
