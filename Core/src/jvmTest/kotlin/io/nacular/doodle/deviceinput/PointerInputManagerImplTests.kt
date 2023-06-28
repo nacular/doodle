@@ -12,6 +12,7 @@ import io.mockk.verify
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.event.Interaction
 import io.nacular.doodle.event.Pointer
@@ -590,7 +591,7 @@ class PointerInputManagerImplTests {
         every { this@apply.cursor } returns cursor
     }
 
-    private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))) = object: View() {}.apply {
+    private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View = view {
         this.bounds = bounds
         this.cursor = cursor
     }

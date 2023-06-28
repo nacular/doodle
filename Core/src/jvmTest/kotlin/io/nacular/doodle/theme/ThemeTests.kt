@@ -12,6 +12,7 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Paint
@@ -123,7 +124,7 @@ class ThemeTests {
     fun `installs theme on update`() {
         val manager  = ThemeManagerImpl(dummyDisplay)
         val newTheme = mockk<Theme>()
-        val view     = object: View() {}
+        val view     = view {}
 
         manager.selected = newTheme
 

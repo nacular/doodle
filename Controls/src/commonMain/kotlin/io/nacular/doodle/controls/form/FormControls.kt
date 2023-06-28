@@ -174,9 +174,8 @@ public fun textField(
  */
 public fun check(label: View): FieldVisualizer<Boolean> = field {
     container {
-        focusable = false
-        this += label
-        this += CheckBox().apply {
+        + label
+        + CheckBox().apply {
             initial.ifValid { selected = it }
 
             selectedChanged += { _,_,_ ->
@@ -185,6 +184,8 @@ public fun check(label: View): FieldVisualizer<Boolean> = field {
 
             state = Valid(selected)
         }
+
+        focusable = false
 
         layout = buttonItemLayout(children[1], children[0]).then {
             idealSize = Size(width, children.maxOf { it.height })
@@ -216,9 +217,8 @@ public fun check(label: String): FieldVisualizer<Boolean> = field {
  */
 public fun switch(label: View): FieldVisualizer<Boolean> = field {
     container {
-        focusable = false
-        this += label
-        this += Switch().apply {
+        + label
+        + Switch().apply {
             accessibilityLabelProvider = label
 
             initial.ifValid { selected = it }
@@ -230,6 +230,8 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
             size  = Size(30, 20)
             state = Valid(selected)
         }
+
+        focusable = false
 
         layout = constrain(children[0], children[1]) { label, switch ->
             switch.left    eq parent.right - switch.width.readOnly
@@ -1493,7 +1495,7 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        this += listOf(label, visualization(this@field).also { it.accessibilityLabelProvider = label }).onEach {
+        + listOf(label, visualization(this@field).also { it.accessibilityLabelProvider = label }).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -1573,7 +1575,7 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        this += listOf(nameLabel, visualization(this@field).also { it.accessibilityLabelProvider = nameLabel }, helperLabel).onEach {
+        + listOf(nameLabel, visualization(this@field).also { it.accessibilityLabelProvider = nameLabel }, helperLabel).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
@@ -1639,10 +1641,10 @@ public fun <T> scrolling(visualizer: ScrollingConfig.() -> FieldVisualizer<T>): 
  */
 public fun <T> framed(visualizer: ContainerBuilder.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
+        + visualizer(this)(this@field)
+
         layout    = verticalLayout(this, itemHeight = DEFAULT_HEIGHT)
         focusable = false
-
-        this += visualizer(this)(this@field)
     }
 }
 
@@ -1809,13 +1811,13 @@ private fun <T> buildToggleList(
 
         state = Valid(ArrayList(selection))
 
-        this += items.map { value ->
+        + items.map { value ->
             container {
                 focusable = false
                 val visualizedValue = builder.visualizer(value)
 
-                this += visualizedValue
-                this += toggleBuilder().apply {
+                + visualizedValue
+                + toggleBuilder().apply {
                     selected         = value in selection
                     selectedChanged += { _, _, selected ->
                         when {
@@ -1833,6 +1835,7 @@ private fun <T> buildToggleList(
                 }
             }
         }
+
         this.layout = ExpandingVerticalLayout(this, builder.spacing, builder.itemHeight)
     }
 }
@@ -1844,10 +1847,9 @@ private fun <T> buildRadioList(
            initialValue    : T? = null,
            allowDeselectAll: Boolean = false,
            config          : (T, RadioButton) -> Unit): Container = container {
-    insets     = optionListConfig.insets
-    render     = { optionListConfig.render(this, this@container) }
     val group  = ButtonGroup(allowDeselectAll = allowDeselectAll)
-    children  += (listOf(first) + rest).map { value ->
+
+    + (listOf(first) + rest).map { value ->
         container {
             focusable = false
             val visualizedValue = optionListConfig.visualizer(value)
@@ -1871,6 +1873,9 @@ private fun <T> buildRadioList(
             }
         }
     }
+
+    insets     = optionListConfig.insets
+    render     = { optionListConfig.render(this, this@container) }
     focusable = false
     layout    = ExpandingVerticalLayout(this, optionListConfig.spacing, optionListConfig.itemHeight)
 }

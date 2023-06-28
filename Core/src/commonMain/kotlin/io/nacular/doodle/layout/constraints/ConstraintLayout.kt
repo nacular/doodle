@@ -4,7 +4,6 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.view
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -934,7 +933,7 @@ public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(
         updatedBounds += ReflectionVariable(child, child::height, ReflectionVariable.heightId)
     }
 
-    val fakeView = view {}
+    val fakeView = object: View() {}
 
     val solver  = Solver()
     val context = ConstraintDslContext().apply {

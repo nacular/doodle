@@ -213,6 +213,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
+
     /**
      * Indicates whether the View's [Canvas] will be clipped so that nothing rendered shows beyond its [bounds].  Set this to `false` to support
      * things like shadows or glows that aren't intended to be included in the normal bounding box.
@@ -1214,13 +1215,66 @@ private class BehaviorDelegateImpl<T: View, B: Behavior<T>>(private val beforeCh
  * @property render operations to perform
  */
 public class ViewBuilder internal constructor(): View() {
-    private var render_: Canvas.() -> Unit = {}
+    /** @see View.render */
+    public var render: Canvas.() -> Unit = {}
 
-    public var render: Canvas.() -> Unit get() = render_; set(new) { render_ = new }
+    /** @see View.layout */
+    public override var layout: Layout? get() = super.layout; set(new) { super.layout = new }
 
-    override fun render(canvas: Canvas) {
-        render_(canvas)
+    /** @see View.children */
+    public override val children: ObservableList<View> get() = super.children
+
+    /** @see View.insets */
+    public override var insets: Insets get() = super.insets; set(new) {
+        super.insets = new
     }
+
+    /** @see View.focusTraversalPolicy */
+    public override var focusTraversalPolicy: FocusTraversalPolicy? get() = super.focusTraversalPolicy; set(new) {
+        super.focusTraversalPolicy = new
+    }
+
+    /** @see View.isFocusCycleRoot */
+    public override var isFocusCycleRoot: Boolean; get() = super.isFocusCycleRoot; set(value) {
+        super.isFocusCycleRoot = value
+    }
+
+    /** @see View.addedToDisplay */
+    @JsName("addedToDisplayLambda")
+    public var addedToDisplay: () -> Unit = {}
+
+    /** @see View.removedFromDisplay */
+    @JsName("removedFromDisplayLambda")
+    public var removedFromDisplay:() -> Unit = {}
+
+    /** @see View.shouldYieldFocus */
+    @JsName("shouldYieldFocusLambda")
+    public var shouldYieldFocus:() -> Boolean = { super.shouldYieldFocus() }
+
+    /** @see View.contains */
+    public var contains: (point: Point) -> Boolean = { super.contains(it) }
+
+    /** @see View.intersects */
+    public var intersects: (point: Point) -> Boolean = { super.intersects(it) }
+
+    /** Adds a child to this View */
+    public operator fun View.unaryPlus () { children += this }
+
+    /** Removes a child to this View */
+    public operator fun View.unaryMinus() { children -= this }
+
+    /** Adds a collection of children to this View */
+    public operator fun Collection<View>.unaryPlus() { children += this }
+
+    /** Removes a collection of children to this View */
+    public operator fun Collection<View>.unaryMinus() { children -= this.toSet() }
+
+    override fun render            (canvas: Canvas): Unit    = render.invoke            (canvas)
+    override fun removedFromDisplay(              ): Unit    = removedFromDisplay.invoke(      )
+    override fun addedToDisplay    (              ): Unit    = addedToDisplay.invoke    (      )
+    override fun shouldYieldFocus  (              ): Boolean = shouldYieldFocus.invoke  (      )
+    override fun contains          (point: Point  ): Boolean = contains.invoke          (point )
+    override fun intersects        (point: Point  ): Boolean = intersects.invoke        (point )
 }
 
 /**
