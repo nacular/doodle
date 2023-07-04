@@ -383,10 +383,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 return
             }
 
-            field?.children?.remove(this)
-
             val old = field
             field   = new
+
+            old?.children?.remove(this)
 
             (parentChange as PropertyObserversImpl)(old, new)
         }
@@ -653,9 +653,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                     when (diff) {
                         is Delete -> diff.items.forEach {
                             if (diff.destination(of = it) == null) {
-                                it.parent   = null
-                                it.zOrder   = 0
-                                it.position = Origin
+                                // it's possible that this child has been moved to a new parent
+                                // before this notification. so don't make changes in that case
+                                if (it.parent == this@View) {
+                                    it.parent   = null
+                                    it.zOrder   = 0
+                                    it.position = Origin
+                                }
                             }
                         }
                         is Insert -> diff.items.forEach {
