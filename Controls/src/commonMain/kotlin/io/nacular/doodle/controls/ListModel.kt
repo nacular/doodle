@@ -14,6 +14,9 @@ public interface ListModel<T>: Iterable<T> {
     /** Number of elements in the model */
     public val size: Int
 
+    /**
+     * Indicates whether the model has any contents
+     */
     public val isEmpty: Boolean get() = size == 0
 
     /**
@@ -26,7 +29,7 @@ public interface ListModel<T>: Iterable<T> {
      * @param range of data to extract
      * @return list of items in the range
      */
-    public fun section (range: ClosedRange<Int>): List<T>
+    public fun section (range: ClosedRange<Int>): List<T> // FIXME: This should return List<Result<T>> for consistency
 
     /**
      * @param value to check
@@ -47,31 +50,133 @@ public interface DynamicListModel<T>: ListModel<T> {
 }
 
 /**
- * A model that lets callers modify it.
+ * A [ListModel] model that lets callers modify it.
  */
 public interface MutableListModel<T>: DynamicListModel<T> {
 
+    /**
+     * Set the value at a specific index.
+     *
+     * @param index to update
+     * @param value to set
+     */
     public operator fun set(index: Int, value: T): Result<T>
 
+    /**
+     * Forces the model to notify listeners that [index] changed.
+     * This is useful when the model has mutable items that change
+     * their internal state in some way that observers need to know
+     * about. Such changes cannot be detected by the model directly,
+     * since it relies on reference comparisons to detect changes.
+     *
+     * @param index that was changed
+     */
     public fun notifyChanged(index: Int)
 
-    public fun add        (value  : T                         )
-    public fun add        (index  : Int, value: T             )
-    public fun remove     (value  : T                         )
-    public fun removeAt   (index  : Int                       ): Result<T>
-    public fun addAll     (values : Collection<T>             )
-    public fun addAll     (index  : Int, values: Collection<T>)
-    public fun removeAll  (values : Collection<T>             )
-    public fun retainAll  (values : Collection<T>             )
-    public fun removeAllAt(indexes: Collection<Int>           )
-    public fun replaceAll (values : Collection<T>             )
+    /**
+     * Adds a new value to the end of the model.
+     *
+     * @param value to add
+     */
+    public fun add(value: T)
 
+    /**
+     * Inserts a new value to the model at an index.
+     *
+     * @param index where the new value should go
+     * @param value to add
+     */
+    public fun add(index: Int, value: T)
+
+    /**
+     * Removes [value] from the model.
+     *
+     * @param value to remove
+     */
+    public fun remove(value: T)
+
+    /**
+     * Removes the value at [index] from the model.
+     *
+     * @param index to remove
+     * @return the value removed or an error if none exists
+     */
+    public fun removeAt(index: Int): Result<T>
+
+    /**
+     * Adds [values] to the end of the model.
+     *
+     * @param values to add
+     */
+    public fun addAll(values: Collection<T>)
+
+    /**
+     * Inserts [values] at [index] in the model.
+     *
+     * @param index where the new values should go
+     * @param values to add
+     */
+    public fun addAll(index: Int, values: Collection<T>)
+
+    /**
+     * Removes [values] from the model.
+     *
+     * @param values to remove
+     */
+    public fun removeAll(values: Collection<T>)
+
+    /**
+     * Keeps only the items in the model that are contained within [values].
+     *
+     * @param values to keep
+     */
+    public fun retainAll(values: Collection<T>)
+
+    /**
+     * Removes all values at the given [indexes] from the model.
+     *
+     * @param indexes to remove
+     */
+    public fun removeAllAt(indexes: Collection<Int>)
+
+    /**
+     * Replaces all values in the model with new items.
+     *
+     * @param values the model will end up with
+     */
+    public fun replaceAll(values: Collection<T>)
+
+    /**
+     * Removes all items from the model.
+     */
     public fun clear()
 
-    public fun sortWith          (comparator: Comparator<in T>)
+    /**
+     * Sorts the contents of the model ascending.
+     *
+     * @param comparator used for sort
+     */
+    public fun sortWith(comparator: Comparator<in T>)
+
+    /**
+     * Sorts the contents of the model descending.
+     *
+     * @param comparator used for sort
+     */
     public fun sortWithDescending(comparator: Comparator<in T>)
 
-    public fun <R: Comparable<R>> sortBy          (selector: (T) -> R?)
+    /**
+     * Sorts the contents of the model ascending.
+     *
+     * @param selector used for sort
+     */
+    public fun <R: Comparable<R>> sortBy(selector: (T) -> R?)
+
+    /**
+     * Sorts the contents of the model descending.
+     *
+     * @param selector used for sort
+     */
     public fun <R: Comparable<R>> sortByDescending(selector: (T) -> R?)
 }
 
@@ -83,6 +188,9 @@ public fun <T: Comparable<T>> MutableListModel<T>.sortDescending() {
     sortWithDescending(naturalOrder())
 }
 
+/**
+ * [ListModel] based directly on a [List].
+ */
 public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
 
     override val size: Int get() = list.size
@@ -93,6 +201,9 @@ public open class SimpleListModel<T>(private val list: List<T>): ListModel<T> {
     override fun iterator(                       ): Iterator<T> = list.iterator(                                   )
 }
 
+/**
+ * [MutableListModel] based directly on an [ObservableList].
+ */
 public open class SimpleMutableListModel<T>(private val list: ObservableList<T>): SimpleListModel<T>(list), MutableListModel<T> {
     init {
         list.changed += { _,diffs ->
@@ -143,4 +254,7 @@ public open class SimpleMutableListModel<T>(private val list: ObservableList<T>)
     }
 }
 
+/**
+ * Creates a [MutableListModel] from the given set of [elements].
+ */
 public fun <T> mutableListModelOf(vararg elements: T): MutableListModel<T> = SimpleMutableListModel(mutableListOf(*elements))
