@@ -13,7 +13,6 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.atan
-import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.div
 import io.nacular.measured.units.normalize
@@ -120,10 +119,10 @@ public abstract class AbstractCircularSliderBehavior<T>(
     }
 
     protected companion object {
-        public val   _0: Measure<Angle> =   0 * degrees
-        public val  _90: Measure<Angle> =  90 * degrees
-        public val _180: Measure<Angle> = 180 * degrees
-        public val _270: Measure<Angle> = 270 * degrees
-        public val _360: Measure<Angle> = 360 * degrees
+        public val   _0: Measure<Angle> get() = io.nacular.doodle.utils._0
+        public val  _90: Measure<Angle> get() = io.nacular.doodle.utils._90
+        public val _180: Measure<Angle> get() = io.nacular.doodle.utils._180
+        public val _270: Measure<Angle> get() = io.nacular.doodle.utils._270
+        public val _360: Measure<Angle> get() = io.nacular.doodle.utils._360
     }
 }
