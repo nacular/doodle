@@ -143,9 +143,12 @@ public open class RenderManagerImpl(
 
             val parent = view.parent
 
-            when {
-                parent != null && (parent in neverRendered || parent in dirtyViews) -> renderNow(parent)
-                performRender(view).rendered                                        -> pendingRender -= view
+            if (parent != null && (parent in neverRendered || parent in dirtyViews)) {
+                renderNow(parent)
+            }
+
+            if (performRender(view).rendered) {
+                pendingRender -= view
             }
         }
     }
@@ -454,7 +457,10 @@ public open class RenderManagerImpl(
             return
         }
 
-        pendingCleanup.forEach {
+        val iterator = pendingCleanup.iterator()
+
+        while (iterator.hasNext()) {
+            val it    = iterator.next()
             val views = it.value
 
             if (views.remove(child)) {
@@ -465,8 +471,8 @@ public open class RenderManagerImpl(
                     releaseResources(it.key, child)
                 }
 
-                if (views.isEmpty() && parent != null) {
-                    pendingCleanup.remove(parent)
+                if (views.isEmpty()) {
+                    iterator.remove()
                 }
 
                 return

@@ -590,6 +590,37 @@ class RenderManagerImplTests {
         verifyChildRemovedProperly(firstChild)
     }
 
+    @Test @JsName("movesNestedViewsToParent")
+    fun `moves nested views to parent`() {
+        val parent = spyk<Container>().apply {
+            bounds    = Rectangle(size = Size(10.0, 10.0))
+            children += spyk(container()).apply {
+                children += spyk(view())
+            }
+        }
+
+        val display       = display(parent)
+        val scheduler     = ManualAnimationScheduler()
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, parent)
+
+        val child      = parent.children.first()
+        val grandChild = child.children_.first()
+
+        parent -= child
+        parent += grandChild
+
+        scheduler.runJobs()
+
+        verifyChildRemovedProperly(child)
+
+        expect(1   ) { parent.children.size          }
+        expect(true) { grandChild in parent.children }
+    }
+
     @Test @JsName("rerendersOnBoundsChanged")
     fun `rerenders on bounds changed`() {
         val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
