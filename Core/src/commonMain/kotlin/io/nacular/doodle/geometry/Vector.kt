@@ -240,6 +240,11 @@ public sealed interface Vector3D {
      */
     public fun normalize(): Vector3D
 
+    /**
+     * Gets the vector's length
+     */
+    public fun magnitude(): Double
+
     public companion object {
 
         /**
@@ -330,6 +335,8 @@ internal class VectorImpl(override val x: Double = 0.0, override val y: Double =
         0.0  -> this
         else -> VectorImpl(x / magnitude, y / magnitude, z / magnitude)
     }
+
+    override fun magnitude() = magnitude
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
