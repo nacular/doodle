@@ -332,8 +332,8 @@ internal class VectorImpl(override val x: Double = 0.0, override val y: Double =
      *  @return a unit vector pointing in the same direction as this one IFF this vector has a non-zero length
      */
     override fun normalize(): Vector3D = when (magnitude) {
-        0.0  -> this
-        else -> VectorImpl(x / magnitude, y / magnitude, z / magnitude)
+        0.0, 1.0 -> this
+        else     -> VectorImpl(x / magnitude, y / magnitude, z / magnitude)
     }
 
     override fun magnitude() = magnitude

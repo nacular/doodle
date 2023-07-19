@@ -17,7 +17,7 @@ import kotlin.jvm.JvmName
  * the preservation of parallel lines. These transforms are used whenever a perspective
  * projection is needed to properly render an item.
  */
-public class ProjectionTransform internal constructor(@Internal public val matrix: SquareMatrix<Double>) {
+public open class ProjectionTransform internal constructor(@Internal public val matrix: SquareMatrix<Double>) {
     /** `true` if this transform is equal to the [Identity] transform */
     public val isIdentity: Boolean = matrix.isIdentity
 
@@ -32,7 +32,7 @@ public class ProjectionTransform internal constructor(@Internal public val matri
      *
      * @see times
      */
-    public operator fun times(other: AffineTransform): ProjectionTransform = when {
+    public open operator fun times(other: AffineTransform): ProjectionTransform = when {
         other.is3d -> ProjectionTransform(matrix * other.matrix       )
         else       -> ProjectionTransform(matrix * other.as3d().matrix)
     }
@@ -48,7 +48,7 @@ public class ProjectionTransform internal constructor(@Internal public val matri
      *
      * @see times
      */
-    public operator fun times(other: ProjectionTransform): ProjectionTransform = ProjectionTransform(matrix * other.matrix)
+    public open operator fun times(other: ProjectionTransform): ProjectionTransform = ProjectionTransform(matrix * other.matrix)
 
     public inline operator fun invoke(point: Point): Vector3D = this(point.as3d())
 
@@ -101,9 +101,18 @@ public class ProjectionTransform internal constructor(@Internal public val matri
      * @param polygon that will be transformed
      * @return a polygon transformed by this object
      */
-    public operator fun invoke(polygon: ConvexPolygon): ConvexPolygon = when {
+    public open operator fun invoke(polygon: ConvexPolygon): ConvexPolygon = when {
         isIdentity -> polygon
-        else       -> this(points = polygon.points.toTypedArray()).let { ConvexPolygon(it[0].as2d(), it[1].as2d(), it[2].as2d(), *it.subList(3, it.size).map { it.as2d() }.toTypedArray()) }
+        else       -> polygon.points.map { matrix.homogeneous(it) }.let { initial ->
+            initial.map { (v, w) -> fromHomogeneous(v, w).as2d() }.let {
+                ConvexPolygon(
+                    it[0],
+                    it[1],
+                    it[2],
+                    *it.subList(3, it.size).toTypedArray()
+                )
+            }
+        }
     }
 
     override fun toString(): String = "$matrix"
@@ -154,18 +163,24 @@ public operator fun AffineTransform.times(transform: ProjectionTransform): Proje
 
 internal val SquareMatrix<Double>.is3d: Boolean get() = !isIdentity && numColumns > 3
 
-internal operator fun SquareMatrix<Double>.invoke(point: Vector3D): Vector3D = when {
-    isIdentity -> point
+internal operator fun SquareMatrix<Double>.invoke(point: Vector3D): Vector3D = homogeneous(point).let { (v, w) ->
+    fromHomogeneous(v, w)
+}
+
+private fun fromHomogeneous(homogeneous: Vector3D, w: Double) = when (w) {
+    0.0, 1.0 -> homogeneous
+    else     -> Vector3D(homogeneous.x / w, homogeneous.y / w, homogeneous.z / w)
+}
+
+internal fun SquareMatrix<Double>.homogeneous(point: Vector3D): Pair<Vector3D, Double> = when {
+    isIdentity -> point to 1.0
     else       -> {
         val list    = arrayOf(arrayOf(point.x), arrayOf(point.y), if (is3d) arrayOf(point.z) else arrayOf(1.0), arrayOf(1.0))
         val l: (Int, Int) -> Double = { row, col -> list[row][col] }
         val point_   = matrixOf(numRows, 1, l)
         val product = this * point_
 
-        when (val w = product[numRows - 1, 0]) {
-            1.0, 0.0 -> Vector3D(product[0, 0],     product[1, 0],     product[2, 0]    )
-            else     -> Vector3D(product[0, 0] / w, product[1, 0] / w, product[2, 0] / w)
-        }
+        Vector3D(product[0, 0],product[1, 0], product[2, 0]) to product[numRows - 1, 0]
     }
 }
 
