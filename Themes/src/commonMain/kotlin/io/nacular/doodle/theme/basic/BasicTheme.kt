@@ -883,18 +883,27 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public fun basicMenuBehavior(): Module = basicThemeModule(name = "BasicMenuBehavior") {
+        public fun basicMenuBehavior(
+            menuFillPaint            : Paint? = null,
+            itemTextPaint            : Paint? = null,
+            itemDisabledTextPaint    : Paint? = null,
+            subMenuIconPaint         : Paint? = null,
+            itemHighlightPaint       : Paint? = null,
+            itemTextSelectedPaint    : Paint? = null,
+            subMenuIconSelectedPaint : Paint? = null,
+            separatorPaint           : Paint? = null,
+        ): Module = basicThemeModule(name = "BasicMenuBehavior") {
             bindBehavior<Menu>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicMenuBehavior(instance(), instance(), config = Config(
-                        menuFillPaint            = this.backgroundColor.paint,
-                        itemTextPaint            = this.foregroundColor.paint,
-                        itemDisabledTextPaint    = this.disabledPaintMapper(this.foregroundColor.paint),
-                        subMenuIconPaint         = this.foregroundColor.paint,
-                        itemHighlightPaint       = this.selectionColor.paint,
-                        itemTextSelectedPaint    = White.paint,
-                        subMenuIconSelectedPaint = White.paint,
-                        separatorPaint           = this.darkBackgroundColor.paint,
+                        menuFillPaint            = menuFillPaint            ?: this.backgroundColor.paint,
+                        itemTextPaint            = itemTextPaint            ?: this.foregroundColor.paint,
+                        itemDisabledTextPaint    = itemDisabledTextPaint    ?: this.disabledPaintMapper(this.foregroundColor.paint),
+                        subMenuIconPaint         = subMenuIconPaint         ?: this.foregroundColor.paint,
+                        itemHighlightPaint       = itemHighlightPaint       ?: this.selectionColor.paint,
+                        itemTextSelectedPaint    = itemTextSelectedPaint    ?: White.paint,
+                        subMenuIconSelectedPaint = subMenuIconSelectedPaint ?: White.paint,
+                        separatorPaint           = separatorPaint           ?: this.darkBackgroundColor.paint,
                     ))
                 }
             }
