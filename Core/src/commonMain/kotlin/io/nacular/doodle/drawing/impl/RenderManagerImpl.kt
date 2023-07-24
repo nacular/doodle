@@ -73,6 +73,7 @@ public open class RenderManagerImpl(
     protected open val visibilityChanged  : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingBoundsChange: MutableSet<View>                   = fastMutableSetOf()
     protected open val popups             : MutableSet<View>                   = fastMutableSetOf()
+    protected open val livingViews        : MutableSet<View>                   = fastMutableSetOf()
 
     init {
         display.childrenChanged += { _, diffs ->
@@ -219,7 +220,8 @@ public open class RenderManagerImpl(
                 }
             }
 
-            views += view
+            views       += view
+            livingViews += view
 
             themeManager?.update(view)
 
@@ -420,6 +422,17 @@ public open class RenderManagerImpl(
     }
 
     private fun releaseResources(parent: View?, view: View) {
+        // Check if this view was "revived" since being marked
+        // for cleanup. Clear cleanup state for this parent
+        // if so.
+        if (view in livingViews) {
+            parent?.let {
+                pendingCleanup[parent]?.remove(view)
+            }
+
+            return
+        }
+
         if (view in views) {
             view.removedFromDisplay_()
 
@@ -435,6 +448,7 @@ public open class RenderManagerImpl(
 
             views               -= view
             dirtyViews          -= view
+            livingViews         -= view
             pendingLayout       -= view
             pendingBoundsChange -= view
 
@@ -533,7 +547,18 @@ public open class RenderManagerImpl(
         }
     }
 
+    private fun removeFromLiving(view: View) {
+        livingViews -= view
+
+        view.children_.forEach { removeFromLiving(it) }
+    }
+
     private fun childRemoved(parent: View?, child: View) {
+        // TODO: Consider whether to optimize this; maybe update view.displayed here and check in releaseResources
+        //  to see if it has been displayed again before cleaning up. Downside is that Views would be notified
+        //  that they are not in the display up to 1 frame before they are removed.
+        removeFromLiving(child)
+
         when {
             parent != null -> addToCleanupList(parent, child)
             else           -> releaseResources(parent, child)
