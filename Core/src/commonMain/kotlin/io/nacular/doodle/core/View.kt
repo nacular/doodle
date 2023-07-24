@@ -62,6 +62,7 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
+import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
@@ -244,6 +245,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The default is [Identity]
      */
     public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { old, new ->
+        resolvedTransformDirty = true
+
         boundingBox = getBoundingBox(bounds)
         renderManager?.transformChanged(this, old, new)
     }
@@ -254,7 +257,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
      */
-    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl) { old, new -> renderManager?.cameraChanged(this, old, new) }
+    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl) { old, new ->
+        resolvedTransformDirty = true
+
+        renderManager?.cameraChanged(this, old, new)
+    }
 
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set
@@ -299,7 +306,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Empty
 
     private val plane: Plane get() {
-        val rect = resolvedTransform.invoke(bounds.points.map { it.as3d() })
+        val rect = resolvedTransform(bounds.points)
         return Plane(rect[0], (rect[1] - rect[0]) cross (rect[2] - rect[1]))
     }
 
@@ -569,6 +576,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         private set(new) {
             if (field == new) return
 
+            resolvedTransformDirty = true
+
             field = new
 
             rerender()
@@ -811,14 +820,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public open fun toolTipText(`for`: PointerEvent): String = toolTipText
 
-    // TODO: Cache this?
-    private val resolvedTransform get() = when {
-        needsMirrorTransform -> transform.flipHorizontally(at = center.x)
-        else                 -> transform
-    }.let {
-        when {
-            it.is3d -> ((camera.projection * it).matrix)
-            else    -> it.matrix
+    private val resolvedTransform: SquareMatrix<Double> get() = calculateResolvedTransform().let { resolvedTransformBacking }
+
+    private          var resolvedTransformDirty = true
+    private lateinit var resolvedTransformBacking: SquareMatrix<Double>
+
+    private fun calculateResolvedTransform() {
+        if (!resolvedTransformDirty) return
+
+        resolvedTransformDirty = false
+
+        resolvedTransformBacking = when {
+            needsMirrorTransform -> transform.flipHorizontally(at = center.x)
+            else                 -> transform
+        }.let {
+            when {
+                it.is3d -> ((camera.projection * it).matrix)
+                else    -> it.matrix
+            }
         }
     }
 
@@ -890,7 +909,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    public fun toAbsolute(point: Point): Point = transform.invoke(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
+    public fun toAbsolute(point: Point): Point = resolvedTransform.invoke(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
@@ -902,7 +921,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             parent?.fromAbsolute (point) ?:
             display?.fromAbsolute(point) ?:
             point
-    ).let { transform.inverse?.invoke(toPlane(it))?.as2d() ?: it } - position
+    ).let { resolvedTransform.inverse?.invoke(toPlane(it))?.as2d() ?: it } - position
 
     /**
      * Checked by the focus system before the focus is moved from a View.  Returning `false` will prevent focus from
