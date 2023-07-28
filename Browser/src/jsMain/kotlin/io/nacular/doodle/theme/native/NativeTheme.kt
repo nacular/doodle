@@ -110,6 +110,7 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
                     instance(),
                     instanceOrNull(),
                     instance(),
+                    instanceOrNull(),
                     spellCheck)
             }
             bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(instance()) }

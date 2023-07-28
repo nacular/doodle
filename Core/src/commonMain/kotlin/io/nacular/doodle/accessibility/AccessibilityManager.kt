@@ -133,6 +133,11 @@ public class TreeItemRole: AccessibilityRole() {
 
     /** Expanded state of this item (if it has descendants) */
     public var expanded: Boolean by roleProperty(false)
+
+    /**
+     * Selected state of this item
+     */
+    public var selected: Boolean by roleProperty(false)
 }
 
 /** A View that allows text entry. */

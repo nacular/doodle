@@ -39,9 +39,7 @@ internal class AccessibilityManagerImpl(
                 else   -> targetId    = id(target)
             }
 
-            if (sourceReady && targetId != null) {
-                root(source).updateAttribute(propertyName, targetId)
-            }
+            update()
         }
 
         private val displayChanged: (View, Boolean, Boolean) -> Unit = { view,_,displayed ->
@@ -57,7 +55,7 @@ internal class AccessibilityManagerImpl(
                 if (field != new) {
                     field = new
                     if (field == null && sourceReady) {
-                        root(this.source).updateAttribute(propertyName, null)
+                        deleteRelationship()
                     }
                 }
             }
@@ -69,9 +67,7 @@ internal class AccessibilityManagerImpl(
             target.firstRender   += firstRender
             target.displayChange += displayChanged
 
-            if (sourceReady && targetId != null) {
-                root(source).updateAttribute(propertyName, targetId)
-            }
+            update()
         }
 
         fun delete() {
@@ -82,8 +78,20 @@ internal class AccessibilityManagerImpl(
             target.displayChange -= displayChanged
 
             if (sourceReady) {
-                root(source).updateAttribute(propertyName, null)
+                deleteRelationship()
             }
+        }
+
+        private fun update() {
+            if (sourceReady && targetId != null) {
+                root(source).updateAttribute(propertyName, targetId)
+                nativeElementLinks[source]?.updateAttribute(propertyName, targetId)
+            }
+        }
+
+        private fun deleteRelationship() {
+            root(this.source).updateAttribute(propertyName, null)
+            nativeElementLinks[source]?.updateAttribute(propertyName, null)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -134,7 +142,7 @@ internal class AccessibilityManagerImpl(
     override fun syncDescription(view: View) = syncDescription(view, root(view))
 
     override fun syncNextReadOrder(view: View) {
-        updateRelationship(view, view.nextInAccessibleReadOrder, "aria-flowto")
+        updateRelationship(view, view.nextInAccessibleReadOrder, ARIA_FLOW_TO)
     }
 
     override fun roleAdopted(view: View) {
@@ -162,11 +170,11 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun addOwnership(owner: View, owned: View) {
-        updateRelationship(owner, owned, "aria-controls")
+        updateRelationship(owner, owned, ARIA_CONTROLS)
     }
 
     override fun removeOwnership(owner: View, owned: View) {
-        updateRelationship(owner, null, "aria-controls")
+        updateRelationship(owner, null, ARIA_CONTROLS)
     }
 
     override fun invoke(keyState: KeyState, target: EventTarget?): KeyResponse {
@@ -205,6 +213,21 @@ internal class AccessibilityManagerImpl(
         }
 
         return false
+    }
+
+    private val nativeElementLinks = mutableMapOf<View, HTMLElement>()
+
+    internal fun linkNativeElement(source: View, root: HTMLElement) {
+        // FIXME: Handle case where IdRelationship already exists
+        nativeElementLinks[source] = root
+    }
+
+    internal fun unlinkNativeElement(source: View, root: HTMLElement) {
+        val existing = nativeElementLinks[source]
+
+        if (existing == root) {
+            nativeElementLinks -= source
+        }
     }
 
     private fun updateRelationship(source: View, target: View?, name: String) {
@@ -255,26 +278,26 @@ internal class AccessibilityManagerImpl(
         val provider = view.accessibilityLabelProvider
 
         if (provider == null) {
-            root.updateAttribute("aria-label", view.accessibilityLabel)
+            root.updateAttribute(ARIA_LABEL, view.accessibilityLabel)
         }
 
         // will clear field when provider is null
-        updateRelationship(view, provider, "aria-labelledby")
+        updateRelationship(view, provider, ARIA_LABELED_BY)
     }
 
     private fun syncDescription(view: View, @Suppress("UNUSED_PARAMETER") root: HTMLElement) {
         val provider = view.accessibilityDescriptionProvider
 
         // will clear field when provider is null
-        updateRelationship(view, provider, "aria-describedby")
+        updateRelationship(view, provider, ARIA_DESCRIBED_BY)
     }
 
     private fun syncEnabled(view: View, root: HTMLElement) {
-        root.updateAttribute("aria-disabled", if (view.enabled) null else true)
+        root.updateAttribute(ARIA_DISABLED, if (view.enabled) null else true)
     }
 
     private fun syncVisibility(view: View, root: HTMLElement) {
-        root.updateAttribute("aria-hidden", if (view.visible) null else true)
+        root.updateAttribute(ARIA_HIDDEN, if (view.visible) null else true)
     }
 
     private fun <T> HTMLElement.updateAttribute(name: String, value: T?) {
@@ -288,26 +311,31 @@ internal class AccessibilityManagerImpl(
         viewRoot.apply {
             when (role) {
                 is RangeRole -> {
-                    updateAttribute("aria-valuenow",  role.value    )
-                    updateAttribute("aria-valuemin",  role.min      )
-                    updateAttribute("aria-valuemax",  role.max      )
-                    updateAttribute("aria-valuetext", role.valueText)
+                    updateAttribute(ARIA_VALUE_NOW,  role.value    )
+                    updateAttribute(ARIA_VALUE_MIN,  role.min      )
+                    updateAttribute(ARIA_VALUE_MAX,  role.max      )
+                    updateAttribute(ARIA_VALUE_TEXT, role.valueText)
                 }
-                is RadioRole    -> updateAttribute("aria-checked", role.pressed)
-                is SwitchRole   -> updateAttribute("aria-checked", role.pressed)
-                is CheckBoxRole -> updateAttribute("aria-checked", role.pressed)
-                is ToggleButtonRole -> updateAttribute("aria-pressed", role.pressed)
+                is RadioRole        -> updateAttribute(ARIA_CHECKED, role.pressed)
+                is SwitchRole       -> updateAttribute(ARIA_CHECKED, role.pressed)
+                is CheckBoxRole     -> updateAttribute(ARIA_CHECKED, role.pressed)
+                is ToggleButtonRole -> updateAttribute(ARIA_PRESSED, role.pressed)
                 is ListItemRole -> {
-                    updateAttribute("aria-setsize",  role.listSize)
-                    updateAttribute("aria-posinset", role.index?.plus(1))
+                    updateAttribute(ARIA_SET_SIZE,     role.listSize)
+                    updateAttribute(ARIA_POINT_IN_SET, role.index?.plus(1))
+                }
+                is TreeRole -> {
+                    updateAttribute(ARIA_MULTISELECTABLE, "true")
                 }
                 is TreeItemRole -> {
-                    updateAttribute("aria-setsize",  role.treeSize)
-                    updateAttribute("aria-posinset", role.index?.plus(1))
-                    updateAttribute("aria-level",    role.depth)
+                    updateAttribute(ARIA_LEVEL,        role.depth + 1     )
+                    updateAttribute(ARIA_SET_SIZE,     role.treeSize      )
+                    updateAttribute(ARIA_EXPANDED,     role.expanded      )
+                    updateAttribute(ARIA_SELECTED,     role.selected      )
+                    updateAttribute(ARIA_POINT_IN_SET, role.index?.plus(1))
                 }
-                is TextBoxRole -> updateAttribute("aria-placeholder", role.placeHolder?.takeIf { it.isNotBlank() })
-                is TabRole     -> updateAttribute("aria-selected",    role.selected)
+                is TextBoxRole -> updateAttribute(ARIA_PLACEHOLDER, role.placeHolder?.takeIf { it.isNotBlank() })
+                is TabRole     -> updateAttribute(ARIA_SELECTED,    role.selected)
                 is TabListRole -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
@@ -315,7 +343,7 @@ internal class AccessibilityManagerImpl(
             }
 
             when (role) {
-                is SliderRole -> updateAttribute("aria-orientation", role.orientation?.name?.lowercase())
+                is SliderRole -> updateAttribute(ARIA_ORIENTATION, role.orientation?.name?.lowercase())
                 else          -> {}
             }
         }
@@ -325,5 +353,29 @@ internal class AccessibilityManagerImpl(
     private fun view(target: EventTarget?) = when (target) {
         is HTMLElement -> elementToView[target]
         else           -> null
+    }
+
+    companion object {
+        private const val ARIA_LABEL           = "aria-label"
+        private const val ARIA_LEVEL           = "aria-level"
+        private const val ARIA_HIDDEN          = "aria-hidden"
+        private const val ARIA_CHECKED         = "aria-checked"
+        private const val ARIA_FLOW_TO         = "aria-flowto"
+        private const val ARIA_PRESSED         = "aria-pressed"
+        private const val ARIA_EXPANDED        = "aria-expanded"
+        private const val ARIA_SELECTED        = "aria-selected"
+        private const val ARIA_DISABLED        = "aria-disabled"
+        private const val ARIA_CONTROLS        = "aria-controls"
+        private const val ARIA_SET_SIZE        = "aria-setsize"
+        private const val ARIA_VALUE_NOW       = "aria-valuenow"
+        private const val ARIA_VALUE_MIN       = "aria-valuemin"
+        private const val ARIA_VALUE_MAX       = "aria-valuemax"
+        private const val ARIA_VALUE_TEXT      = "aria-valuetext"
+        private const val ARIA_LABELED_BY      = "aria-labelledby"
+        private const val ARIA_ORIENTATION     = "aria-orientation"
+        private const val ARIA_PLACEHOLDER     = "aria-placeholder"
+        private const val ARIA_POINT_IN_SET    = "aria-posinset"
+        private const val ARIA_DESCRIBED_BY    = "aria-describedby"
+        private const val ARIA_MULTISELECTABLE = "aria-multiselectable"
     }
 }
