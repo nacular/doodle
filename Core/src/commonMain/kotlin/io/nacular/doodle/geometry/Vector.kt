@@ -344,9 +344,8 @@ internal class VectorImpl(override val x: Double = 0.0, override val y: Double =
 
         if (x != other.x) return false
         if (y != other.y) return false
-        if (z != other.z) return false
 
-        return true
+        return z == other.z
     }
 
     override fun hashCode(): Int {
