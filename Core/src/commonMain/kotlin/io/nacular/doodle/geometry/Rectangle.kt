@@ -300,3 +300,11 @@ public fun Rectangle.with(width: Double = this.width, height: Double = this.heig
  * @param size the new Rectangle should have
  */
 public fun Rectangle.with(size: Size): Rectangle = Rectangle(x, y, size.width, size.height)
+
+/**
+ * Interpolates between 2 [Rectangle]s
+ */
+public fun lerp(first: Rectangle, second: Rectangle, fraction: Float): Rectangle = Rectangle(
+    position = lerp(first.position, second.position, fraction),
+    size     = lerp(first.size, second.size, fraction)
+)
