@@ -59,10 +59,7 @@ internal fun Style.setTextAlignment(alignment: TextAlignment?) {
 }
 
 internal fun Style.setLineHeight(value: Float) {
-    lineHeight = when {
-        value != 1f -> "$value"
-        else        -> ""
-    }
+    lineHeight = "$value"
 }
 
 internal fun Style.setTextSpacing(textSpacing: TextSpacing) {
