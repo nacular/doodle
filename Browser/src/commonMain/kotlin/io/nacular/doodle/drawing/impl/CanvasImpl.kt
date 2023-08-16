@@ -453,7 +453,9 @@ internal open class CanvasImpl(
                     element.style.filter += "drop-shadow($shadow)"
                     if (useShadowHack) {
                         element.style.willChange = "filter" // FIXME: This is a hack to avoid issues on Safari
-                        element.style.setOverflow(Visible())
+                        if (shadows.size > 1) {
+                            element.style.setOverflow(Visible())
+                        }
                     }
                 }
             }
