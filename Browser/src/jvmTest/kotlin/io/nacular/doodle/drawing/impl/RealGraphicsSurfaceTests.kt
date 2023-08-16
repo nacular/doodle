@@ -232,6 +232,49 @@ class RealGraphicsSurfaceTests {
         )) { parent.rootElement.children.toList().drop(1) }
     }
 
+    @Test fun `adding zOrder 0 works if previous updated first`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val firstChild = createSurface(root, parent).also {
+            it.surface.index = 0
+        }
+
+        firstChild.surface.zOrder = 1
+
+        val secondChild = createSurface(root, parent).also {
+            it.surface.index = 1
+        }
+
+        secondChild.surface.zOrder = 0
+
+        expect(listOf(
+            secondChild.root,
+            firstChild.root,
+        )) { parent.rootElement.children.toList().drop(1) }
+    }
+
+    @Test fun `adding zOrder 0 works if previous updated last`() {
+        val root   = createHtmlElement()
+        val parent = createSurface(root).surface
+
+        val firstChild = createSurface(root, parent).also {
+            it.surface.index = 0
+        }
+
+        val secondChild = createSurface(root, parent).also {
+            it.surface.index = 1
+        }
+
+        secondChild.surface.zOrder = 0
+        firstChild.surface.zOrder  = 1
+
+        expect(listOf(
+            secondChild.root,
+            firstChild.root,
+        )) { parent.rootElement.children.toList().drop(1) }
+    }
+
     @Test fun `popups always on top`() {
         val root = createHtmlElement()
 

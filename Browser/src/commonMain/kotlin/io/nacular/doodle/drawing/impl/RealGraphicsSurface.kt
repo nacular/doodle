@@ -460,7 +460,7 @@ internal class RealGraphicsSurface private constructor(
     }
 
     private fun setIndex(child: RealGraphicsSurface, index: Int, shift: Boolean) {
-        if (child.rootElement.parentNode == rootElement) {
+        if (child.rootElement.parentNode == childrenElement) {
             if (shift) {
                 val currentIndex = children.indexOf(child)
 
@@ -480,7 +480,7 @@ internal class RealGraphicsSurface private constructor(
             }
 
             childrenElement.remove(child.rootElement)
-            childrenElement.insert(child.rootElement, indexStart + index)
+            childrenElement.insert(child.rootElement, if (childrenElement == rootElement) indexStart + index else index)
             internalIndex = index
         }
     }
