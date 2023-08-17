@@ -42,6 +42,9 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
     /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
     public constructor(width: Double, height: Double = width): this(Origin, Size(width, height))
 
+    /** Creates a Rectangle at the [Origin]: `[0, 0, size.width, size.height]` */
+    public constructor(size: Size): this(Origin, size)
+
     /** Creates a Rectangle */
     public constructor(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): this(Point(x, y), Size(width, height))
 
