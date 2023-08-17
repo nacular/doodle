@@ -37,6 +37,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
+import kotlin.math.max
 import kotlin.math.min
 
 // TODO: provide different elements (i.e. HTMLButtonElement) based on type of View?
@@ -86,7 +87,7 @@ internal class RealGraphicsSurface private constructor(
     }
 
     private fun shiftIndex(delta: Int) {
-        internalIndex += delta
+        internalIndex = max(0, internalIndex + delta)
     }
 
     // FIXME: popups will have negative index, so use that fact for now to differentiate
