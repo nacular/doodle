@@ -6,7 +6,7 @@ kodeinVersion     = { strictly = "7.16.0" }
 kotlinVersion     = { strictly = "1.7.21" }
 jupiterVersion    = { strictly = "5.9.1"  }
 logbackVersion    = { strictly = "1.4.7"  }
-measuredVersion   = { strictly = "0.3.2"  }
+measuredVersion   = { strictly = "0.3.3"  }
 dateTimeVersion   = { strictly = "0.4.0"  }
 coroutinesVersion = { strictly = "1.6.4"  }
 dokkaVersion      = { strictly = "1.8.10" }
