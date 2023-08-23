@@ -54,7 +54,7 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
-import io.nacular.doodle.utils.Anchor
+import io.nacular.doodle.utils.Anchor.Right
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Pool
@@ -66,15 +66,16 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 9/9/21.
  */
 public class BasicDropdownBehavior<T, M: ListModel<T>>(
-        private val display            : Display,
-        private val textMetrics        : TextMetrics,
-        private val backgroundColor    : Color,
-        private val darkBackgroundColor: Color,
-        private val foregroundColor    : Color,
-        private val cornerRadius       : Double,
-        private val buttonWidth        : Double = 20.0,
-        private val focusManager       : FocusManager? = null,
-        private val popupManager       : PopupManager? = null,
+    private val display            : Display,
+    private val textMetrics        : TextMetrics,
+    private val backgroundColor    : Color,
+    private val darkBackgroundColor: Color,
+    private val foregroundColor    : Color,
+    private val cornerRadius       : Double,
+    private val buttonWidth        : Double        = 20.0,
+    private val focusManager       : FocusManager? = null,
+    private val popupManager       : PopupManager? = null,
+    private val buttonA11yLabel    : String?       = null,
 ): DropdownBehavior<T, M>, PointerListener, KeyListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
@@ -131,7 +132,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         override fun install(view: Button) {
             view.icon       = ButtonIcon { colors(it).fillColor }
-            view.iconAnchor = Anchor.Right
+            view.iconAnchor = Right
 
             super.install(view)
         }
@@ -304,11 +305,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         val center = Container().apply { focusable = false }
         val button = PushButton().apply {
-            focusable     = false
-            iconAnchor    = Anchor.Leading
-            acceptsThemes = false
-            behavior      = ButtonBehavior()
-            enabled       = !view.isEmpty
+            enabled            = !view.isEmpty
+            behavior           = ButtonBehavior()
+            focusable          = false
+            acceptsThemes      = false
+            accessibilityLabel = buttonA11yLabel
 
             fired += {
                 showList(view)

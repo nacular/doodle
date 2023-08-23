@@ -21,27 +21,29 @@ import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior.Companion.IN
 import io.nacular.doodle.utils.Encoder
 
 public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
-        display            : Display,
-        textMetrics        : TextMetrics,
-        backgroundColor    : Color,
-        darkBackgroundColor: Color,
-        foregroundColor    : Color,
-        cornerRadius       : Double,
-        buttonWidth        : Double,
-        focusManager       : FocusManager? = null,
-        popupManager       : PopupManager? = null
+    display            : Display,
+    textMetrics        : TextMetrics,
+    backgroundColor    : Color,
+    darkBackgroundColor: Color,
+    foregroundColor    : Color,
+    cornerRadius       : Double,
+    buttonWidth        : Double,
+    focusManager       : FocusManager? = null,
+    popupManager       : PopupManager? = null,
+    buttonA11yLabel    : String?       = null,
 ): MutableDropdownBehavior<T, M>(), PointerListener {
 
     private val delegate = BasicDropdownBehavior<T, M>(
-            display,
-            textMetrics,
-            backgroundColor,
-            darkBackgroundColor,
-            foregroundColor,
-            cornerRadius,
-            buttonWidth,
-            focusManager,
-            popupManager,
+        display,
+        textMetrics,
+        backgroundColor,
+        darkBackgroundColor,
+        foregroundColor,
+        cornerRadius,
+        buttonWidth,
+        focusManager,
+        popupManager,
+        buttonA11yLabel,
     ).apply {
         buttonAlignment = {
             it.top    eq 0
