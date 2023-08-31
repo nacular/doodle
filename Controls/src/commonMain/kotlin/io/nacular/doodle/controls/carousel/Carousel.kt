@@ -274,14 +274,12 @@ public open class Carousel<T, M: ListModel<T>>(
     private var previousVirtualSelection: Int   = 0
 
     private var moveOffset                   = Origin
-    private val moveOffsets                  = mutableListOf<Vector2D>()
     private var ignoreCleanup                = false
     private var firstManualMove              = true
     private var nextFrameOffset              = moveOffset
     private var moveEndAnimating             = false
     private var offsetWithinFrame            = Origin
     private var previousFrameOffset          = moveOffset
-    private var directionAtMoveStart         = null as Vector2D?
     private var informedBehaviorOfMove       = false
     private var ignoreChildBoundsChanges     = false
     private var offsetWithinFrameAtMoveStart = Origin
@@ -291,13 +289,11 @@ public open class Carousel<T, M: ListModel<T>>(
         if (new) {
             firstManualMove              = !field
             moveEndAnimating             = false
-            directionAtMoveStart         = null
+            previousFrameOffset          = Origin
             informedBehaviorOfMove       = false
             previousVirtualSelection     = floor(trueVirtualIndex).toInt()
             offsetWithinFrameAtMoveStart = offsetWithinFrame
             currentFrameOffsetDuringMove = nearestIndex
-
-            moveOffsets.clear()
 
             ignoreCleanup = true
             animation?.cancel()
@@ -410,7 +406,7 @@ public open class Carousel<T, M: ListModel<T>>(
             loop@ while (true) {
                 ignoreChildBoundsChanges = true
 
-                offsetWithinFrame = moveOffset - (moveOffsets.lastOrNull() ?: Vector2D())
+                offsetWithinFrame = moveOffset - previousFrameOffset
                 val toNextFrame   = presenter.pathToNext(this, PositionImpl(nearestIndex), offsetWithinFrame) { position ->
                     model[position.index].getOrNull()?.let {
                         val dataChild = getItem(position.index, it, progressToTarget)
@@ -423,12 +419,13 @@ public open class Carousel<T, M: ListModel<T>>(
                 ignoreChildBoundsChanges = false
 
                 val nextFrameDirection = toNextFrame.direction.normalize().as2d()
+                val nextFrameVector    = toNextFrame.magnitude * nextFrameDirection
 
                 val pushFrame = {
-                    moveOffsets += (when {
-                        frameAdjust < 0 -> -1
-                        else            ->  1
-                    }) * toNextFrame.magnitude * nextFrameDirection + (moveOffsets.lastOrNull() ?: Vector2D())
+                    when {
+                        frameAdjust < 0 -> previousFrameOffset -= nextFrameVector
+                        else            -> previousFrameOffset += nextFrameVector
+                    }
                 }
 
                 val progressToNextFrame = (offsetWithinFrame * nextFrameDirection).let {
@@ -441,25 +438,16 @@ public open class Carousel<T, M: ListModel<T>>(
                     }
                 }
 
-                val frameOffsetDirection = (moveOffset * nextFrameDirection * nextFrameDirection).normalize().as2d()
-
                 if (firstManualMove && progressToNextFrame == 0.0 || toNextFrame.magnitude == 0.0 && progressToNextFrame >= 0.0) {
                     break@loop
                 }
-
-                if (directionAtMoveStart == null) {
-                    directionAtMoveStart = frameOffsetDirection
-                }
-
-                var directionChanged = directionAtMoveStart != frameOffsetDirection
 
                 val fractionToNextFrame = when {
                     toNextFrame.magnitude > 0 -> progressToNextFrame / toNextFrame.magnitude
                     else                      -> -1.0
                 }
 
-                previousFrameOffset = moveOffsets.lastOrNull() ?: Vector2D()
-                nextFrameOffset     = previousFrameOffset + toNextFrame.magnitude * nextFrameDirection
+                nextFrameOffset = previousFrameOffset + nextFrameVector
 
                 frameAdjust = when {
                     fractionToNextFrame < 0 -> -1
@@ -499,17 +487,6 @@ public open class Carousel<T, M: ListModel<T>>(
                         result = false
                     } else {
                         progressToTarget = 0f
-
-                        if (moveOffsets.isEmpty() && directionChanged) {
-                            // update direction of move
-                            directionAtMoveStart = frameOffsetDirection
-                            directionChanged     = false
-                        }
-
-                        when {
-                            moveForward      -> pushFrame()
-                            directionChanged -> moveOffsets.removeLastOrNull()
-                        }
                     }
 
                     result
@@ -524,6 +501,8 @@ public open class Carousel<T, M: ListModel<T>>(
                         trueVirtualIndex = index(relativeTo = nearestIndex, offset = 1, stopAtEndsIfCannotWrap = true)?.toFloat() ?: break
 
                         ++currentFrameOffsetDuringMove
+
+                        pushFrame()
                     }
                     frameAdjust == -1 -> {
                         if (!adjustFrame(if (targetVirtualSelection - previousVirtualSelection == 1) -2 else -1)) {
@@ -720,12 +699,12 @@ public open class Carousel<T, M: ListModel<T>>(
     private fun previousIndex(before: Int): Int? = index(before, offset = -1, false)
 
     private fun stopManualMove() {
-        moveOffset        = Vector2D()
-        manuallyMoving    = false
-        moveEndAnimating  = false
-        moveEndAnimation  = null
-        offsetWithinFrame = Vector2D()
-        moveOffsets.clear()
+        moveOffset          = Origin
+        manuallyMoving      = false
+        moveEndAnimating    = false
+        moveEndAnimation    = null
+        offsetWithinFrame   = Origin
+        previousFrameOffset = Origin
     }
 
     private fun cleanUpMove() {
