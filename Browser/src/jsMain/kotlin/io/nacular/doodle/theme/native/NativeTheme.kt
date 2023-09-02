@@ -97,7 +97,7 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
             bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
         }
 
-        public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
+        public fun nativeTextFieldBehavior(spellCheck: Boolean = false, autoComplete: Boolean = true): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeTextFieldFactory> {
@@ -111,7 +111,8 @@ public class NativeTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(be
                     instanceOrNull(),
                     instance(),
                     instanceOrNull(),
-                    spellCheck)
+                    spellCheck,
+                    autoComplete)
             }
             bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(instance()) }
 

@@ -25,6 +25,7 @@ internal actual var CSSStyleDeclaration.scrollBehavior         : String by Dynam
 internal actual var CSSStyleDeclaration.textDecorationThickness: String by DynamicProperty("text-decoration-thickness") { "" }
 internal actual var CSSStyleDeclaration.touchAction            : String by DynamicProperty("touch-action"             ) { "" }
 internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
+internal actual var CSSStyleDeclaration.caretColor             : String by DynamicProperty("caret-color"              ) { "" }
 
 internal actual typealias CanvasRenderingContext2D = org.w3c.dom.CanvasRenderingContext2D
 

@@ -88,6 +88,7 @@ internal expect var CSSStyleDeclaration.textDecorationThickness: String
 
 internal expect var CSSStyleDeclaration.touchAction            : String
 internal expect var CSSStyleDeclaration._webkit_appearance     : String
+internal expect var CSSStyleDeclaration.caretColor             : String
 
 public expect abstract class CanvasRenderingContext2D
 
