@@ -817,6 +817,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             cornerRadius       : Double? = null,
             buttonWidth        : Double? = null,
             buttonA11yLabel    : String? = null,
+            inset              : Double? = null,
         ): Module = basicThemeModule(name = "BasicDropdownBehavior") {
             bindBehavior<Dropdown<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -830,7 +831,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
                         buttonA11yLabel     = buttonA11yLabel,
-                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor
+                        darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                        inset               = inset               ?: 4.0,
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
@@ -846,6 +848,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             cornerRadius       : Double? = null,
             buttonWidth        : Double? = null,
             buttonA11yLabel    : String? = null,
+            inset              : Double? = null,
         ): Module = basicThemeModule(name = "BasicMutableDropdownBehavior") {
             bindBehavior<MutableDropdown<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -859,7 +862,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
-                        buttonA11yLabel     = buttonA11yLabel
+                        buttonA11yLabel     = buttonA11yLabel,
+                        inset               = inset               ?: 4.0,
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper

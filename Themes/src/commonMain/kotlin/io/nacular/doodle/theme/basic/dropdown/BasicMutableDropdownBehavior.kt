@@ -17,7 +17,6 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
-import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior.Companion.INSET
 import io.nacular.doodle.utils.Encoder
 
 public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
@@ -31,6 +30,7 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
     focusManager       : FocusManager? = null,
     popupManager       : PopupManager? = null,
     buttonA11yLabel    : String?       = null,
+    inset              : Double        = 4.0,
 ): MutableDropdownBehavior<T, M>(), PointerListener {
 
     private val delegate = BasicDropdownBehavior<T, M>(
@@ -49,7 +49,7 @@ public class BasicMutableDropdownBehavior<T, M: MutableListModel<T>>(
             it.top    eq 0
             it.right  eq parent.right
             it.bottom eq parent.bottom
-            it.width  eq buttonWidth + INSET
+            it.width  eq buttonWidth + inset
         }
         centerChanged += { dropdown, old, new ->
             (dropdown as? MutableDropdown<T, M>)?.let {
