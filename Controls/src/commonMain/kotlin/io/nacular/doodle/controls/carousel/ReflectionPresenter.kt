@@ -30,12 +30,12 @@ public class ReflectionPresenter<T>(
         }
     }
 
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item                     : (at: Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (at: Position) -> PresentedItem?
     ): Presentation {
         val floor              = mutableListOf<View>()
         val results            = mutableListOf<PresentedItem>()
@@ -50,9 +50,9 @@ public class ReflectionPresenter<T>(
         )
         val viewRect = Rectangle(size = carousel.size)
 
-        item(position)?.apply {
+        items(position)?.apply {
             results += this
-            setBounds(this) { boundsFromConstraint(this, carousel.size) }
+            setBounds(this, carousel.size)
             transform = globalTransform
 
             if (x < 0 || y < 0 || bounds.right > carousel.width || bounds.bottom > carousel.height) {
@@ -60,7 +60,7 @@ public class ReflectionPresenter<T>(
             }
         }?.let { current ->
             if (progressToNext != 0f) {
-                reflection(carousel, current, position, item)?.also {
+                reflection(carousel, current, position, items)?.also {
                     results += it
 
                     if (current.clipPath != null) {
@@ -69,16 +69,16 @@ public class ReflectionPresenter<T>(
                 }
 
                 position.next?.let { nextPosition ->
-                    item(nextPosition)?.apply {
+                    items(nextPosition)?.apply {
                         results += this
-                        setBounds(this) { boundsFromConstraint(this, carousel.size).run { at(x = x + carousel.width) } }
+                        setBounds(this, carousel.size) { it.run { at(x = x + carousel.width) } }
                         transform = globalTransform * Identity.rotateY(around = Point(carousel.width, 0), -_90)
 
                         if (x < carousel.width || y < 0 || bounds.right > 2 * carousel.width || bounds.bottom > carousel.height) {
                             clipPath = PolyClipPath((globalCamera.projection * transform)(viewRect.at(x = carousel.width)))
                         }
 
-                        reflection(carousel, this, nextPosition, item)?.also { reflection ->
+                        reflection(carousel, this, nextPosition, items)?.also { reflection ->
                             results += reflection
 
                             if (clipPath != null) {
@@ -88,7 +88,7 @@ public class ReflectionPresenter<T>(
                     }
                 }
 
-                getExistingFloor(existingSupplementalViews, 0).apply {
+                getExistingFloor(supplementalViews, 0).apply {
                     floor    += this
                     bounds    = Rectangle(0.0, carousel.height, carousel.width, carousel.width)
                     camera    = globalCamera
@@ -100,12 +100,12 @@ public class ReflectionPresenter<T>(
         return Presentation(results.onEach { it.camera = globalCamera }, floor)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo = NextInfo(Vector2D(x = 1), carousel.width)
+        items   : (Position) -> PresentedItem?
+    ): Distance = Distance(Vector2D(x = 1), carousel.width)
 
     private fun reflection(carousel: Carousel<T, *>, source: PresentedItem, position: Position, items: (at: Position) -> PresentedItem?): PresentedItem? = items(position)?.apply {
         bounds    = source.bounds

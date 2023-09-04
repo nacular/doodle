@@ -20,20 +20,20 @@ public class FlipPresenter<T>(
     private val camera         : (viewPort: Size) -> Camera = { Camera(Point(it.width / 2, it.height / 2), 1000.0) },
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill
 ): ConstraintBasedPresenter<T>(itemConstraints) {
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item              : (Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
         val globalCamera = camera(carousel.size)
         var faceUp       = true
 
-        item(position)?.apply {
-            setBounds(this) { boundsFromConstraint(this, carousel.size) }
+        items(position)?.apply {
+            setBounds(this, carousel.size)
 
             camera    = globalCamera
             transform = when (orientation) {
@@ -51,8 +51,8 @@ public class FlipPresenter<T>(
         }
 
         if (!faceUp) {
-            position.next?.let(item)?.apply {
-                setBounds(this) { boundsFromConstraint(this, carousel.size) }
+            position.next?.let(items)?.apply {
+                setBounds(this, carousel.size)
                 camera    = globalCamera
                 transform = when (orientation) {
                     Horizontal -> Identity.flipHorizontally(at = bounds.center.x).rotateY(bounds.center,  _180 * progressToNext)
@@ -66,13 +66,13 @@ public class FlipPresenter<T>(
         return Presentation(items = results)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo = when (orientation) {
-        Horizontal -> NextInfo(Vector2D(x = 1), carousel.width )
-        else       -> NextInfo(Vector2D(y = 1), carousel.height)
+        items   : (Position) -> PresentedItem?
+    ): Distance = when (orientation) {
+        Horizontal -> Distance(Vector2D(x = 1), carousel.width )
+        else       -> Distance(Vector2D(y = 1), carousel.height)
     }
 }

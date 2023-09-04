@@ -982,7 +982,8 @@ public class Constrainer {
         fakeView.minimumSize = minimumSize
         fakeView.idealSize   = idealSize
 
-        if (within.size != parentSize || this.using != using) {
+        if (forceSetup || within.size != parentSize || this.using != using) {
+            this.using     = using
             parentSize     = within.size
             context.parent = ImmutableSizeBounds(widthProperty = parentSize::width, heightProperty = parentSize::height, context)
             setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }

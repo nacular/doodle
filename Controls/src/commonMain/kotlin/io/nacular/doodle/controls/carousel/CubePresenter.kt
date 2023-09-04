@@ -50,22 +50,22 @@ public class CubePresenter<T>(
         override var transform by presentedItem::transform
     }
 
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item              : (Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (Position) -> PresentedItem?
     ): Presentation {
-        val results           = mutableListOf<PresentedItem>()
-        val globalCamera      = camera(carousel.size)
-        val supplementalViews = mutableListOf<View>()
+        val results              = mutableListOf<PresentedItem>()
+        val globalCamera         = camera(carousel.size)
+        val newSupplementalViews = mutableListOf<View>().apply { this += supplementalViews }
 
-        val currentItem = (item(position) ?: position.next?.let(item))?.apply {
-            setBounds(this) { boundsFromConstraint(this, carousel.size) }
+        val currentItem = (items(position) ?: position.next?.let(items))?.apply {
+            setBounds(this, carousel.size)
 
             results += this
-        } ?: return Presentation(items = results, supplementalViews)
+        } ?: return Presentation(items = results, newSupplementalViews)
 
         val capLocation = when {
             orientation == Horizontal && globalCamera.position.y < currentItem.y             -> Top
@@ -76,7 +76,7 @@ public class CubePresenter<T>(
         }
 
         val cap = capLocation?.let {
-            getExistingCap(existingSupplementalViews, 0).apply {
+            getExistingCap(newSupplementalViews, 0).apply {
                 camera    = globalCamera
                 zOrder    = 3 // cap is always rendered above all other views
                 transform = when (capLocation) {
@@ -92,11 +92,11 @@ public class CubePresenter<T>(
             (orientation == Horizontal && globalCamera.position.x < currentItem.x) ||
             (orientation == Vertical   && globalCamera.position.y < currentItem.y)) {
 
-            position.previous?.let(item)?.let { previousItem ->
+            position.previous?.let(items)?.let { previousItem ->
                 results += previousItem
 
-                setBounds(previousItem) {
-                    boundsFromConstraint(previousItem, carousel.size).run {
+                setBounds(previousItem, carousel.size) {
+                    it.run {
                         when (orientation) {
                             Horizontal -> at(x = currentItem.x - width )
                             else       -> at(y = currentItem.y - height)
@@ -111,7 +111,7 @@ public class CubePresenter<T>(
                 }
 
                 StageVisualItem(previousItem)
-            } ?: getExistingCap(existingSupplementalViews, 1).also {
+            } ?: getExistingCap(newSupplementalViews, 1).also {
                 it.bounds = currentItem.bounds.run {
                     when (orientation) {
                         Horizontal -> at(x = currentItem.x - width )
@@ -129,11 +129,11 @@ public class CubePresenter<T>(
 
         var subsequentItem: VisualItem? = null
 
-        when (val next = position.next?.let(item)) {
+        when (val next = position.next?.let(items)) {
             null -> {
                 currentItem.transform = Identity
 
-                subsequentItem = getExistingCap(existingSupplementalViews, 1).also {
+                subsequentItem = getExistingCap(newSupplementalViews, 1).also {
                     it.bounds = currentItem.bounds.run {
                         when (orientation) {
                             Horizontal -> at(x = currentItem.bounds.right )
@@ -163,8 +163,8 @@ public class CubePresenter<T>(
             else -> next.also { nextItem ->
                 results += nextItem
 
-                setBounds(nextItem) {
-                    boundsFromConstraint(nextItem, carousel.size).run {
+                setBounds(nextItem, carousel.size) {
+                    it.run {
                         when (orientation) {
                             Horizontal -> at(x = currentItem.bounds.right )
                             else       -> at(y = currentItem.bounds.bottom)
@@ -207,11 +207,11 @@ public class CubePresenter<T>(
                 subsequentItem = if (
                     (orientation == Horizontal && globalCamera.position.x > currentItem.bounds.right  ) ||
                     (orientation == Vertical   && globalCamera.position.y > currentItem.bounds.bottom)) {
-                    position.next?.next?.let(item)?.let { subsequentItem ->
+                    position.next?.next?.let(items)?.let { subsequentItem ->
                         results += subsequentItem
 
-                        setBounds(subsequentItem) {
-                            boundsFromConstraint(subsequentItem, carousel.size).run {
+                        setBounds(subsequentItem, carousel.size) {
+                            it.run {
                                 when (orientation) {
                                     Horizontal -> at(x = nextItem.bounds.right )
                                     else       -> at(y = nextItem.bounds.bottom)
@@ -226,7 +226,7 @@ public class CubePresenter<T>(
                         }
 
                         StageVisualItem(subsequentItem)
-                    } ?: getExistingCap(existingSupplementalViews, 1).also {
+                    } ?: getExistingCap(newSupplementalViews, 1).also {
                         it.bounds = nextItem.bounds.run {
                             when (orientation) {
                                 Horizontal -> at(x = nextItem.bounds.right )
@@ -262,27 +262,27 @@ public class CubePresenter<T>(
             }
         }
 
-        cap?.let { supplementalViews += it }
+        cap?.let { newSupplementalViews += it }
 
         if (previousItem is CubeCap) {
-            supplementalViews += previousItem
+            newSupplementalViews += previousItem
         }
 
         if (subsequentItem is CubeCap) {
-            supplementalViews += subsequentItem as CubeCap
+            newSupplementalViews += subsequentItem as CubeCap
         }
 
-        return Presentation(items = results, supplementalViews)
+        return Presentation(items = results, newSupplementalViews)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo = when (orientation) {
-        Horizontal -> NextInfo(Vector2D(x = 1), carousel.width )
-        else       -> NextInfo(Vector2D(y = 1), carousel.height)
+        items   : (Position) -> PresentedItem?
+    ): Distance = when (orientation) {
+        Horizontal -> Distance(Vector2D(x = 1), carousel.width )
+        else       -> Distance(Vector2D(y = 1), carousel.height)
     }
 
     private fun configureCap(cap: View, capLocation: BoxOrientation, currentItem: PresentedItem, nextItem: PresentedItem) {

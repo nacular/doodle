@@ -38,20 +38,20 @@ import kotlin.math.round
 /**
  * Provides context about a [Carousel]'s current state to [ItemVisualizer]s.
  *
- * @property numItems         within the Carousel
- * @property targetIndex      index the carousel is moving towards
- * @property nearestIndex     index currently closest to the "selected" position
- * @property previousIndex    the carousel's previously selected index
- * @property progressToNext   how close the Carousel is to transitioning from [nearestIndex] to `currentIndex + 1`
- * @property progressToTarget how close the carousel is to [targetIndex]
+ * @property numItems              within the Carousel
+ * @property targetItem            item the carousel is moving towards
+ * @property nearestItem           item currently closest to the "selected" position
+ * @property progressToNextItem    how close the Carousel is to transitioning from [nearestItem] to `currentIndex + 1`
+ * @property progressToTargetItem  how close the carousel is to [targetItem]
+ * @property previousSelectedItem  the carousel's previously selected index
  */
 public interface CarouselItem: IndexedItem {
-    public val numItems        : Int
-    public val targetIndex     : Int
-    public val nearestIndex    : Int
-    public val previousIndex   : Int
-    public val progressToNext  : Float
-    public val progressToTarget: Float
+    public val numItems            : Int
+    public val targetItem          : Int
+    public val nearestItem         : Int
+    public val progressToNextItem  : Float
+    public val progressToTargetItem: Float
+    public val previousSelectedItem: Int
 }
 
 /**
@@ -72,14 +72,18 @@ public open class Carousel<T, M: ListModel<T>>(
 
     /**
      * An item bound to some data (and a [View]) within a [Carousel] that will be displayed. [Presenter]s
-     * create these during [Presenter.invoke] to decide what is shown within a [Carousel].
+     * create these during [Presenter.present] to decide what is shown within a [Carousel].
      *
+     * @property cache    that stateless Presenters can be used to store data across invocations
      * @property clipPath used to clip the item
      */
     public class PresentedItem internal constructor(
-        internal val view    : View,
-        internal val index   : Int,
-        public   var clipPath: ClipPath? = null
+        internal val previous            : Int?,
+        internal val view                : View,
+        internal val index               : Int,
+        internal val boundsAlreadyChanged: Boolean,
+        public   var cache               : Any?,
+        public   var clipPath            : ClipPath? = null
     ) {
         private val initialBounds    = view.bounds
         private val initialTransform = view.transform
@@ -101,6 +105,12 @@ public open class Carousel<T, M: ListModel<T>>(
 
         public val idealSize  : Size?           by view::idealSize
         public val minimumSize: Size            by view::minimumSize
+
+        /**
+         * Indicates that the item has been changed in some way that might require
+         * the Presenter to refresh any internal state.
+         */
+        public val itemChanged: Boolean = previous != index || boundsAlreadyChanged
 
         public fun rerenderNow() { view.rerenderNow() }
     }
@@ -147,14 +157,14 @@ public open class Carousel<T, M: ListModel<T>>(
     )
 
     private class CarouselItemImpl(
-        index           : Int,
-        selected        : Boolean,
-        override val numItems        : Int,
-        override val targetIndex     : Int,
-        override val nearestIndex    : Int,
-        override val previousIndex   : Int,
-        override val progressToNext  : Float,
-        override val progressToTarget: Float,
+                     index               : Int,
+                     selected            : Boolean,
+        override val numItems            : Int,
+        override val targetItem          : Int,
+        override val nearestItem         : Int,
+        override val progressToNextItem  : Float,
+        override val progressToTargetItem: Float,
+        override val previousSelectedItem: Int,
     ): SimpleIndexedItem(index, selected), CarouselItem
 
     private class ClipContainer: Container() {
@@ -172,22 +182,30 @@ public open class Carousel<T, M: ListModel<T>>(
         override fun contains(point: Point) = clipPath?.let { point in it } ?: super.contains(point)
     }
 
-    private data class DataChild(val view: View, val clipPath: ClipPath?, val index: Int, var used: Boolean = false)
+    private data class DataChild(
+        val view         : View,
+        val clipPath     : ClipPath?,
+        val index        : Int,
+        val previousIndex: Int?,
+        val cache        : Any?,
+        var used         : Boolean = false,
+        var boundsChanged: Boolean = false
+    )
 
     @Suppress("PrivatePropertyName")
-    private val frameChanged_ by lazy { PropertyObserversImpl<Carousel<T, M>, Int>(this) }
+    private val nearestItemChanged_ by lazy { PropertyObserversImpl<Carousel<T, M>, Int>(this) }
 
     /**
-     * Notifies of changes to the Carousel's [nearestIndex].
+     * Notifies of changes to the Carousel's [nearestItem].
      */
-    public val nearestIndexChanged: PropertyObservers<Carousel<T, M>, Int> = frameChanged_
+    public val nearestItemChanged: PropertyObservers<Carousel<T, M>, Int> = nearestItemChanged_
 
     @Suppress("PrivatePropertyName")
     private val progressChanged_ by lazy { ChangeObserversImpl(this) }
 
     /**
      * Notifies of changes to the Carousel's progress to its target. Listeners
-     * can then check [nearestIndex], [progressToTarget] and [progressToNext] to
+     * can then check [nearestItem], [progressToTargetItem] and [progressToNextItem] to
      * figure out exactly how the Carousel is positioned.
      */
     public val progressChanged: ChangeObservers<Carousel<T, M>> = progressChanged_
@@ -195,37 +213,43 @@ public open class Carousel<T, M: ListModel<T>>(
     /**
      * Determines whether the Carousel will wrap its values at the start and end.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     public var wrapAtEnds: Boolean by observable(false) { _, _ -> update() }
 
     /**
      * The item being selected by the Carousel, even if that selection is in progress.
      */
-    public val targetSelection: Int; get() = targetVirtualSelection.mod(numItems)
+    @Suppress("MemberVisibilityCanBePrivate")
+    public val targetItem: Int; get() = targetVirtualSelection.mod(numItems)
 
     /**
      * The previous item selected by the Carousel.
      *
-     * @see targetSelection
+     * @see targetItem
      */
-    public val previousSelection: Int; get() = previousVirtualSelection.mod(numItems)
+    @Suppress("MemberVisibilityCanBePrivate")
+    public val previousSelectedItem: Int; get() = previousVirtualSelection.mod(numItems)
 
     /**
      * The index the Carousel is closest to displaying in the "selected" slot at this moment.
-     * This value changes as the Carousel animates to a new [targetSelection].
+     * This value changes as the Carousel animates to a new [targetItem].
      */
-    public val nearestIndex: Int get() = floor(trueVirtualIndex).toInt()
+    @Suppress("MemberVisibilityCanBePrivate")
+    public val nearestItem: Int get() = floor(trueVirtualIndex).toInt()
 
     /**
-     * Where the Carousel is between [nearestIndex] and the next index as it travels
-     * to [targetSelection]. This value is always within `[0-1]`.
+     * Where the Carousel is between [nearestItem] and the next index as it travels
+     * to [targetItem]. This value is always within `[0-1]`.
      */
-    public var progressToNext: Float = 0f; private set
+    @Suppress("MemberVisibilityCanBePrivate")
+    public var progressToNextItem: Float = 0f; private set
 
     /**
-     * Where the Carousel is between [previousSelection] and [targetSelection] as it travels
+     * Where the Carousel is between [previousSelectedItem] and [targetItem] as it travels
      * to the latter. This value is always within `[0-1]`.
      */
-    public var progressToTarget: Float = 1f
+    @Suppress("MemberVisibilityCanBePrivate")
+    public var progressToTargetItem: Float = 1f
 
     /**
      * Number of items in the Carousel
@@ -263,8 +287,13 @@ public open class Carousel<T, M: ListModel<T>>(
     private var supplementaryChildren    = listOf<View>()
     private val dataChildrenInitialState = mutableMapOf<View, StagedItemState>()
 
-    private val boundsListener: (View, Rectangle, Rectangle) -> Unit = { _,_,_ ->
+    private val boundsListener: (View, Rectangle, Rectangle) -> Unit = { view,_,_ ->
         if (!ignoreChildBoundsChanges) {
+            // FIXME: Make this more efficient
+            dataChildren.firstOrNull { it.view == view }?.let {
+                it.boundsChanged = true
+            }
+
             update()
         }
     }
@@ -278,22 +307,24 @@ public open class Carousel<T, M: ListModel<T>>(
     private var firstManualMove              = true
     private var nextFrameOffset              = moveOffset
     private var moveEndAnimating             = false
+    private var neverMovedForward            = true
     private var offsetWithinFrame            = Origin
     private var previousFrameOffset          = moveOffset
     private var informedBehaviorOfMove       = false
     private var ignoreChildBoundsChanges     = false
     private var offsetWithinFrameAtMoveStart = Origin
-    private var currentFrameOffsetDuringMove = nearestIndex
+    private var currentFrameOffsetDuringMove = nearestItem
 
     private var manuallyMoving               = false; set(new) {
         if (new) {
-            firstManualMove              = !field
+            firstManualMove              = true
             moveEndAnimating             = false
+            neverMovedForward            = true
             previousFrameOffset          = Origin
             informedBehaviorOfMove       = false
             previousVirtualSelection     = floor(trueVirtualIndex).toInt()
             offsetWithinFrameAtMoveStart = offsetWithinFrame
-            currentFrameOffsetDuringMove = nearestIndex
+            currentFrameOffsetDuringMove = nearestItem
 
             ignoreCleanup = true
             animation?.cancel()
@@ -351,6 +382,7 @@ public open class Carousel<T, M: ListModel<T>>(
      *
      * @param amount to skip
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     public fun skip(amount: Int) {
         if (amount == 0) return
 
@@ -365,7 +397,7 @@ public open class Carousel<T, M: ListModel<T>>(
                 targetVirtualSelection = if (wrapAtEnds) oldSelection + amount else it
 
                 animation = transitioner?.transition(this, previousVirtualSelection, targetVirtualSelection) { progress ->
-                    progressToTarget = progress
+                    progressToTargetItem = progress
                     update()
                 }?.apply {
                     completed += cleanUpSkip
@@ -379,6 +411,7 @@ public open class Carousel<T, M: ListModel<T>>(
      * Initiates manual movement of the Carousel. This will interrupt any other movement and get
      * the Carousel ready for subsequent calls to [moveManually].
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     public fun startManualMove() {
         manuallyMoving = true
     }
@@ -407,10 +440,19 @@ public open class Carousel<T, M: ListModel<T>>(
                 ignoreChildBoundsChanges = true
 
                 offsetWithinFrame = moveOffset - previousFrameOffset
-                val toNextFrame   = presenter.pathToNext(this, PositionImpl(nearestIndex), offsetWithinFrame) { position ->
+
+                // TODO: Cache this and avoid calling pathToNext if insufficient movement has happened since the last call
+                val toNextFrame   = presenter.distanceToNext(this, PositionImpl(nearestItem), offsetWithinFrame) { position ->
                     model[position.index].getOrNull()?.let {
-                        val dataChild = getItem(position.index, it, progressToTarget)
-                        PresentedItem(index = position.index, view = dataChild.view, clipPath = null)
+                        val dataChild = getItem(position.index, it, progressToTargetItem)
+                        PresentedItem(
+                            dataChild.previousIndex,
+                            index                = position.index,
+                            view                 = dataChild.view,
+                            cache                = dataChild.cache,
+                            boundsAlreadyChanged = dataChild.boundsChanged,
+                            clipPath = null
+                        )
                     }
                 }
 
@@ -439,6 +481,9 @@ public open class Carousel<T, M: ListModel<T>>(
                 }
 
                 if (firstManualMove && progressToNextFrame == 0.0 || toNextFrame.magnitude == 0.0 && progressToNextFrame >= 0.0) {
+                    progressToTargetItem  = 1f
+                    offsetWithinFrame = Origin
+                    update()
                     break@loop
                 }
 
@@ -457,7 +502,7 @@ public open class Carousel<T, M: ListModel<T>>(
 
                 val moveForward = frameAdjust == 1 || fractionToNextFrame >= 1
 
-                if (firstManualMove) {
+                if (firstManualMove || neverMovedForward) {
                     firstManualMove = false
 
                     val delta = when {
@@ -465,9 +510,13 @@ public open class Carousel<T, M: ListModel<T>>(
                         else                    -> 0
                     }
 
-                    index(nearestIndex, delta, false)?.let {
-                        targetVirtualSelection = nearestIndex + delta
+                    index(nearestItem, delta, false)?.let {
+                        targetVirtualSelection = nearestItem + delta
                     }
+
+                    neverMovedForward = !wrapAtEnds &&
+                            targetVirtualSelection == previousVirtualSelection &&
+                            targetVirtualSelection == 0
                 }
 
                 val adjustFrame = { offset: Int ->
@@ -482,11 +531,12 @@ public open class Carousel<T, M: ListModel<T>>(
                     var result = true
 
                     if (oldTarget == targetVirtualSelection) {
-                        progressToTarget = 1f
+                        progressToTargetItem  = 1f
+                        offsetWithinFrame = Origin
                         update()
                         result = false
                     } else {
-                        progressToTarget = 0f
+                        progressToTargetItem = 0f
                     }
 
                     result
@@ -498,7 +548,9 @@ public open class Carousel<T, M: ListModel<T>>(
                             break
                         }
 
-                        trueVirtualIndex = index(relativeTo = nearestIndex, offset = 1, stopAtEndsIfCannotWrap = true)?.toFloat() ?: break
+                        neverMovedForward = false
+
+                        trueVirtualIndex = index(relativeTo = nearestItem, offset = 1, stopAtEndsIfCannotWrap = true)?.toFloat() ?: break
 
                         ++currentFrameOffsetDuringMove
 
@@ -509,16 +561,18 @@ public open class Carousel<T, M: ListModel<T>>(
                             break
                         }
 
-                        trueVirtualIndex = index(relativeTo = nearestIndex, offset = -1, stopAtEndsIfCannotWrap = true)?.toFloat() ?: break
+                        trueVirtualIndex = index(relativeTo = nearestItem, offset = -1, stopAtEndsIfCannotWrap = true)?.toFloat() ?: break
 
                         --currentFrameOffsetDuringMove
                     }
                     else -> {
-                        progressToTarget = when (targetVirtualSelection) {
-                            previousSelection -> 1f
+                        neverMovedForward = false
+
+                        progressToTargetItem = when (targetVirtualSelection) {
+                            previousSelectedItem -> 1f
                             else              -> abs(
-                                (currentFrameOffsetDuringMove - previousSelection + fractionToNextFrame) /
-                                (targetVirtualSelection - previousSelection)
+                                (currentFrameOffsetDuringMove - previousSelectedItem + fractionToNextFrame) /
+                                (targetVirtualSelection - previousSelectedItem)
                             ).toFloat()
                         }
 
@@ -573,31 +627,38 @@ public open class Carousel<T, M: ListModel<T>>(
         continuousIndex(
             previousVirtualSelection.toFloat(),
             targetVirtualSelection,
-            progressToTarget,
+            progressToTargetItem,
             true
         )?.let { trueIndex ->
-            val oldNearest   = nearestIndex
+            val oldNearest   = nearestItem
             trueVirtualIndex = trueIndex
-            progressToNext   = trueIndex - nearestIndex
+            progressToNextItem   = trueIndex - nearestItem
 
             progressChanged_.forEach { it(this) }
 
-            val newNearest = nearestIndex
+            val newNearest = nearestItem
 
             if (oldNearest != newNearest) {
-                frameChanged_.forEach { it(this, oldNearest, newNearest) }
+                nearestItemChanged_.forEach { it(this, oldNearest, newNearest) }
             }
 
-            presenter?.let { stageManager ->
-                val stage = stageManager.invoke(
+            presenter?.let { p ->
+                val stage = p.present(
                     this,
-                    PositionImpl(nearestIndex),
-                    progressToNext,
+                    PositionImpl(nearestItem),
+                    progressToNextItem,
                     supplementaryChildren
                 ) { position ->
                     model[position.index].getOrNull()?.let {
-                        val dataChild = getItem(position.index, it, progressToTarget)
-                        PresentedItem(index = position.index, view = dataChild.view, clipPath = null)
+                        val dataChild = getItem(position.index, it, progressToTargetItem)
+                        PresentedItem(
+                            dataChild.previousIndex,
+                            index                = position.index,
+                            view                 = dataChild.view,
+                            cache                = dataChild.cache,
+                            boundsAlreadyChanged = dataChild.boundsChanged,
+                            clipPath = null
+                        )
                     }
                 }
 
@@ -617,7 +678,13 @@ public open class Carousel<T, M: ListModel<T>>(
                             val dataChild = dataChildren[foundItemIndex]
 
                             if (item.view != dataChild.view || item.clipPath != dataChild.clipPath) {
-                                dataChildren[foundItemIndex] = DataChild(item.view, item.clipPath, item.index).apply { used = true }
+                                dataChildren[foundItemIndex] = DataChild(
+                                    previousIndex = dataChild.index,
+                                    view          = item.view,
+                                    clipPath      = item.clipPath,
+                                    index         = item.index,
+                                    cache         = item.cache
+                                ).apply { used = true }
 
                                 if (item.view != dataChild.view) {
                                     dataChild.view.boundsChanged -= boundsListener
@@ -628,7 +695,13 @@ public open class Carousel<T, M: ListModel<T>>(
                             }
                         }
                         else -> {
-                            dataChildren.add(DataChild(item.view, item.clipPath, item.index).apply { used = true })
+                            dataChildren.add(DataChild(
+                                previousIndex = null,
+                                view          = item.view,
+                                clipPath      = item.clipPath,
+                                index         = item.index,
+                                cache         = item.cache
+                            ).apply { used = true })
                             dataChildrenInitialState[item.view] = item.state()
                             item.view.boundsChanged += boundsListener
                         }
@@ -711,8 +784,8 @@ public open class Carousel<T, M: ListModel<T>>(
         if (ignoreCleanup) return
 
         stopManualMove()
-        progressToNext         = 0f
-        progressToTarget       = 1f
+        progressToNextItem         = 0f
+        progressToTargetItem       = 1f
         targetVirtualSelection = round(trueVirtualIndex).toInt()
 
         update()
@@ -751,22 +824,24 @@ public open class Carousel<T, M: ListModel<T>>(
         }
 
         return DataChild(
-            itemVisualizer(
+            previousIndex = recycledChild?.index,
+            view          = itemVisualizer(
                 value,
                 recycledChild?.view,
                 CarouselItemImpl(
                     index            = itemIndex,
                     numItems         = numItems,
-                    selected         = itemIndex == targetSelection,
-                    targetIndex      = targetSelection,
-                    nearestIndex     = nearestIndex,
-                    previousIndex    = previousSelection,
-                    progressToNext   = progressToNext,
-                    progressToTarget = progress,
+                    selected         = itemIndex == targetItem,
+                    targetItem      = targetItem,
+                    nearestItem     = nearestItem,
+                    previousSelectedItem    = previousSelectedItem,
+                    progressToNextItem   = progressToNextItem,
+                    progressToTargetItem = progress,
                 )
             ),
-            recycledChild?.clipPath,
-            itemIndex
+            clipPath = recycledChild?.clipPath,
+            index    = itemIndex,
+            cache    = recycledChild?.cache
         )
     }
 
@@ -774,7 +849,7 @@ public open class Carousel<T, M: ListModel<T>>(
         val result = relativeTo + offset
 
         return when {
-            wrapAtEnds                        -> result.mod(numItems)
+            wrapAtEnds                       -> result.mod(numItems)
             stopAtEndsIfCannotWrap           -> max(0, min(numItems - 1, result))
             result in 0 until numItems -> result
             else                             -> null
@@ -786,11 +861,11 @@ public open class Carousel<T, M: ListModel<T>>(
         else -> {
             when {
                 wrapAtEnds -> lerp(from, to.toFloat(), progress).mod(numItems.toFloat())
-                else      -> {
+                else       -> {
                     val nearestIndex = floor(from).toInt()
 
                     index(nearestIndex, to - nearestIndex, stopAtEndsIfCannotWrap)?.let {
-                        lerp(from, it.toFloat(), progress)
+                        max(0f, min((numItems - 1).toFloat(), lerp(from, it.toFloat(), progress)))
                     }
                 }
             }

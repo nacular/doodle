@@ -18,8 +18,6 @@ public abstract class ConstraintBasedPresenter<T>(
     private val itemConstraints: ConstraintDslContext.(Bounds) -> Unit
 ): Presenter<T>() {
 
-    private val constrainer = Constrainer()
-
     /**
      * Sets the bounds of [item] based on the result of [using]. This method
      * tries to handle cases where the item being constrained adjusts its size after
@@ -28,29 +26,34 @@ public abstract class ConstraintBasedPresenter<T>(
      * constraint to adjust as needed.
      *
      * @param item being presented
-     * @param using the given lambda
+     * @param viewPort of the Carousel
+     * @param adjust that lets the subclass modify the bounds before it is set
      */
-    protected fun setBounds(item: PresentedItem, using: PresentedItem.() -> Rectangle) {
-        val targetBounds = using(item)
+    protected fun setBounds(item: PresentedItem, viewPort: Size, adjust: (Rectangle) -> Rectangle = { it }) {
+        val targetBounds = adjust(boundsFromConstraint(item, viewPort))
 
         item.bounds = targetBounds
 
         if (item.bounds != targetBounds) {
-            item.bounds = using(item)
+            item.bounds = adjust(boundsFromConstraint(item, viewPort, forceSetup = true))
         }
     }
 
-    /**
-     * Calculates the bounds for [item] based on [itemConstraints].
-     *
-     * @param item bounds being calculated for
-     * @param viewPort of the Carousel
-     */
-    protected fun boundsFromConstraint(item: PresentedItem, viewPort: Size): Rectangle = constrainer(
+    protected fun boundsFromConstraint(
+        item       : PresentedItem,
+        viewPort   : Size,
+        forceSetup : Boolean = false
+    ): Rectangle = item.constrainer(
         Rectangle(size = item.size),
         within      = Rectangle(size = viewPort),
         minimumSize = item.minimumSize,
         idealSize   = item.idealSize,
+        forceSetup  = forceSetup,
         using       = itemConstraints
     )
+
+    private val PresentedItem.constrainer: Constrainer get() = when (cache) {
+        is Constrainer -> (cache as Constrainer)
+        else           -> Constrainer().also { cache = it }
+    }
 }

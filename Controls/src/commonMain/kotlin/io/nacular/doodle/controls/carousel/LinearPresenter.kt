@@ -22,17 +22,18 @@ import io.nacular.doodle.utils.lerp
  */
 public class LinearPresenter<T>(
     private val orientation    : Orientation = Horizontal,
-    private val spacing        : Double = 0.0,
+    private val spacing        : (Size) -> Double = { 0.0 },
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill,
 ): ConstraintBasedPresenter<T>(itemConstraints) {
 
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item                     : (Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (Position) -> PresentedItem?
     ): Presentation {
+        val spacing = spacing(carousel.size)
         val results = mutableListOf<PresentedItem>()
 
         var currentPosition = position
@@ -44,16 +45,16 @@ public class LinearPresenter<T>(
         // FIXME: Handle under/over shooting better
 
         do {
-            results.add((nextItem ?: (item(currentPosition) ?: (item(currentPosition.next!!.also { currentPosition = it }))))!!.apply {
+            results.add((nextItem ?: (items(currentPosition) ?: (items(currentPosition.next!!.also { currentPosition = it }))))!!.apply {
                 bounds = boundsFromConstraint(this, carousel.size)
 
                 bounds = when (val b = currentBounds) {
                     null -> {
-                        nextItem = currentPosition.next?.let(item)
+                        nextItem = currentPosition.next?.let(items)
 
                         when (val n = nextItem) {
                             null -> boundsFromConstraint(this, carousel.size)
-                            else -> calcBounds(this, n, carousel.size, progressToNext)
+                            else -> calcBounds(this, n, carousel.size, progressToNext, spacing)
                         }.also { firstBounds = it }
                     }
                     else -> {
@@ -87,9 +88,9 @@ public class LinearPresenter<T>(
                 if (it == position && currentBounds!!.x == firstBounds!!.x) null else it
             } != null
         ) {
-            results.add(item(currentPosition)!!.apply {
-                setBounds(this) {
-                    boundsFromConstraint(this, carousel.size).run {
+            results.add(items(currentPosition)!!.apply {
+                setBounds(this, carousel.size) {
+                    it.run {
                         when (orientation) {
                             Horizontal -> at(x = currentBounds!!.x - width  - spacing)
                             else       -> at(y = currentBounds!!.y - height - spacing)
@@ -104,32 +105,34 @@ public class LinearPresenter<T>(
         return Presentation(items = results)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo {
+        items   : (Position) -> PresentedItem?
+    ): Distance {
+        val spacing = spacing(carousel.size)
+
         val direction = when (orientation) {
             Horizontal -> Vector2D(x = 1)
             else       -> Vector2D(y = 1)
         }
 
-        return when (val current = item(position)) {
-            null -> NextInfo(direction, 0.0)
-            else -> when (val next = position.next?.let(item)) {
-                null -> NextInfo(direction, 0.0)
+        return when (val current = items(position)) {
+            null -> Distance(direction, 0.0)
+            else -> when (val next = position.next?.let(items)) {
+                null -> Distance(direction, 0.0)
                 else -> {
                     val initial                    = boundsFromConstraint(current, carousel.size)
-                    val nextItemBoundsWhenSelected = boundsFromConstraint(next, carousel.size)
+                    val nextItemBoundsWhenSelected = boundsFromConstraint(next,    carousel.size)
                     val nextItemBounds             = when (orientation) {
                         Horizontal -> nextItemBoundsWhenSelected.at(x = initial.right  + spacing)
                         else       -> nextItemBoundsWhenSelected.at(y = initial.bottom + spacing)
                     }
 
                     when (orientation) {
-                        Horizontal -> NextInfo(direction, nextItemBounds.x - nextItemBoundsWhenSelected.x)
-                        else       -> NextInfo(direction, nextItemBounds.y - nextItemBoundsWhenSelected.y)
+                        Horizontal -> Distance(direction, nextItemBounds.x - nextItemBoundsWhenSelected.x)
+                        else       -> Distance(direction, nextItemBounds.y - nextItemBoundsWhenSelected.y)
                     }
                 }
             }
@@ -151,7 +154,7 @@ public class LinearPresenter<T>(
         else       -> bottom
     }
 
-    private fun calcBounds(item: PresentedItem, nextItem: PresentedItem, viewPort: Size, progressToNext: Float): Rectangle {
+    private fun calcBounds(item: PresentedItem, nextItem: PresentedItem, viewPort: Size, progressToNext: Float, spacing: Double): Rectangle {
         val initial = boundsFromConstraint(item, viewPort)
 
         if (progressToNext == 0f) {
@@ -168,5 +171,17 @@ public class LinearPresenter<T>(
             Horizontal -> initial.at(x = lerp(initial.x, initial.x - (nextItemBounds.x - nextItemBoundsWhenSelected.x), progressToNext))
             else       -> initial.at(y = lerp(initial.y, initial.y - (nextItemBounds.y - nextItemBoundsWhenSelected.y), progressToNext))
         }
+    }
+
+    public companion object {
+        /**
+         * Create a new [LinearPresenter].
+         *
+         * @see LinearPresenter
+         */
+        public operator fun <T> invoke(
+            orientation    : Orientation = Horizontal,
+            spacing        : Double,
+            itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill): LinearPresenter<T> = LinearPresenter(orientation, { spacing }, itemConstraints)
     }
 }

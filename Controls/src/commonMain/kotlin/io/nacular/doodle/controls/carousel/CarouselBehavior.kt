@@ -56,19 +56,19 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
          * @param carousel being updated
          * @param position indicating the item currently in the "selected" position
          * @param progressToNext indicates how close (percent `[0-1]`) the carousel is to the next position
-         * @param existingSupplementalViews list of supplemental Views within the Carousel (based on previous calls)
-         * @param item lambda for creating/recycling [PresentedItem]
+         * @param supplementalViews list of supplemental Views within the Carousel (based on previous calls)
+         * @param items lambda for creating/recycling [PresentedItem]
          * @return a presentation based on the state provided
          */
-        public abstract operator fun invoke(
-            carousel                 : Carousel<T, *>,
-            position                 : Position,
-            progressToNext           : Float,
-            existingSupplementalViews: List<View>,
-            item                     : (at: Position) -> PresentedItem?
+        public abstract fun present(
+            carousel         : Carousel<T, *>,
+            position         : Position,
+            progressToNext   : Float,
+            supplementalViews: List<View>,
+            items            : (at: Position) -> PresentedItem?
         ): Presentation
 
-        public class NextInfo(public val direction: Vector2D, public val magnitude: Double)
+        public class Distance(public val direction: Vector2D, public val magnitude: Double)
 
         /**
          * A [Carousel] will call this method when trying to do manual movement. This is a fundamentally different
@@ -82,20 +82,20 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
          * @param carousel being updated
          * @param position indicating the item currently in the "selected" position
          * @param offset from the item at [position]
-         * @param item lambda for creating/recycling [PresentedItem]
-         * @returns a [NextInfo] that describes the direction and distance from the current [position] to the next.
+         * @param items lambda for creating/recycling [PresentedItem]
+         * @returns a [Distance] that describes the direction and distance from the current [position] to the next.
          */
-        public abstract fun pathToNext(
+        public abstract fun distanceToNext(
             carousel: Carousel<T, *>,
             position: Position,
             offset  : Vector2D,
-            item    : (Position) -> PresentedItem?
-        ): NextInfo
+            items   : (Position) -> PresentedItem?
+        ): Distance
 
         /**
-         * Indicate that the stage is outdated and suggest the [Carousel] invoke [invoke].
+         * Indicate that the stage is outdated and suggest the [Carousel] invoke [present].
          */
-        public fun Carousel<T, *>.invoke(): Unit = update()
+        public fun Carousel<T, *>.update(): Unit = update()
     }
 
     /**

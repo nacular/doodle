@@ -33,7 +33,7 @@ class ConstrainerTests {
             Args(Rectangle(size = Size(50)), within, using = center) to Rectangle(within.x + (within.width - 50) / 2, within.y + (within.height - 50) / 2, 50.0, 50.0),
         ).forEach { (args, expectation) ->
             expect(expectation) {
-                constrainer(args.rectangle, args.within, args.minSize, args.idealSize, args.using)
+                constrainer(args.rectangle, args.within, args.minSize, args.idealSize, forceSetup = false, args.using)
             }
         }
     }

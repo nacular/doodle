@@ -25,29 +25,29 @@ public class SlicerPresenter<T>(
 ): ConstraintBasedPresenter<T>(itemConstraints) {
     private val numSlices = max(1, numSlices)
 
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item                     : (at: Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (at: Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
         when (progressToNext) {
-            0f -> item(position)?.apply {
+            0f -> items(position)?.apply {
                 results += this
-                setBounds(this) { boundsFromConstraint(this, carousel.size) }
+                setBounds(this, carousel.size)
             }
-            1f -> position.next?.let(item)?.apply {
+            1f -> position.next?.let(items)?.apply {
                 results += this
-                setBounds(this) { boundsFromConstraint(this, carousel.size) }
+                setBounds(this, carousel.size)
             }
             else -> {
                 when (val next = position.next) {
-                    null -> item(position)?.apply {
+                    null -> items(position)?.apply {
                         results += this
-                        setBounds(this) { boundsFromConstraint(this, carousel.size) }
+                        setBounds(this, carousel.size)
                     }
                     else -> {
                         val sliceWidth  = (if (orientation == Vertical) carousel.width else carousel.height) / numSlices
@@ -62,10 +62,10 @@ public class SlicerPresenter<T>(
                                 else     -> Rectangle(offset,                 sliceWidth * slice, sliceLength,    sliceWidth + 1)
                             }
 
-                            item(position)?.apply {
+                            items(position)?.apply {
                                 results  += this
-                                setBounds(this) {
-                                    boundsFromConstraint(this, carousel.size).run {
+                                setBounds(this, carousel.size) {
+                                    it.run {
                                         when (orientation) {
                                             Vertical -> at(y = y + offset)
                                             else     -> at(x = x + offset)
@@ -75,10 +75,10 @@ public class SlicerPresenter<T>(
                                 clipPath  = PolyClipPath(clipRect)
                             }
 
-                            item(next)?.apply {
+                            items(next)?.apply {
                                 results  += this
-                                setBounds(this) {
-                                    boundsFromConstraint(this, carousel.size).run {
+                                setBounds(this, carousel.size) {
+                                    it.run {
                                         when (orientation) {
                                             Vertical -> at(y = y + sliceLength + offset)
                                             else     -> at(x = x + sliceLength + offset)
@@ -98,13 +98,13 @@ public class SlicerPresenter<T>(
         return Presentation(results)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo = when (orientation) {
-        Horizontal -> NextInfo(Vector2D(x = 1), carousel.width )
-        else       -> NextInfo(Vector2D(y = 1), carousel.height)
+        items   : (Position) -> PresentedItem?
+    ): Distance = when (orientation) {
+        Horizontal -> Distance(Vector2D(x = 1), carousel.width )
+        else       -> Distance(Vector2D(y = 1), carousel.height)
     }
 }

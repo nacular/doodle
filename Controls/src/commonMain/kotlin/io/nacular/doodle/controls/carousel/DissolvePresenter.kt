@@ -10,26 +10,26 @@ import io.nacular.doodle.utils.lerp
 
 
 public class DissolvePresenter<T>(itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill): ConstraintBasedPresenter<T>(itemConstraints) {
-    override fun invoke(
-        carousel                 : Carousel<T, *>,
-        position                 : Position,
-        progressToNext           : Float,
-        existingSupplementalViews: List<View>,
-        item              : (Position) -> PresentedItem?
+    override fun present(
+        carousel         : Carousel<T, *>,
+        position         : Position,
+        progressToNext   : Float,
+        supplementalViews: List<View>,
+        items            : (Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
-        val currentItem = (item(position) ?: item(position.next!!))!!.apply {
-            setBounds(this) { boundsFromConstraint(this, carousel.size) }
+        val currentItem = (items(position) ?: items(position.next!!))!!.apply {
+            setBounds(this, carousel.size)
 
             results += this
         }
 
-        when (val next = position.next?.let(item)) {
+        when (val next = position.next?.let(items)) {
             null -> currentItem.opacity = 1f
             else -> next.apply {
                 results += this
-                setBounds(this) { boundsFromConstraint(this, carousel.size) }
+                setBounds(this, carousel.size)
 
                 currentItem.opacity = lerp(1f, 0f, progressToNext)
                 opacity             = lerp(0f, 1f, progressToNext)
@@ -39,13 +39,13 @@ public class DissolvePresenter<T>(itemConstraints: ConstraintDslContext.(Bounds)
         return Presentation(items = results)
     }
 
-    override fun pathToNext(
+    override fun distanceToNext(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        item    : (Position) -> PresentedItem?
-    ): NextInfo = when {
-        offset.x >= offset.y -> NextInfo(Vector2D(x = 1), carousel.width )
-        else                 -> NextInfo(Vector2D(y = 1), carousel.height)
+        items   : (Position) -> PresentedItem?
+    ): Distance = when {
+        offset.x >= offset.y -> Distance(Vector2D(x = 1), carousel.width )
+        else                 -> Distance(Vector2D(y = 1), carousel.height)
     }
 }
