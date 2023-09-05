@@ -929,7 +929,7 @@ public fun <T: Positionable> Iterable<T>.constrain(
     within     : (Int, T) -> Rectangle
 ): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
-        view.bounds = this(view.bounds, within(index, view), minimumSize, idealSize, using)
+        view.bounds = this(view.bounds, within(index, view), minimumSize, idealSize, forceSetup = false, using)
     }
 }
 
@@ -972,6 +972,7 @@ public class Constrainer {
         within     : Rectangle,
         minimumSize: Size  = Size.Empty,
         idealSize  : Size? = null,
+        forceSetup : Boolean = false,
         using      : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
         if (fakeView.bounds != rectangle) {
