@@ -143,7 +143,12 @@ public fun <T> textField(
         config(configObject)
 
         when {
-            initial is Valid && validator(initial.value) -> encoder.encode(initial.value).getOrNull()?.let { text = it }
+            initial is Valid && validator(initial.value) -> encoder.encode(initial.value).getOrNull()?.let {
+                text = it
+                if (text.isBlank()) {
+                    validate(field, it)
+                }
+            }
             else                                         -> validate(field, text, notify = false)
         }
     }
@@ -1475,6 +1480,21 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
 }
 
 /**
+ * Only appends the indicator after a field is initially (or becomes) [invalid][Invalid]
+ * and it loses focus.
+ *
+ * @see labeled
+ * @param text to append to field name
+ */
+public class WhenInvalidFocusLost(text: StyledText): RequiredIndicatorStyle(text) {
+    /**
+     * @param text to append to field name
+     */
+    public constructor(text: String = "*"): this(StyledText(text))
+}
+
+
+/**
  * Creates a component with a [Label] and the result of [visualizer] that is bound to a [Field].
  * This control simply wraps an existing one with a configurable text label.
  *
@@ -1487,6 +1507,8 @@ public fun <T> labeled(
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
+        lateinit var content: View
+
         val label         = UninteractiveLabel(name)
         val builder       = NamedConfig(label)
         val visualization = visualizer(builder)
@@ -1495,19 +1517,13 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        + listOf(label, visualization(this@field).also { it.accessibilityLabelProvider = label }).onEach {
-            it.sizePreferencesChanged += { _, _, _ ->
+        + listOf(label, visualization(this@field).also { it.accessibilityLabelProvider = label; content = it }).onEach {
+            it.sizePreferencesChanged += { _,_,_ ->
                 relayout()
             }
         }
 
-        showRequired?.let {
-            if (it is Always || state is Invalid<T>) label.styledText = name.copy() + showRequired.text
-
-            stateChanged += {
-                if (it.state is Invalid<T>) label.styledText = name.copy() + showRequired.text
-            }
-        }
+        showRequired?.let { updateRequiredText(it, label, name, content) }
 
         layout = builder.layout(this, children[1])
     }
@@ -1566,6 +1582,8 @@ public fun <T> labeled(
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
     container {
+        lateinit var content: View
+
         val nameLabel     = UninteractiveLabel(name)
         val helperLabel   = UninteractiveLabel(help)
         val builder       = LabeledConfig(nameLabel, helperLabel)
@@ -1575,19 +1593,13 @@ public fun <T> labeled(
         render    = { builder.render(this, this@container) }
         focusable = false
 
-        + listOf(nameLabel, visualization(this@field).also { it.accessibilityLabelProvider = nameLabel }, helperLabel).onEach {
+        + listOf(nameLabel, visualization(this@field).also { it.accessibilityLabelProvider = nameLabel; content = it }, helperLabel).onEach {
             it.sizePreferencesChanged += { _, _, _ ->
                 relayout()
             }
         }
 
-        showRequired?.let {
-            if (it is Always || state is Invalid<T>)  nameLabel.styledText = name.copy() + showRequired.text
-
-            stateChanged += {
-                if (it.state is Invalid<T>) nameLabel.styledText = name.copy() + showRequired.text
-            }
-        }
+        showRequired?.let { updateRequiredText(it, nameLabel, name, content) }
 
         layout = builder.layout(this, children[1])
     }
@@ -1913,6 +1925,10 @@ private fun <T: Any, M: ListModel<T?>> buildDropDown(
 }
 
 private class UninteractiveLabel(text: StyledText): Label(text) {
+    init {
+        focusable = false
+    }
+
     override fun contains(point: Point) = false
 }
 
@@ -1948,6 +1964,32 @@ private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26
     button_.height eq parent.height
     label_.left    eq labelOffset
     label_.centerY eq button_.centerY
+}
+
+private fun <T> FieldInfo<T>.updateRequiredText(
+    showRequired: RequiredIndicatorStyle,
+    label       : Label,
+    name        : StyledText,
+    content     : View
+) {
+    if ((showRequired is Always || (showRequired is WhenInvalid && state is Invalid<T>)) && showRequired.text.isNotBlank()) {
+        label.styledText = name.copy() + showRequired.text
+    }
+
+    content.focusChanged += { _,_,focused ->
+        if (!focused && showRequired is WhenInvalidFocusLost && state is Invalid<T> && showRequired.text.isNotBlank()) {
+            label.styledText = name.copy() + showRequired.text
+        }
+    }
+
+    stateChanged += {
+        when {
+            it.state is Invalid<T> &&
+                    showRequired.text.isNotBlank() &&
+                    (showRequired !is WhenInvalidFocusLost || !content.hasFocus) -> label.styledText = name.copy() + showRequired.text
+            showRequired !is Always                                              -> label.styledText = name.copy()
+        }
+    }
 }
 
 private const val DEFAULT_HEIGHT       = 32.0
