@@ -214,8 +214,15 @@ public open class MonthPanel(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<LocalDate>, LocalDate> = { _,removed,added ->
-        val filteredAdded   = added.filterTo  (mutableSetOf()) { it.sameMonth(startDate) }
-        val filteredRemoved = removed.filterTo(mutableSetOf()) { it.sameMonth(startDate) }
+        val filteredAdded   = mutableSetOf<LocalDate>()
+        val filteredRemoved = mutableSetOf<LocalDate>()
+
+        repeat(numDays) {
+            when (val d = startDate + DatePeriod(days = it)) {
+                in added   -> filteredAdded   += d
+                in removed -> filteredRemoved += d
+            }
+        }
 
         if (filteredAdded.isNotEmpty() || filteredRemoved.isNotEmpty()) {
             scrollToSelection()
