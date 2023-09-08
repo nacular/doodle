@@ -87,21 +87,29 @@ afterEvaluate {
             }
         }
 
-        // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
-        val publishTasks = pubs.keys.map { "publish${"Jvm$it"}PublicationToMavenRepository" }
-        val signingTasks = listOf("signKotlinMultiplatformPublication", "signJvmPublication", ) + pubs.keys.map { "sign${"Jvm$it"}Publication" }
+        val releaseBuild = project.hasProperty("release")
 
-        tasks.getByName("publishKotlinMultiplatformPublicationToMavenRepository") {
-            dependsOn(signingTasks)
-        }
 
-        tasks.getByName("publishJvmPublicationToMavenRepository") {
-            dependsOn(signingTasks)
-        }
+        if (releaseBuild) {
+            // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
+            val publishTasks = pubs.keys.map { "publish${"Jvm$it"}PublicationToMavenRepository" }
+            val signingTasks = listOf(
+                "signKotlinMultiplatformPublication",
+                "signJvmPublication",
+            ) + pubs.keys.map { "sign${"Jvm$it"}Publication" }
 
-        publishTasks.forEach {
-            tasks.getByName(it) {
+            tasks.getByName("publishKotlinMultiplatformPublicationToMavenRepository") {
                 dependsOn(signingTasks)
+            }
+
+            tasks.getByName("publishJvmPublicationToMavenRepository") {
+                dependsOn(signingTasks)
+            }
+
+            publishTasks.forEach {
+                tasks.getByName(it) {
+                    dependsOn(signingTasks)
+                }
             }
         }
     }
