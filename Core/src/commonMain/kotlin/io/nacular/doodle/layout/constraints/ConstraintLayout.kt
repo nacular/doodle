@@ -949,7 +949,6 @@ public class Constrainer {
         updatedBounds += ReflectionVariable(child, child::height, ReflectionVariable.heightId)
     }
 
-    val fakeView = object: View() {}
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
     private var parentSize = Size.Empty
