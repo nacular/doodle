@@ -18,6 +18,13 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 
+/**
+ * Shows contents of a [Carousel] one by one, and "slices" them into ribbons as it transitions between frames.
+ *
+ * @param numSlices to split the frame into when transitioning
+ * @param orientation indicates which direction the items fill travel when transitioning
+ * @param itemConstraints that determine the bounds of each item relative to the Carousel
+ */
 public class SlicerPresenter<T>(
                 numSlices      : Int = 5,
     private val orientation    : Orientation = Vertical,

@@ -20,6 +20,13 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils._90
 
+/**
+ * Shows contents of a [Carousel] one by one, as though they are hanging on walls that rotate
+ * when the frame changes.
+ *
+ * @param floorPaint used to fill the "floor" below the "walls"
+ * @param itemConstraints that determine the bounds of each item relative to the Carousel
+ */
 public class ReflectionPresenter<T>(
     private val floorPaint     : (Size) -> Paint = { (Black opacity 0.25f).paint },
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill

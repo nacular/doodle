@@ -15,6 +15,13 @@ import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils._180
 
 
+/**
+ * Shows contents of a [Carousel] one by one, as though they were on 2D cards that flip as the frame changes.
+ *
+ * @param orientation indicates which axis the cube rotates around
+ * @param camera that determines the cards' perspective
+ * @param itemConstraints that determine the bounds of each item relative to the Carousel
+ */
 public class FlipPresenter<T>(
     private val orientation    : Orientation = Horizontal,
     private val camera         : (viewPort: Size) -> Camera = { Camera(Point(it.width / 2, it.height / 2), 1000.0) },

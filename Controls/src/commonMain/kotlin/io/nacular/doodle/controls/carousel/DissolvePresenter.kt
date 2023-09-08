@@ -8,7 +8,11 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.lerp
 
-
+/**
+ * Shows contents of a [Carousel] one by one, and does an opacity fade between them as the frame changes.
+ *
+ * @param itemConstraints that determine the bounds of each item relative to the Carousel
+ */
 public class DissolvePresenter<T>(itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill): ConstraintBasedPresenter<T>(itemConstraints) {
     override fun present(
         carousel         : Carousel<T, *>,

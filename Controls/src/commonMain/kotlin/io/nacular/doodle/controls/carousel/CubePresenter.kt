@@ -27,6 +27,14 @@ import io.nacular.doodle.utils.Orientation.Vertical
 import io.nacular.doodle.utils._90
 
 
+/**
+ * Shows contents of a [Carousel] as though they are the faces of a cubic shape that rotates
+ * as the frame changes.
+ *
+ * @param orientation indicates which axis the cube rotates around
+ * @param camera determining how the cube's perspective should be rendered
+ * @param itemConstraints that determine the bounds of each item relative to the Carousel
+ */
 public class CubePresenter<T>(
     private val orientation    : Orientation = Horizontal,
     private val camera         : (viewPort: Size) -> Camera = { Camera(Point(it.width / 2, it.height / 2), 1000.0) },
