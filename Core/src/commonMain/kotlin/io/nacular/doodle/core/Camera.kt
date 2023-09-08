@@ -1,5 +1,6 @@
 package io.nacular.doodle.core
 
+import io.nacular.doodle.drawing.CameraProjectionTransform
 import io.nacular.doodle.drawing.ProjectionTransform
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -31,7 +32,7 @@ public data class Camera(val position: Point, val distance: Double) {
         else                  -> {
             val p = position + offset
 
-            ProjectionTransform(SquareMatrix(arrayOf(
+            CameraProjectionTransform(SquareMatrix(arrayOf(
                 arrayOf(1.0, 0.0, 0.0, p.x),
                 arrayOf(0.0, 1.0, 0.0, p.y),
                 arrayOf(0.0, 0.0, 1.0, 0.0),

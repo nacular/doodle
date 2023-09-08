@@ -7,6 +7,7 @@ import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
 import io.nacular.doodle.event.PointerEvent
@@ -17,8 +18,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
-import io.nacular.doodle.system.SystemPointerEvent.Type.*
-import io.nacular.doodle.utils.HorizontalAlignment.*
+import io.nacular.doodle.utils.HorizontalAlignment.Center
+import io.nacular.doodle.utils.HorizontalAlignment.Right
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.Typeface
@@ -34,9 +35,12 @@ import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JPasswordField
-import javax.swing.JTextField.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
+import javax.swing.text.DocumentFilter.FilterBypass
 import javax.swing.text.JTextComponent
 import kotlin.coroutines.CoroutineContext
 import org.jetbrains.skia.Font as SkiaFont
@@ -235,11 +239,46 @@ internal open class NativeTextFieldBehavior(
                 }
             })
 
-            document.addDocumentListener(object : DocumentListener {
-                override fun insertUpdate (e: DocumentEvent?) = syncTextFromSwing()
-                override fun removeUpdate (e: DocumentEvent?) = syncTextFromSwing()
-                override fun changedUpdate(e: DocumentEvent?) = syncTextFromSwing()
-            })
+            (document as? AbstractDocument)?.documentFilter = object: DocumentFilter() {
+                override fun insertString(fb: FilterBypass?, offset: Int, string: String?, attr: AttributeSet?) {
+                    fb?.let {
+                        if (!syncTextFromSwing(
+                            it,
+                            document.getText(0, document.length).replaceRange(offset, offset, string!!.subSequence(0, text.length))
+                        )) {
+                            return
+                        }
+                    }
+
+                    super.insertString(fb, offset, string, attr)
+                }
+
+                override fun remove(fb: FilterBypass?, offset: Int, length: Int) {
+                    fb?.let {
+                        if (!syncTextFromSwing(
+                            it,
+                            document.getText(0, document.length).removeRange(offset, offset + length)
+                        )) {
+                            return
+                        }
+                    }
+
+                    super.remove(fb, offset, length)
+                }
+
+                override fun replace(fb: FilterBypass?, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+                    fb?.let {
+                        if (!syncTextFromSwing(
+                            it,
+                            document.getText(0, document.length).replaceRange(offset, offset + length, text!!.subSequence(0, text.length))
+                        )) {
+                            return
+                        }
+                    }
+
+                    super.replace(fb, offset, length, text, attrs)
+                }
+            }
         }
 
         override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
@@ -271,6 +310,11 @@ internal open class NativeTextFieldBehavior(
             textField.selectionBackgroundColor?.toAwt()?.let { selectionColor    = it }
             textField.backgroundColor?.takeIf { it.opacity != 1f }.let { isOpaque = false }
 
+            caretColor = when {
+                textField.cursorVisible -> null
+                else                    -> Transparent.toAwt()
+            }
+
             horizontalAlignment = when (textField.horizontalAlignment) {
                 Center -> CENTER
                 Right  -> RIGHT
@@ -283,10 +327,22 @@ internal open class NativeTextFieldBehavior(
             }
         }
 
-        private fun syncTextFromSwing() {
-            ignoreDoodleTextChange = true
-            textField?.text = password.concatToString()
-            ignoreDoodleTextChange = false
+        private fun syncTextFromSwing(filterBypass: FilterBypass, text: String): Boolean {
+            var result = true
+
+            if (textField != null) {
+                ignoreDoodleTextChange = true
+                textField.text = text
+
+                if (textField.text != text) {
+                    filterBypass.remove      (0, document.length)
+                    filterBypass.insertString(0, textField.text, null)
+                    result = false
+                }
+                ignoreDoodleTextChange = false
+            }
+
+            return result
         }
     }
 
@@ -299,7 +355,7 @@ internal open class NativeTextFieldBehavior(
         nativePeer.echoChar = new ?: 0.toChar()
     }
 
-    private val textChanged: (TextInput, String, String) -> Unit = { _, _, new ->
+    private val textChanged: (TextInput, String, String) -> Unit = { _,_,new ->
         if (!ignoreDoodleTextChange) {
             nativePeer.text = new
         }
@@ -328,7 +384,7 @@ internal open class NativeTextFieldBehavior(
         }
     }
 
-    private val selectionChanged: (source: TextInput, old: Selection, new: Selection) -> Unit = { _, _, new ->
+    private val selectionChanged: (source: TextInput, old: Selection, new: Selection) -> Unit = { _,_,new ->
         nativePeer.select(new.start, new.end)
     }
 

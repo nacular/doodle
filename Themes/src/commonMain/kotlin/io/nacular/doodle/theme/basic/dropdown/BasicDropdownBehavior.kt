@@ -32,7 +32,8 @@ import io.nacular.doodle.event.KeyCode.Companion.Enter
 import io.nacular.doodle.event.KeyCode.Companion.Escape
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
-import io.nacular.doodle.event.KeyText
+import io.nacular.doodle.event.KeyText.Companion.ArrowDown
+import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerListener.Companion.clicked
@@ -54,7 +55,7 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
-import io.nacular.doodle.utils.Anchor
+import io.nacular.doodle.utils.Anchor.Right
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Pool
@@ -66,15 +67,17 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 9/9/21.
  */
 public class BasicDropdownBehavior<T, M: ListModel<T>>(
-        private val display            : Display,
-        private val textMetrics        : TextMetrics,
-        private val backgroundColor    : Color,
-        private val darkBackgroundColor: Color,
-        private val foregroundColor    : Color,
-        private val cornerRadius       : Double,
-        private val buttonWidth        : Double = 20.0,
-        private val focusManager       : FocusManager? = null,
-        private val popupManager       : PopupManager? = null,
+    private val display            : Display,
+    private val textMetrics        : TextMetrics,
+    private val backgroundColor    : Color,
+    private val darkBackgroundColor: Color,
+    private val foregroundColor    : Color,
+    private val cornerRadius       : Double,
+    private val buttonWidth        : Double        = 20.0,
+    private val focusManager       : FocusManager? = null,
+    private val popupManager       : PopupManager? = null,
+    private val buttonA11yLabel    : String?       = null,
+    private val inset              : Double        = 4.0,
 ): DropdownBehavior<T, M>, PointerListener, KeyListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
@@ -83,7 +86,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     internal var buttonAlignment: (ConstraintDslContext.(Bounds) -> Unit) = fill
 
     private inner class ButtonIcon(private val colors: (Button) -> Color): Icon<Button> {
-        override fun size(view: Button) = Size(buttonWidth, max(0.0, view.height - 2 * INSET))
+        override fun size(view: Button) = Size(buttonWidth, max(0.0, view.height - 2 * inset))
 
         override fun render(view: Button, canvas: Canvas, at: Point) {
             val iconSize      = size(view)
@@ -105,10 +108,10 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             )
 
             canvas.rect(view.bounds.atOrigin.inset(Insets(
-                    left   = view.width - buttonWidth - INSET,
-                    top    = INSET,
-                    right  = INSET,
-                    bottom = INSET)), cornerRadius, colors(view).paint)
+                    left   = view.width - buttonWidth - inset,
+                    top    = inset,
+                    right  = inset,
+                    bottom = inset)), cornerRadius, colors(view).paint)
 
             canvas.path(points, stroke)
             canvas.transform(Identity.flipVertically(arrowPosition.y + arrowSize.height / 2)) {
@@ -131,14 +134,14 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         override fun install(view: Button) {
             view.icon       = ButtonIcon { colors(it).fillColor }
-            view.iconAnchor = Anchor.Right
+            view.iconAnchor = Right
 
             super.install(view)
         }
 
         override fun render(view: Button, canvas: Canvas) {
             icon(view)?.let {
-                it.render(view, canvas, iconPosition(view, icon = it) - Point(INSET, 0.0))
+                it.render(view, canvas, iconPosition(view, icon = it) - Point(inset, 0.0))
             }
         }
     }
@@ -233,11 +236,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
                 null -> {
                     val viewAbsolute = display.fromAbsolute(view.toAbsolute(Origin))
                     it.x     = viewAbsolute.x
-                    it.y     = viewAbsolute.y - view.selection * (view.height - 2 * INSET)
+                    it.y     = viewAbsolute.y - view.selection * (view.height - 2 * inset)
                     display += it
                 }
                 else -> popupManager.show(it, view) { list, dropdown ->
-                    list.top  eq dropdown.y - view.selection * (view.height - 2 * INSET)
+                    list.top  eq dropdown.y - view.selection * (view.height - 2 * inset)
                     list.left eq dropdown.x
                 }
             }
@@ -262,7 +265,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         generator    = ItemGenerator(dropdown),
         fill         = null,
         positioner   = object: BasicVerticalListPositioner<T>(0.0) {
-            override val height get() = max(0.0, dropdown.height - 2 * INSET)
+            override val height get() = max(0.0, dropdown.height - 2 * inset)
         }
     ) {
         override fun render(view: List<T, *>, canvas: Canvas) {
@@ -279,7 +282,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             itemVisualizer = view.listItemVisualizer,
             fitContent     = setOf(Height)
         ).apply {
-            insets        = Insets(INSET)
+            insets        = Insets(inset)
             behavior      = listBehavior(view)
             acceptsThemes = false
 
@@ -304,11 +307,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         val center = Container().apply { focusable = false }
         val button = PushButton().apply {
-            focusable     = false
-            iconAnchor    = Anchor.Leading
-            acceptsThemes = false
-            behavior      = ButtonBehavior()
-            enabled       = !view.isEmpty
+            enabled            = !view.isEmpty
+            behavior           = ButtonBehavior()
+            focusable          = false
+            acceptsThemes      = false
+            accessibilityLabel = buttonA11yLabel
 
             fired += {
                 showList(view)
@@ -319,10 +322,10 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
         view.children += listOf(center, button)
         view.layout = constrain(center, button) { (center, button) ->
-            center.top    eq INSET
-            center.left   eq INSET
-            center.right  eq parent.right  - (buttonWidth + INSET)
-            center.bottom eq parent.bottom - INSET
+            center.top    eq inset
+            center.left   eq inset
+            center.right  eq parent.right  - (buttonWidth + inset)
+            center.bottom eq parent.bottom - inset
 
             buttonAlignment(button)
         }
@@ -362,8 +365,8 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         @Suppress("UNCHECKED_CAST")
         (event.source as? Dropdown<T, M>)?.apply {
             when (event.key) {
-                KeyText.ArrowUp   -> { selection -= 1; event.consume() }
-                KeyText.ArrowDown -> { selection += 1; event.consume() }
+                ArrowUp   -> { selection -= 1; event.consume() }
+                ArrowDown -> { selection += 1; event.consume() }
             }
         }
     }
@@ -395,7 +398,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     private fun updateAlignment(dropdown: Dropdown<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = {
-            withSizeInsets(width = INSET) {
+            withSizeInsets(width = 0.0) {
                 (dropdown.boxCellAlignment ?: center)(it)
             }
         }
@@ -411,7 +414,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             val alignment = dropdown.listCellAlignment ?: dropdown.boxCellAlignment ?: center
 
             cellAlignment = {
-                withSizeInsets(width = buttonWidth + INSET) {
+                withSizeInsets(width = buttonWidth) {
                     alignment(it)
                 }
             }
@@ -419,8 +422,6 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     }
 
     public companion object {
-        internal const val INSET = 4.0
-
         public operator fun <T, M: ListModel<T>> invoke(
                 display              : Display,
                 textMetrics          : TextMetrics,

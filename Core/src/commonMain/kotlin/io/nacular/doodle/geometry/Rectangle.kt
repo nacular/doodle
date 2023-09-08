@@ -42,6 +42,9 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
     /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
     public constructor(width: Double, height: Double = width): this(Origin, Size(width, height))
 
+    /** Creates a Rectangle at the [Origin]: `[0, 0, size.width, size.height]` */
+    public constructor(size: Size): this(Origin, size)
+
     /** Creates a Rectangle */
     public constructor(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): this(Point(x, y), Size(width, height))
 
@@ -284,4 +287,27 @@ public class Rectangle(public val position: Point = Origin, public val size: Siz
  */
 public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double = 0.0, bottom: Double = 0.0): Rectangle = inset(
     Insets(top = top, left = left, bottom = bottom, right = right)
+)
+
+/**
+ * Returns a new Rectangle with the specified [width], [height], and all the other dimensions from this one.
+ *
+ * @param width the new Rectangle should have
+ * @param height the new Rectangle should have
+ */
+public fun Rectangle.with(width: Double = this.width, height: Double = this.height): Rectangle = Rectangle(x, y, width, height)
+
+/**
+ * Returns a new Rectangle with the specified [size], and all the other dimensions from this one.
+ *
+ * @param size the new Rectangle should have
+ */
+public fun Rectangle.with(size: Size): Rectangle = Rectangle(x, y, size.width, size.height)
+
+/**
+ * Interpolates between 2 [Rectangle]s
+ */
+public fun lerp(first: Rectangle, second: Rectangle, fraction: Float): Rectangle = Rectangle(
+    position = lerp(first.position, second.position, fraction),
+    size     = lerp(first.size, second.size, fraction)
 )

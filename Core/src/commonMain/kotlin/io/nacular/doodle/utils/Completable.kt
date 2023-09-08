@@ -117,7 +117,39 @@ public open class CompletableImpl: Completable {
     protected open fun completed() { state = Completed }
 }
 
+public open class PausableImpl: Pausable, CompletableImpl() {
+    protected var isPaused: Boolean = false; private set
+
+    private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+    private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
+
+    override var paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ ); protected set
+    override var resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_); protected set
+
+    init {
+        paused_.changed += { _,_,added ->
+            if (isPaused) {
+                added.forEach { it(this) }
+            }
+        }
+    }
+
+    override fun pause() {
+        isPaused = true
+    }
+
+    override fun resume() {
+        isPaused = false
+    }
+}
+
 public val NoOpCompletable: Completable = object: CompletableImpl() {
+    init {
+        completed()
+    }
+}
+
+public val NoOpPausable: Pausable = object: PausableImpl() {
     init {
         completed()
     }

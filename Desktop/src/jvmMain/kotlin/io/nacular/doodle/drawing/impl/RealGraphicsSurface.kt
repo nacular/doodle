@@ -50,7 +50,9 @@ internal class RealGraphicsSurface(
         set(new) {
             parent?.let {
                 it.children.remove(this)
-                it.children.addOrAppend(new, this)
+                if (new >= 0) {
+                    it.children.addOrAppend(new, this)
+                }
                 updateParentChildrenSort()
             }
         }

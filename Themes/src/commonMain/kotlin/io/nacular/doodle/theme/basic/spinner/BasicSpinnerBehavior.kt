@@ -43,13 +43,15 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 
 public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
-        private val textMetrics        : TextMetrics,
-        private val backgroundColor    : Color,
-        private val darkBackgroundColor: Color,
-        private val foregroundColor    : Color,
-        private val cornerRadius       : Double,
-        private val buttonWidth        : Double = 20.0,
-        private val focusManager       : FocusManager? = null,
+    private val textMetrics        : TextMetrics,
+    private val backgroundColor    : Color,
+    private val darkBackgroundColor: Color,
+    private val foregroundColor    : Color,
+    private val cornerRadius       : Double,
+    private val buttonWidth        : Double        = 20.0,
+    private val focusManager       : FocusManager? = null,
+    private val incrementA11yLabel : String?       = null,
+    private val decrementA11yLabel : String?       = null,
 ): SpinnerBehavior<T, M>(), KeyListener, PointerListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
@@ -127,19 +129,21 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
 
         val center = Container().apply { focusable = false }
         val next = PushButton().apply {
-            iconAnchor    = Leading
-            enabled       = view.hasNext
-            acceptsThemes = false
-            focusable     = false
-            behavior      = SpinnerButtonBehavior(true)
+            enabled            = view.hasNext
+            behavior           = SpinnerButtonBehavior(true)
+            focusable          = false
+            iconAnchor         = Leading
+            acceptsThemes      = false
+            accessibilityLabel = incrementA11yLabel
         }
 
         val previous = PushButton().apply {
-            iconAnchor    = Leading
-            enabled       = view.hasPrevious
-            acceptsThemes = false
-            focusable     = false
-            behavior      = SpinnerButtonBehavior(false)
+            enabled            = view.hasPrevious
+            behavior           = SpinnerButtonBehavior(false)
+            focusable          = false
+            iconAnchor         = Leading
+            acceptsThemes      = false
+            accessibilityLabel = decrementA11yLabel
         }
 
         // FIXME: need to cleanup in uninstall

@@ -180,10 +180,10 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
     private fun clockwise(first: Point, second: Point): Boolean = (first.x * second.y - first.y * second.x) < 0
 
     protected companion object {
-        public val   _0: Measure<Angle> =   0 * degrees
-        public val  _90: Measure<Angle> =  90 * degrees
-        public val _180: Measure<Angle> = 180 * degrees
-        public val _270: Measure<Angle> = 270 * degrees
-        public val _360: Measure<Angle> = 360 * degrees
+        public val   _0: Measure<Angle> get() = io.nacular.doodle.utils._0
+        public val  _90: Measure<Angle> get() = io.nacular.doodle.utils._90
+        public val _180: Measure<Angle> get() = io.nacular.doodle.utils._180
+        public val _270: Measure<Angle> get() = io.nacular.doodle.utils._270
+        public val _360: Measure<Angle> get() = io.nacular.doodle.utils._360
     }
 }

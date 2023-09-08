@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
@@ -32,7 +32,7 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
     private val nativeEventHandlerFactory: NativeEventHandlerFactory,
     private val canvasFactory            : CanvasFactory,
     private val focusManager             : FocusManager?,
-    private val accessibilityManager     : AccessibilityManager?,
+    private val accessibilityManager     : AccessibilityManagerImpl?,
     private val hostName                 : String
 ): NativeHyperLinkFactory {
     override fun invoke(hyperLink: HyperLink, customRenderer: ((HyperLink, Canvas) -> Unit)?) = NativeHyperLink(
@@ -52,7 +52,7 @@ internal class NativeHyperLink internal constructor(
                 htmlFactory         : HtmlFactory,
                 handlerFactory      : NativeEventHandlerFactory,
     private val focusManager        : FocusManager?,
-    private val accessibilityManager: AccessibilityManager?,
+    private val accessibilityManager: AccessibilityManagerImpl?,
     private val canvasFactory       : CanvasFactory,
     private val customRenderer      : ((HyperLink, Canvas) -> Unit)?,
     private val hostName            : String,
@@ -80,11 +80,7 @@ internal class NativeHyperLink internal constructor(
             target = "_blank"
         }
 
-        if (accessibilityManager != null) {
-            hyperLink.accessibilityLabel?.let {
-                setAttribute("aria-label", it)
-            }
-        }
+        accessibilityManager?.linkNativeElement(hyperLink, this)
 
         style.setOverflow     (Visible())
         style.setWidthPercent (100.0    )
@@ -151,6 +147,8 @@ internal class NativeHyperLink internal constructor(
             focusabilityChanged -= this@NativeHyperLink.focusableChanged
 
             if (customRenderer == null) styleChanged -= this@NativeHyperLink.styleChanged
+
+            accessibilityManager?.unlinkNativeElement(this, this@NativeHyperLink.linkElement)
         }
     }
 

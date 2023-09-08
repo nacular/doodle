@@ -294,6 +294,7 @@ public class TreeRow<T>(
         role.depth    = depth
         role.treeSize = tree.numRows
         role.expanded = tree.expanded(path)
+        role.selected = tree.selected(index)
     }
 
     override fun render(canvas: Canvas) {

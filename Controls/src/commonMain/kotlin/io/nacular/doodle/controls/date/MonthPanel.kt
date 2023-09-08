@@ -15,8 +15,8 @@ import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.Pool
@@ -51,13 +51,15 @@ public interface MonthPanelBehavior: Behavior<MonthPanel> {
  * @param selectionModel that manages the panel's selection state
  * @param weekStart indicates which day should be used as the start of the week
  */
-public class MonthPanel(
+public open class MonthPanel(
                 date          : LocalDate,
     public  val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel>? = null,
     private val selectionModel: SelectionModel<LocalDate>? = null,
                 weekStart     : DayOfWeek = SUNDAY
 ): View(), Selectable<LocalDate> {
     private inner class MonthLayout: Layout {
+        private val constrainer = Constrainer()
+
         override fun layout(container: PositionableContainer) {
             var row         = 0
             var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
@@ -79,7 +81,7 @@ public class MonthPanel(
 
                     it.bounds = rect
                 }
-                else -> container.children.constrain(using = cellAlignment) { _,_ ->
+                else -> container.children.forEach {
                     val within = Rectangle(
                         x      = columnWidth * col,
                         y      = rowHeight   * row,
@@ -91,7 +93,7 @@ public class MonthPanel(
 
                     if (col == 0) row++
 
-                    within
+                    it.bounds = constrainer(it.bounds, within = within, minimumSize = it.minimumSize, idealSize = it.idealSize, using = cellAlignment)
                 }
             }
         }
@@ -162,7 +164,7 @@ public class MonthPanel(
         update()
     })
 
-    private fun update() {
+    protected fun update() {
         val visualizer = behavior?.itemVisualizer(this) ?: itemVisualizer ?: return
 
         numRows = when {
@@ -212,8 +214,15 @@ public class MonthPanel(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<LocalDate>, LocalDate> = { _,removed,added ->
-        val filteredAdded   = added.filterTo  (mutableSetOf()) { it.sameMonth(startDate) }
-        val filteredRemoved = removed.filterTo(mutableSetOf()) { it.sameMonth(startDate) }
+        val filteredAdded   = mutableSetOf<LocalDate>()
+        val filteredRemoved = mutableSetOf<LocalDate>()
+
+        repeat(numDays) {
+            when (val d = startDate + DatePeriod(days = it)) {
+                in added   -> filteredAdded   += d
+                in removed -> filteredRemoved += d
+            }
+        }
 
         if (filteredAdded.isNotEmpty() || filteredRemoved.isNotEmpty()) {
             scrollToSelection()
@@ -239,8 +248,6 @@ public class MonthPanel(
 
     init {
         layout = MonthLayout()
-
-        update()
     }
 
     /**
@@ -268,6 +275,8 @@ public class MonthPanel(
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }
 
+        update()
+
         super.addedToDisplay()
     }
 
@@ -288,8 +297,8 @@ public class MonthPanel(
     override fun next    (after : LocalDate): LocalDate? = (after  + DatePeriod(days = 1)).takeIf { it <= lastSelectable  }
     override fun previous(before: LocalDate): LocalDate? = (before - DatePeriod(days = 1)).takeIf { it >= firstSelectable }
 
-    override val firstSelection : LocalDate?     get() = selectionModel?.asSequence()?.filter { it.sameMonth(startDate) }?.sortedBy { it.dayOfMonth }?.first()
-    override val lastSelection  : LocalDate?     get() = selectionModel?.asSequence()?.filter { it.sameMonth(startDate) }?.sortedBy { it.dayOfMonth }?.last ()
+    override val firstSelection : LocalDate?     get() = selectionModel?.asSequence()?.filter { it.sameMonth(startDate) }?.sortedBy { it.dayOfMonth }?.firstOrNull()
+    override val lastSelection  : LocalDate?     get() = selectionModel?.asSequence()?.filter { it.sameMonth(startDate) }?.sortedBy { it.dayOfMonth }?.lastOrNull ()
     override val selectionAnchor: LocalDate?     get() = selectionModel?.anchor?.takeIf { it.sameMonth(startDate) }
     override val selection      : Set<LocalDate> get() = selectionModel?.filterTo(mutableSetOf()) { it.sameMonth(startDate) } ?: emptySet()
 

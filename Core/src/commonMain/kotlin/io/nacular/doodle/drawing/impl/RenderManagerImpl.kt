@@ -73,6 +73,7 @@ public open class RenderManagerImpl(
     protected open val visibilityChanged  : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingBoundsChange: MutableSet<View>                   = fastMutableSetOf()
     protected open val popups             : MutableSet<View>                   = fastMutableSetOf()
+    protected open val livingViews        : MutableSet<View>                   = fastMutableSetOf()
 
     init {
         display.childrenChanged += { _, diffs ->
@@ -143,9 +144,12 @@ public open class RenderManagerImpl(
 
             val parent = view.parent
 
-            when {
-                parent != null && (parent in neverRendered || parent in dirtyViews) -> renderNow(parent)
-                performRender(view).rendered                                        -> pendingRender -= view
+            if (parent != null && (parent in neverRendered || parent in dirtyViews)) {
+                renderNow(parent)
+            }
+
+            if (performRender(view).rendered) {
+                pendingRender -= view
             }
         }
     }
@@ -216,7 +220,8 @@ public open class RenderManagerImpl(
                 }
             }
 
-            views += view
+            views       += view
+            livingViews += view
 
             themeManager?.update(view)
 
@@ -417,6 +422,17 @@ public open class RenderManagerImpl(
     }
 
     private fun releaseResources(parent: View?, view: View) {
+        // Check if this view was "revived" since being marked
+        // for cleanup. Clear cleanup state for this parent
+        // if so.
+        if (view in livingViews) {
+            parent?.let {
+                pendingCleanup[parent]?.remove(view)
+            }
+
+            return
+        }
+
         if (view in views) {
             view.removedFromDisplay_()
 
@@ -432,6 +448,7 @@ public open class RenderManagerImpl(
 
             views               -= view
             dirtyViews          -= view
+            livingViews         -= view
             pendingLayout       -= view
             pendingBoundsChange -= view
 
@@ -454,7 +471,10 @@ public open class RenderManagerImpl(
             return
         }
 
-        pendingCleanup.forEach {
+        val iterator = pendingCleanup.iterator()
+
+        while (iterator.hasNext()) {
+            val it    = iterator.next()
             val views = it.value
 
             if (views.remove(child)) {
@@ -465,8 +485,8 @@ public open class RenderManagerImpl(
                     releaseResources(it.key, child)
                 }
 
-                if (views.isEmpty() && parent != null) {
-                    pendingCleanup.remove(parent)
+                if (views.isEmpty()) {
+                    iterator.remove()
                 }
 
                 return
@@ -527,7 +547,18 @@ public open class RenderManagerImpl(
         }
     }
 
+    private fun removeFromLiving(view: View) {
+        livingViews -= view
+
+        view.children_.forEach { removeFromLiving(it) }
+    }
+
     private fun childRemoved(parent: View?, child: View) {
+        // TODO: Consider whether to optimize this; maybe update view.displayed here and check in releaseResources
+        //  to see if it has been displayed again before cleaning up. Downside is that Views would be notified
+        //  that they are not in the display up to 1 frame before they are removed.
+        removeFromLiving(child)
+
         when {
             parent != null -> addToCleanupList(parent, child)
             else           -> releaseResources(parent, child)

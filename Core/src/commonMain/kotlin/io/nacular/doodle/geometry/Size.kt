@@ -1,5 +1,7 @@
 package io.nacular.doodle.geometry
 
+import io.nacular.doodle.utils.lerp
+
 /**
  * A width and height pair that denote a rectangular area.
  *
@@ -67,3 +69,11 @@ public operator fun Size.times(value: Double): Size = Size(width * value, height
 public operator fun Size.div(value: Int   ): Size = Size(width / value, height / value)
 public operator fun Size.div(value: Double): Size = Size(width / value, height / value)
 public operator fun Size.div(value: Float ): Size = Size(width / value, height / value)
+
+/**
+ * Interpolates between 2 [Size]s
+ */
+public fun lerp(first: Size, second: Size, fraction: Float): Size = Size(
+    lerp(first.width,  second.width,  fraction),
+    lerp(first.height, second.height, fraction)
+)

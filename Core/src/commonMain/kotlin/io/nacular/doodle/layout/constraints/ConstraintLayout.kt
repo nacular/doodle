@@ -6,6 +6,7 @@ import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Operator.EQ
@@ -913,7 +914,7 @@ public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: C
 public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
- * Applies the given constraints to the Views as though they were each withing the Rectangle provided by [within].
+ * Applies the given constraints to the Positionables as though they were each within the Rectangle provided by [within].
  *
  * @param using this constraint for each View
  * @param within this rectangle
@@ -921,12 +922,27 @@ public fun constrain(a: View, b: View, vararg others: View, constraints: Constra
  * @suppress
  */
 @Internal
-public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(Bounds) -> Unit, within: (Int, T) -> Rectangle) {
-    val activeBounds  = mutableSetOf<ReflectionVariable>()
-    val updatedBounds = mutableSetOf<ReflectionVariable>()
+public fun <T: Positionable> Iterable<T>.constrain(
+    using      : ConstraintDslContext.(Bounds) -> Unit,
+    minimumSize: Size = Size.Empty,
+    idealSize  : Size? = null,
+    within     : (Int, T) -> Rectangle
+): Unit = with(Constrainer()) {
+    forEachIndexed { index, view ->
+        view.bounds = this(view.bounds, within(index, view), minimumSize, idealSize, forceSetup = false, using)
+    }
+}
+
+/**
+ * Utility for applying constraints to a single [Rectangle] relative to another.
+ */
+@Internal
+public class Constrainer {
+    private val activeBounds  = mutableSetOf<ReflectionVariable>()
+    private val updatedBounds = mutableSetOf<ReflectionVariable>()
 
     @Suppress("UNUSED_PARAMETER")
-    fun boundsChanged(child: View, old: Rectangle, new: Rectangle) {
+    private fun boundsChanged(child: View, old: Rectangle, new: Rectangle) {
         updatedBounds += ReflectionVariable(child, child::y,      ReflectionVariable.yId     )
         updatedBounds += ReflectionVariable(child, child::x,      ReflectionVariable.xId     )
         updatedBounds += ReflectionVariable(child, child::width,  ReflectionVariable.widthId )
@@ -934,30 +950,49 @@ public fun <T: Positionable> Iterable<T>.constrain(using: ConstraintDslContext.(
     }
 
     val fakeView = object: View() {}
+    private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
-    val solver  = Solver()
-    val context = ConstraintDslContext().apply {
-        parent = ImmutableSizeBounds(widthProperty = Rectangle.Empty::width, heightProperty = Rectangle.Empty::height, this)
+    private var parentSize = Size.Empty
+    private val fakeView   = object: View() {}
+    private val solver     = Solver()
+    private val context    = ConstraintDslContext().apply {
+        parent = ImmutableSizeBounds(widthProperty = Empty::width, heightProperty = Empty::height, this)
     }
 
-    var parentSize = Size.Empty
-
-    forEachIndexed { index, view ->
-        val bounds = within(index, view)
-
-        if (fakeView.bounds != view.bounds) {
-            fakeView.bounds = view.bounds
-            boundsChanged(fakeView, Rectangle.Empty, fakeView.bounds)
+    /**
+     * Applies the given constraints to [rectangle] as though they were within the Rectangle provided by [within].
+     *
+     * @param rectangle to constrain
+     * @param using this constraint for each View
+     * @param within this rectangle
+     * @throws ConstraintException
+     * @suppress
+     */
+    public operator fun invoke(
+        rectangle  : Rectangle,
+        within     : Rectangle,
+        minimumSize: Size  = Size.Empty,
+        idealSize  : Size? = null,
+        forceSetup : Boolean = false,
+        using      : ConstraintDslContext.(Bounds) -> Unit
+    ): Rectangle {
+        if (fakeView.bounds != rectangle) {
+            fakeView.bounds = rectangle
+            boundsChanged(fakeView, Empty, fakeView.bounds)
         }
 
-        if (bounds.size != parentSize) {
-            parentSize = bounds.size
+        fakeView.minimumSize = minimumSize
+        fakeView.idealSize   = idealSize
+
+        if (forceSetup || within.size != parentSize || this.using != using) {
+            this.using     = using
+            parentSize     = within.size
             context.parent = ImmutableSizeBounds(widthProperty = parentSize::width, heightProperty = parentSize::height, context)
             setupSolver(solver, context, blocks = listOf(BlockInfo(listOf(BoundsImpl(fakeView, context))) { (a) -> using(a) })) { /*ignore*/ }
         }
 
         solve(solver, activeBounds = activeBounds, updatedBounds = updatedBounds, context = context) { throw it }
 
-        view.bounds = Rectangle(position = bounds.position + fakeView.position, fakeView.size)
+        return Rectangle(position = within.position + fakeView.position, fakeView.size)
     }
 }

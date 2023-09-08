@@ -397,7 +397,23 @@ class MatrixTests {
             s(this[
              this[ 30.0,  24.0, 18.0],
              this[ 84.0,  69.0, 54.0],
-             this[138.0, 114.0, 90.0]])
+             this[138.0, 114.0, 90.0]]),
+
+            s(this[
+              this[ 1.0,  2.0,  3.0,  4.0],
+              this[ 5.0,  6.0,  7.0,  8.0],
+              this[ 9.0, 10.0, 11.0, 12.0],
+              this[13.0, 14.0, 15.0, 16.0]]) to
+            m(this[
+              this[16.0],
+              this[12.0],
+              this[ 8.0],
+              this[ 4.0]]) to
+            m(this[
+              this[ 80.0],
+              this[240.0],
+              this[400.0],
+              this[560.0]])
         ).forEach {
             expect(it.second, "\n${it.first.first} * \n\n${it.first.second} == \n\n${it.second}") { it.first.first * it.first.second }
         }

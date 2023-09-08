@@ -2,6 +2,8 @@ package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
+import io.nacular.doodle.controls.form.Form.Invalid
+import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
@@ -396,7 +398,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
  * Returns the result of [onValid] if this instance is [valid][Form.Valid] or [default] if it is [invalid][Form.Invalid].
  */
 public inline fun <R, T> FieldState<T>.fold(onValid: (value: T) -> R, default: R): R = when (this) {
-    is Form.Valid<T> -> onValid(value)
+    is Valid<T> -> onValid(value)
     else -> default
 }
 
@@ -405,16 +407,24 @@ public inline fun <R, T> FieldState<T>.fold(onValid: (value: T) -> R, default: R
  */
 @Suppress("unused")
 public inline fun <T, R> FieldState<T>.map(onValid: (value: T) -> R): FieldState<R> = when (this) {
-    is Form.Valid<T> -> Form.Valid(onValid(value))
-    else -> Form.Invalid()
+    is Valid<T> -> Valid(onValid(value))
+    else -> Invalid()
 }
 
 /**
  * Does the action of [onValid] if this instance is [valid][Form.Valid].
  */
-public inline fun <T> FieldState<T>.ifValid(onValid: (value: T) -> Unit): Unit = if (this is Form.Valid) {
+public inline fun <T> FieldState<T>.ifValid(onValid: (value: T) -> Unit): Unit = if (this is Valid) {
     onValid(this.value)
 } else Unit
+
+/**
+ * Does the action of [onInvalid] if this instance is [invalid][Form.Invalid].
+ */
+public inline fun <T> FieldState<T>.ifInvalid(onInvalid: () -> Unit): Unit = if (this is Invalid) {
+    onInvalid()
+} else Unit
+
 
 /**
  * Returns the result of [onValid] if this instance is [valid][Form.Valid] or [default] if it is [invalid][Form.Invalid].

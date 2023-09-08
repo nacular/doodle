@@ -13,11 +13,11 @@ import io.nacular.doodle.system.KeyInputService.Postprocessor
 import io.nacular.doodle.system.KeyInputService.Preprocessor
 import io.nacular.doodle.system.SystemInputEvent
 import io.nacular.doodle.utils.ifTrue
-import java.awt.KeyEventDispatcher
+import java.awt.KeyEventPostProcessor
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_ALT
 import java.awt.event.KeyEvent.VK_ALT_GRAPH
 import java.awt.event.KeyEvent.VK_BACK_SPACE
@@ -44,7 +44,7 @@ import java.awt.event.KeyEvent.VK_UP
 /**
  * Created by Nicholas Eddy on 3/10/18.
  */
-internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFocusManager): KeyInputService, KeyEventDispatcher, KeyAdapter() {
+internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFocusManager): KeyInputService, KeyEventPostProcessor, KeyAdapter() {
 
     private var started        = false
     private var listeners      = mutableSetOf<Listener>     ()
@@ -100,10 +100,11 @@ internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFoc
     }
 
     // FIXME: Only notify UP once?
-    override fun dispatchKeyEvent(e: KeyEvent) = false.also {
+    override fun postProcessKeyEvent(e: KeyEvent) = false.also {
         notifyKeyEvent(e, when (e.id) {
-            KEY_PRESSED -> Down
-            else        -> Up
+//            KEY_PRESSED -> Down
+            KEY_RELEASED -> Up
+            else         -> Down
         })
     }
 
@@ -200,14 +201,16 @@ internal class KeyInputServiceImpl(private val keyboardFocusManager: KeyboardFoc
 
     private fun startUp() {
         if (!started) {
-            keyboardFocusManager.addKeyEventDispatcher(this)
+//            keyboardFocusManager.addKeyEventDispatcher(this)
+            keyboardFocusManager.addKeyEventPostProcessor(this)
             started = true
         }
     }
 
     private fun shutdown() {
         if (started) {
-            keyboardFocusManager.removeKeyEventDispatcher(this)
+//            keyboardFocusManager.removeKeyEventDispatcher(this)
+            keyboardFocusManager.removeKeyEventPostProcessor(this)
             started = false
         }
     }

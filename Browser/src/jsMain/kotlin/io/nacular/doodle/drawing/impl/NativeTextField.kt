@@ -3,6 +3,8 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.FontSerializer
 import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.HTMLInputElement
+import io.nacular.doodle.accessibility.AccessibilityManagerImpl
+import io.nacular.doodle.caretColor
 import io.nacular.doodle.controls.text.Selection
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.text.TextField.Purpose
@@ -53,15 +55,18 @@ internal interface MobileKeyboardManager {
 }
 
 internal class NativeTextFieldFactoryImpl internal constructor(
-        private val idGenerator        : IdGenerator,
-        private val fontSerializer     : FontSerializer,
-        private val systemStyler       : SystemStyler,
-        private val htmlFactory        : HtmlFactory,
-        private val elementRuler       : ElementRuler,
-        private val eventHandlerFactory: NativeEventHandlerFactory,
-        private val focusManager       : FocusManager?,
-        private val textMetrics        : TextMetrics,
-        private val spellCheck         : Boolean): NativeTextFieldFactory {
+        private val idGenerator         : IdGenerator,
+        private val fontSerializer      : FontSerializer,
+        private val systemStyler        : SystemStyler,
+        private val htmlFactory         : HtmlFactory,
+        private val elementRuler        : ElementRuler,
+        private val eventHandlerFactory : NativeEventHandlerFactory,
+        private val focusManager        : FocusManager?,
+        private val textMetrics         : TextMetrics,
+        private val accessibilityManager: AccessibilityManagerImpl?,
+        private val spellCheck          : Boolean,
+        private val autoComplete        : Boolean
+): NativeTextFieldFactory {
 
     private inner class MobileKeyboardManagerImpl: MobileKeyboardManager {
         private val tempFocusTarget: HTMLInputElement = htmlFactory.createInput().apply {
@@ -103,8 +108,10 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             focusManager,
             textMetrics,
             MobileKeyboardManagerImpl(),
+            accessibilityManager,
             sizeDifference,
             spellCheck,
+            autoComplete,
             textField)
 }
 
@@ -117,24 +124,27 @@ internal class NativeTextField(
         private val focusManager         : FocusManager?,
         private val textMetrics          : TextMetrics,
         private val mobileKeyboardManager: MobileKeyboardManager,
+        private val accessibilityManager: AccessibilityManagerImpl?,
         private val borderSize           : Size,
         private val spellCheck           : Boolean,
+        private val autoComplete         : Boolean,
         private val textField            : TextField): NativeEventListener {
+
+    private val inputElement = htmlFactory.createInput().apply {
+        if (!autoComplete) {
+            this.setAttribute("autocomplete", "off")
+        }
+    }
 
     val clipCanvasToBounds = false
 
-    var text
-        get(   ) = inputElement.value
-        set(new) {
-            inputElement.value = new
-        }
+    var text by inputElement::value
 
     var size = Empty
 
     private val selection get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 
     private var ignoreSync     = false
-    private val inputElement   = htmlFactory.createInput()
     private val eventHandler   : NativeEventHandler
     private var elementFocused = false
 
@@ -203,6 +213,16 @@ internal class NativeTextField(
                 this@NativeTextField.selectionStyle    = systemStyler.insertRule("#$id::selection {$styleBody}")
             }
 
+            style.cursor = when (textField.cursor) {
+                null -> ""
+                else -> "inherit"
+            }
+
+            style.caretColor = when {
+                textField.cursorVisible -> ""
+                else                    -> "transparent"
+            }
+
             style.setFont(textField.font)
             style.setColor(textField.foregroundColor)
             style.setBackgroundColor(textField.backgroundColor)
@@ -245,6 +265,8 @@ internal class NativeTextField(
             style.lineHeight = "${textField.height}px"
 
             spellcheck = spellCheck
+
+            accessibilityManager?.linkNativeElement(textField, this)
         }
 
         maskChanged(textField, textField.mask, textField.mask)
@@ -293,6 +315,8 @@ internal class NativeTextField(
         mozSelectionStyle = null
 
         (inputElement.parentElement as? HTMLElement)?.style?.setProperty("transform-style", "")
+
+        accessibilityManager?.unlinkNativeElement(textField, inputElement)
     }
 
     fun render(canvas: Canvas) {
@@ -310,9 +334,12 @@ internal class NativeTextField(
     }
 
     fun fitTextSize() = textMetrics.size(textField.displayText, textField.font).run {
-        val h = if (height == 0.0) textField.height - borderSize.height else height
+        val borderWidth  = if (textField.borderVisible) borderSize.width  else 2.0
+        val borderHeight = if (textField.borderVisible) borderSize.height else 2.0
 
-        Size(max(8.0, width) + borderSize.width, h + borderSize.height)
+        val h = if (height == 0.0) textField.height - borderHeight else height
+
+        Size(max(8.0, width) + borderWidth, max(0.0, h) + borderHeight)
     }
 
     override fun onKeyUp(event: Event) = true.also { syncTextField() }
@@ -361,10 +388,12 @@ internal class NativeTextField(
 
         textField.text = text
 
-        textField.select(selection)
-
         textField.textChanged      += textChanged
         textField.selectionChanged += selectionChanged
+
+        if (textField.text != text) {
+            text = textField.text
+        }
     }
 
     private fun updatePurpose(textField: TextField) {

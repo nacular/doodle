@@ -240,6 +240,11 @@ public sealed interface Vector3D {
      */
     public fun normalize(): Vector3D
 
+    /**
+     * Gets the vector's length
+     */
+    public fun magnitude(): Double
+
     public companion object {
 
         /**
@@ -327,9 +332,11 @@ internal class VectorImpl(override val x: Double = 0.0, override val y: Double =
      *  @return a unit vector pointing in the same direction as this one IFF this vector has a non-zero length
      */
     override fun normalize(): Vector3D = when (magnitude) {
-        0.0  -> this
-        else -> VectorImpl(x / magnitude, y / magnitude, z / magnitude)
+        0.0, 1.0 -> this
+        else     -> VectorImpl(x / magnitude, y / magnitude, z / magnitude)
     }
+
+    override fun magnitude() = magnitude
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -337,9 +344,8 @@ internal class VectorImpl(override val x: Double = 0.0, override val y: Double =
 
         if (x != other.x) return false
         if (y != other.y) return false
-        if (z != other.z) return false
 
-        return true
+        return z == other.z
     }
 
     override fun hashCode(): Int {

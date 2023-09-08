@@ -76,6 +76,8 @@ fun Project.setupSigning() {
 }
 
 fun Project.setupPublication(dokkaJar: Jar) {
+    val releaseBuild = project.hasProperty("release")
+
     extensions.getByType<PublishingExtension>().run {
         publications.withType<MavenPublication>().all {
             if (project.hasProperty("release") || project.hasProperty("snapshot")) {
@@ -89,8 +91,6 @@ fun Project.setupPublication(dokkaJar: Jar) {
 
         repositories {
             maven {
-                val releaseBuild = project.hasProperty("release")
-
                 url = uri(when {
                     releaseBuild -> "https://oss.sonatype.org/service/local/staging/deploy/maven2"
                     else         -> "https://oss.sonatype.org/content/repositories/snapshots"
@@ -103,20 +103,21 @@ fun Project.setupPublication(dokkaJar: Jar) {
             }
         }
 
-        // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
-        afterEvaluate {
-            val signJs  = getTasksByName("signJsPublication",  false).map { it.name }
-            val signJvm = getTasksByName("signJvmPublication", false).map { it.name }
+        if (releaseBuild) {
+            // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
+            afterEvaluate {
+                val signJs  = getTasksByName("signJsPublication", false).map { it.name }
+                val signJvm = getTasksByName("signJvmPublication", false).map { it.name }
 
-            val publishTasks = listOf(
-                "KotlinMultiplatform",
-                "Js",
-                "Jvm",
-            ).map { "publish${it}PublicationToMavenRepository" }
+                val publishTasks = listOf(
+                    "KotlinMultiplatform",
+                    "Js",
+                    "Jvm",
+                ).map { "publish${it}PublicationToMavenRepository" }
 
-            publishTasks.forEach {
-                runCatching { tasks.getByName(it) }.getOrNull()?.let {
-                    it.dependsOn(listOf("signKotlinMultiplatformPublication") + signJs + signJvm)
+                publishTasks.forEach {
+                    runCatching { tasks.getByName(it) }.getOrNull()
+                        ?.dependsOn(listOf("signKotlinMultiplatformPublication") + signJs + signJvm)
                 }
             }
         }

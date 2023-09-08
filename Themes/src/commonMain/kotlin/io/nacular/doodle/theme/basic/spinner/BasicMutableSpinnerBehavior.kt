@@ -1,9 +1,9 @@
 package io.nacular.doodle.theme.basic.spinner
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.MutableSpinner
 import io.nacular.doodle.controls.spinner.MutableSpinnerBehavior
+import io.nacular.doodle.controls.spinner.MutableSpinnerModel
 import io.nacular.doodle.controls.spinner.Spinner
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -18,13 +18,16 @@ import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
 
 public class BasicMutableSpinnerBehavior<T, M: MutableSpinnerModel<T>>(
-        textMetrics        : TextMetrics,
-        backgroundColor    : Color,
-        darkBackgroundColor: Color,
-        foregroundColor    : Color,
-        cornerRadius       : Double,
-        buttonWidth        : Double,
-        focusManager       : FocusManager? = null): MutableSpinnerBehavior<T, M>(), PointerListener {
+    textMetrics        : TextMetrics,
+    backgroundColor    : Color,
+    darkBackgroundColor: Color,
+    foregroundColor    : Color,
+    cornerRadius       : Double,
+    buttonWidth        : Double,
+    focusManager       : FocusManager? = null,
+    incrementLabel     : String?       = null,
+    decrementLabel     : String?       = null,
+): MutableSpinnerBehavior<T, M>(), PointerListener {
 
     private val delegate = BasicSpinnerBehavior<T, M>(
             textMetrics,
@@ -33,7 +36,9 @@ public class BasicMutableSpinnerBehavior<T, M: MutableSpinnerModel<T>>(
             foregroundColor,
             cornerRadius,
             buttonWidth,
-            focusManager
+            focusManager,
+            incrementLabel,
+            decrementLabel,
     ).apply {
         centerChanged += { spinner, old, new ->
             (spinner as? MutableSpinner<T, M>)?.let {

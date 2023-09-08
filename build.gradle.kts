@@ -1,6 +1,7 @@
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
+import java.net.URL
 
 buildscript {
     repositories {
@@ -58,7 +59,29 @@ subprojects {
             // Do not create index pages for empty packages
             skipEmptyPackages.set(true)
 
+            includes.from("Module.md")
+
             documentedVisibilities.set(setOf(PUBLIC, PROTECTED))
+
+            sourceLink {
+                localDirectory.set(rootProject.projectDir)
+                remoteUrl.set(URL("https://github.com/nacular/doodle/tree/master"))
+                remoteLineSuffix.set("#L")
+            }
+
+            externalDocumentationLink {
+                url.set(URL("https://kotlinlang.org/api/latest/jvm/stdlib/"))
+            }
+
+            externalDocumentationLink {
+                url.set(URL("https://kotlinlang.org/api/kotlinx-datetime"))
+                packageListUrl.set(URL("https://kotlinlang.org/api/kotlinx-datetime/kotlinx-datetime/package-list"))
+            }
+
+            externalDocumentationLink {
+                url.set(URL("https://nacular.github.io/measured-api"))
+                packageListUrl.set(URL("https://nacular.github.io/measured-api/measured/package-list"))
+            }
         }
     }
 }

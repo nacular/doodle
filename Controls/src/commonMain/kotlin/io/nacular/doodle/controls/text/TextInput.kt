@@ -101,9 +101,7 @@ public abstract class TextInput(text: String = "", protected val role: TextBoxRo
             start              <= text.length || selection.anchor != end &&
             end                >= 0 &&
             end                <= text.length) {
-
-            cursorVisible = true
-            selection     = Selection(start, end)
+            selection = Selection(start, end)
         }
     }
 }

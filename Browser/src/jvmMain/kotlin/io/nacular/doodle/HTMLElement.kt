@@ -85,12 +85,13 @@ public actual abstract class CSSStyleDeclaration {
     public actual var textDecorationColor: String = ""
     public actual var textDecorationStyle: String = ""
 
-    internal var clipPath_: String                  = ""
-    internal var willChange_: String                = ""
-    internal var scrollBehavior_: String            = ""
-    internal var textDecorationThickness_: String   = ""
-    internal var touchAction_ : String              = ""
-    internal var _webkit_appearance_: String        = ""
+    internal var clipPath_               : String = ""
+    internal var willChange_             : String = ""
+    internal var scrollBehavior_         : String = ""
+    internal var textDecorationThickness_: String = ""
+    internal var touchAction_            : String = ""
+    internal var _webkit_appearance_     : String = ""
+    internal var caretColor_             : String = ""
 }
 
 public actual var CSSStyleDeclaration.clipPath               : String get() = clipPath_;                set(new) { clipPath_ = new }
@@ -99,6 +100,7 @@ public actual var CSSStyleDeclaration.scrollBehavior         : String get() = sc
 public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
 public actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_ = new }
 public actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_ = new }
+public actual var CSSStyleDeclaration.caretColor             : String get() = caretColor_;              set(new) { caretColor_ = new }
 
 public actual abstract class CanvasRenderingContext2D {
     internal var _wordSpacing: String = ""
