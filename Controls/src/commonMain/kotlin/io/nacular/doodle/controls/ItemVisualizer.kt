@@ -37,9 +37,6 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
     override fun invoke(item: T, previous: View?, context: C) = block(item, previous, context)
 }
 
-@Deprecated(message = "Use StringVisualizer", replaceWith = ReplaceWith("StringVisualizer"))
-public typealias TextVisualizer = StringVisualizer
-
 /**
  * Visualizes Strings using [Label]s.
  */

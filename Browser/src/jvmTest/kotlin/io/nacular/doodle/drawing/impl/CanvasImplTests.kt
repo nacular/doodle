@@ -72,7 +72,7 @@ class CanvasImplTests {
 
     @Test @JsName("defaultsValid") fun `defaults valid`() {
         mapOf(
-                CanvasImpl::size to Size.Empty
+            CanvasImpl::size to Size.Empty
         ).forEach { validateDefault(it.key, it.value) }
     }
 
@@ -91,8 +91,8 @@ class CanvasImplTests {
         nothingRendered2 { _,      fill -> ellipse(circle, fill        ) }
         nothingRendered2 { stroke, fill -> ellipse(circle, stroke, fill) }
 
-        nothingRendered2 { _, fill -> text   ("text", null, Origin, fill            ) }
-        nothingRendered2 { _, fill -> wrapped("text", null, Origin, 0.0, 100.0, fill) }
+        nothingRendered2 { _, fill -> text   ("text", null, Origin, fill       ) }
+        nothingRendered2 { _, fill -> wrapped("text", Origin, 100.0, fill, null) }
     }
 
     @Test @JsName("emptyShapesNoOp") fun `empty shapes no-op`() {
@@ -124,8 +124,8 @@ class CanvasImplTests {
         nothingRendered { ellipse(circle,         fill) }
         nothingRendered { ellipse(circle, stroke, fill) }
 
-        nothingRendered { text   ("", null, Origin,             fill) }
-        nothingRendered { wrapped("", null, Origin, 0.0, 100.0, fill) }
+        nothingRendered { text   ("", null, Origin,        fill) }
+        nothingRendered { wrapped("", Origin, 100.0, fill, null) }
 
         nothingRendered { image(zeroSizeImage                       ) }
         nothingRendered { image(image, opacity     = 0f             ) }
@@ -376,7 +376,7 @@ class CanvasImplTests {
                 )
             } returns t
 
-            wrapped(text, font, at, 100.0, 200.0, fill)
+            wrapped(text = text, at = at, width = 100.0, indent = 50.0, fill = fill, font = font)
 
             val style = t.style
 
@@ -394,7 +394,7 @@ class CanvasImplTests {
             val font = mockk<Font>()
             val at   = Point(150, 89)
 
-            wrapped(text = text, font = font, at = at, leftMargin = 100.0, rightMargin = 200.0, fill = fill)
+            wrapped(text = text, font = font, at = at, width = 100.0, indent = 50.0, fill = fill)
 
             verify(exactly = 1) {
                 renderer.wrapped(
@@ -430,7 +430,7 @@ class CanvasImplTests {
                 )
             } returns t
 
-            wrapped(text, at, 100.0, 200.0)
+            wrapped(text = text, at = at, width = 100.0, indent = 50.0)
 
             val style = t.style
 
@@ -445,8 +445,8 @@ class CanvasImplTests {
             val text2 = StyledText("some text", background = fill)
             val at    = Point(150, 89)
 
-            wrapped(text1, at, 100.0, 200.0)
-            wrapped(text2, at, 100.0, 200.0)
+            wrapped(text = text1, at = at, width = 100.0, indent = 50.0)
+            wrapped(text = text2, at = at, width = 100.0, indent = 50.0)
 
             verify(exactly = 1) {
                 renderer.wrapped(

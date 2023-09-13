@@ -244,7 +244,7 @@ internal open class NativeTextFieldBehavior(
                     fb?.let {
                         if (!syncTextFromSwing(
                             it,
-                            document.getText(0, document.length).replaceRange(offset, offset, string!!.subSequence(0, text.length))
+                            document.getText(0, document.length).replaceRange(offset, offset, string!!.subSequence(0, password.size))
                         )) {
                             return
                         }

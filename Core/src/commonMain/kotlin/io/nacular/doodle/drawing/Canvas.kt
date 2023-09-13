@@ -140,60 +140,6 @@ public interface CommonCanvas: Renderer {
      */
     public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
 
-    /**
-     * Draws wrapped plain text.
-     *
-     * @param text to draw
-     * @param font to use
-     * @param at this point
-     * @param leftMargin where text wraps
-     * @param rightMargin where text wraps
-     * @param fill to fill with
-     * @param alignment of text
-     */
-    @Deprecated("Use version with TextAlignment")
-    public fun wrapped(
-        text         : String,
-        font         : Font? = null,
-        at           : Point = Origin,
-        leftMargin   : Double,
-        rightMargin  : Double,
-        fill         : Paint,
-        alignment    : HorizontalAlignment = HorizontalAlignment.Left,
-    ): Unit = wrapped(
-        text      = text,
-        at        = at,
-        fill      = fill,
-        font      = font,
-        width     = rightMargin - leftMargin,
-        indent    = at.x - leftMargin,
-        alignment = alignment.textAlignment
-    )
-
-    /**
-     * Draws wrapped styled text.
-     *
-     * @param text to draw
-     * @param at this point
-     * @param leftMargin where text wraps
-     * @param rightMargin where text wraps
-     * @param alignment of text
-     */
-    @Deprecated("Use version with TextAlignment")
-    public fun wrapped(
-        text         : StyledText,
-        at           : Point = Origin,
-        leftMargin   : Double,
-        rightMargin  : Double,
-        alignment    : HorizontalAlignment = HorizontalAlignment.Left,
-    ): Unit = wrapped(
-        text      = text,
-        at        = at,
-        width     = rightMargin - leftMargin,
-        indent    = at.x - leftMargin,
-        alignment = alignment.textAlignment
-    )
-
     private val HorizontalAlignment.textAlignment get() = when (this) {
         HorizontalAlignment.Left   -> Start
         HorizontalAlignment.Center -> Center
@@ -570,4 +516,4 @@ public inline fun CommonCanvas.text(text: String, font: Font?, at: Point = Origi
  * @param rightMargin where text wraps
  * @param color to fill with
  */
-public inline fun CommonCanvas.wrapped(text: String, font: Font? = null, at: Point, leftMargin: Double, rightMargin: Double, color: Color): Unit = wrapped(text, font, at, leftMargin, rightMargin, color.paint)
+public inline fun CommonCanvas.wrapped(text: String, font: Font? = null, at: Point, width: Double, color: Color): Unit = wrapped(text, at, width, fill = color.paint, font)

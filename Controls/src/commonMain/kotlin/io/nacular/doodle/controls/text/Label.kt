@@ -97,14 +97,6 @@ public open class Label(
     public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
 
     /**
-     * Alignment of text along the horizontal axis.
-     */
-    @Deprecated("Use TextAlignment instead", ReplaceWith("textAlignment", imports = arrayOf("io.nacular.doodle.utils.TextAlignment")))
-    public var horizontalAlignment: HorizontalAlignment get() = textAlignment.horizontalAlignment; set(value) {
-        textAlignment = value.textAlignment
-    }
-
-    /**
      * Space between lines in [text] (when [wrapsWords] == `true`) in terms of the [font] height.
      */
     public var lineSpacing: Float  by observable(1f ) { _,_ -> if (wrapsWords) { measureText(); rerender() } }

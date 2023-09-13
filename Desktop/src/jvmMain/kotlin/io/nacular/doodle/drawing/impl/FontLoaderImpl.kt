@@ -27,18 +27,18 @@ internal class FontLoaderImpl(private val fontCollection: FontCollection): FontL
         fontCollection.setAssetFontManager(typefaceFontProvider)
     }
 
-    override suspend fun invoke(info: FontInfo.() -> Unit): Font? = FontInfo().apply(info).let { info ->
-        var result = loadedFonts[info]
+    override suspend fun invoke(info: FontInfo.() -> Unit): Font? = FontInfo().apply(info).let { fontInfo ->
+        var result = loadedFonts[fontInfo]
 
         if (result == null) {
-            val slant = when (info.style) {
+            val slant = when (fontInfo.style) {
                 Italic     -> OBLIQUE
                 is Oblique -> OBLIQUE
                 else       -> UPRIGHT
             }
 
-            result = fontCollection.findTypefaces(info.families.toTypedArray(), FontStyle(info.weight, 5, slant)).firstOrNull()?.toFont(info)?.also {
-                loadedFonts[info] = it
+            result = fontCollection.findTypefaces(fontInfo.families.toTypedArray(), FontStyle(fontInfo.weight, 5, slant)).firstOrNull()?.toFont(fontInfo)?.also {
+                loadedFonts[fontInfo] = it
             }
         }
 

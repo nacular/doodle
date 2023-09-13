@@ -7,7 +7,6 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
-import kotlin.jvm.JvmName
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.min
@@ -173,18 +172,6 @@ public fun Circle.inscribed(sides: Int, rotation: Measure<Angle> = 0 * degrees):
 
     return ConvexPolygonImpl(points)
 }
-
-/**
- * Creates a [Regular polygon](https://en.wikipedia.org/wiki/Regular_polygon) by inscribing it within the given circle.
- *
- * @param circle to inscribe the polygon in
- * @param sides the polygon should have
- * @param rotation of the polygon's first point around the circle
- * @return the polygon
- */
-@Deprecated(message = "Use Circle.inscribe instead")
-@JvmName("circleInscribed")
-public fun inscribed(circle: Circle, sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? = circle.inscribed(sides, rotation)
 
 /**
  * Creates a [Star](https://math.stackexchange.com/questions/2135982/math-behind-creating-a-perfect-star) with n points

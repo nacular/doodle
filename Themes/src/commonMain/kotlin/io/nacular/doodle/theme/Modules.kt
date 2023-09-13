@@ -51,6 +51,7 @@ public class Modules {
         public inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: NoArgBindingDI<*>.(T) -> BehaviorResult) {
             importOnce(DynamicThemeModule, allowOverride = true)
 
+            // FIXME: changing to inBindSet { add {} } causes crash on desktop
             addInBindSet<BehaviorResolver> { singleton {
                 object: BehaviorResolver {
                     override val theme = theme
