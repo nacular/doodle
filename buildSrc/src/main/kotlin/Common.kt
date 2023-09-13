@@ -1,3 +1,5 @@
+
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
@@ -14,18 +16,17 @@ fun KotlinMultiplatformExtension.jsTargets() {
 
         compilations.all {
             kotlinOptions {
+                moduleKind = "umd"
                 sourceMap  = !releaseBuild
                 if (sourceMap) {
                     sourceMapEmbedSources = "always"
                 }
-                moduleKind       = "umd"
-                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
         browser {
-            testTask {
+            testTask(Action {
                 enabled = false
-            }
+            })
         }
     }
 }

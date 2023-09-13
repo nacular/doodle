@@ -3,16 +3,6 @@ import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URL
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath ("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlinVersion.get()}")
-    }
-}
-
 plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.kover)

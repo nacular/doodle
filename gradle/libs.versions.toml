@@ -1,16 +1,16 @@
 [versions]
-slf4jVersion      = { strictly = "2.0.4"  }
-mockkVersion      = { strictly = "1.13.5" }
-skikoVersion      = { strictly = "0.7.44" }
-kodeinVersion     = { strictly = "7.16.0" }
-kotlinVersion     = { strictly = "1.7.21" }
-jupiterVersion    = { strictly = "5.9.1"  }
-logbackVersion    = { strictly = "1.4.7"  }
-measuredVersion   = { strictly = "0.3.3"  }
-dateTimeVersion   = { strictly = "0.4.0"  }
-coroutinesVersion = { strictly = "1.6.4"  }
+kotlinVersion     = { strictly = "1.9.10" }
+dateTimeVersion   = { strictly = "0.4.1"  }
+coroutinesVersion = { strictly = "1.7.3"  }
+skikoVersion      = { strictly = "0.7.79" }
+kodeinVersion     = { strictly = "7.20.2" }
+measuredVersion   = { strictly = "0.4.0-SNAPSHOT"  }
 dokkaVersion      = { strictly = "1.9.0"  }
-koverVersion      = { strictly = "0.6.1"  }
+koverVersion      = { strictly = "0.7.3"  }
+slf4jVersion      = { strictly = "2.0.9"  }
+mockkVersion      = { strictly = "1.13.7" }
+jupiterVersion    = { strictly = "5.10.0" }
+logbackVersion    = { strictly = "1.4.11" }
 
 [libraries]
 mockk             = { module = "io.mockk:mockk",                                 version.ref = "mockkVersion"      }

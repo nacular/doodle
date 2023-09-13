@@ -1,15 +1,12 @@
 plugins {
     `kotlin-dsl`
-    `embedded-kotlin`
 }
 
 repositories {
     mavenCentral()
 }
 
-val kotlinVersion = "1.7.21" //: String by System.getProperties()
-
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
     implementation(gradleApi())
 }
