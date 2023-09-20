@@ -205,6 +205,9 @@ public open class RenderManagerImpl(
                 }
             }
 
+            views       += view
+            livingViews += view
+
             val highestAncestor = view.highestAncestor
 
             if (highestAncestor in display || highestAncestor in popups) {
@@ -219,9 +222,6 @@ public open class RenderManagerImpl(
                     addedInvisible += view
                 }
             }
-
-            views       += view
-            livingViews += view
 
             themeManager?.update(view)
 
