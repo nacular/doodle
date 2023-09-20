@@ -335,7 +335,12 @@ public open class Carousel<T, M: ListModel<T>>(
         field = new
     }
 
-    private val cleanUpSkip = { _: Completable ->
+    private val cleanUpSkipCompletable = { _: Completable ->
+        targetVirtualSelection   = index(offset = 0, stopAtEndsIfCannotWrap = true) ?: 0
+        previousVirtualSelection = targetVirtualSelection
+    }
+
+    private val cleanUpSkip = {
         targetVirtualSelection   = index(offset = 0, stopAtEndsIfCannotWrap = true) ?: 0
         previousVirtualSelection = targetVirtualSelection
     }
@@ -400,8 +405,12 @@ public open class Carousel<T, M: ListModel<T>>(
                     progressToTargetItem = progress
                     update()
                 }?.apply {
-                    completed += cleanUpSkip
-                    canceled  += cleanUpSkip
+                    completed += cleanUpSkipCompletable
+                    canceled  += cleanUpSkipCompletable
+                }
+
+                if (animation == null) {
+                    cleanUpSkip()
                 }
             }
         }
@@ -630,9 +639,9 @@ public open class Carousel<T, M: ListModel<T>>(
             progressToTargetItem,
             true
         )?.let { trueIndex ->
-            val oldNearest   = nearestItem
-            trueVirtualIndex = trueIndex
-            progressToNextItem   = trueIndex - nearestItem
+            val oldNearest     = nearestItem
+            trueVirtualIndex   = trueIndex
+            progressToNextItem = trueIndex - nearestItem
 
             progressChanged_.forEach { it(this) }
 
