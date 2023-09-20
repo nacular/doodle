@@ -39,6 +39,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.jsObject
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.IdGenerator
@@ -167,11 +168,15 @@ internal class NativeTextField(
         ignoreSync = true
 
         when (new) {
-            true -> inputElement.focus()
+            true -> focusInput()
             else -> inputElement.blur ()
         }
 
         ignoreSync = false
+    }
+
+    private fun focusInput() {
+        inputElement.asDynamic().focus(jsObject { preventScroll = true })
     }
 
     private val enabledChanged = { _: View, _: Boolean, new: Boolean ->
@@ -326,7 +331,7 @@ internal class NativeTextField(
         }
 
         if (textField.hasFocus && !elementFocused) {
-            inputElement.focus()
+            focusInput()
 
             // This forces the element to take focus, so only doing if it should be focused
             select(textField.selection.run { start .. end })
