@@ -22,7 +22,11 @@ private class NativeFileSelectorBehaviorWrapper(
     private val delegate   : Behavior<FileSelector>): FileSelectorBehavior, Behavior<FileSelector> by delegate {
 
     private val nativePeer by lazy {
-        nativeFileSelectorFactory(fileSelector, customRenderer = { selector, canvas -> delegate.render(selector, canvas) }) {
+        nativeFileSelectorFactory(
+            fileSelector,
+            customRenderer = { selector, canvas -> delegate.render(selector, canvas) },
+            delegate.clipCanvasToBounds(fileSelector)
+        ) {
             fileSelector.files = it
         }
     }

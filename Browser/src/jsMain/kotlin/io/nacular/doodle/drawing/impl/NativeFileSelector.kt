@@ -8,24 +8,37 @@ import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.None
+import io.nacular.doodle.dom.Overflow.Visible
 import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setHeightPercent
+import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.asList
 
 
 internal interface NativeFileSelectorFactory {
-    operator fun invoke(fileSelector: FileSelector, customRenderer: ((FileSelector, Canvas) -> Unit)? = null, onChange: (List<LocalFile>) -> Unit): NativeFileSelector
+    operator fun invoke(
+        fileSelector      : FileSelector,
+        onChange          : (List<LocalFile>) -> Unit
+    ): NativeFileSelector = invoke(fileSelector, null, false, onChange)
+
+    operator fun invoke(
+        fileSelector      : FileSelector,
+        customRenderer    : ((FileSelector, Canvas) -> Unit)?,
+        clipCanvasToBounds: Boolean,
+        onChange          : (List<LocalFile>) -> Unit
+    ): NativeFileSelector
 }
 
 internal class NativeFileSelectorFactoryImpl internal constructor(
@@ -36,7 +49,12 @@ internal class NativeFileSelectorFactoryImpl internal constructor(
         private val focusManager             : FocusManager?,
 ): NativeFileSelectorFactory {
 
-    override fun invoke(fileSelector: FileSelector, customRenderer: ((FileSelector, Canvas) -> Unit)?, onChange: (List<LocalFile>) -> Unit) = NativeFileSelector(
+    override fun invoke(
+        fileSelector      : FileSelector,
+        customRenderer    : ((FileSelector, Canvas) -> Unit)?,
+        clipCanvasToBounds: Boolean,
+        onChange          : (List<LocalFile>) -> Unit
+    ) = NativeFileSelector(
             htmlFactory,
             nativeEventHandlerFactory,
             elementRuler,
@@ -44,18 +62,20 @@ internal class NativeFileSelectorFactoryImpl internal constructor(
             canvasFactory,
             fileSelector,
             customRenderer,
+            clipCanvasToBounds,
             onChange)
 }
 
 internal class NativeFileSelector internal constructor(
-                    htmlFactory   : HtmlFactory,
-                    handlerFactory: NativeEventHandlerFactory,
-        private val elementRuler  : ElementRuler,
-        private val focusManager  : FocusManager?,
-        private val canvasFactory : CanvasFactory,
-        private val fileSelector    : FileSelector,
-        private val customRenderer: ((FileSelector, Canvas) -> Unit)?,
-        private val filesChanged  : (List<LocalFile>) -> Unit
+                    htmlFactory       : HtmlFactory,
+                    handlerFactory    : NativeEventHandlerFactory,
+        private val elementRuler      : ElementRuler,
+        private val focusManager      : FocusManager?,
+        private val canvasFactory     : CanvasFactory,
+        private val fileSelector      : FileSelector,
+        private val customRenderer    : ((FileSelector, Canvas) -> Unit)?,
+        private val clipCanvasToBounds: Boolean,
+        private val filesChanged      : (List<LocalFile>) -> Unit
 ): NativeEventListener {
 
     private val rootEventHandler : NativeEventHandler
@@ -119,10 +139,24 @@ internal class NativeFileSelector internal constructor(
                 style.setWidthPercent (100.0)
                 style.setHeightPercent(100.0)
 
-                customCanvas = canvasFactory(this)
+                customCanvas = canvasFactory(this).apply { size = fileSelector.size}
+
+                if (!clipCanvasToBounds) {
+                    style.setOverflow(Visible())
+                }
             }
 
             add(canvasElement)
+        }
+
+        if (!clipCanvasToBounds) {
+            style.setOverflow(Visible())
+        }
+    }
+
+    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { view,_,_ ->
+        customCanvas?.let {
+            it.size = view.size
         }
     }
 
@@ -144,6 +178,7 @@ internal class NativeFileSelector internal constructor(
     init {
         fileSelector.apply {
             focusChanged          += this@NativeFileSelector.focusChanged
+            boundsChanged         += this@NativeFileSelector.boundsChanged
             enabledChanged        += this@NativeFileSelector.enabledChanged
             focusabilityChanged   += this@NativeFileSelector.focusabilityChanged
         }
@@ -168,6 +203,7 @@ internal class NativeFileSelector internal constructor(
     fun discard() {
         fileSelector.apply {
             focusChanged          -= this@NativeFileSelector.focusChanged
+            boundsChanged         -= this@NativeFileSelector.boundsChanged
             enabledChanged        -= this@NativeFileSelector.enabledChanged
             focusabilityChanged   -= this@NativeFileSelector.focusabilityChanged
         }
