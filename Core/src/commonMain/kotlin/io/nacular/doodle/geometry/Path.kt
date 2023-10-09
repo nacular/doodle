@@ -27,6 +27,13 @@ public value class Path internal constructor(public val data: String) {
  */
 public sealed interface PathBuilder {
     /**
+     * Moves from the current point to this one.
+     *
+     * @param point to move to
+     */
+    public infix fun moveTo(point: Point): PathBuilder
+
+    /**
      * Draws a line from the current point to this one.
      *
      * @param point to end at
@@ -247,6 +254,10 @@ public fun ringSection(
 
 private class PathBuilderImpl(start: Point): PathBuilder {
     private var data = "M${start.x},${start.y}"
+
+    override fun moveTo(point: Point) = this.also {
+        data += "M${point.x},${point.y}"
+    }
 
     override fun lineTo(point: Point) = this.also {
         data += "L${point.x},${point.y}"
