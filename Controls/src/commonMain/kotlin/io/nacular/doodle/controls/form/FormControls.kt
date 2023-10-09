@@ -1493,7 +1493,6 @@ public class WhenInvalidFocusLost(text: StyledText): RequiredIndicatorStyle(text
     public constructor(text: String = "*"): this(StyledText(text))
 }
 
-
 /**
  * Creates a component with a [Label] and the result of [visualizer] that is bound to a [Field].
  * This control simply wraps an existing one with a configurable text label.
