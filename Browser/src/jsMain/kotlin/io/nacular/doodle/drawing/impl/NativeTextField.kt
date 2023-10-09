@@ -376,7 +376,14 @@ internal class NativeTextField(
         textField.select(selection)
     }
 
-    private fun select(range: ClosedRange<Int>) = inputElement.setSelectionRange(range.start, range.endInclusive)
+    private fun select(range: ClosedRange<Int>) {
+        try {
+            // attempt to select, but handle case where input type doesn't support it
+            inputElement.setSelectionRange(range.start, range.endInclusive)
+        } catch (ignore: Throwable) {
+
+        }
+    }
 
     private fun syncTextField() {
         if (ignoreSync) {
