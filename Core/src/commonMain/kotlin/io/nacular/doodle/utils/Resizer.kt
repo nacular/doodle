@@ -28,7 +28,7 @@ import io.nacular.doodle.utils.Direction.South
 import io.nacular.doodle.utils.Direction.West
 import kotlin.math.max
 
-public class Resizer(private val view: View): PointerListener, PointerMotionListener {
+public class Resizer(private val view: View, private val manageCursor: Boolean = true): PointerListener, PointerMotionListener {
 
     init {
         view.pointerChanged       += this
@@ -171,7 +171,7 @@ public class Resizer(private val view: View): PointerListener, PointerMotionList
     }
 
     private fun updateCursor(interaction: Interaction, event: PointerEvent) {
-        if (dragMode.isNotEmpty()) {
+        if (!manageCursor || dragMode.isNotEmpty()) {
             return
         }
 
