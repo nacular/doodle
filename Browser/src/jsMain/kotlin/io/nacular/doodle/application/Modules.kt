@@ -145,7 +145,7 @@ public class Modules {
         public val ModalModule: Module = Module(allowSilentOverride = true, name = "Modal") {
             importOnce(PopupModule)
 
-            bindSingleton<ModalManager>{ ModalManagerImpl(instance()) }
+            bindSingleton<ModalManager>{ ModalManagerImpl(instance(), instanceOrNull()) }
         }
     }
 }
