@@ -72,7 +72,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
-private typealias ZOrderObservers = PropertyObservers<View, Int>
+private typealias ZOrderObservers  = PropertyObservers<View, Int>
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -87,10 +87,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Defines a clipping path for a View's children.
      *
-     * @constructor
      * @property path used for clipping
      */
-    public abstract class ClipPath(public val path: Path) {
+    public abstract class ClipPath {
+        public abstract val path: Path
+
         /**
          * Indicates whether [point] falls within [path]
          *
@@ -105,7 +106,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @constructor
      * @param polygon used for clipping
      */
-    public class PolyClipPath(private val polygon: Polygon): ClipPath(polygon.toPath()) {
+    public class PolyClipPath(private val polygon: Polygon): ClipPath() {
+        override val path: Path = polygon.toPath()
+
         override fun contains(point: Point): Boolean = point in polygon
     }
 
@@ -115,9 +118,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @constructor
      * @param ellipse used for clipping
      */
-    public class EllipseClipPath(private val ellipse: Ellipse): ClipPath(ellipse.toPath()) {
+    public class EllipseClipPath(private val ellipse: Ellipse): ClipPath() {
         public constructor(center: Point,  radius: Double                 ): this(Circle(center, radius))
         public constructor(center: Point, xRadius: Double, yRadius: Double): this(Ellipse(center, xRadius, yRadius))
+
+        override val path: Path = ellipse.toPath()
 
         override fun contains(point: Point): Boolean = point in ellipse
     }
