@@ -234,9 +234,16 @@ internal class NativeFileSelector internal constructor(
         }
     }
 
+    private var ignoreChange = false
+
     override fun onChange(event: Event): Boolean {
-        inputElement.files?.asList()?.map { SimpleFile(it) }?.let {
-            filesChanged(it)
+        if (!ignoreChange) {
+            inputElement.files?.asList()?.map { SimpleFile(it) }?.let {
+                filesChanged(it)
+                ignoreChange = true
+                inputElement.value = ""
+                ignoreChange = false
+            }
         }
 
         return true
