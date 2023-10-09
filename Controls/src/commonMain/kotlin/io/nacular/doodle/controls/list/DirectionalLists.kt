@@ -12,7 +12,8 @@ import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import kotlin.math.max
 
 /**
@@ -39,7 +40,7 @@ public class VerticalList<T, out M: ListModel<T>>(
     public companion object {
         public operator fun invoke(
             progression    : IntProgression,
-            itemVisualizer : ItemVisualizer<Int, IndexedItem>,
+            itemVisualizer : ItemVisualizer<Int, IndexedItem>? = null,
             selectionModel : SelectionModel<Int>? = null,
             fitContent     : Set<Dimension>       = setOf(Width, Height),
             numColumns     : Int                  = 1,
@@ -48,7 +49,7 @@ public class VerticalList<T, out M: ListModel<T>>(
 
         public inline operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
-            itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>       = setOf(Width, Height),
             numColumns    : Int                  = 1,
@@ -98,7 +99,7 @@ public class HorizontalList<T, out M: ListModel<T>>(
     public companion object {
         public operator fun invoke(
             progression    : IntProgression,
-            itemVisualizer : ItemVisualizer<Int, IndexedItem>,
+            itemVisualizer : ItemVisualizer<Int, IndexedItem>? = null,
             selectionModel : SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>        = setOf(Width, Height),
             numRows        : Int                  = 1,
@@ -107,7 +108,7 @@ public class HorizontalList<T, out M: ListModel<T>>(
 
         public inline operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
-            itemVisualizer: ItemVisualizer<T, IndexedItem>,
+            itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>? = null,
             fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
