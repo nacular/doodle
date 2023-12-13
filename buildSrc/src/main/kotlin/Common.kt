@@ -9,6 +9,7 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
 
 fun KotlinMultiplatformExtension.jsTargets() {
     js {
@@ -23,10 +24,22 @@ fun KotlinMultiplatformExtension.jsTargets() {
                 }
             }
         }
+
         browser {
             testTask(Action {
                 enabled = false
             })
+        }
+
+        binaries.withType<JsIrBinary>().all {
+            linkTask.configure {
+                kotlinOptions {
+                    sourceMap = !releaseBuild
+                    if (sourceMap) {
+                        sourceMapEmbedSources = "always"
+                    }
+                }
+            }
         }
     }
 }
