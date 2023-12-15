@@ -50,7 +50,6 @@ internal class DragManagerImpl(
                       private val pointerLocationResolver: PointerLocationResolver,
                       private val graphicsDevice         : GraphicsDevice<RealGraphicsSurface>,
                                   htmlFactory            : HtmlFactory): DragManager {
-    private val isIE                   = htmlFactory.create<HTMLElement>().asDynamic()["dragDrop"] != undefined
     private var pointerDown            = null as PointerEvent?
     private var rootElement            = htmlFactory.root
     private var dropAllowed            = false
@@ -129,7 +128,7 @@ internal class DragManagerImpl(
                 when (event.type) {
                     Up   -> pointerUp  (     )
                     Down -> pointerDown(event)
-                    else -> pointerDrag(event)
+                    else -> {}
                 }
             }
         }
@@ -137,7 +136,7 @@ internal class DragManagerImpl(
         rootElement.ondragover = { event ->
             if (event.target !is HTMLInputElement) {
                 (dataBundle ?: createBundle(event.dataTransfer))?.let {
-                    if (!isIE && ::visualCanvas.isInitialized) {
+                    if (::visualCanvas.isInitialized) {
                         visualCanvas.release()
                     }
 
@@ -185,52 +184,6 @@ internal class DragManagerImpl(
 
     private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(view, event)
 
-    private fun pointerDrag(event: SystemPointerEvent) {
-        pointerDown?.let {
-            viewFinder.find(event.location)?.let { view ->
-
-                if ((event.location - it.location).run { abs(x) >= DRAG_THRESHOLD || abs(y) >= DRAG_THRESHOLD }) {
-                    view.dragRecognizer?.dragRecognized(pointerEvent(event, view))?.let { dragOperation ->
-                        dataBundle = dragOperation.bundle
-
-                        dragOperation.visual?.let { visual ->
-                            createVisual(visual, event.location + dragOperation.visualOffset)
-
-                            visualCanvas.position = dragOperation.visualOffset // FIXME: Need to figure out how to position visual
-
-                            scheduler.now { visualCanvas.release() } // FIXME: This doesn't happen fast enough
-
-                            visualCanvas.rootElement.apply {
-                                ondragstart = {
-                                    it.dataTransfer?.apply {
-                                        effectAllowed = allowedActions(dragOperation.allowedActions)
-
-                                        setOf(PlainText, UriList).forEach { mimeType ->
-                                            dragOperation.bundle[mimeType]?.let { text ->
-                                                it.dataTransfer?.setData("$it", text)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        registerListeners(dragOperation, rootElement)
-
-                        // FIXME: Need to find way to avoid dragging selected inputs even when they aren't being dragged
-//                        if(document.asDynamic()["selection"] != undefined) {
-//                            document.asDynamic().selection.empty()
-//                        }
-
-                        visualCanvas.rootElement.asDynamic().dragDrop()
-
-                        pointerDown = null
-                    }
-                }
-            }
-        }
-    }
-
     private fun pointerDown(event: SystemPointerEvent) {
         viewFinder.find(event.location).let {
             var view = it
@@ -251,11 +204,6 @@ internal class DragManagerImpl(
         }
 
         val pointerEvent = pointerEvent(event, view)
-
-        if (isIE) {
-            pointerDown = pointerEvent
-            return true // IE doesn't start a drag after this.  We just have to hand-off at this point.
-        }
 
         view.dragRecognizer?.dragRecognized(pointerEvent)?.let { dragOperation ->
 
@@ -327,8 +275,6 @@ internal class DragManagerImpl(
         }
     }
 
-//    private fun pointerLocation(event: DomMouseEvent) = Point(event.pageX, event.pageY)
-
     private fun action(name: String?) = when {
         name == null            -> null
         name.startsWith("copy") -> Copy
@@ -358,16 +304,12 @@ internal class DragManagerImpl(
             element.ondragenter = null
             element.ondragstart = null
 
-            val action = action(it.dataTransfer?.dropEffect)
-
-            if (action == null) {
-                dragOperation.canceled()
-            } else {
-                currentDropHandler?.let { (view, handler) ->
-                    if (handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement) {
-                        dragOperation.completed(action)
-                    } else {
-                        dragOperation.canceled()
+            when (val action = action(it.dataTransfer?.dropEffect)) {
+                null -> dragOperation.canceled()
+                else -> currentDropHandler?.let { (view, handler) ->
+                    when {
+                        handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement -> dragOperation.completed(action)
+                        else -> dragOperation.canceled()
                     }
                 } ?: dragOperation.completed(action)
             }
