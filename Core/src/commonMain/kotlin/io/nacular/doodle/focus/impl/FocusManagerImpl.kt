@@ -106,12 +106,12 @@ public class FocusManagerImpl(
             val oldFocusOwner = focusOwner
 
             if (oldFocusOwner != null) {
-                if (oldFocusOwner.shouldYieldFocus()) {
-                    oldFocusOwner.focusLost(view)
-
-                    stopMonitorProperties(oldFocusOwner)
-                } else {
-                    return
+                when {
+                    oldFocusOwner.shouldYieldFocus() -> {
+                        stopMonitorProperties(oldFocusOwner)
+                        oldFocusOwner.focusLost(view)
+                    }
+                    else -> return
                 }
             }
 
