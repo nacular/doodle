@@ -1,10 +1,11 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.HTMLImageElement
-import io.nacular.doodle.Node
-import io.nacular.doodle.Text
-import io.nacular.doodle.clear
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.HTMLImageElement
+import io.nacular.doodle.dom.Node
+import io.nacular.doodle.dom.Text
+import io.nacular.doodle.dom.clear
+import io.nacular.doodle.dom.cloneNode_
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Overflow.Visible
@@ -60,19 +61,19 @@ import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.splitMatches
-import io.nacular.doodle.willChange
+import io.nacular.doodle.dom.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 internal open class CanvasImpl(
-        private val renderParent   : HTMLElement,
-        private val htmlFactory    : HtmlFactory,
-        private val textFactory    : TextFactory,
-        private val textMetrics    : TextMetrics,
-        private val useShadowHack  : Boolean,
-                    rendererFactory: VectorRendererFactory): NativeCanvas {
+    private val renderParent   : HTMLElement,
+    private val htmlFactory    : HtmlFactory,
+    private val textFactory    : TextFactory,
+    private val textMetrics    : TextMetrics,
+    private val useShadowHack  : Boolean,
+    rendererFactory: VectorRendererFactory): NativeCanvas {
 
     private inner class Context: CanvasContext {
         override var size
@@ -539,7 +540,7 @@ internal open class CanvasImpl(
         var result = possible
 
         if (result == null || result !is HTMLImageElement || result.parent != null && result.nodeName != image.nodeName) {
-            result = image.cloneNode(false)
+            result = image.cloneNode_(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
             result.src              = image.src

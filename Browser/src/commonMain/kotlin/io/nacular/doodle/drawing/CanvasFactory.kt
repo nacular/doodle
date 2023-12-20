@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 
 /**
  * Created by Nicholas Eddy on 10/23/17.

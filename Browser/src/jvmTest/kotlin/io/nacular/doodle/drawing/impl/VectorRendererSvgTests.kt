@@ -1,20 +1,21 @@
 package io.nacular.doodle.drawing.impl
 
+import JsName
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.Node
-import io.nacular.doodle.NodeList
-import io.nacular.doodle.SVGCircleElement
-import io.nacular.doodle.SVGElement
-import io.nacular.doodle.SVGEllipseElement
-import io.nacular.doodle.SVGPolygonElement
-import io.nacular.doodle.SVGRectElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.Node
+import io.nacular.doodle.dom.NodeList
+import io.nacular.doodle.dom.SVGCircleElement
+import io.nacular.doodle.dom.SVGElement
+import io.nacular.doodle.dom.SVGEllipseElement
+import io.nacular.doodle.dom.SVGPolygonElement
+import io.nacular.doodle.dom.SVGRectElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setCircle
@@ -38,7 +39,6 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.IdGenerator
-import JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -52,7 +52,7 @@ import kotlin.test.expect
 @Suppress("FunctionName")
 class VectorRendererSvgTests {
     init {
-        mockkStatic("io.nacular.doodle.dom.SvgElementKt")
+        mockkStatic("io.nacular.doodle.dom.DomHelpersKt")
     }
 
     @Test @JsName("invisibleToolsNoOp") fun `invisible tools no-op`() {

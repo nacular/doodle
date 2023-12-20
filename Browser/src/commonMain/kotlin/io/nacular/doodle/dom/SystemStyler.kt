@@ -1,11 +1,6 @@
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.CSSStyleSheet
-import io.nacular.doodle.Document
-import io.nacular.doodle.HTMLMetaElement
-import io.nacular.doodle.HTMLStyleElement
 import io.nacular.doodle.dom.SystemStyler.Style
-import io.nacular.doodle.numStyles
 import io.nacular.doodle.utils.IdGenerator
 
 /**

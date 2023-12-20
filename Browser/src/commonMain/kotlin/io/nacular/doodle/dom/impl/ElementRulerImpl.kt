@@ -1,6 +1,6 @@
 package io.nacular.doodle.dom.impl
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.height
@@ -8,7 +8,7 @@ import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.willChange
+import io.nacular.doodle.dom.willChange
 
 internal class ElementRulerImpl(htmlFactory: HtmlFactory): ElementRuler {
 

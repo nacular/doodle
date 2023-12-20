@@ -2,8 +2,9 @@
 
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.CSSStyleDeclaration
-import io.nacular.doodle.clipPath
+import io.nacular.doodle.dom.CSSStyleDeclaration
+import io.nacular.doodle.dom.clipPath
+import io.nacular.doodle.dom.textDecorationThickness
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
@@ -26,7 +27,6 @@ import io.nacular.doodle.text.TextDecoration.Thickness
 import io.nacular.doodle.text.TextDecoration.Thickness.FromFont
 import io.nacular.doodle.text.TextDecoration.Thickness.Percent
 import io.nacular.doodle.text.TextSpacing
-import io.nacular.doodle.textDecorationThickness
 import io.nacular.doodle.utils.SquareMatrix
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
@@ -166,8 +166,8 @@ internal inline fun Style.setFontWeight(value: Int       ) { fontWeight = "$valu
 internal inline fun Style.setFontSize  (value: Int   ) { fontSize   = em(max(0, value)) }
 internal inline fun Style.setFontFamily(value: String) { fontFamily = value            }
 
-internal inline fun Style.setDisplay (value: Display?  = null) { display  = value?.value ?: "" }
-internal inline fun Style.setPosition(value: Position? = null) { position = value?.value ?: "" }
+internal inline fun Style.setDisplay    (value: Display?  = null) { display  = value?.value ?: "" }
+internal inline fun Style.setDomPosition(value: Position? = null) { position = value?.value ?: "" }
 
 internal inline fun Style.setOverflow (overflow: Overflow? = null) { overflow.also { setOverflowX(it); setOverflowY(it) } }
 internal inline fun Style.setOverflowX(overflow: Overflow? = null) { overflowX = overflow?.value ?: "" }

@@ -1,11 +1,5 @@
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.HTMLButtonElement
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.HTMLImageElement
-import io.nacular.doodle.HTMLInputElement
-import io.nacular.doodle.Text
-
 /**
  * Created by Nicholas Eddy on 10/24/17.
  */

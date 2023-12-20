@@ -4,10 +4,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
-import io.nacular.doodle.Element
-import io.nacular.doodle.HTMLCollection
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.Node
+import io.nacular.doodle.dom.Element
+import io.nacular.doodle.dom.HTMLCollection
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.Node
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.add

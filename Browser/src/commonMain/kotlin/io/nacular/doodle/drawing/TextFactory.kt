@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment

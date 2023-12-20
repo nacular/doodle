@@ -1,18 +1,18 @@
 package io.nacular.doodle.system.impl
 
-import io.nacular.doodle.Document
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.addActiveEventListener
-import io.nacular.doodle.addEventListener
+import io.nacular.doodle.dom.Document
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.TouchEvent
+import io.nacular.doodle.dom.addActiveEventListener
+import io.nacular.doodle.dom.addEventListener
+import io.nacular.doodle.dom.removeActiveEventListener
+import io.nacular.doodle.dom.removeEventListener
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.removeActiveEventListener
-import io.nacular.doodle.removeEventListener
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemInputEvent.Modifier
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt

@@ -12,7 +12,10 @@ public actual open class Event {
     public actual fun preventDefault () {}
 }
 
-public actual open class UIEvent : Event()
+public actual open class UIEvent : Event() {
+    public actual val detail: Int = 0
+}
+
 public actual open class KeyboardEvent: UIEvent() {
     public actual val ctrlKey : Boolean = false
     public actual val shiftKey: Boolean = false
@@ -55,3 +58,7 @@ public actual open class TouchEvent: UIEvent() {
         override val length = 0
     }
 }
+
+public actual class InputEvent: UIEvent()
+
+public actual class FocusEvent: UIEvent()

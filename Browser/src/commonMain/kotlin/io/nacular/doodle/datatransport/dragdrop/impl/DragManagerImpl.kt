@@ -1,14 +1,12 @@
 package io.nacular.doodle.datatransport.dragdrop.impl
 
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.HTMLInputElement
-import io.nacular.doodle.datatransport.SimpleFile
 import io.nacular.doodle.core.View
 import io.nacular.doodle.datatransport.DataBundle
 import io.nacular.doodle.datatransport.Files
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.datatransport.PlainText
+import io.nacular.doodle.datatransport.SimpleFile
 import io.nacular.doodle.datatransport.UriList
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
@@ -20,7 +18,12 @@ import io.nacular.doodle.datatransport.dragdrop.DropEvent
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.dom.DataTransfer
+import io.nacular.doodle.dom.DragEvent
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.HTMLInputElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.cloneNode_
+import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -37,9 +40,6 @@ import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.system.impl.PointerLocationResolver
-import org.w3c.dom.DragEvent
-import org.w3c.dom.get
-import kotlin.math.abs
 
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
@@ -219,7 +219,7 @@ internal class DragManagerImpl(
 
                     override fun render(canvas: Canvas) {
                         (canvas as? NativeCanvas)?.apply {
-                            addData(listOf((graphicsDevice[view].rootElement.cloneNode(deep = true) as HTMLElement)))
+                            addData(listOf((graphicsDevice[view].rootElement.cloneNode_(deep = true) as HTMLElement)))
                         }
                     }
                 }
@@ -371,7 +371,7 @@ internal class DragManagerImpl(
     private fun createVisual(visual: Renderable, position: Point) {
         class CanvasWrapper(private val delegate: NativeCanvas): NativeCanvas by delegate {
             override fun addData(elements: List<HTMLElement>, at: Point) {
-                delegate.addData(elements.map { it.cloneNode(deep = true) as HTMLElement }, at)
+                delegate.addData(elements.map { it.cloneNode_(deep = true) as HTMLElement }, at)
             }
         }
 

@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.drawing.CanvasFactory

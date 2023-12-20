@@ -1,8 +1,8 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.ResizeObserver
-import io.nacular.doodle.ResizeObserverInit
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.ResizeObserver
+import io.nacular.doodle.dom.ResizeObserverInit
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Horizontal
@@ -27,8 +27,8 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.scheduler.Scheduler
-import io.nacular.doodle.scrollBehavior
-import io.nacular.doodle.willChange
+import io.nacular.doodle.dom.scrollBehavior
+import io.nacular.doodle.dom.willChange
 import kotlin.math.max
 import kotlin.math.min
 

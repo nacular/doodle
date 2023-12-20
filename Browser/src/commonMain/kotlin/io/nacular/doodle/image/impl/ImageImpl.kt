@@ -1,6 +1,6 @@
 package io.nacular.doodle.image.impl
 
-import io.nacular.doodle.HTMLImageElement
+import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.height
 import io.nacular.doodle.dom.width
 import io.nacular.doodle.geometry.Size

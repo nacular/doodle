@@ -1,6 +1,6 @@
 package io.nacular.doodle.document.impl
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.document.Document
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
@@ -15,6 +15,7 @@ import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setPosition
+import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -38,7 +39,7 @@ internal class DocumentImpl(
                     htmlFactory   : HtmlFactory): Document() {
     private val root = htmlFactory.create<HTMLElement>().apply {
         style.setDisplay (Block ())
-        style.setPosition(Static())
+        style.setDomPosition(Static())
         // TODO: Enable text selection
 //        style.userSelect = "text"
     }
@@ -76,14 +77,14 @@ internal class DocumentImpl(
 
     override fun inline(text: StyledText) {
         root.add(textFactory.wrapped(text, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
-            style.setPosition(Static())
+            style.setDomPosition(Static())
             style.setDisplay (Inline())
         })
     }
 
     override fun inline(text: String, font: Font?) {
         root.add(textFactory.wrapped(text, font, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
-            style.setPosition(Static())
+            style.setDomPosition(Static())
             style.setDisplay (Inline())
         })
     }
@@ -103,7 +104,7 @@ internal class DocumentImpl(
     private fun add(view: View, position: Position?, display: Display?) {
         // ensure that we have a headless graphics surface
         val surface = graphicsDevice.create(view).also { surface ->
-            position?.let { surface.rootElement.style.setPosition(it) }
+            position?.let { surface.rootElement.style.setDomPosition(it) }
             display?.let  { surface.rootElement.style.setDisplay (it) }
         }
 

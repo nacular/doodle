@@ -1,6 +1,6 @@
 package io.nacular.doodle.application
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory

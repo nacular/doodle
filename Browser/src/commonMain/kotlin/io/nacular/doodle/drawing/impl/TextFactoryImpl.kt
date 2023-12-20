@@ -1,7 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.clear
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Inline
 import io.nacular.doodle.dom.Static
@@ -14,6 +14,7 @@ import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setLineHeight
 import io.nacular.doodle.dom.setPosition
+import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent
@@ -68,7 +69,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         text.forEach { (text, style) ->
             element.add(create(text, style.font, textSpacing).also { element ->
                 element.style.setDisplay    (Inline()   )
-                element.style.setPosition   (Static()   )
+                element.style.setDomPosition   (Static()   )
                 element.style.setTextSpacing(textSpacing)
 
                 applyStyle(element, style)

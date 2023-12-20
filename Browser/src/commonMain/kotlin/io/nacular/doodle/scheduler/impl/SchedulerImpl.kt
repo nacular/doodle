@@ -1,6 +1,10 @@
 package io.nacular.doodle.scheduler.impl
 
 import io.nacular.doodle.dom.Window
+import io.nacular.doodle.dom.clearInterval_
+import io.nacular.doodle.dom.clearTimeout_
+import io.nacular.doodle.dom.setInterval_
+import io.nacular.doodle.dom.setTimeout_
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
@@ -24,12 +28,12 @@ import kotlin.coroutines.suspendCoroutine
 private class SimpleTask(private val window: Window, timer: Timer, time: Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private val start = timer.now
-    private val value = window.setTimeout({ completed = true; job(timer.now - start) }, (time `in` milliseconds).toInt())
+    private val value = window.setTimeout_({ completed = true; job(timer.now - start) }, (time `in` milliseconds).toInt())
 
     override var completed = false
 
     override fun cancel() {
-        window.clearTimeout(value)
+        window.clearTimeout_(value)
         completed = true
     }
 }
@@ -52,12 +56,12 @@ private open class AnimationTask(private val window: Window, job: (Measure<Time>
 private class RecurringTask(private val window: Window, timer: Timer, time : Measure<Time>, job: (Measure<Time>) -> Unit): Task {
 
     private var last = timer.now
-    private val value: Int = window.setInterval({ timer.now.let { job(it - last); last = it } },  (time `in` milliseconds).toInt())
+    private val value: Int = window.setInterval_({ timer.now.let { job(it - last); last = it } },  (time `in` milliseconds).toInt())
 
     override var completed = false
 
     override fun cancel() {
-        window.clearInterval(value)
+        window.clearInterval_(value)
         completed = true
     }
 }

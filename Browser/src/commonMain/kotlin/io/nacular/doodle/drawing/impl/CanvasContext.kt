@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.Node
+import io.nacular.doodle.dom.Node
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.geometry.Size
 

@@ -3,9 +3,9 @@ package io.nacular.doodle.system.impl
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.nacular.doodle.CSSStyleDeclaration
-import io.nacular.doodle.Document
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.CSSStyleDeclaration
+import io.nacular.doodle.dom.Document
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.system.Cursor
@@ -59,7 +59,7 @@ class PointerInputServiceStrategyWebkitTests {
     }
 
     private fun createStrategy(
-        document               : Document                = mockk(),
+        document               : Document = mockk(),
         htmlFactory            : HtmlFactory             = mockk(),
         pointerLocationResolver: PointerLocationResolver = mockk()
     ) = PointerInputServiceStrategyWebkit(document, htmlFactory, pointerLocationResolver)

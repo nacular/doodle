@@ -1,7 +1,5 @@
 package io.nacular.doodle.core.impl
 
-import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.clear
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight

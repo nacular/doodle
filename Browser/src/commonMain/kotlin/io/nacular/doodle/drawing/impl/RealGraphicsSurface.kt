@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Block
@@ -44,13 +44,13 @@ import kotlin.math.min
 private fun canvasElement(@Suppress("UNUSED_PARAMETER") view: View, htmlFactory: HtmlFactory): HTMLElement = htmlFactory.create()
 
 internal class RealGraphicsSurface private constructor(
-        private val htmlFactory             : HtmlFactory,
-        private val canvasFactory           : CanvasFactory,
-        private var parent                  : RealGraphicsSurface?,
-                    isContainer             : Boolean,
-                    canvasElement           : HTMLElement,
-                    addToRootIfNoParent     : Boolean,
-        private val nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): GraphicsSurface {
+    private val htmlFactory             : HtmlFactory,
+    private val canvasFactory           : CanvasFactory,
+    private var parent                  : RealGraphicsSurface?,
+    isContainer             : Boolean,
+    canvasElement           : HTMLElement,
+    addToRootIfNoParent     : Boolean,
+    private val nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): GraphicsSurface {
 
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): this(htmlFactory, canvasFactory, null, false, element, true, nonPopupTopLevelSurfaces)
     constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(

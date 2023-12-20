@@ -2,7 +2,6 @@ package io.nacular.doodle.application
 
 import io.nacular.doodle.FontSerializer
 import io.nacular.doodle.FontSerializerImpl
-import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Internal
@@ -15,13 +14,16 @@ import io.nacular.doodle.deviceinput.PointerInputManager
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.EventTarget
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.SvgFactory
-import io.nacular.doodle.dom.SvgFactoryImpl
 import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStylerImpl
 import io.nacular.doodle.dom.impl.ElementRulerImpl
 import io.nacular.doodle.dom.impl.HtmlFactoryImpl
+import io.nacular.doodle.dom.impl.SvgFactoryImpl
+import io.nacular.doodle.dom.startMonitoringSize
+import io.nacular.doodle.dom.stopMonitoringSize
 import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
@@ -45,8 +47,6 @@ import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
 import io.nacular.doodle.scheduler.impl.StrandImpl
-import io.nacular.doodle.startMonitoringSize
-import io.nacular.doodle.stopMonitoringSize
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
@@ -104,19 +104,19 @@ public inline fun <reified T: Application> application(
  * @param creator block that constructs the application
  */
 public inline fun <reified T: Application> application(
-                 root                : HTMLElement,
-                 allowDefaultDarkMode: Boolean     = false,
-                 modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
+    root                : HTMLElement,
+    allowDefaultDarkMode: Boolean     = false,
+    modules             : List<Module> = emptyList(),
+    noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
 public inline fun <reified T: Application> nestedApplication(
-                 view                : ApplicationView,
-                 root                : HTMLElement,
-                 allowDefaultDarkMode: Boolean      = false,
-                 modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
+    view                : ApplicationView,
+    root                : HTMLElement,
+    allowDefaultDarkMode: Boolean      = false,
+    modules             : List<Module> = emptyList(),
+    noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
@@ -130,19 +130,19 @@ public fun createApplication(
 /** @suppress */
 @Internal
 public fun createApplication(
-        injector            : DirectDI,
-        root                : HTMLElement,
-        allowDefaultDarkMode: Boolean,
-        modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
+    injector            : DirectDI,
+    root                : HTMLElement,
+    allowDefaultDarkMode: Boolean,
+    modules             : List<Module>): Application = ApplicationHolderImpl(injector, root, allowDefaultDarkMode, modules)
 
 /** @suppress */
 @Internal
 public fun createNestedApplication(
-        view                : ApplicationView,
-        injector            : DirectDI,
-        root                : HTMLElement,
-        allowDefaultDarkMode: Boolean,
-        modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
+    view                : ApplicationView,
+    injector            : DirectDI,
+    root                : HTMLElement,
+    allowDefaultDarkMode: Boolean,
+    modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root, allowDefaultDarkMode, modules)
 
 private class NestedPointerInputStrategy(private val view: ApplicationView, private val delegate: PointerInputServiceStrategy): PointerInputServiceStrategy by(delegate) {
     override fun startUp(handler: EventHandler) {
@@ -164,11 +164,11 @@ private class NestedPointerInputStrategy(private val view: ApplicationView, priv
 }
 
 private class NestedApplicationHolder(
-        view                : ApplicationView,
-        previousInjector    : DirectDI,
-        root                : HTMLElement,
-        allowDefaultDarkMode: Boolean = false,
-        modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
+    view                : ApplicationView,
+    previousInjector    : DirectDI,
+    root                : HTMLElement,
+    allowDefaultDarkMode: Boolean = false,
+    modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
         (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.let { it.nested = true } // TODO: Find better way to handle this
@@ -193,11 +193,11 @@ private class NestedApplicationHolder(
 }
 
 private open class ApplicationHolderImpl protected constructor(
-                    previousInjector    : DirectDI,
-        private val root                : HTMLElement,
-                    allowDefaultDarkMode: Boolean      = false,
-                    modules             : List<Module> = emptyList(),
-        private val isNested            : Boolean      = false): Application {
+    previousInjector    : DirectDI,
+    private val root                : HTMLElement,
+    allowDefaultDarkMode: Boolean      = false,
+    modules             : List<Module> = emptyList(),
+    private val isNested            : Boolean      = false): Application {
     private var focusManager: FocusManager? = null
 
     private fun targetOutsideApp(target: EventTarget?) = target == null || (target is Node && !root.contains(target))

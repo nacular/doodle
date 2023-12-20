@@ -5,9 +5,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
-import io.nacular.doodle.CSSStyleDeclaration
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.clear
+import io.nacular.doodle.dom.CSSStyleDeclaration
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -464,7 +464,7 @@ class DisplayImplTests {
 
     private fun display(htmlFactory  : HtmlFactory   = mockk(),
                         canvasFactory: CanvasFactory = mockk(),
-                        rootElement  : HTMLElement   = mockk()) = DisplayImpl(htmlFactory, canvasFactory, rootElement)
+                        rootElement  : HTMLElement = mockk()) = DisplayImpl(htmlFactory, canvasFactory, rootElement)
 
     private fun <T> validateDefault(p: KProperty1<DisplayImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(display()) }

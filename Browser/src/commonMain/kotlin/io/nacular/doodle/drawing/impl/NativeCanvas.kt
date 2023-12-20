@@ -1,6 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 

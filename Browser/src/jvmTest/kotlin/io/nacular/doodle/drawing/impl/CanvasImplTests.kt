@@ -9,12 +9,13 @@ import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.HTMLImageElement
-import io.nacular.doodle.Node
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
+import io.nacular.doodle.dom.cloneNode_
 import io.nacular.doodle.dom.index
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.parent
@@ -66,8 +67,9 @@ import kotlin.test.expect
 
 class CanvasImplTests {
     init {
-        mockkStatic("io.nacular.doodle.dom.ElementKt")
-        mockkStatic(Node::childAt)
+        mockkStatic("io.nacular.doodle.dom.DomHelpersKt")
+        mockkStatic(Node::childAt                       )
+        mockkStatic(Node::cloneNode_                    )
     }
 
     @Test @JsName("defaultsValid") fun `defaults valid`() {
@@ -579,7 +581,7 @@ class CanvasImplTests {
         validateRender { renderParent, _, _, _, _ ->
             val clone = mockk<HTMLImageElement>()
             val img   = mockk<HTMLImageElement>().apply {
-                every { cloneNode(false) } returns clone
+                every { cloneNode_(false) } returns clone
             }
 
             every { image.image } returns img
@@ -714,11 +716,11 @@ class CanvasImplTests {
     }
 
     private fun validateRender(block: CanvasImpl.(
-            renderParent   : HTMLElement,
-            htmlFactory    : HtmlFactory,
-            textFactory    : TextFactory,
-            renderer       : VectorRenderer,
-            rendererFactory: VectorRendererFactory) -> Unit) {
+        renderParent   : HTMLElement,
+        htmlFactory    : HtmlFactory,
+        textFactory    : TextFactory,
+        renderer       : VectorRenderer,
+        rendererFactory: VectorRendererFactory) -> Unit) {
         val renderer        = mockk<VectorRenderer>()
         val htmlFactory     = mockk<HtmlFactory>   ()
         val textFactory     = mockk<TextFactory>   ()
@@ -826,7 +828,7 @@ class CanvasImplTests {
         every { this@apply.invoke(any()) } returns renderer
     }
 
-    private fun canvas(renderParent   : HTMLElement           = mockk(),
+    private fun canvas(renderParent   : HTMLElement = mockk(),
                        htmlFactory    : HtmlFactory           = mockk(),
                        textFactory    : TextFactory           = mockk(),
                        textMetrics    : TextMetrics           = mockk(),

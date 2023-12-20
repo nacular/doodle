@@ -3,14 +3,14 @@ package io.nacular.doodle.geometry.impl
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.nacular.doodle.DOMRect
-import io.nacular.doodle.SVGElement
-import io.nacular.doodle.SVGGraphicsElement
-import io.nacular.doodle.SVGPathElement
+import io.nacular.doodle.dom.DOMRect
+import io.nacular.doodle.dom.SVGElement
+import io.nacular.doodle.dom.SVGGraphicsElement
+import io.nacular.doodle.dom.SVGPathElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.getBBox
+import io.nacular.doodle.dom.getBBox
 import kotlin.test.Test
 import kotlin.test.expect
 

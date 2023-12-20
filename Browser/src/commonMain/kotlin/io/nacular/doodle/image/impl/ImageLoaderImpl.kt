@@ -1,6 +1,6 @@
 package io.nacular.doodle.image.impl
 
-import io.nacular.doodle.HTMLImageElement
+import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.image.Image

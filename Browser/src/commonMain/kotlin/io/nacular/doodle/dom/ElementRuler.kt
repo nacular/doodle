@@ -1,6 +1,5 @@
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.HTMLElement
 import io.nacular.doodle.geometry.Size
 
 internal interface ElementRuler {

@@ -1,7 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.Document
 import io.nacular.doodle.FontSerializer
+import io.nacular.doodle.dom.Document
 import io.nacular.doodle.dom.styleText
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.Font.Style.Italic

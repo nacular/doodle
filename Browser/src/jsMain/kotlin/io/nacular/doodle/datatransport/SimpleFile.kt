@@ -1,5 +1,6 @@
 package io.nacular.doodle.datatransport
 
+import io.nacular.doodle.dom.File
 import io.nacular.measured.units.BinarySize
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
@@ -16,7 +17,7 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Created by Nicholas Eddy on 12/28/21.
  */
-internal class SimpleFile(private val delegate: org.w3c.files.File): LocalFile {
+internal actual class SimpleFile actual constructor(private val delegate: File): LocalFile {
     override val name        : String get() = delegate.name
     override val size        : Measure<BinarySize> get() = delegate.size * BinarySize.bytes
     override val type        : String get() = delegate.type

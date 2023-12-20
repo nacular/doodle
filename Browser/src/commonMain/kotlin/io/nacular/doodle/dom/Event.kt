@@ -12,7 +12,9 @@ public expect open class Event {
     public fun preventDefault ()
 }
 
-public expect open class UIEvent: Event
+public expect open class UIEvent: Event {
+    public val detail: Int
+}
 
 public expect open class KeyboardEvent: UIEvent {
     public val ctrlKey : Boolean
@@ -53,4 +55,12 @@ public expect abstract class TouchList {
 
 public expect open class TouchEvent: UIEvent {
     public val touches: TouchList
+}
+
+public expect class InputEvent: UIEvent
+
+public expect class FocusEvent: UIEvent
+
+public expect class DragEvent: MouseEvent {
+    internal val dataTransfer: DataTransfer?
 }

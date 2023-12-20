@@ -29,44 +29,32 @@ kotlin {
             languageSettings.optIn("io.nacular.doodle.core.Internal")
         }
 
-        @Suppress("UNUSED_VARIABLE")
-        val commonMain by getting {
-            dependencies {
-                api(project(":core"    ))
-                api(project(":controls"))
-                api(project(":themes"  ))
+        commonMain.dependencies {
+            api(project(":core"    ))
+            api(project(":controls"))
+            api(project(":themes"  ))
 
-                implementation(libs.datetime        )
-                implementation(libs.coroutines.core )
-                implementation(libs.coroutines.swing)
-            }
+            implementation(libs.datetime        )
+            implementation(libs.coroutines.core )
+            implementation(libs.coroutines.swing)
         }
 
-        @Suppress("UNUSED_VARIABLE")
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"            ))
-                implementation(kotlin("test-annotations-common"))
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test-common"            ))
+            implementation(kotlin("test-annotations-common"))
         }
 
-        @Suppress("UNUSED_VARIABLE")
-        val jvmMain by getting {
-            dependencies {
-                api(libs.kodein.di)
+        jvmMain.dependencies {
+            api(libs.kodein.di)
 
-                compileOnly(skikoLib)
-            }
+            compileOnly(skikoLib)
         }
 
-        @Suppress("UNUSED_VARIABLE")
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit")  )
-                implementation(libs.coroutines.test  )
-                implementation(libs.bundles.test.libs)
-                implementation(skikoLib              )
-            }
+        jvmTest.dependencies {
+            implementation(kotlin("test-junit")  )
+            implementation(libs.coroutines.test  )
+            implementation(libs.bundles.test.libs)
+            implementation(skikoLib              )
         }
     }
 }

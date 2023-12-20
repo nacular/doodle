@@ -4,7 +4,7 @@ import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.nacular.doodle.HTMLImageElement
+import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
 import kotlinx.coroutines.runBlocking

@@ -1,7 +1,7 @@
 package io.nacular.doodle.accessibility
 
-import io.nacular.doodle.HTMLButtonElement
-import io.nacular.doodle.HTMLElement
+import io.nacular.doodle.dom.HTMLButtonElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
@@ -13,7 +13,7 @@ import io.nacular.doodle.drawing.impl.NativeEventListener
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.role
+import io.nacular.doodle.dom.role
 import io.nacular.doodle.system.KeyInputService.KeyResponse
 import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.impl.KeyInputServiceImpl

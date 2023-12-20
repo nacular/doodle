@@ -53,7 +53,7 @@ import io.nacular.doodle.application.application
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.theme.Theme
 import io.nacular.doodle.theme.ThemeManager
-import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
+import io.nacular.doodle.theme.NativeTheme.Companion.NativeTheme
 import org.kodein.di.instance
 
 //sampleStart
@@ -118,7 +118,7 @@ class SimpleApp(display: Display, manager: ThemeManager, theme: Theme): Applicat
 //sampleEnd</code><h2 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="dynamic-themes">Dynamic Themes<a href="#dynamic-themes" class="hash-link" aria-label="Direct link to Dynamic Themes" title="Direct link to Dynamic Themes">​</a></h2><p>Doodle addresses this concern with the <code><a href="https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme" target="_blank" rel="noopener noreferrer">DynamicTheme</a></code>. This Theme uses dependency injection to discover the set of Behaviors that have been installed via Kodein Modules. It can filter that list down to those Behaviors associated with it. This avoids hard dependencies on Views or Behaviors as a result.</p><p>DynamicThemes require explicit Behavior registration to work. The built-in Themes define a Module per Behavior to allow arbitrary groupings within apps. These modules are defined using <code><a href="https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme/-modules/-companion/bind-behavior.html" target="_blank" rel="noopener noreferrer">bindBehavior</a></code>, which takes a <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-theme" target="_blank" rel="noopener noreferrer">Theme</a></code> class and binds a <code><a href="https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme" target="_blank" rel="noopener noreferrer">DynamicTheme</a></code> that includes behaviors associated with that class.</p><code theme="darcula" mode="kotlin" data-highlight-only="true">package themes.dynamic
 
 import io.nacular.doodle.application.application
-import io.nacular.doodle.theme.native.NativeTheme.Companion.nativeButtonBehavior
+import io.nacular.doodle.theme.NativeTheme.Companion.nativeButtonBehavior
 import org.kodein.di.instance
 import themes.SimpleApp
 

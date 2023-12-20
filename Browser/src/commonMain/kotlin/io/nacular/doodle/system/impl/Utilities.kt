@@ -1,9 +1,9 @@
 package io.nacular.doodle.system.impl
 
-import io.nacular.doodle.HTMLAnchorElement
-import io.nacular.doodle.HTMLButtonElement
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.HTMLInputElement
+import io.nacular.doodle.dom.HTMLAnchorElement
+import io.nacular.doodle.dom.HTMLButtonElement
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.HTMLInputElement
 import io.nacular.doodle.dom.EventTarget
 import io.nacular.doodle.dom.hasScrollOverflow
 
@@ -11,8 +11,8 @@ import io.nacular.doodle.dom.hasScrollOverflow
 @Suppress("USELESS_IS_CHECK")
 internal fun isNativeElement(target: EventTarget?) = target is HTMLElement && (
     target.getAttribute("data-native") != null ||
-    target is HTMLButtonElement                ||
-    target is HTMLInputElement                 ||
+    target is HTMLButtonElement ||
+    target is HTMLInputElement ||
     target is HTMLAnchorElement
 )
 
