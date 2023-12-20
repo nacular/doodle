@@ -127,8 +127,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun contains(point: Point): Boolean = point in ellipse
     }
 
-    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<View>> = mutableSetOf()): SetPool<ChildObserver<View>>(mutableSet) {
-        operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@View, differences) }
+    private inner class ChildObserversImpl: SetPool<ChildObserver<View>>() {
+        operator fun invoke(differences: Differences<View>) = this.forEach { it(this@View, differences) }
     }
 
     // region Accessibility

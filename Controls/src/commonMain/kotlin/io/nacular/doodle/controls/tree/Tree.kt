@@ -31,6 +31,7 @@ import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
@@ -117,9 +118,9 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    public val expanded        : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
-    public val collapsed       : ExpansionObservers<T>                    by lazy { ExpansionObserversImpl(this) }
-    public val selectionChanged: Pool<SetObserver<Tree<T, M>, Path<Int>>> by lazy { SetPool() }
+    public val expanded        : ExpansionObservers<T>               by lazy { ExpansionObserversImpl(this) }
+    public val collapsed       : ExpansionObservers<T>               by lazy { ExpansionObserversImpl(this) }
+    public val selectionChanged: SetObservers<Tree<T, M>, Path<Int>> by lazy { SetPool               (    ) }
 
     /**
      * Defines how the contents of an item should be aligned within it.
@@ -773,8 +774,8 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 }
 
-private class ExpansionObserversImpl<T>(private val source: Tree<T, *>, mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
-    operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
+private class ExpansionObserversImpl<T>(private val source: Tree<T, *>): SetPool<ExpansionObserver<T>>() {
+    operator fun invoke(paths: Set<Path<Int>>) = forEach { it(source, paths) }
 }
 
 private object PathComparator: Comparator<Path<Int>> {

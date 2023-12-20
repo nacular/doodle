@@ -3,8 +3,7 @@ package io.nacular.doodle.controls.table
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.utils.ChangeObserver
-import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.ChangeObservers
 
 public interface Column<T> {
     public val header         : View?
@@ -22,7 +21,7 @@ public interface Column<T> {
     public fun moveBy(x: Double)
     public fun resetPosition()
 
-    public val alignmentChanged: Pool<ChangeObserver<Column<T>>>
+    public val alignmentChanged: ChangeObservers<Column<T>>
 }
 
 public interface MutableColumn<T, R>: Column<R> {

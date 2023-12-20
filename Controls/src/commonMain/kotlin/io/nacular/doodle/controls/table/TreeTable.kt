@@ -30,6 +30,7 @@ import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
@@ -114,7 +115,7 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     override fun iterator() = this@map.iterator().mapNotNull(mapper)
 
     // FIXME: This is pretty inefficient
-    override val changed: Pool<SetObserver<SelectionModel<R>, R>> = SetPool()
+    override val changed: SetObservers<SelectionModel<R>, R> = SetPool()
 
     init {
         this@map.changed += { _, removed, added ->
@@ -173,8 +174,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     private lateinit var tree: Tree<*, TreeModel<*>>
 
-    private class ExpansionObserversImpl<T>(private val source: TreeTable<T, *>, mutableSet: MutableSet<ExpansionObserver<T>> = mutableSetOf()): SetPool<ExpansionObserver<T>>(mutableSet) {
-        operator fun invoke(paths: Set<Path<Int>>) = delegate.forEach { it(source, paths) }
+    private class ExpansionObserversImpl<T>(private val source: TreeTable<T, *>): SetPool<ExpansionObserver<T>>() {
+        operator fun invoke(paths: Set<Path<Int>>) = forEach { it(source, paths) }
     }
 
     private inner class ColumnFactoryImpl: ColumnFactory<T> {
@@ -514,7 +515,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: Pool<SetObserver<TreeTable<T, M>, Path<Int>>> = SetPool()
+    public val selectionChanged: SetObservers<TreeTable<T, M>, Path<Int>> = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
     public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }

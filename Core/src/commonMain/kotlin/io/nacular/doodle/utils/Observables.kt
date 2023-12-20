@@ -12,56 +12,166 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
- * Created by Nicholas Eddy on 10/21/17.
+ * Handler for arbitrary changes to some source.
+ * @param source  the item that changed
+ * @param removed items removed from the source
+ * @param added   items added from the source
  */
-public typealias SetObserver     <S, T> = (source: S, removed: Set<T>,      added: Set<T>                                    ) -> Unit
-public typealias ListObserver    <S, T> = (source: S, changes: Differences<T>) -> Unit
-public typealias ChangeObserver  <S>    = (source: S                                                                         ) -> Unit
-public typealias PropertyObserver<S, T> = (source: S, old: T, new: T                                                         ) -> Unit
+public typealias SetObserver<S, T> = (source: S, removed: Set<T>, added: Set<T>) -> Unit
 
-public fun <A, B, T> setObserver(source: B, to: SetObserver<B, T>): SetObserver<A, T> = { _,removed,added ->
-    to(source, removed, added)
-}
+/**
+ * Handler for arbitrary changes to some source.
+ * @param source  the item that changed
+ * @param changes made to the source
+ */
+public typealias ListObserver<S, T> = (source: S, changes: Differences<T>) -> Unit
 
+/**
+ * Handler for arbitrary changes to some source.
+ * @param source the item that changed
+ */
+public typealias ChangeObserver<S> = (source: S) -> Unit
+
+/**
+ * Handler for changes to some property of a source.
+ *
+ * @param source the item that changed
+ * @param old    the previous value of the property
+ * @param new    the updated value of the property
+ */
+public typealias PropertyObserver<S, T> = (source: S, old: T, new: T) -> Unit
+
+public typealias SetObservers     <S, T> = Pool<SetObserver     <S, T>>
+public typealias ListObservers    <S, T> = Pool<ListObserver    <S, T>>
+public typealias ChangeObservers  <S   > = Pool<ChangeObserver  <S   >>
+public typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
+
+/**
+ * A collection of items that only exposes add/remove semantics that is used for observers.
+ */
 public interface Pool<in T> {
+    /** Add [item] to the collection */
     public operator fun plusAssign (item: T)
+
+    /** Remove [item] from the collection */
     public operator fun minusAssign(item: T)
 }
 
-public typealias ChangeObservers<S>      = Pool<ChangeObserver<S>>
-public typealias PropertyObservers<S, T> = Pool<PropertyObserver<S, T>>
+/**
+ * A [Pool] that notifies of changes to its contents.
+ */
+public interface ObservablePool<T>: Pool<T> {
+    /** Notified when any item is added/removed from the Pool */
+    public val changed: Pool<PoolObserver<T>>
+}
 
-public expect open class SetPool<T>(delegate: MutableSet<T>): Pool<T>, Set<T> {
+/**
+ * Observer of changes to [ObservablePool].
+ */
+public interface PoolObserver<T> {
+    /** Notified when [item] is added to the [source] */
+    public fun added(source: ObservablePool<T>, item: T) {}
+
+    /** Notified when [item] is removed from the [source] */
+    public fun removed(source: ObservablePool<T>, item: T) {}
+}
+
+/**
+ * Implementation of [Pool] based on a [Set].
+ */
+public expect open class SetPool<T> private constructor(delegate: MutableSet<T>): Pool<T>, Set<T> {
     public constructor()
-
-    protected val delegate: MutableSet<T>
 }
 
-public expect class ChangeObserversImpl<S>(source: S, mutableSet: MutableSet<ChangeObserver<S>>): SetPool<ChangeObserver<S>> {
-    public constructor(source: S)
+/**
+ * Implementation of [ObservablePool] based on a [Set]. Contents are stored in the
+ * provided delegate.
+ *
+ * @param delegate that underlies this pool
+ */
+public expect open class ObservableSetPool<T>(delegate: SetPool<T>): ObservablePool<T>, Set<T>
 
-    public operator fun invoke()
+/**
+ * [ChangeObservers] implemented using a [SetPool].
+ *
+ * @property source being monitored for changes
+ */
+public class ChangeObserversImpl<S>(private val source: S): SetPool<ChangeObserver<S>>() {
+    /** Notifies observers of changes to [source]. */
+    public operator fun invoke() {
+        forEach { it(source) }
+    }
 }
 
-public expect class PropertyObserversImpl<S, T>(source: S, mutableSet: MutableSet<PropertyObserver<S, T>>): SetPool<PropertyObserver<S, T>> {
-    public constructor(source: S)
-
-    public operator fun invoke(old: T, new: T)
+/**
+ * [PropertyObservers] implemented using a [SetPool].
+ *
+ * @property source being monitored for changes
+ */
+public class PropertyObserversImpl<S, T>(private val source: S): SetPool<PropertyObserver<S, T>>() {
+    /**
+     * Notifies observers of changes to [source].
+     *
+     * @param old value of property that changed
+     * @param new value of property that changed
+     */
+    public operator fun invoke(old: T, new: T) {
+        forEach { it(source, old, new) }
+    }
 }
 
+/**
+ * A [List] that notifies observers of changes to its contents.
+ */
 public interface ObservableList<E>: MutableList<E> {
-    public val changed: Pool<ListObserver<ObservableList<E>, E>>
+    /** Notifies of changes to the list */
+    public val changed: ListObservers<ObservableList<E>, E>
 
+    /**
+     * Moves [element] to a new index.
+     *
+     * @param   element to move
+     * @to      this index
+     * @return `true` if the element was moved
+     */
     public fun move(element: E, to: Int): Boolean
 
+    /** Adds [element] to the list */
     public operator fun plusAssign(element: E)
 
+    /** Removes [element] from the list */
     public operator fun minusAssign(element: E)
 
+    /**
+     * Replaces to list's contents with [elements].
+     *
+     * @param elements to replace the contents with
+     * @return `true` if any changes made to the list
+     */
     public fun replaceAll(elements: Collection<E>): Boolean
 
+    /**
+     * Runs the operations within [block] and then applies them
+     * all to the list as a single operation. This reduces the
+     * set of events that would normally trigger if these operations
+     * were done sequentially.
+     *
+     * NOTE: This results in a copy of the existing data.
+     *
+     * @param block to be run
+     * @return the result of [block]
+     */
     public fun <T> batch(block: MutableList<E>.() -> T): T
 
+    /**
+     * Explicitly trigger a diff that shows the element at [index] being
+     * deleted and re-added. This is useful for cases where the elements
+     * in the list are mutable and a change has happened to one that would
+     * normally not result in a call to [changed] (which only notifies of
+     * membership changes.
+     *
+     * @param index to raise change for
+     */
     public fun notifyChanged(index: Int)
 
     public companion object {
@@ -86,7 +196,7 @@ public fun <T> ObservableList<T>.sortWithDescending(comparator: Comparator<in T>
 public open class ObservableListImpl<E> internal constructor(private val list: MutableList<E>, private val equality: (E, E) -> Boolean = { a, b -> a == b }): ObservableList<E>, MutableList<E> by list {
 
     private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
-    public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
+    public override val changed: ListObservers<ObservableList<E>, E> = changed_
 
     public override fun move(element: E, to: Int): Boolean {
         val oldIndex = indexOf(element)
@@ -331,7 +441,7 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 
 public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
     private val changed_ = SetPool<SetObserver<ObservableSet<E>, E>>()
-    public val changed: Pool<SetObserver<ObservableSet<E>, E>> = changed_
+    public val changed: SetObservers<ObservableSet<E>, E> = changed_
 
     override fun add(element: E): Boolean = set.add(element).ifTrue {
         changed_.forEach {

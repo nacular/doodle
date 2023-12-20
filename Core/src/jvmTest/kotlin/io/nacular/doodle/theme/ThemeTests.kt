@@ -95,10 +95,10 @@ class ThemeTests {
         override val cursorChanged              = mockk<PropertyObservers<Display, Cursor?>>()
         override val sizeChanged                = mockk<PropertyObservers<Display, Size>>()
         override var focusTraversalPolicy       = null as FocusTraversalPolicy?
-        override val contentDirectionChanged    = mockk<Pool<ChangeObserver<Display>>>()
+        override val contentDirectionChanged    = mockk<ChangeObservers<Display>>()
         override var contentDirection           = ContentDirection.LeftRight
         override var mirrorWhenRightLeft        = true
-        override val mirroringChanged           = mockk<Pool<ChangeObserver<Display>>>()
+        override val mirroringChanged           = mockk<ChangeObservers<Display>>()
         override val childrenChanged            = mockk<Pool<ChildObserver<Display>>>()
 
         override fun toAbsolute(point: Point) = point

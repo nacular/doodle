@@ -6,7 +6,6 @@ import io.nacular.doodle.animation.Animator.NumericAnimationInfo
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.time.Timer
-import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.CompletableImpl
 import io.nacular.doodle.utils.CompletableImpl.State.Active
 import io.nacular.doodle.utils.CompletableImpl.State.Canceled
@@ -40,11 +39,8 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
         val isCanceled: Boolean get() = state == Canceled
 
-        private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-        private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-
-        override val paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ )
-        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_)
+        override val paused : Pool<(source: Pausable) -> Unit> = SetPool()
+        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool()
 
         fun run(currentTime: Measure<Time>): Result<T> {
             if (isPaused) {
@@ -53,7 +49,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
             if (!::startTime.isInitialized || resuming) {
                 if (resuming) {
-                    resumed_.forEach { it(this@AnimationData) }
+                    (resumed as SetPool).forEach { it(this@AnimationData) }
                 }
 
                 resuming  = false
@@ -79,7 +75,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
                     finished -> completed()
                     pausing  -> {
                         pausing = false
-                        paused_.forEach { it(this@AnimationData) }
+                        (paused as SetPool).forEach { it(this@AnimationData) }
                     }
                 }
 
@@ -121,16 +117,13 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         private var canceling    = false
         private var numPaused    by observable(0) { old,new ->
             when {
-                new == animations.size -> paused_.forEach  { it(this) }
-                old == animations.size -> resumed_.forEach { it(this) }
+                new == animations.size -> (paused  as SetPool).forEach { it(this) }
+                old == animations.size -> (resumed as SetPool).forEach { it(this) }
             }
         }
 
-        private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-        private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-
-        override val paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ )
-        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_)
+        override val paused : Pool<(source: Pausable) -> Unit> = SetPool()
+        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool()
 
         init {
             animations.forEach {

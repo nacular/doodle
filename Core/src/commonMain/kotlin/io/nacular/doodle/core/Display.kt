@@ -11,7 +11,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -64,7 +64,7 @@ public interface Display: Iterable<View> {
     public var focusTraversalPolicy: FocusTraversalPolicy?
 
     /** Fires when [contentDirection] changes. */
-    public val contentDirectionChanged: Pool<ChangeObserver<Display>>
+    public val contentDirectionChanged: ChangeObservers<Display>
 
     /**
      * Indicates the direction of content within the Display. This is used to support right-to-left locales.
@@ -84,7 +84,7 @@ public interface Display: Iterable<View> {
     public var mirrorWhenRightLeft: Boolean
 
     /** Fires when [mirrored] changes. */
-    public val mirroringChanged: Pool<ChangeObserver<Display>>
+    public val mirroringChanged: ChangeObservers<Display>
 
     /**
      * `true` if [contentDirection] == [RightLeft] && [mirrorWhenRightLeft]

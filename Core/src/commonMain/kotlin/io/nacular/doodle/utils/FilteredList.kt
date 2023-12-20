@@ -17,7 +17,7 @@ import io.nacular.doodle.utils.diff.compare
 public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) -> Boolean)? = null): ObservableList<E> by source {
 
     private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
-    public override val changed: Pool<ListObserver<ObservableList<E>, E>> = changed_
+    public override val changed: ListObservers<ObservableList<E>, E> = changed_
 
     /**
      * The filter applied to [source]

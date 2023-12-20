@@ -34,6 +34,7 @@ import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.dimensionSetProperty
@@ -176,7 +177,7 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Notifies of changes to the List's selection.
      */
-    public val selectionChanged: Pool<SetObserver<List<T, M>, Int>> = SetPool()
+    public val selectionChanged: SetObservers<List<T, M>, Int> = SetPool()
 
     /**
      * Defines how the contents of an item should be aligned within it.

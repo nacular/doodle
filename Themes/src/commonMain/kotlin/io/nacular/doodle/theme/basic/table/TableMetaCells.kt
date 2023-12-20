@@ -28,9 +28,8 @@ import io.nacular.doodle.system.Cursor.Companion.EWResize
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.theme.basic.ColorMapper
-import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SortOrder
 import io.nacular.doodle.utils.SortOrder.Ascending
 import io.nacular.doodle.utils.SortOrder.Descending
@@ -156,7 +155,7 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         }
     }
 
-    public val toggled: Pool<ChangeObserver<TableHeaderCell>> by lazy { ChangeObserversImpl(this) }
+    public val toggled: ChangeObservers<TableHeaderCell> by lazy { ChangeObserversImpl(this) }
 
     internal var sortOrder: SortOrder? by renderProperty(null)
 
@@ -327,7 +326,7 @@ public class TableFooterCell(private val column: Column<*>, private val fillColo
         }
     }
 
-    public val toggled: Pool<ChangeObserver<TableFooterCell>> by lazy { ChangeObserversImpl(this) }
+    public val toggled: ChangeObservers<TableFooterCell> by lazy { ChangeObserversImpl(this) }
 
     override fun addedToDisplay() {
         super.addedToDisplay()

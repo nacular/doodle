@@ -26,8 +26,8 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
@@ -243,7 +243,7 @@ public open class Table<T, M: ListModel<T>>(
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: Pool<SetObserver<Table<T, M>, Int>> = SetPool()
+    public val selectionChanged: SetObservers<Table<T, M>, Int> = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
     public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }

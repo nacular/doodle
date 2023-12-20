@@ -1,7 +1,7 @@
 package io.nacular.doodle.core.impl
 
-import io.nacular.doodle.HTMLElement
-import io.nacular.doodle.clear
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
@@ -17,8 +17,10 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.addIfNotPresent
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.height
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBackgroundImage
@@ -42,6 +44,7 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
@@ -93,8 +96,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         }
     }}
 
-    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<Display>> = mutableSetOf()): SetPool<ChildObserver<Display>>(mutableSet) {
-        operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@DisplayImpl, differences) }
+    private inner class ChildObserversImpl: SetPool<ChildObserver<Display>>() {
+        operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
 
     override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }
@@ -107,7 +110,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    override val contentDirectionChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+    override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
     override var mirrorWhenRightLeft = true
         set(new) {
@@ -118,7 +121,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             notifyMirroringChanged()
         }
 
-    override val mirroringChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+    override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
     override var contentDirection: ContentDirection = LeftRight
         set(new) {

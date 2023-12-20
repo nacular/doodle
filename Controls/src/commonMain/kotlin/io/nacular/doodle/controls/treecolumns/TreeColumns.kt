@@ -26,6 +26,7 @@ import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.Resizer
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import kotlin.math.max
 
@@ -146,7 +147,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         override fun contains(item: Int) = delegateHandle?.iterator()?.asSequence()?.find { overlappingIndex(it) == item } != null
 
         // FIXME: This is pretty inefficient
-        override val changed: Pool<SetObserver<SelectionModel<Int>, Int>> = SetPool()
+        override val changed: SetObservers<SelectionModel<Int>, Int> = SetPool()
 
         override fun iterator() = delegateHandle?.iterator()?.asSequence()?.mapNotNull { overlappingIndex(it) }?.iterator() ?: emptyList<Int>().iterator()
     }

@@ -18,9 +18,9 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.fill
-import io.nacular.doodle.utils.ChangeObserver
-import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.SetObserver
+import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlinx.datetime.DatePeriod
@@ -239,12 +239,12 @@ public open class MonthPanel(
     /**
      * Notifies of changes to the panel's selection.
      */
-    public val selectionChanged: Pool<SetObserver<MonthPanel, LocalDate>> = SetPool()
+    public val selectionChanged: SetObservers<MonthPanel, LocalDate> = SetPool()
 
     /**
      * Notifies of changes to the month the panel shows
      */
-    public val monthChanged: Pool<ChangeObserver<MonthPanel>> = SetPool()
+    public val monthChanged: ChangeObservers<MonthPanel> = SetPool()
 
     init {
         layout = MonthLayout()

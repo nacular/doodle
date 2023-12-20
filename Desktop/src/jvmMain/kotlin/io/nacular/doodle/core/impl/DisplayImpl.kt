@@ -30,6 +30,7 @@ import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
@@ -100,8 +101,8 @@ internal class DisplayImpl(
         }
     } }
 
-    private inner class ChildObserversImpl(mutableSet: MutableSet<ChildObserver<Display>> = mutableSetOf()): SetPool<ChildObserver<Display>>(mutableSet) {
-        operator fun invoke(differences: Differences<View>) = delegate.forEach { it(this@DisplayImpl, differences) }
+    private inner class ChildObserversImpl: SetPool<ChildObserver<Display>>() {
+        operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
 
     override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }
@@ -115,7 +116,7 @@ internal class DisplayImpl(
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    override val contentDirectionChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+    override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
     override var mirrorWhenRightLeft = true
         set(new) {
@@ -126,7 +127,7 @@ internal class DisplayImpl(
             notifyMirroringChanged()
         }
 
-    override val mirroringChanged: Pool<ChangeObserver<Display>> by lazy { ChangeObserversImpl(this) }
+    override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
     override var contentDirection: ContentDirection = ContentDirection.LeftRight
         set(new) {

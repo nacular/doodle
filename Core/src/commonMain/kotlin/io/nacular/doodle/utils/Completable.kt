@@ -68,6 +68,8 @@ internal class InstantPool<T>(private val source: T): Pool<(source: T) -> Unit> 
 public open class CompletableImpl: Completable {
     public enum class State { Active, Completed, Canceled }
 
+    private inner class CompletablePool: SetPool<(source: Completable) -> Unit>()
+
     protected var state: State = Active
         private set(new) {
             if (field != Active) { return }
@@ -76,14 +78,14 @@ public open class CompletableImpl: Completable {
 
             when (new) {
                 Completed -> {
-                    completed_.forEach { it(this) }
-                    completed_.clear()
+                    completed_?.forEach { it(this) }
+                    completed_ = null
                     completed = InstantPool(this)
                     canceled  = NoOpPool()
                 }
                 Canceled -> {
-                    canceled_.forEach { it(this) }
-                    canceled_.clear()
+                    canceled_?.forEach { it(this) }
+                    canceled_ = null
                     canceled  = InstantPool(this)
                     completed = NoOpPool()
                 }
@@ -91,25 +93,21 @@ public open class CompletableImpl: Completable {
             }
         }
 
-    private val completed_ by lazy { ObservableSet<(source: Completable) -> Unit>() }
-    private val canceled_  by lazy { ObservableSet<(source: Completable) -> Unit>() }
 
-    override var completed: Pool<(source: Completable) -> Unit> = SetPool(completed_); protected set
-    override var canceled : Pool<(source: Completable) -> Unit> = SetPool(canceled_ ); protected set
-
-    init {
-        completed_.changed += { _,_,added ->
-            if (state == Completed) {
-                added.forEach { it(this) }
-            }
-        }
-
-        canceled_.changed += { _,_,added ->
-            if (state == Canceled) {
-                added.forEach { it(this) }
+    private val poolObserverImpl = object: PoolObserver<(source: Completable) -> Unit> {
+        override fun added(source: ObservablePool<(source: Completable) -> Unit>, item: (source: Completable) -> Unit) {
+            when {
+                source == completed && state == Completed -> item(this@CompletableImpl)
+                source == canceled && state  == Canceled  -> item(this@CompletableImpl)
             }
         }
     }
+
+    private var completed_: CompletablePool? = CompletablePool()
+    private var canceled_ : CompletablePool? = CompletablePool()
+
+    override var completed: Pool<(source: Completable) -> Unit> = ObservableSetPool(completed_!!).apply { changed += poolObserverImpl }; protected set
+    override var canceled : Pool<(source: Completable) -> Unit> = ObservableSetPool(canceled_!! ).apply { changed += poolObserverImpl }; protected set
 
     override fun cancel() { state = Canceled }
 
@@ -118,21 +116,18 @@ public open class CompletableImpl: Completable {
 }
 
 public open class PausableImpl: Pausable, CompletableImpl() {
+    private inner class PausablePool: SetPool<(source: Pausable) -> Unit>()
+
     protected var isPaused: Boolean = false; private set
 
-    private val paused_  by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-    private val resumed_ by lazy { ObservableSet<(source: Pausable) -> Unit>() }
-
-    override var paused : Pool<(source: Pausable) -> Unit> = SetPool(paused_ ); protected set
-    override var resumed: Pool<(source: Pausable) -> Unit> = SetPool(resumed_); protected set
-
-    init {
-        paused_.changed += { _,_,added ->
-            if (isPaused) {
-                added.forEach { it(this) }
-            }
+    private val poolObserverImpl = object: PoolObserver<(source: Pausable) -> Unit> {
+        override fun added(source: ObservablePool<(source: Pausable) -> Unit>, item: (source: Pausable) -> Unit) {
+            if (isPaused) item(this@PausableImpl)
         }
     }
+
+    override var paused : Pool<(source: Pausable) -> Unit> = ObservableSetPool(PausablePool()).apply  { changed += poolObserverImpl }; protected set
+    override var resumed: Pool<(source: Pausable) -> Unit> = SetPool(); protected set
 
     override fun pause() {
         isPaused = true
