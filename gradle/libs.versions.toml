@@ -1,5 +1,5 @@
 [versions]
-kotlinVersion     = { strictly = "1.9.10" }
+kotlinVersion     = { strictly = "1.9.21" }
 dateTimeVersion   = { strictly = "0.4.1"  }
 coroutinesVersion = { strictly = "1.7.3"  }
 skikoVersion      = { strictly = "0.7.79" }

@@ -1,5 +1,3 @@
-
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
@@ -9,12 +7,13 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.HasProject
 import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
 
 fun KotlinMultiplatformExtension.jsTargets() {
-    js {
-        val releaseBuild = project.hasProperty("release")
+    compilerOptions()
 
+    js {
         compilations.all {
             kotlinOptions {
                 moduleKind = "umd"
@@ -26,9 +25,7 @@ fun KotlinMultiplatformExtension.jsTargets() {
         }
 
         browser {
-            testTask(Action {
-                enabled = false
-            })
+            testTask { enabled = false }
         }
 
         binaries.withType<JsIrBinary>().all {
@@ -45,12 +42,11 @@ fun KotlinMultiplatformExtension.jsTargets() {
 }
 
 fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
+    compilerOptions()
+
     jvm {
         compilations.all {
-            kotlinOptions {
-                this.jvmTarget   = jvmTarget
-                freeCompilerArgs = listOf("-opt-in=kotlin.ExperimentalUnsignedTypes")
-            }
+            kotlinOptions.jvmTarget = jvmTarget
         }
     }
 }
@@ -137,3 +133,18 @@ fun Project.setupPublication(dokkaJar: Jar) {
         }
     }
 }
+
+private fun KotlinMultiplatformExtension.compilerOptions() {
+    targets.configureEach {
+        compilations.configureEach {
+            compilerOptions.configure {
+                freeCompilerArgs.run {
+                    add("-Xexpect-actual-classes")
+                    add("-opt-in=kotlin.ExperimentalUnsignedTypes")
+                }
+            }
+        }
+    }
+}
+
+private val HasProject.releaseBuild get() = project.hasProperty("release")
