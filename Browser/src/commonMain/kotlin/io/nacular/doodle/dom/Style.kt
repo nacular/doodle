@@ -2,9 +2,6 @@
 
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.dom.CSSStyleDeclaration
-import io.nacular.doodle.dom.clipPath
-import io.nacular.doodle.dom.textDecorationThickness
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
@@ -231,15 +228,14 @@ internal class Inline     : Display("inline"      )
 internal class InlineBlock: Display("inline-block")
 
 internal sealed class Position(val value: String)
-internal class Static  : Position("static"  )
+internal class Static: Position("static"  )
 
-internal sealed class Overflow(val value: String) {
-    internal class Scroll : Overflow("scroll" )
-    internal class Auto   : Overflow("auto"   )
-    internal class Hidden : Overflow("hidden" )
-    internal class Visible: Overflow("visible")
-}
+internal sealed class Overflow(val value: String)
+internal class Scroll : Overflow("scroll" )
+internal class Auto   : Overflow("auto"   )
+internal class Hidden : Overflow("hidden" )
+internal class Visible: Overflow("visible")
 
 internal sealed class BorderStyle(val value: String) {
-    internal class None: BorderStyle("none")
+    internal class None : BorderStyle("none")
 }

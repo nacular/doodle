@@ -1,87 +1,90 @@
-@file:Suppress("UNUSED_PARAMETER", "PropertyName", "ObjectPropertyName")
+//@file:Suppress(PropertyName", "ObjectPropertyName")
 
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-public actual abstract class CSSRule {
-    public actual var cssText: String = ""
+internal actual abstract class CSSRule: JsAny {
+    actual var cssText: String = ""
 }
 
-public actual abstract class CSSRuleList {
-    public actual abstract val length: Int
+internal actual abstract class CSSRuleList: JsAny {
+    internal actual abstract val length: Int
 
-    public actual fun item(index: Int): CSSRule? = null
+    actual fun item(index: Int): CSSRule? = null
 }
 
-public actual abstract class CSSStyleSheet: StyleSheet() {
-    public actual fun insertRule(rule: String, index: Int): Int = 0
-    public actual val cssRules: CSSRuleList
+internal actual abstract class CSSStyleSheet: StyleSheet() {
+//    actual fun insertRule(rule: String, index: Int): Int = 0
+    actual val cssRules: CSSRuleList
         get() = TODO("Not yet implemented")
 
-    public actual fun deleteRule(index: Int) {}
+    actual fun deleteRule(index: Int) {}
 }
 
-public actual val CSSStyleSheet.numStyles: Int get() = 0
+internal actual fun CSSStyleSheet.tryInsertRule(rule: String, index: Int): Int = 0
 
 
-public actual abstract class CSSStyleDeclaration {
-    public actual var top: String                 = ""
-    public actual var font: String                = ""
-    public actual var left: String                = ""
-    public actual var right: String               = ""
-    public actual var width: String               = ""
-    public actual var color: String               = ""
-    public actual var height: String              = ""
-    public actual var margin: String              = ""
-    public actual var bottom: String              = ""
-    public actual var filter: String              = ""
-    public actual var border: String              = ""
-    public actual var cursor: String              = ""
-    public actual var zIndex: String              = ""
-    public actual var padding: String             = ""
-    public actual var display: String             = ""
-    public actual var opacity: String             = ""
-    public actual var outline: String             = ""
-    public actual var fontSize: String            = ""
-    public actual var position: String            = ""
-    public actual var transform: String           = ""
-    public actual var marginTop: String           = ""
-    public actual var overflowX: String           = ""
-    public actual var overflowY: String           = ""
-    public actual var boxShadow: String           = ""
-    public actual var fontStyle: String           = ""
-    public actual var textAlign: String           = ""
-    public actual var textShadow: String          = ""
-    public actual var textIndent: String          = ""
-    public actual var fontFamily: String          = ""
-    public actual var fontWeight: String          = ""
-    public actual var background: String          = ""
-    public actual var marginLeft: String          = ""
-    public actual var whiteSpace: String          = ""
-    public actual var lineHeight: String          = ""
-    public actual var marginRight: String         = ""
-    public actual var borderStyle: String         = ""
-    public actual var borderColor: String         = ""
-    public actual var borderWidth: String         = ""
-    public actual var wordSpacing: String         = ""
-    public actual var fontVariant: String         = ""
-    public actual var borderRadius: String        = ""
-    public actual var marginBottom: String        = ""
-    public actual var outlineWidth: String        = ""
-    public actual var letterSpacing: String       = ""
-    public actual var backgroundSize: String      = ""
-    public actual var textDecoration: String      = ""
-    public actual var backgroundImage: String     = ""
-    public actual var backgroundColor: String     = ""
-    public actual var textDecorationLine: String  = ""
-    public actual var textDecorationColor: String = ""
-    public actual var textDecorationStyle: String = ""
+internal actual val CSSStyleSheet.numStyles: Int get() = 0
+
+internal actual abstract class CSSStyleDeclaration: JsAny {
+    actual var top: String                 = ""
+    actual var font: String                = ""
+    actual var left: String                = ""
+    actual var right: String               = ""
+    actual var width: String               = ""
+    actual var color: String               = ""
+    actual var height: String              = ""
+    actual var margin: String              = ""
+    actual var bottom: String              = ""
+    actual var filter: String              = ""
+    actual var border: String              = ""
+    actual var cursor: String              = ""
+    actual var zIndex: String              = ""
+    actual var padding: String             = ""
+    actual var display: String             = ""
+    actual var opacity: String             = ""
+    actual var outline: String             = ""
+    actual var fontSize: String            = ""
+    actual var position: String            = ""
+    actual var transform: String           = ""
+    actual var marginTop: String           = ""
+    actual var overflowX: String           = ""
+    actual var overflowY: String           = ""
+    actual var boxShadow: String           = ""
+    actual var fontStyle: String           = ""
+    actual var textAlign: String           = ""
+    actual var textShadow: String          = ""
+    actual var textIndent: String          = ""
+    actual var fontFamily: String          = ""
+    actual var fontWeight: String          = ""
+    actual var background: String          = ""
+    actual var marginLeft: String          = ""
+    actual var whiteSpace: String          = ""
+    actual var lineHeight: String          = ""
+    actual var marginRight: String         = ""
+    actual var borderStyle: String         = ""
+    actual var borderColor: String         = ""
+    actual var borderWidth: String         = ""
+    actual var wordSpacing: String         = ""
+    actual var fontVariant: String         = ""
+    actual var borderRadius: String        = ""
+    actual var marginBottom: String        = ""
+    actual var outlineWidth: String        = ""
+    actual var letterSpacing: String       = ""
+    actual var backgroundSize: String      = ""
+    actual var textDecoration: String      = ""
+    actual var backgroundImage: String     = ""
+    actual var backgroundColor: String     = ""
+    actual var textDecorationLine: String  = ""
+    actual var textDecorationColor: String = ""
+    actual var textDecorationStyle: String = ""
+
+    actual var writingMode        : String = ""
 
     internal var clipPath_               : String = ""
     internal var willChange_             : String = ""
@@ -99,216 +102,220 @@ public actual abstract class CSSStyleDeclaration {
     internal var _webkit_touch_callout_      : String = ""
     internal var _webkit_tap_highlight_color_: String = ""
 
-    public actual fun removeProperty(property: String): String = ""
+    actual fun removeProperty(property: String): String = ""
+    actual fun setProperty   (property: String, value: String, priority: String) {}
+    actual fun setProperty   (property: String, value: String                  ) {}
 }
 
-public actual fun CSSStyleDeclaration.setProperty_(property: String, value: String, priority: String) {}
-public actual fun CSSStyleDeclaration.setProperty_(property: String, value: String                  ) {}
+internal actual var CSSStyleDeclaration.clipPath               : String get() = clipPath_;                set(new) { clipPath_                = new }
+internal actual var CSSStyleDeclaration.willChange             : String get() = willChange_;              set(new) { willChange_              = new }
+internal actual var CSSStyleDeclaration.scrollBehavior         : String get() = scrollBehavior_;          set(new) { scrollBehavior_          = new }
+internal actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
+internal actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_             = new }
+internal actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_      = new }
+internal actual var CSSStyleDeclaration.caretColor             : String get() = caretColor_;              set(new) { caretColor_              = new }
+internal actual var CSSStyleDeclaration.userSelect             : String get() = userSelect_;              set(new) { userSelect_              = new }
 
-public actual var CSSStyleDeclaration.clipPath               : String get() = clipPath_;                set(new) { clipPath_                = new }
-public actual var CSSStyleDeclaration.willChange             : String get() = willChange_;              set(new) { willChange_              = new }
-public actual var CSSStyleDeclaration.scrollBehavior         : String get() = scrollBehavior_;          set(new) { scrollBehavior_          = new }
-public actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
-public actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_             = new }
-public actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_      = new }
-public actual var CSSStyleDeclaration.caretColor             : String get() = caretColor_;              set(new) { caretColor_              = new }
-public actual var CSSStyleDeclaration.userSelect             : String get() = userSelect_;              set(new) { userSelect_              = new }
+internal actual var CSSStyleDeclaration._ms_user_select            : String get() = _ms_user_select_;             set(new) { _ms_user_select_             = new }
+internal actual var CSSStyleDeclaration._moz_user_select           : String get() = _moz_user_select_;            set(new) { _moz_user_select_            = new }
+internal actual var CSSStyleDeclaration._khtml_user_select         : String get() = _khtml_user_select_;          set(new) { _khtml_user_select_          = new }
+internal actual var CSSStyleDeclaration._webkit_user_select        : String get() = _webkit_user_select_;         set(new) { _webkit_user_select_         = new }
+internal actual var CSSStyleDeclaration._webkit_touch_callout      : String get() = _webkit_touch_callout_;       set(new) { _webkit_touch_callout_       = new }
+internal actual var CSSStyleDeclaration._webkit_tap_highlight_color: String get() = _webkit_tap_highlight_color_; set(new) { _webkit_tap_highlight_color_ = new }
 
-public actual var CSSStyleDeclaration._ms_user_select            : String get() = _ms_user_select_;             set(new) { _ms_user_select_             = new }
-public actual var CSSStyleDeclaration._moz_user_select           : String get() = _moz_user_select_;            set(new) { _moz_user_select_            = new }
-public actual var CSSStyleDeclaration._khtml_user_select         : String get() = _khtml_user_select_;          set(new) { _khtml_user_select_          = new }
-public actual var CSSStyleDeclaration._webkit_user_select        : String get() = _webkit_user_select_;         set(new) { _webkit_user_select_         = new }
-public actual var CSSStyleDeclaration._webkit_touch_callout      : String get() = _webkit_touch_callout_;       set(new) { _webkit_touch_callout_       = new }
-public actual var CSSStyleDeclaration._webkit_tap_highlight_color: String get() = _webkit_tap_highlight_color_; set(new) { _webkit_tap_highlight_color_ = new }
+internal actual class TextMetrics: JsAny {
+    actual val width: Double = 0.0
+}
 
-public actual abstract class CanvasRenderingContext2D {
+internal actual abstract class CanvasRenderingContext2D: JsAny {
     internal var _wordSpacing  : String? = ""
     internal var _letterSpacing: String? = ""
 
-    public actual abstract var font: String
+    internal actual abstract var font: String
+
+    actual fun measureText(string: String): TextMetrics = TextMetrics()
 }
 
-public actual var CanvasRenderingContext2D.wordSpacing  : String? get() = _wordSpacing;   set(new) { _wordSpacing   = new }
-public actual var CanvasRenderingContext2D.letterSpacing: String? get() = _letterSpacing; set(new) { _letterSpacing = new }
-internal actual fun CanvasRenderingContext2D.measureText(string: String): Size = Size.Empty
+internal actual var CanvasRenderingContext2D.wordSpacing  : String? get() = _wordSpacing;   set(new) { _wordSpacing   = new }
+internal actual var CanvasRenderingContext2D.letterSpacing: String? get() = _letterSpacing; set(new) { _letterSpacing = new }
+internal actual fun CanvasRenderingContext2D.measureText_(string: String): Size = Size.Empty
 
-public actual interface RenderingContext
+internal actual interface RenderingContext
 
-public actual abstract class HTMLCanvasElement: HTMLElement() {
-    internal actual fun getContext(contextId: String, vararg arguments: Any?): RenderingContext? = null
+internal actual abstract class HTMLCanvasElement: HTMLElement() {
+    internal actual fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext? = null
 }
 
-public actual class DOMRect {
-    public actual var x: Double      = 0.0
-    public actual var y: Double      = 0.0
-    public actual var width: Double  = 0.0
-    public actual var height: Double = 0.0
+internal actual class DOMRect: JsAny {
+    actual var x: Double      = 0.0
+    actual var y: Double      = 0.0
+    actual var width: Double  = 0.0
+    actual var height: Double = 0.0
 }
 
-public actual abstract class HTMLCollection public actual constructor() {
+internal actual abstract class HTMLCollection actual constructor(): JsAny {
     protected val values: List<Element> = mutableListOf()
 
-    public actual abstract val length: Int
+    internal actual abstract val length: Int
 
-    public actual open fun item(index: Int): Element? = try {
+    internal actual open fun item(index: Int): Element? = try {
         values[index]
     } catch (e: Exception) {
         null
     }
 }
 
-public actual inline operator fun HTMLCollection.get(index: Int): Element? = item(index)
+internal actual inline operator fun HTMLCollection.get(index: Int): Element? = item(index)
 
 private class HTMLCollectionImpl: HTMLCollection() {
     override val length: Int get() = values.size
 }
 
-public actual interface ParentNode {
-    public actual val children: HTMLCollection
+internal actual interface ParentNode: JsAny {
+    actual val children: HTMLCollection
 }
 
-public actual abstract class Element: Node(), ParentNode {
-    public actual open var id        : String = ""
-    public actual open var className : String = ""
-    public actual open var scrollTop : Double = 0.0
-    public actual open var scrollLeft: Double = 0.0
-    public actual open val clientWidth: Int = 0
-    public actual open val clientHeight: Int = 0
+internal actual abstract class Element: Node(), ParentNode {
+    internal actual open var id        : String = ""
+    internal actual open var className : String = ""
+    internal actual open var scrollTop : Double = 0.0
+    internal actual open var scrollLeft: Double = 0.0
+    internal actual open val clientWidth: Int = 0
+    internal actual open val clientHeight: Int = 0
 
-    public actual open var outerHTML: String = ""
+    internal actual open var outerHTML: String = ""
 
-    public actual fun getBoundingClientRect(): DOMRect = DOMRect()
+    actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
-    public actual fun getAttribute   (                    qualifiedName: String               ): String? = ""
-    public actual fun setAttribute   (                    qualifiedName: String, value: String) {}
-    public actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
-    public actual fun removeAttribute(                    qualifiedName: String               ) {}
-    public actual fun scrollTo(x: Double, y: Double) {}
-    public actual abstract fun remove()
+    actual fun getAttribute   (                    qualifiedName: String               ): String? = ""
+    actual fun setAttribute   (                    qualifiedName: String, value: String) {}
+    actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
+    actual fun removeAttribute(                    qualifiedName: String               ) {}
+    actual fun scrollTo(x: Double, y: Double) {}
+    internal actual abstract fun remove()
 }
 
-public actual class DragEvent: MouseEvent() {
-    public actual val dataTransfer: DataTransfer? = null
+internal actual class FocusOptions: JsAny {
+    actual var preventScroll: Boolean = false
 }
 
-public actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
+internal actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
     internal var role_             = "" as String?
-    public actual var title       : String  = ""
-    public actual var draggable   : Boolean = false
-    public actual val offsetTop   : Int     = 0
-    public actual val offsetLeft  : Int     = 0
-    public actual val offsetWidth : Int     = 0
-    public actual val offsetHeight: Int     = 0
-    public actual var tabIndex    : Int     = 0
-    public actual var spellcheck  : Boolean = false
+    actual var title       : String  = ""
+    actual var draggable   : Boolean = false
+    actual val offsetTop   : Int     = 0
+    actual val offsetLeft  : Int     = 0
+    actual val offsetWidth : Int     = 0
+    actual val offsetHeight: Int     = 0
+    actual var tabIndex    : Int     = 0
+    actual var spellcheck  : Boolean = false
 
-    public actual var onwheel    : ((WheelEvent   ) -> Any    )? = null
-    public actual var onkeyup    : ((KeyboardEvent) -> Boolean)? = null
-    public actual var onkeydown  : ((KeyboardEvent) -> Boolean)? = null
-    public actual var onkeypress : ((KeyboardEvent) -> Boolean)? = null
+    actual var onwheel    : ((WheelEvent   ) -> Boolean)? = null
+    actual var onkeyup    : ((KeyboardEvent) -> Boolean)? = null
+    actual var onkeydown  : ((KeyboardEvent) -> Boolean)? = null
+    actual var onkeypress : ((KeyboardEvent) -> Boolean)? = null
 
-    public actual var onresize   : ((Event) -> Unit)? = null
+    actual var onresize   : ((Event) -> Unit)? = null
 
-    public actual var onload : ((Event) -> Any)? = null
-    public actual var onerror: ((Any, String, Int, Int, Any?) -> Any)? = null
+    actual var onload : ((Event) -> Unit)? = null
+    actual var onerror: ((/*JsAny, String, Int, Int, JsAny?*/) -> Unit)? = null
 
-    public actual var ondblclick     : ((MouseEvent  ) -> Any)? = null
-    public actual var onpointerup    : ((PointerEvent) -> Any)? = null
-    public actual var onpointerout   : ((PointerEvent) -> Any)? = null
-    public actual var onpointerdown  : ((PointerEvent) -> Any)? = null
-    public actual var onpointermove  : ((PointerEvent) -> Any)? = null
-    public actual var onpointerover  : ((PointerEvent) -> Any)? = null
-    public actual var onpointercancel: ((PointerEvent) -> Any)? = null
-    public actual var oncontextmenu  : ((MouseEvent  ) -> Any)? = null
-    public actual var onblur         : ((FocusEvent  ) -> Any)? = null
-    public actual var onclick        : ((MouseEvent  ) -> Any)? = null
-    public actual var onfocus        : ((FocusEvent  ) -> Any)? = null
-    public actual var onscroll       : ((Event       ) -> Any)? = null
-    public actual var oninput        : ((InputEvent  ) -> Any)? = null
-    public actual var onchange       : ((Event       ) -> Any)? = null
-    public actual var onselect       : ((Event       ) -> Any)? = null
-    public actual var ondrop         : ((DragEvent   ) -> Any)? = null
-    public actual var ondragend      : ((DragEvent   ) -> Any?)? = null
-    public actual var ondragover     : ((DragEvent   ) -> Any)? = null
-    public actual var ondragenter    : ((DragEvent   ) -> Any)? = null
-    public actual var ondragstart    : ((DragEvent   ) -> Any)? = null
+    actual var ondblclick     : ((MouseEvent  ) -> Boolean)? = null
+    actual var onpointerup    : ((PointerEvent) -> Boolean)? = null
+    actual var onpointerout   : ((PointerEvent) -> Boolean)? = null
+    actual var onpointerdown  : ((PointerEvent) -> Boolean)? = null
+    actual var onpointermove  : ((PointerEvent) -> Boolean)? = null
+    actual var onpointerover  : ((PointerEvent) -> Unit   )? = null
+    actual var onpointercancel: ((PointerEvent) -> Unit   )? = null
+    actual var oncontextmenu  : ((MouseEvent  ) -> Boolean)? = null
+    actual var onblur         : ((FocusEvent  ) -> Unit   )? = null
+    actual var onclick        : ((MouseEvent  ) -> Boolean)? = null
+    actual var onfocus        : ((FocusEvent  ) -> Unit   )? = null
+    actual var onscroll       : ((Event       ) -> Boolean)? = null
+    actual var oninput        : ((InputEvent  ) -> Boolean)? = null
+    actual var onchange       : ((Event       ) -> Boolean)? = null
+    actual var onselect       : ((Event       ) -> Boolean)? = null
+    actual var ondrop         : ((DragEvent   ) -> Unit   )? = null
+    actual var ondragend      : ((DragEvent   ) -> Unit   )? = null
+    actual var ondragover     : ((DragEvent   ) -> Unit   )? = null
+    actual var ondragenter    : ((DragEvent   ) -> Unit   )? = null
+    actual var ondragstart    : ((DragEvent   ) -> Unit   )? = null
 
-    public actual var dir: String = ""
+    actual var dir: String = ""
 
-    public actual fun focus() {}
-    public actual fun blur () {}
+    actual fun focus() {}
+    actual fun focus(options: FocusOptions) {}
+    actual fun blur () {}
+
+    actual fun addEventListener   (to: String, listener: (Event) -> Unit) {}
+    actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions) {}
+    actual fun removeEventListener(to: String, listener: (Event) -> Unit) {}
+    actual fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions) {}
 }
 
-public actual fun HTMLElement.stopMonitoringSize () {}
-public actual fun HTMLElement.startMonitoringSize() {}
-
-public actual var HTMLElement.role: String? get() = role_; set(new) { role_ = new }
-
-internal actual fun HTMLElement.addEventListener_        (to: String, listener: (Event) -> Unit) {}
-internal actual fun HTMLElement.removeEventListener_     (to: String, listener: (Event) -> Unit) {}
 internal actual fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit) {}
 internal actual fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit) {}
+
+internal actual fun HTMLElement.stopMonitoringSize () {}
+internal actual fun HTMLElement.startMonitoringSize() {}
+
+internal actual var HTMLElement.role: String? get() = role_; set(new) { role_ = new }
 
 internal actual var HTMLInputElement.orient: String? get() = orient_; set(new) { orient_ = new }
 internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) {}
 
-public actual interface ElementCreationOptions
+internal actual interface ElementCreationOptions: JsAny
 
-public actual class Document {
-    public actual var body: HTMLElement?     = null
-    public actual val head: HTMLHeadElement? = null
+internal actual class Document: JsAny {
+    actual var body: HTMLElement?     = null
+    actual val head: HTMLHeadElement? = null
 
-    public actual val styleSheets: StyleSheetList = object: StyleSheetList() {
-        override val length get() = values.size
-    }
+    internal actual fun addEventListener   (to: String, listener: (Event) -> Unit) {}
+    internal actual fun removeEventListener(to: String, listener: (Event) -> Unit) {}
+    internal actual fun getSelection       (): Selection? = null
 
-//    public actual fun createElement(localName: String, options: ElementCreationOptions): Element = object: Element() {
-//        override val children: HTMLCollection get() = HTMLCollectionImpl()
-//    }
-//    public actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = object: Element() {
-//        override val children: HTMLCollection get() = HTMLCollectionImpl()
-//    }
-    public actual fun createTextNode(data: String): Text = Text()
+    internal actual fun createElement  (localName: String, options: ElementCreationOptions): Element = DummyElement
+    internal actual fun createElement  (localName: String): Element = DummyElement
+    internal actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = DummyElement
+    internal actual fun createElementNS(namespace: String?, qualifiedName: String): Element = DummyElement
+
+    actual fun createTextNode(data: String): Text = Text()
 
     internal actual fun createRange(): Range = Range()
 }
 
-internal actual fun Document.addEventListener   (to: String, listener: (Event) -> Unit) {}
-internal actual fun Document.removeEventListener(to: String, listener: (Event) -> Unit) {}
-internal actual fun Document.getSelection(): Selection? = null
-internal actual fun Document.getCaretFromPoint(point: Point): CaretPosition? = null
-internal actual fun Document.elementFromPoint(point: Point): Element?  = null
-
-internal actual fun Document.createElement_  (localName: String, options: ElementCreationOptions): Element = ElementImpl()
-internal actual fun Document.createElement_  (localName: String): Element = ElementImpl()
-internal actual fun Document.createElementNS_(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = ElementImpl()
-internal actual fun Document.createElementNS_(namespace: String?, qualifiedName: String): Element = ElementImpl()
+private object DummyElement: Element() {
+    override val children: HTMLCollection get() = HTMLCollectionImpl()
+    override fun remove() {}
+}
 
 private class ElementImpl: Element() {
     override val children: HTMLCollection get() = HTMLCollectionImpl()
     override fun remove() {}
 }
 
-public actual class Range {
-    public actual val collapsed: Boolean = false
-    public actual fun setStart(node: Node, offset: Int) {}
-    public actual fun setEnd  (node: Node, offset: Int) {}
+internal actual class Range: JsAny {
+    actual val collapsed: Boolean = false
+    actual fun setStart(node: Node, offset: Int) {}
+    actual fun setEnd  (node: Node, offset: Int) {}
 }
 
-internal actual class Selection {
+internal actual class Selection: JsAny {
     actual fun removeAllRanges() {}
     actual fun addRange(range: Range) {}
 }
 
-public actual abstract class CharacterData   : Node()
-public actual          class Text            : CharacterData()
-public actual abstract class HTMLImageElement: HTMLElement() {
-    public actual var src     : String = ""
-    public actual val complete: Boolean = false
+internal actual abstract class CharacterData   : Node()
+internal actual          class Text            : CharacterData()
+internal actual abstract class HTMLImageElement: HTMLElement() {
+    actual var src     : String = ""
+    actual val complete: Boolean = false
+    internal actual val width   : Int = 0
+    internal actual val height  : Int = 0
 }
 
-public actual abstract class HTMLHeadElement : HTMLElement()
-public actual abstract class HTMLInputElement: HTMLElement() {
+internal actual abstract class HTMLHeadElement : HTMLElement()
+internal actual abstract class HTMLInputElement: HTMLElement() {
     internal var orient_ = "" as String?
 
     internal actual var type           = ""
@@ -324,64 +331,78 @@ public actual abstract class HTMLInputElement: HTMLElement() {
     internal actual var selectionEnd   = null as Int?
     internal actual var indeterminate  = false
     internal actual var selectionStart = null as Int?
+
+    internal actual fun setSelectionRange(start: Int, end: Int) {}
 }
 
-internal actual fun HTMLInputElement.setSelectionRange(start: Int, end: Int) {}
+//internal actual fun HTMLInputElement.setSelectionRange(start: Int, end: Int) {}
 internal actual fun HTMLInputElement.focusInput() {}
 
-public actual abstract class HTMLButtonElement: HTMLElement() {
+internal actual abstract class HTMLButtonElement: HTMLElement() {
     internal actual var disabled: Boolean = false
 }
 
-public actual abstract class HTMLAnchorElement: HTMLElement() {
-    public actual abstract var href  : String
-    public actual abstract var host  : String
-    public actual          var target: String = ""
+internal actual abstract class HTMLAnchorElement: HTMLElement() {
+    internal actual abstract var href  : String
+    internal actual abstract var host  : String
+    actual          var target: String = ""
 }
 
-public actual abstract class HTMLIFrameElement: HTMLElement() {
-    public actual open var src: String = ""
+internal actual abstract class HTMLIFrameElement: HTMLElement() {
+    internal actual open var src: String = ""
 }
 
-public actual abstract class StyleSheet
+internal actual abstract class StyleSheet: JsAny
 
-public actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
+internal actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
-public actual abstract class StyleSheetList {
+internal actual abstract class StyleSheetList: JsAny {
     protected val values: List<StyleSheet> = mutableListOf()
 
-    public actual abstract val length: Int
+    internal actual abstract val length: Int
 
-    public actual fun item(index: Int): StyleSheet? = try {
+    actual fun item(index: Int): StyleSheet? = try {
         values[index]
     } catch (e: Exception) {
         null
     }
 }
 
-public actual interface ElementCSSInlineStyle {
-    public actual val style: CSSStyleDeclaration
+internal actual interface ElementCSSInlineStyle: JsAny {
+    actual val style: CSSStyleDeclaration
 }
 
-public actual abstract class HTMLStyleElement: HTMLElement() {
-    public actual val sheet: StyleSheet?
+internal actual abstract class HTMLStyleElement: HTMLElement() {
+    actual val sheet: StyleSheet?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 }
 
-public actual abstract class HTMLMetaElement: HTMLElement() {
-    public actual var name: String = ""
-    public actual var content: String = ""
+internal actual abstract class HTMLMetaElement: HTMLElement() {
+    actual var name: String = ""
+    actual var content: String = ""
 }
 
-public actual open class ResizeObserver actual constructor(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
-    public actual fun observe(target: Node, options: ResizeObserverInit) {}
-    public actual fun unobserve(target: Node) {}
+internal actual open class ResizeObserver actual constructor(callback: (JsArray<ResizeObserverEntry>, ResizeObserver) -> Unit): JsAny {
+    actual fun observe   (target: Node, options: ResizeObserverInit) {}
+    actual fun observe   (target: Node                             ) {}
+    actual fun unobserve (target: Node) {}
+    actual fun disconnect() {}
 }
 
-public actual interface ResizeObserverInit {
-    public actual var box: String? get() = ""; set(new) {}
+internal actual interface ResizeObserverInit: JsAny {
+    actual var box: String?
 }
 
-public actual abstract class ResizeObserverEntry {
-    public actual open val contentRect: DOMRect get() = TODO("Not yet implemented")
+internal actual abstract class ResizeObserverEntry: JsAny {
+    internal actual open val contentRect: DOMRect get() = TODO("Not yet implemented")
+    internal actual open val target: HTMLElement get() = TODO("Not yet implemented")
 }
+
+internal actual fun ResizeObserver.observeResize(target: Node, box: String) {}
+
+internal actual interface AddEventListenerOptions: JsAny {
+    actual var passive: Boolean?
+    actual var once: Boolean?
+}
+
+internal actual val document: Document get() = TODO("Not yet implemented")

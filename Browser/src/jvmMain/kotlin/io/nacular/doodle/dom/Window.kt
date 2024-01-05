@@ -3,27 +3,36 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/12/20.
  */
-public actual abstract class Location {
-    public actual open var host: String = ""
+internal actual abstract class Location {
+    actual open var host: String = ""
 }
 
-public actual abstract class Window {
-    public actual open val location: Location = object: Location() {}
-
-    public actual fun matchMedia           (query: String): MediaQueryList = object: MediaQueryList() {}
-    public actual fun cancelAnimationFrame (handle: Int): Unit = Unit
-    public actual fun requestAnimationFrame(callback: (Double) -> Unit): Int = 0
+internal actual class Navigator {
+    actual val userAgent: String = ""
 }
 
-internal actual fun Window.setTimeout_(handler: Any, timeout: Int, vararg arguments: Any?): Int = 0
-internal actual fun Window.clearTimeout_(handle: Int) {}
-internal actual fun Window.setInterval_(handler: Any, timeout: Int, vararg arguments: Any?): Int = 0
-internal actual fun Window.clearInterval_(handle: Int) {}
+internal actual abstract class Window {
+    actual open val location: Location = object: Location() {}
+    actual val performance: Performance? = null
+    actual val navigator: Navigator = Navigator()
 
-internal actual val window = object: Window() {}
+    actual fun matchMedia           (query: String): MediaQueryList = object: MediaQueryList() {}
+    actual fun cancelAnimationFrame (handle: Int): Unit = Unit
+    actual fun requestAnimationFrame(callback: (Double) -> Unit): Int = 0
 
-public actual abstract class MediaQueryList {
-    public actual val matches: Boolean = false
+    actual fun setTimeout   (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int = 0
+    actual fun clearTimeout (handle: Int) {}
+    actual fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int = 0
+    actual fun clearInterval(handle: Int) {}
 
-    public actual fun addListener(listener: ((Event) -> Unit)?) {}
+    actual fun addEventListener(eventName: String, callback: () -> Unit) {}
+    actual fun removeEventListener(eventName: String, callback: () -> Unit) {}
+}
+
+internal actual val window: Window = object: Window() {}
+
+internal actual abstract class MediaQueryList {
+    actual val matches: Boolean = false
+
+    actual fun addListener(listener: ((Event) -> Unit)?) {}
 }

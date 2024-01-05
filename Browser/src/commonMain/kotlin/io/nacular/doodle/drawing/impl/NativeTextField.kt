@@ -33,8 +33,6 @@ import io.nacular.doodle.dom.setHeight
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOutlineWidth
-import io.nacular.doodle.dom.setProperty_
-import io.nacular.doodle.dom.setSelectionRange
 import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
@@ -319,7 +317,7 @@ internal class NativeTextField(
         placeHolderStyle  = null
         mozSelectionStyle = null
 
-        (inputElement.parentElement as? HTMLElement)?.style?.setProperty_("transform-style", "")
+        (inputElement.parentElement as? HTMLElement)?.style?.setProperty("transform-style", "")
 
         accessibilityManager?.unlinkNativeElement(textField, inputElement)
     }
@@ -327,7 +325,7 @@ internal class NativeTextField(
     fun render(canvas: Canvas) {
         if (canvas is NativeCanvas) {
             canvas.addData(listOf(inputElement))
-            (inputElement.parentElement as? HTMLElement)?.style?.setProperty_("transform-style", "preserve-3d")
+            (inputElement.parentElement as? HTMLElement)?.style?.setProperty("transform-style", "preserve-3d")
         }
 
         if (textField.hasFocus && !elementFocused) {

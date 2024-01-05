@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.core
 
-import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -66,8 +65,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 2/23/18.
  */
 class ViewTests {
-    @Test @JsName("defaults")
-    fun `defaults valid`() {
+    @Test fun `defaults valid`() {
         expect("", "View::toolTipText") { object: View() {}.toolTipText }
 
         expect(true) { object: View() {}.shouldYieldFocus() }
@@ -118,8 +116,7 @@ class ViewTests {
         ).forEach { validateDefault(it.key, it.value) }
     }
 
-    @Test @JsName("defaultTraversalKeysValid")
-    fun `default traversal keys valid`() {
+    @Test fun `default traversal keys valid`() {
         val view = object: View() {}
 
         listOf(Forward, Backward, Upward, Downward).forEach {
@@ -127,8 +124,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("settersWork")
-    fun `setters work`() {
+    @Test fun `setters work`() {
         object: View() {}.also {
             val value = "foo"
             it.toolTipText = value
@@ -165,8 +161,7 @@ class ViewTests {
 
     }
 
-    @Test @JsName("traversalKeySettersWork")
-    fun `traversal key setters work`() {
+    @Test fun `traversal key setters work`() {
         val view = object: View() {}
 
         val key1 = mockk<KeyState>()
@@ -185,8 +180,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("rerenderWorks")
-    fun `rerender work`() {
+    @Test fun `rerender work`() {
         val display       = mockk<Display>()
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
@@ -198,8 +192,7 @@ class ViewTests {
         verify(exactly = 1) { renderManager.render(view) }
     }
 
-    @Test @JsName("rerenderNowWorks")
-    fun `rerenderNow work`() {
+    @Test fun `rerenderNow work`() {
         val display       = mockk<Display>()
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
@@ -213,8 +206,7 @@ class ViewTests {
         verify(exactly = 1) { renderManager.renderNow(view) }
     }
 
-    @Test @JsName("mostRecentAncestor")
-    fun `most recent ancestor`() {
+    @Test fun `most recent ancestor`() {
         val child       = object: View() {}
         val parent      = container {}
         val grandParent = container {}
@@ -228,8 +220,7 @@ class ViewTests {
         expect(null       ) { grandParent.mostRecentAncestor { true                              } }
     }
 
-    @Test @JsName("clipCanvasToBoundsRerenders")
-    fun `rerenders on clipCanvasToBounds change`() {
+    @Test fun `rerenders on clipCanvasToBounds change`() {
         val display       = mockk<Display>()
         val renderManager = mockk<RenderManager>()
         val view          = view {}
@@ -241,8 +232,7 @@ class ViewTests {
         verify(exactly = 1) { renderManager.render(view) }
     }
 
-    @Test @JsName("parentChangeWorks")
-    fun `parent change works`() {
+    @Test fun `parent change works`() {
         val view   = object: View() {}
         val parent = container {}
 
@@ -259,8 +249,7 @@ class ViewTests {
         verify(exactly = 1) { observer(view, parent, null) }
     }
 
-    @Test @JsName("displayChangeWorks")
-    fun `display change works`() {
+    @Test fun `display change works`() {
         val view = object: View() {}
 
         val observer = mockk<PropertyObserver<View, Boolean>>()
@@ -276,8 +265,7 @@ class ViewTests {
         verify(exactly = 1) { observer(view, true, false) }
     }
 
-    @Test @JsName("displayedWorks")
-    fun `displayed works`() {
+    @Test fun `displayed works`() {
         val view = object: View() {}
 
         val renderManager = mockk<RenderManager>()
@@ -293,8 +281,7 @@ class ViewTests {
         expect(false) { view.displayed }
     }
 
-    @Test @JsName("registersAccessibilityWhenDisplayed")
-    fun `registers accessibility role when displayed`() {
+    @Test fun `registers accessibility role when displayed`() {
         val role = mockk<AccessibilityRole>()
         val view = object: View(accessibilityRole = role) {}
 
@@ -309,8 +296,7 @@ class ViewTests {
         verify(exactly = 1) { accessibilityManager.roleAbandoned(view) }
     }
 
-    @Test @JsName("childAtPointInsideClipPoly")
-    fun `child at point inside clip poly`() {
+    @Test fun `child at point inside clip poly`() {
         val child  = view().apply { position = Point(5, 5) }
         val parent = object: View() {
             init {
@@ -322,8 +308,7 @@ class ViewTests {
         expect(child) { parent.child_(Point(5, 5)) }
     }
 
-    @Test @JsName("childAtPointLayoutReturnsIgnored")
-    fun `child at point layout returns Ignored`() {
+    @Test fun `child at point layout returns Ignored`() {
         val child  = view().apply { position = Point(5, 5) }
         val parent = object: View() {
             init {
@@ -338,8 +323,7 @@ class ViewTests {
         expect(null ) { parent.child_(Point(4, 4)) }
     }
 
-    @Test @JsName("childAtPointLayoutReturnsEmpty")
-    fun `child at point layout returns Empty`() {
+    @Test fun `child at point layout returns Empty`() {
         val child  = view().apply { position = Point(5, 5) }
         val parent = object: View() {
             init {
@@ -353,8 +337,7 @@ class ViewTests {
         expect(null) { parent.child_(Point(5, 5)) }
     }
 
-    @Test @JsName("childAtPointLayoutReturnsValue")
-    fun `child at point layout returns value`() {
+    @Test fun `child at point layout returns value`() {
         val found  = view()
         val child  = view().apply { position = Point(5, 5) }
         val parent = object: View() {
@@ -369,8 +352,7 @@ class ViewTests {
         expect(found) { parent.child_(Point(5, 5)) }
     }
 
-    @Test @JsName("childAtPointOutsideClipPoly")
-    fun `child at point outside clip poly`() {
+    @Test fun `child at point outside clip poly`() {
         val child  = view().apply { position = Point(5, 5) }
         val parent = object: View() {
             init {
@@ -382,8 +364,7 @@ class ViewTests {
         expect(null) { parent.child_(Point(5, 5)) }
     }
 
-    @Test @JsName("childAtPointInvisible")
-    fun `child at point invisible`() {
+    @Test fun `child at point invisible`() {
         val child  = view().apply { position = Point(5, 5); visible = false }
         val parent = object: View() {
             init {
@@ -394,8 +375,7 @@ class ViewTests {
         expect(null) { parent.child_(Point(5, 5)) }
     }
 
-    @Test @JsName("displayRectDelegates")
-    fun `display rect delegates to RenderManager`() {
+    @Test fun `display rect delegates to RenderManager`() {
         val view = object: View() {}
 
         val renderManager = mockk<RenderManager>()
@@ -407,8 +387,7 @@ class ViewTests {
         verify(exactly = 1) { renderManager.displayRect(view) }
     }
 
-    @Test @JsName("forwardsDisplayRectToSubclass")
-    fun `forwards display-rect to subclass`() {
+    @Test fun `forwards display-rect to subclass`() {
         val view = spyk(SubView())
         val old  = Rectangle(100)
         val new  = Rectangle( 30)
@@ -418,8 +397,7 @@ class ViewTests {
         verify(exactly = 1) { view.handleDisplayRectEvent(old, new) }
     }
 
-    @Test @JsName("forwardsPointerEventToSubclass")
-    fun `forwards pointer event to subclass`() {
+    @Test fun `forwards pointer event to subclass`() {
         val view  = spyk(SubView())
         val event = mockk<PointerEvent>()
 
@@ -428,8 +406,7 @@ class ViewTests {
         verify(exactly = 1) { view.handlePointerEvent(event) }
     }
 
-    @Test @JsName("forwardsKeyEventToSubclass")
-    fun `forwards key event to subclass`() {
+    @Test fun `forwards key event to subclass`() {
         val view  = spyk(SubView())
         val event = mockk<KeyEvent>()
 
@@ -438,8 +415,7 @@ class ViewTests {
         verify(exactly = 1) { view.handleKeyEvent(event) }
     }
 
-    @Test @JsName("forwardsPointerMotionEventToSubclass")
-    fun `forwards pointer motion event to subclass`() {
+    @Test fun `forwards pointer motion event to subclass`() {
         val view  = spyk(SubView())
         val event = mockk<PointerEvent>()
 
@@ -448,8 +424,7 @@ class ViewTests {
         verify(exactly = 1) { view.handlePointerMotionEvent(event) }
     }
 
-    @Test @JsName("centerWorks")
-    fun `center works`() {
+    @Test fun `center works`() {
         val view = view()
 
         listOf(
@@ -461,8 +436,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("changeEventsWork")
-    fun `change events work`() {
+    @Test fun `change events work`() {
         listOf(
             View::enabled             to View::enabledChanged,
             View::visible             to View::visibilityChanged,
@@ -474,8 +448,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("minSizeTriggersSizePreferenceEvent")
-    fun `min size triggers size preference event`() {
+    @Test fun `min size triggers size preference event`() {
         val view          = object: View() {}
         val observer      = mockk<PropertyObserver<View, SizePreferences>>()
         val renderManager = mockk<RenderManager>(relaxed = true)
@@ -499,8 +472,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("idealSizeTriggersSizePreferenceEvent")
-    fun `ideal size triggers size preference event`() {
+    @Test fun `ideal size triggers size preference event`() {
         val view          = object: View() {}
         val observer      = mockk<PropertyObserver<View, SizePreferences>>()
         val renderManager = mockk<RenderManager>(relaxed = true)
@@ -523,8 +495,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("minSizeDelegatesToLayout")
-    fun `min size delegates to layout`() {
+    @Test fun `min size delegates to layout`() {
         val size = Size(10, 10)
         val view = object: View() {
             init {
@@ -537,8 +508,7 @@ class ViewTests {
         expect(size) { view.minimumSize }
     }
 
-    @Test @JsName("idealSizeDelegatesToLayout")
-    fun `ideal size delegates to layout`() {
+    @Test fun `ideal size delegates to layout`() {
         val size = Size(10, 10)
         val view = object: View() {
             init {
@@ -551,15 +521,13 @@ class ViewTests {
         expect(size) { view.idealSize }
     }
 
-    @Test @JsName("styleChangeEventsWork")
-    fun `style change events work`() {
+    @Test fun `style change events work`() {
         validateStyleChanged(View::font,            mockk())
         validateStyleChanged(View::foregroundColor, mockk())
         validateStyleChanged(View::backgroundColor, mockk())
     }
 
-    @Test @JsName("fontFallsBackToParent")
-    fun `font falls back to parent`() {
+    @Test fun `font falls back to parent`() {
         val font  = mockk<Font>()
         val child = object: View() {}
 
@@ -571,8 +539,7 @@ class ViewTests {
         expect(font) { child.font }
     }
 
-    @Test @JsName("contentDirectionFallsBackToParent")
-    fun `content direction falls back to parent`() {
+    @Test fun `content direction falls back to parent`() {
         val direction = mockk<ContentDirection>()
         val child     = object: View() {}
 
@@ -584,8 +551,7 @@ class ViewTests {
         expect(direction) { child.contentDirection }
     }
 
-    @Test @JsName("contentDirectionFallsBackToDisplay")
-    fun `content direction falls back to display`() {
+    @Test fun `content direction falls back to display`() {
         val direction = mockk<ContentDirection>()
         val child     = object: View() {}
         val display   = mockk<Display>().apply {
@@ -597,8 +563,7 @@ class ViewTests {
         expect(direction) { child.contentDirection }
     }
 
-    @Test @JsName("needsMirrorTransformSinksToDescendants")
-    fun `needs mirror transform sinks to descendants`() {
+    @Test fun `needs mirror transform sinks to descendants`() {
         val child       = object: View() {}
         val parent      = object: View() {}.apply { children_ += child  }
         val grandParent = object: View() {}.apply { children_ += parent  }
@@ -610,98 +575,79 @@ class ViewTests {
         expect(true) { child.needsMirrorTransform }
     }
 
-    @Test @JsName("keyDownEventsWorks")
-    fun `key down events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Down }) { listener, event ->
+    @Test fun `key down events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Down }) { listener, event ->
         verify(exactly = 1) { listener.pressed(event) }
     }
 
-    @Test @JsName("keyUpEventsWorks")
-    fun `key up events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Up }) { listener, event ->
+    @Test fun `key up events works`() = validateKeyChanged(mockk<KeyEvent>().apply { every { type } returns Type.Up }) { listener, event ->
         verify(exactly = 1) { listener.released(event) }
     }
 
-    @Test @JsName("pointerEventsWorks")
-    fun `pointer events works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
+    @Test fun `pointer events works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
         verify(exactly = 1) { listener.entered(event) }
     }
 
-    @Test @JsName("pointerExitWorks")
-    fun `pointer exit works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
+    @Test fun `pointer exit works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
         verify(exactly = 1) { listener.exited(event) }
     }
 
-    @Test @JsName("pointerPressedWorks")
-    fun `pointer pressed works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
+    @Test fun `pointer pressed works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
         verify(exactly = 1) { listener.pressed(event) }
     }
 
-    @Test @JsName("pointerReleasedWorks")
-    fun `pointer released works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
+    @Test fun `pointer released works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
         verify(exactly = 1) { listener.released(event) }
     }
 
-    @Test @JsName("pointerClickedWorks")
-    fun `pointer clicked works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
+    @Test fun `pointer clicked works`() = validatePointerChanged(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
         verify(exactly = 1) { listener.clicked(event) }
     }
 
-    @Test @JsName("pointerMoveWorks")
-    fun `pointer move works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
+    @Test fun `pointer move works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
         verify(exactly = 1) { listener.moved(event) }
     }
 
-    @Test @JsName("pointerDragWorks")
-    fun `pointer drag works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
+    @Test fun `pointer drag works`() = validatePointerMotionChanged(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
         verify(exactly = 1) { listener.dragged(event) }
     }
 
-    @Test @JsName("filterPointerReleasedWorks")
-    fun `filter pointer released works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
+    @Test fun `filter pointer released works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Up }) { listener, event ->
         verify(exactly = 1) { listener.released(event) }
     }
 
-    @Test @JsName("filterPointerMoveWorks")
-    fun `filter pointer move works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
+    @Test fun `filter pointer move works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Move }) { listener, event ->
         verify(exactly = 1) { listener.moved(event) }
     }
 
-    @Test @JsName("filterPointerEventsWorks")
-    fun `filter pointer events works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
+    @Test fun `filter pointer events works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Enter }) { listener, event ->
         verify(exactly = 1) { listener.entered(event) }
     }
 
-    @Test @JsName("filterPointerExitWorks")
-    fun `filter pointer exit works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
+    @Test fun `filter pointer exit works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Exit }) { listener, event ->
         verify(exactly = 1) { listener.exited(event) }
     }
 
-    @Test @JsName("filterPointerPressedWorks")
-    fun `filter pointer pressed works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
+    @Test fun `filter pointer pressed works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Down }) { listener, event ->
         verify(exactly = 1) { listener.pressed(event) }
     }
 
-    @Test @JsName("filterPointerClickedWorks")
-    fun `filter pointer clicked works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
+    @Test fun `filter pointer clicked works`() = validatePointerFilter(mockk<PointerEvent>().apply { every { type } returns Click }) { listener, event ->
         verify(exactly = 1) { listener.clicked(event) }
     }
 
-    @Test @JsName("filterPointerDragWorks")
-    fun `filter pointer drag works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
+    @Test fun `filter pointer drag works`() = validatePointerMotionFilter(mockk<PointerEvent>().apply { every { type } returns Drag }) { listener, event ->
         verify(exactly = 1) { listener.dragged(event) }
     }
 
-    @Test @JsName("focusGainedWorks")
-    fun `focus gained works`() = validateFocusChanged(true) { view, observer ->
+    @Test fun `focus gained works`() = validateFocusChanged(true) { view, observer ->
         verify(exactly = 1) { observer(view, false, true) }
     }
 
-    @Test @JsName("focusLostWorks")
-    fun `focus lost works`() = validateFocusChanged(false) { view, observer ->
+    @Test fun `focus lost works`() = validateFocusChanged(false) { view, observer ->
         verify(exactly = 1) { observer(view, true, false) }
     }
 
-    @Test @JsName("boundsChangedSameValueIngored")
-    fun `bounds changed same value ignored`() {
+    @Test fun `bounds changed same value ignored`() {
         val bounds   = Rectangle(5.6, 3.7, 900.0, 1.2)
         val view     = object: View() {}.apply { this.bounds = bounds }
         val observer = mockk<PropertyObserver<View, Rectangle>>()
@@ -721,8 +667,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("boundsChangedWorks")
-    fun `bounds changed works`() {
+    @Test fun `bounds changed works`() {
         val view     = object: View() {}
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = view.bounds
@@ -748,8 +693,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("opacityChangedWorks")
-    fun `opacity changed works`() {
+    @Test fun `opacity changed works`() {
         val view     = object: View() {}
         val old      = 1f
         val new      = 0.5f
@@ -772,8 +716,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("transformChangedWorks")
-    fun `transform changed works`() {
+    @Test fun `transform changed works`() {
         val view     = object: View() {}
         val old      = Identity
         val new      = Identity.rotate(90 * degrees)
@@ -796,8 +739,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("visibilityChangedWorks")
-    fun `visibility changed works`() {
+    @Test fun `visibility changed works`() {
         val view     = object: View() {}
         val old      = true
         val new      = false
@@ -820,8 +762,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("cursorChangedWorks")
-    fun `cursor changed works`() {
+    @Test fun `cursor changed works`() {
         val child       = object: View() {}
         val parent      = object: View() {}.apply { children_ += child  }
         val grandParent = object: View() {}.apply { children_ += parent }
@@ -840,8 +781,7 @@ class ViewTests {
         verify(exactly = 1) { observer(grandParent, old, new) }
     }
 
-    @Test @JsName("disableChangeWorks")
-    fun `disable change works`() {
+    @Test fun `disable change works`() {
         val grandChild  = object: View() {}
         val child       = object: View() {}.apply { children_ += grandChild }
         val parent      = object: View() {}.apply { children_ += child      }
@@ -865,8 +805,7 @@ class ViewTests {
         verify(exactly = 1) { observer(grandParent, old, new) }
     }
 
-    @Test @JsName("enabledChangeWorks")
-    fun `enabled change works`() {
+    @Test fun `enabled change works`() {
         val grandChild  = object: View() {}
         val child       = object: View() {}.apply { children_ += grandChild }
         val parent      = object: View() {}.apply { children_ += child      }
@@ -891,8 +830,7 @@ class ViewTests {
         verify(exactly = 1) { observer(grandParent, old, new) }
     }
 
-    @Test @JsName("enabledChangeAccessible")
-    fun `enabled change accessible`() {
+    @Test fun `enabled change accessible`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -904,8 +842,7 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncEnabled(view) }
     }
 
-    @Test @JsName("accessibilityRoleChangeWorks")
-    fun `accessibility role change works`() {
+    @Test fun `accessibility role change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -918,8 +855,7 @@ class ViewTests {
         verify(exactly = 1) { accessibilityManager.roleAdopted  (view) }
     }
 
-    @Test @JsName("accessibleLabelChangeWorks")
-    fun `accessible label change works`() {
+    @Test fun `accessible label change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -931,8 +867,7 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncLabel(view) }
     }
 
-    @Test @JsName("accessibleLabelProviderChangeWorks")
-    fun `accessible label provider change works`() {
+    @Test fun `accessible label provider change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -944,8 +879,7 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncLabel(view) }
     }
 
-    @Test @JsName("accessibleDescriptionProviderChangeWorks")
-    fun `accessible description provider change works`() {
+    @Test fun `accessible description provider change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -957,8 +891,7 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncDescription(view) }
     }
 
-    @Test @JsName("nextInAccessibleReadOrderChangeWorks")
-    fun `next in accessibility read order change works`() {
+    @Test fun `next in accessibility read order change works`() {
         val accessibilityManager = mockk<AccessibilityManager>()
 
         val view = view {}
@@ -970,8 +903,7 @@ class ViewTests {
         verify(exactly = 2) { accessibilityManager.syncNextReadOrder(view) }
     }
 
-    @Test @JsName("zOrderChangeWorks")
-    fun `z-order change works`() {
+    @Test fun `z-order change works`() {
         val view          = object: View() {}
         val observer      = mockk<PropertyObserver<View, Int>>()
         val new           = 35
@@ -990,8 +922,7 @@ class ViewTests {
         }
     }
 
-    @Test @JsName("containsChildWorks")
-    fun `contains child works`() {
+    @Test fun `contains child works`() {
         val view1 = object: View() {}
         val view2 = object: View() {}
         val view  = object: View() {
@@ -1006,8 +937,7 @@ class ViewTests {
         expect(false, "$view contains $view2") { view.has(view2) }
     }
 
-    @Test @JsName("containsPointWorks")
-    fun `contains point works`() {
+    @Test fun `contains point works`() {
         val view = object: View() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
@@ -1022,8 +952,7 @@ class ViewTests {
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
     }
 
-    @Test @JsName("toolTipTextWorks")
-    fun `tool-top text works`() {
+    @Test fun `tool-top text works`() {
         val view = object: View() {}
         val event = mockk<PointerEvent>()
 
@@ -1034,8 +963,7 @@ class ViewTests {
         expect("foo", "${view.toolTipText} == \"\"") { view.toolTipText(event) }
     }
 
-    @Test @JsName("isAncestorWorks")
-    fun `is-ancestor works`() {
+    @Test fun `is-ancestor works`() {
         val root   = object: View() {}
         val parent = object: View() {}
         val child  = object: View() {}
@@ -1055,8 +983,7 @@ class ViewTests {
         expect(true) { root ancestorOf_ child  }
     }
 
-    @Test @JsName("toAbsoluteWorks")
-    fun `to absolute works`() {
+    @Test fun `to absolute works`() {
         val root   = view()
         val parent = view().apply { x += 10.0; y += 12.0 }
         val child  = view().apply { x += 10.0; y += 12.0 }
@@ -1070,8 +997,7 @@ class ViewTests {
         expect(point + parent.position + child.position) { child.toAbsolute (point) }
     }
 
-    @Test @JsName("fromAbsoluteWorks")
-    fun `from absolute works`() {
+    @Test fun `from absolute works`() {
         val root   = view()
         val parent = view().apply { x += 10.0; y += 12.0 }
         val child  = view().apply { x += 10.0; y += 12.0 }
@@ -1087,8 +1013,7 @@ class ViewTests {
         expect(child.fromAbsolute(point)) { child.toLocal(point, root) }
     }
 
-    @Test @JsName("toLocalWorks")
-    fun `to local works`() {
+    @Test fun `to local works`() {
         val root   = view()
         val parent = view().apply { x += 10.0; y += 12.0 }
         val child1 = view().apply { x += 10.0; y += 12.0 }
@@ -1103,8 +1028,7 @@ class ViewTests {
         expect(child2.position - child1.position) { child1.toLocal(Origin,             child2) }
     }
 
-    @Test @JsName("childAtWorks")
-    fun `child at works`() {
+    @Test fun `child at works`() {
         val root   = view()
         val child0 = view().apply { x += 10.0; y += 12.0 }
         val child1 = view().apply { x += 10.0; y += 12.0 }
@@ -1125,8 +1049,7 @@ class ViewTests {
         expect(child0) { root.child_(Point(11.0, 13.0)) }
     }
 
-    @Test @JsName("cannotBeParentToSelf")
-    fun `cannot be parent to self`() {
+    @Test fun `cannot be parent to self`() {
         val view = object: View() {
             public override val children: ObservableList<View>
                 get() = super.children
@@ -1135,8 +1058,7 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { view.children += view }
     }
 
-    @Test @JsName("cannotAddAncestorToChildren")
-    fun `cannot add ancestor to children`() {
+    @Test fun `cannot add ancestor to children`() {
         val grandParent = object: View() {
             public override val children get() = super.children
         }

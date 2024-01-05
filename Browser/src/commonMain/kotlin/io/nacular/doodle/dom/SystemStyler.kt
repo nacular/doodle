@@ -19,11 +19,11 @@ internal interface SystemStyler {
 }
 
 internal class SystemStylerImpl(
-        htmlFactory: HtmlFactory,
-        idGenerator: IdGenerator,
-        private val document: Document,
-        isNested: Boolean,
-        allowDefaultDarkMode: Boolean
+    htmlFactory: HtmlFactory,
+    idGenerator: IdGenerator,
+    private val document: Document,
+    isNested: Boolean,
+    allowDefaultDarkMode: Boolean
 ): SystemStyler {
     private val style: HTMLStyleElement = htmlFactory.create("style")
 
@@ -57,31 +57,31 @@ internal class SystemStylerImpl(
         if (!isNested) {
             sheet?.apply {
                 if (allowDefaultDarkMode) {
-                    insertRule(":root {color-scheme:light dark}", numStyles)
+                    tryInsertRule(":root {color-scheme:light dark}", numStyles)
                 }
 
                 // Disable selection: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting#4407335
-                insertRule("${prefix("body")} { -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale }", numStyles)
+                tryInsertRule("${prefix("body")} { -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale }", numStyles)
 
-                insertRule("${prefix("html")} { border:0;box-sizing:border-box }", numStyles)
-                insertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0;font-weight:$defaultFontWeight;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
-                insertRule("html { height:100%;width:100% }", numStyles)
+                tryInsertRule("${prefix("html")} { border:0;box-sizing:border-box }", numStyles)
+                tryInsertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0;font-weight:$defaultFontWeight;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
+                tryInsertRule("html { height:100%;width:100% }", numStyles)
 
-                insertRule("${prefix()} * { box-sizing:inherit }", numStyles)
+                tryInsertRule("${prefix()} * { box-sizing:inherit }", numStyles)
 
-                insertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
-                insertRule("${prefix("body")} pre { overflow:visible }",   numStyles)
-                insertRule("${prefix("body")} div { display:inline }",     numStyles)
-                insertRule("${prefix("body")} div:focus { outline:none }", numStyles)
-                insertRule("${prefix("body")} b { pointer-events:none }",  numStyles)
+                tryInsertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
+                tryInsertRule("${prefix("body")} pre { overflow:visible }",   numStyles)
+                tryInsertRule("${prefix("body")} div { display:inline }",     numStyles)
+                tryInsertRule("${prefix("body")} div:focus { outline:none }", numStyles)
+                tryInsertRule("${prefix("body")} b { pointer-events:none }",  numStyles)
 
-                insertRule("${prefix()} pre { margin:0;pointer-events:none }", numStyles)
-                insertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible;pointer-events:none }", numStyles)
-                insertRule("${prefix()} svg * { position:absolute }", numStyles)
-                insertRule("${prefix()} button div svg { left:0px }", numStyles)
+                tryInsertRule("${prefix()} pre { margin:0;pointer-events:none }", numStyles)
+                tryInsertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible;pointer-events:none }", numStyles)
+                tryInsertRule("${prefix()} svg * { position:absolute }", numStyles)
+                tryInsertRule("${prefix()} button div svg { left:0px }", numStyles)
 
                 try {
-                    insertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
+                    tryInsertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
                 } catch (ignore: Throwable) {
                 }
             }
@@ -92,32 +92,34 @@ internal class SystemStylerImpl(
 
     override fun insertRule(css: String): Style? = sheet?.run {
         try {
-            val offset = ruleIndexes.size
-            val styleIndex = insertRule(css, numStyles)
+            val offset     = ruleIndexes.size
+            val styleIndex = tryInsertRule(css, numStyles)
 
-            ruleIndexes += styleIndex
+            if (styleIndex >= 0) {
+                ruleIndexes += styleIndex
 
-            val sheet = this
+                val sheet = this
 
-            cssRules.item(styleIndex)?.let { rule ->
-                object : Style {
-                    override var css
-                        get() = rule.cssText
-                        set(new) {
-                            rule.cssText = new
-                        }
+                cssRules.item(styleIndex)?.let { rule ->
+                    object : Style {
+                        override var css
+                            get() = rule.cssText
+                            set(new) {
+                                rule.cssText = new
+                            }
 
-                    override fun delete() {
-                        sheet.deleteRule(ruleIndexes[offset])
+                        override fun delete() {
+                            sheet.deleteRule(ruleIndexes[offset])
 
-                        ruleIndexes[offset] = -1
+                            ruleIndexes[offset] = -1
 
-                        for (i in offset + 1 until ruleIndexes.size) {
-                            ruleIndexes[i] = ruleIndexes[i] - 1
+                            for (i in offset + 1 until ruleIndexes.size) {
+                                ruleIndexes[i] = ruleIndexes[i] - 1
+                            }
                         }
                     }
                 }
-            }
+            } else null
         } catch (ignored: Throwable) { null }
     }
 

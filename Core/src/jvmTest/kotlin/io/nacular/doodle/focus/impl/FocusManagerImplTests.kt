@@ -1,6 +1,5 @@
 package io.nacular.doodle.focus.impl
 
-import JsName
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -29,18 +28,15 @@ class FocusManagerImplTests {
 
     private data class Focusability(val focusable: Boolean, val enabled: Boolean, val visible: Boolean)
 
-    @Test @JsName("noDefaultFocusOwner")
-    fun `no default focus owner`() {
+    @Test fun `no default focus owner`() {
         expect(null) { FocusManagerImpl(mockk(), mockk(), focusabilityChecker).focusOwner }
     }
 
-    @Test @JsName("noDefaultFocusCycleRoot")
-    fun `no default focus-cycle-root`() {
+    @Test fun `no default focus-cycle-root`() {
         expect(null) { FocusManagerImpl(mockk(), mockk(), focusabilityChecker).focusCycleRoot }
     }
 
-    @Test @JsName("obeysFocusabilityChecker")
-    fun `obeys focusability checker`() {
+    @Test fun `obeys focusability checker`() {
         listOf(true, false).forEach { expected ->
             expect(expected) {
                 val focusabilityChecker = mockk<FocusabilityChecker>().apply { every { this@apply(any()) } returns expected }
@@ -50,15 +46,13 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("validateFocusability")
-    fun `validate focusability`() {
+    @Test fun `validate focusability`() {
         createFocusablePermutations().forEach { (view, expected) ->
             expect(expected) { DefaultFocusabilityChecker()(view) }
         }
     }
 
-    @Test @JsName("requestFocusNoOpsIfNotFocusable")
-    fun `request focus no-ops if not focusable`() {
+    @Test fun `request focus no-ops if not focusable`() {
         listOf(true, false).forEach { expected ->
             val focusabilityChecker = mockk<FocusabilityChecker>().apply { every { this@apply(any()) } returns expected }
 
@@ -82,8 +76,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("requestFocusWithPrevious")
-    fun `request focus with previous`() {
+    @Test fun `request focus with previous`() {
         val previous = focusableView()
         val view     = focusableView()
 
@@ -105,8 +98,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("requestFocusToFocusOwnerNoOps")
-    fun `request focus to focus owner no-ops`() {
+    @Test fun `request focus to focus owner no-ops`() {
         val view = focusableView()
 
         FocusManagerImpl(mockk(), mockk(), focusabilityChecker).apply {
@@ -126,8 +118,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("requestFocusWhenDisabledNoOps")
-    fun `request focus when disabled no-ops`() {
+    @Test fun `request focus when disabled no-ops`() {
         val view = focusableView()
 
         FocusManagerImpl(mockk(), mockk(), focusabilityChecker).apply {
@@ -148,8 +139,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenOwnerDisabled")
-    fun `focus moved when owner disabled`() {
+    @Test fun `focus moved when owner disabled`() {
         verifyFocusMoves {
             val propertyChanged = slot<PropertyObserver<View, Boolean>>()
 
@@ -162,8 +152,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenOwnerNoLongerFocusable")
-    fun `focus moved when owner no longer focusable`() {
+    @Test fun `focus moved when owner no longer focusable`() {
         verifyFocusMoves {
             val propertyChanged = slot<PropertyObserver<View, Boolean>>()
 
@@ -176,8 +165,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenOwnerNoLongerVisible")
-    fun `focus moved when owner no longer visible`() {
+    @Test fun `focus moved when owner no longer visible`() {
         verifyFocusMoves {
             val propertyChanged = slot<PropertyObserver<View, Boolean>>()
 
@@ -190,8 +178,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenOwnerRemovedDirectly")
-    fun `focus moved when owner removed directly`() {
+    @Test fun `focus moved when owner removed directly`() {
         verifyFocusMoves {
             val propertyChanged = slot<PropertyObserver<View, View?>>()
             val parent = focusableView()
@@ -205,8 +192,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenAncestorRemoved")
-    fun `focus moved when ancestor removed`() {
+    @Test fun `focus moved when ancestor removed`() {
         // Assume focus goes to null since helper does not configure a default
         verifyFocusMoves(to = null) {
             val propertyChanged = slot<PropertyObserver<View, Boolean>>()
@@ -221,7 +207,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("noOpDisplayChangedDirectRemoval") @Ignore
+    @Test @Ignore
     // This test breaks b/c the functionality was changed in FocusManager, so it does
     // move focus if a top-level view is no longer displayed.
     fun `no-op on display changed path of direct removal`() {
@@ -249,8 +235,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusClearedWhenDisabled")
-    fun `focus cleared when disabled`() {
+    @Test fun `focus cleared when disabled`() {
         val view = focusableView()
 
         FocusManagerImpl(createDisplayWithSingleView(), mockk(), focusabilityChecker).apply {
@@ -271,8 +256,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("focusReturnedToPreviousOnwerWhenEnabled")
-    fun `focus returned to previous owner when enabled`() {
+    @Test fun `focus returned to previous owner when enabled`() {
         val view = focusableView()
 
         FocusManagerImpl(createDisplayWithSingleView(), mockk(), focusabilityChecker).apply {
@@ -294,8 +278,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("handlesFocusForwardBackward")
-    fun `handles focus forward backward and downward`() {
+    @Test fun `handles focus forward backward and downward`() {
         listOf(Forward, Backward, Downward).forEach { type ->
             listOf(true, false).forEach { explicit ->
 
@@ -345,8 +328,7 @@ class FocusManagerImplTests {
         }
     }
 
-    @Test @JsName("handlesFocusUpward")
-    fun `handles focus upward`() {
+    @Test fun `handles focus upward`() {
         listOf(true, false).forEach { explicit ->
             verifyFocusTraversal(Upward, explicit) { _, focusView, policy ->
                 focusableView().also {

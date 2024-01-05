@@ -1,7 +1,11 @@
 package io.nacular.doodle.dom
 
-/**
- * Created by Nicholas Eddy on 3/13/20.
- */
-internal actual typealias Date        = kotlin.js.Date
-internal actual typealias Performance = org.w3c.performance.Performance
+public actual abstract external class Performance {
+    public actual fun now(): Double
+}
+
+public actual external class Date {
+    public actual companion object {
+        public actual fun now(): Double
+    }
+}

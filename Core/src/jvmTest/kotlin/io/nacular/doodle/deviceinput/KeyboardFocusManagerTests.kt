@@ -17,15 +17,13 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.system.KeyInputService
-import JsName
 import kotlin.test.Test
 
 /**
  * Created by Nicholas Eddy on 9/15/20.
  */
 class KeyboardFocusManagerTests {
-    @Test @JsName("stopsListeningToKeyInputServiceOnShutdown")
-    fun `stops listening to key input service on shutdown`() {
+    @Test fun `stops listening to key input service on shutdown`() {
         val keyInputService = mockk<KeyInputService>()
 
         val manager = KeyboardFocusManagerImpl(keyInputService, mockk(), mockk())
@@ -38,8 +36,7 @@ class KeyboardFocusManagerTests {
         }
     }
 
-    @Test  @JsName("notifiesOfEventInCorrectOrder")
-    fun `notifies of event in correct order`() {
+    @Test  fun `notifies of event in correct order`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -64,8 +61,7 @@ class KeyboardFocusManagerTests {
         }
     }
 
-    @Test  @JsName("preprocessorSuppressesEventWhenConsumed")
-    fun `preprocessor suppresses event when consumed`() {
+    @Test  fun `preprocessor suppresses event when consumed`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -93,8 +89,7 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any())               }
     }
 
-    @Test @JsName("viewSuppressesEventWhenConsumed")
-    fun `view suppresses event when consumed`() {
+    @Test fun `view suppresses event when consumed`() {
         val event           = slot<KeyEvent>()
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>().apply {
@@ -123,8 +118,7 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test @JsName("noNotificationsWhenListenerRemoved")
-    fun `no notifications when listener removed`() {
+    @Test fun `no notifications when listener removed`() {
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>()
         val focusManager    = focusManager(focusedView)
@@ -150,8 +144,7 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test @JsName("noNotificationsWhenNoFocusOwner")
-    fun `no notifications when no focus owner`() {
+    @Test fun `no notifications when no focus owner`() {
         val keyInputService = mockk<KeyInputService>()
         val focusManager    = focusManager()
         val preprocessor    = mockk<Preprocessor>()
@@ -170,8 +163,7 @@ class KeyboardFocusManagerTests {
         verify(exactly = 0) { postprocessor(any()) }
     }
 
-    @Test @JsName("handlesFocusMovement")
-    fun `handles focus movement`() {
+    @Test fun `handles focus movement`() {
         val key = mockk<KeyState>()
 
         verifyFocusTraversal(Forward,  key) { view, _ -> every { view[Forward ] } returns setOf(key) }
@@ -184,8 +176,7 @@ class KeyboardFocusManagerTests {
         verifyFocusTraversal(Downward, key) { _, keys ->         keys[Downward]         = setOf(key) }
     }
 
-    @Test @JsName("noFocusDownwardOnNonFocusCycleRoot")
-    fun `no focus downward on non-focus cycle root`() {
+    @Test fun `no focus downward on non-focus cycle root`() {
         val key = mockk<KeyState>()
         val keyInputService = mockk<KeyInputService>()
         val focusedView     = mockk<View>().apply {

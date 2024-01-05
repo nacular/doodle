@@ -296,17 +296,18 @@ public open class RenderManagerImpl(
 
             pendingRender.addAll(newRenders)
 
-            pendingBoundsChange.iterator().let {
-                while (it.hasNext()) {
-                    val item = it.next()
+            var numIterations = 0
+            val maxIterations = pendingBoundsChange.size
 
+            do {
+                pendingBoundsChange.firstOrNull()?.let { item ->
                     if (item !in neverRendered ) {
                         updateGraphicsSurface(item, graphicsDevice[item])
 
-                        it.remove()
+                        pendingBoundsChange.remove(item)
                     }
                 }
-            }
+            } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
 
             if (pendingLayout.isEmpty() && newRenders.none { it !in neverRendered } && pendingBoundsChange.isEmpty()) {
                 break

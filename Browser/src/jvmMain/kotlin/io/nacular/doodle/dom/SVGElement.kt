@@ -3,24 +3,30 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-public actual abstract class SVGElement public actual constructor(): Element(), ElementCSSInlineStyle
-public actual abstract class SVGPathElement          : SVGGeometryElement()
-public actual abstract class SVGRectElement          : SVGGeometryElement()
-public actual abstract class SVGCircleElement        : SVGGeometryElement()
-public actual abstract class SVGEllipseElement       : SVGGeometryElement()
-public actual abstract class SVGPolygonElement       : SVGGeometryElement()
-public actual abstract class SVGPatternElement       : SVGElement()
-public actual abstract class SVGGradientElement      : SVGElement()
-public actual abstract class SVGGraphicsElement      : SVGElement()
-public actual abstract class SVGLinearGradientElement: SVGGradientElement()
-public actual abstract class SVGRadialGradientElement: SVGGradientElement()
-
-public actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = DOMRect()
-
-public actual abstract class SVGGeometryElement: SVGGraphicsElement() {
-    public actual fun getTotalLength(): Float = 0f
+internal actual abstract class SVGElement actual constructor(): Element(), ElementCSSInlineStyle {
+    actual fun getBBox(options: SVGBoundingBoxOptions): DOMRect = DOMRect()
 }
-public actual abstract class SVGTextElement    : SVGTextPositioningElement()
-//public actual interface SVGBoundingBoxOptions
-public actual abstract class SVGTextContentElement    : SVGGraphicsElement()
-public actual abstract class SVGTextPositioningElement: SVGTextContentElement()
+internal actual abstract class SVGPathElement          : SVGGeometryElement()
+internal actual abstract class SVGRectElement          : SVGGeometryElement()
+internal actual abstract class SVGCircleElement        : SVGGeometryElement()
+internal actual abstract class SVGEllipseElement       : SVGGeometryElement()
+internal actual abstract class SVGPolygonElement       : SVGGeometryElement()
+internal actual abstract class SVGPatternElement       : SVGElement()
+internal actual abstract class SVGGradientElement      : SVGElement()
+internal actual abstract class SVGGraphicsElement      : SVGElement()
+internal actual abstract class SVGLinearGradientElement: SVGGradientElement()
+internal actual abstract class SVGRadialGradientElement: SVGGradientElement()
+
+internal actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = getBBox(object: SVGBoundingBoxOptions {
+    override var fill    = options.fill
+    override var stroke  = options.stroke
+    override var markers = options.markers
+    override var clipped = options.clipped
+})
+
+internal actual abstract class SVGGeometryElement: SVGGraphicsElement() {
+    actual fun getTotalLength(): Float = 0f
+}
+internal actual abstract class SVGTextElement           : SVGTextPositioningElement()
+internal actual abstract class SVGTextContentElement    : SVGGraphicsElement()
+internal actual abstract class SVGTextPositioningElement: SVGTextContentElement()

@@ -1,31 +1,35 @@
+@file:Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
+
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 
 /**
  * Created by Nicholas Eddy on 8/9/19.
  */
-public expect abstract class CSSRule {
+internal expect abstract external class CSSRule: JsAny {
     internal var cssText: String
 }
 
-public expect abstract class CSSRuleList {
-    public abstract val length: Int
-    public fun item(index: Int): CSSRule?
+internal expect abstract external class CSSRuleList: JsAny {
+    internal abstract val length: Int
+    internal fun item(index: Int): CSSRule?
 }
 
-public expect abstract class CSSStyleSheet: StyleSheet {
+internal expect abstract external class CSSStyleSheet: StyleSheet {
     internal val cssRules: CSSRuleList
 
-    internal fun insertRule(rule: String, index: Int): Int
+    // FIXME: Reinstate once exception handling works for WASM
+//    internal fun insertRule(rule: String, index: Int): Int
     internal fun deleteRule(index: Int)
 }
 
+internal expect fun CSSStyleSheet.tryInsertRule(rule: String, index: Int): Int
+
 internal expect val CSSStyleSheet.numStyles: Int
 
-public expect abstract class CSSStyleDeclaration {
+internal expect abstract external class CSSStyleDeclaration: JsAny {
     internal var top                : String
     internal var font               : String
     internal var left               : String
@@ -78,11 +82,12 @@ public expect abstract class CSSStyleDeclaration {
     internal var textDecorationColor: String
     internal var textDecorationStyle: String
 
-    public fun removeProperty(property: String): String
-}
+    internal var writingMode        : String
 
-public expect fun CSSStyleDeclaration.setProperty_(property: String, value: String, priority: String)
-public expect fun CSSStyleDeclaration.setProperty_(property: String, value: String                  )
+    internal fun removeProperty(property: String): String
+    internal fun setProperty   (property: String, value: String, priority: String)
+    internal fun setProperty   (property: String, value: String                  )
+}
 
 internal expect var CSSStyleDeclaration.clipPath               : String
 internal expect var CSSStyleDeclaration.willChange             : String
@@ -101,114 +106,134 @@ internal expect var CSSStyleDeclaration._webkit_user_select        : String
 internal expect var CSSStyleDeclaration._webkit_touch_callout      : String
 internal expect var CSSStyleDeclaration._webkit_tap_highlight_color: String
 
-public expect abstract class CanvasRenderingContext2D {
-    public abstract var font: String
+internal expect external class TextMetrics: JsAny {
+    internal val width: Double
+}
+
+internal expect abstract external class CanvasRenderingContext2D: JsAny {
+    internal abstract var font: String
+    internal fun measureText(string: String): TextMetrics
 }
 
 internal expect var CanvasRenderingContext2D.wordSpacing  : String?
 internal expect var CanvasRenderingContext2D.letterSpacing: String?
-internal expect fun CanvasRenderingContext2D.measureText(string: String): Size
+internal expect fun CanvasRenderingContext2D.measureText_(string: String): Size
 
-public expect interface RenderingContext
+internal expect external interface RenderingContext
 
-public expect abstract class HTMLCanvasElement: HTMLElement {
-    internal fun getContext(contextId: String, vararg arguments: Any?): RenderingContext?
+internal expect abstract external class HTMLCanvasElement: HTMLElement {
+    internal fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext?
 }
 
-public expect class DOMRect {
+internal expect external class DOMRect: JsAny {
     internal var x     : Double
     internal var y     : Double
     internal var width : Double
     internal var height: Double
 }
 
-public expect interface ElementCSSInlineStyle {
-    public val style: CSSStyleDeclaration
+internal expect external interface ElementCSSInlineStyle: JsAny {
+    val style: CSSStyleDeclaration
 }
 
-public expect abstract class Element: Node, ParentNode {
-    public open var id        : String
-    public open var className : String
-    public open var scrollTop : Double
-    public open var scrollLeft: Double
+internal expect abstract external class Element: Node, ParentNode {
+    internal open var id        : String
+    internal open var className : String
+    internal open var scrollTop : Double
+    internal open var scrollLeft: Double
 
-    public open val clientWidth : Int
-    public open val clientHeight: Int
+    internal open val clientWidth : Int
+    internal open val clientHeight: Int
 
-    public open var outerHTML: String
+    internal open var outerHTML: String
 
-    public fun getBoundingClientRect(): DOMRect
+    internal fun getBoundingClientRect(): DOMRect
 
-    public fun getAttribute   (                    qualifiedName: String): String?
+    internal fun getAttribute   (                    qualifiedName: String): String?
 
-    public fun setAttribute   (                    qualifiedName: String, value: String)
-    public fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
-    public fun removeAttribute(                    qualifiedName: String               )
+    internal fun setAttribute   (                    qualifiedName: String, value: String)
+    internal fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
+    internal fun removeAttribute(                    qualifiedName: String               )
 
-    public fun scrollTo(x: Double, y: Double)
+    internal fun scrollTo(x: Double, y: Double)
 
-    public abstract fun remove()
+    internal abstract fun remove()
 }
 
-public expect abstract class HTMLCollection() {
-    public abstract val length: Int
+internal expect abstract external class HTMLCollection(): JsAny {
+    internal abstract val length: Int
 
-    public open fun item(index: Int): Element?
+    internal open fun item(index: Int): Element?
 }
 
 internal expect inline operator fun HTMLCollection.get(index: Int): Element?
 
-public expect interface ParentNode {
-    public val children: HTMLCollection
+internal expect external interface ParentNode: JsAny {
+    val children: HTMLCollection
 }
 
-public expect abstract class HTMLElement: Element, ElementCSSInlineStyle {
-    public var title       : String
-    public var draggable   : Boolean
-    public val offsetTop   : Int
-    public val offsetLeft  : Int
-    public val offsetWidth : Int
-    public val offsetHeight: Int
-    public var tabIndex    : Int
-    public var spellcheck  : Boolean
+internal expect external class FocusOptions: JsAny {
+    internal var preventScroll: Boolean
+}
 
-    public var onkeyup     : ((KeyboardEvent) -> Boolean)?
-    public var onkeydown   : ((KeyboardEvent) -> Boolean)?
-    public var onkeypress  : ((KeyboardEvent) -> Boolean)?
+internal expect abstract external class HTMLElement: Element, ElementCSSInlineStyle {
+    internal var title       : String
+    internal var draggable   : Boolean
+    internal val offsetTop   : Int
+    internal val offsetLeft  : Int
+    internal val offsetWidth : Int
+    internal val offsetHeight: Int
+    internal var tabIndex    : Int
+    internal var spellcheck  : Boolean
 
-    public var onwheel        : ((WheelEvent  ) -> Any)?
-    public var ondblclick     : ((MouseEvent  ) -> Any)?
-    public var onpointerup    : ((PointerEvent) -> Any)?
-    public var onpointerout   : ((PointerEvent) -> Any)?
-    public var onpointerdown  : ((PointerEvent) -> Any)?
-    public var onpointermove  : ((PointerEvent) -> Any)?
-    public var onpointerover  : ((PointerEvent) -> Any)?
-    public var onpointercancel: ((PointerEvent) -> Any)?
-    public var oncontextmenu  : ((MouseEvent  ) -> Any)?
+    internal var onkeyup     : ((KeyboardEvent) -> Boolean)?
+    internal var onkeydown   : ((KeyboardEvent) -> Boolean)?
+    internal var onkeypress  : ((KeyboardEvent) -> Boolean)?
 
-    public var onresize: ((Event) -> Unit)?
+    internal var onwheel        : ((WheelEvent  ) -> Boolean)?
+    internal var ondblclick     : ((MouseEvent  ) -> Boolean)?
+    internal var onpointerup    : ((PointerEvent) -> Boolean)?
+    internal var onpointerout   : ((PointerEvent) -> Boolean)?
+    internal var onpointerdown  : ((PointerEvent) -> Boolean)?
+    internal var onpointermove  : ((PointerEvent) -> Boolean)?
+    internal var onpointerover  : ((PointerEvent) -> Unit   )?
+    internal var onpointercancel: ((PointerEvent) -> Unit   )?
+    internal var oncontextmenu  : ((MouseEvent  ) -> Boolean)?
 
-    public var onload : ((Event) -> Any)?
-    public var onerror: ((Any, String, Int, Int, Any?) -> Any)?
+    internal var onresize: ((Event) -> Unit)?
 
-    public var onblur  : ((FocusEvent) -> Any)?
-    public var onclick : ((MouseEvent) -> Any)?
-    public var onfocus : ((FocusEvent) -> Any)?
-    public var oninput : ((InputEvent) -> Any)?
-    public var onscroll: ((Event     ) -> Any)?
-    public var onchange: ((Event     ) -> Any)?
-    public var onselect: ((Event     ) -> Any)?
+    internal var onload : ((Event) -> Unit)?
+    internal var onerror: (() -> Unit)?
 
-    public var ondrop     : ((DragEvent) -> Any )?
-    public var ondragend  : ((DragEvent) -> Any?)?
-    public var ondragover : ((DragEvent) -> Any )?
-    public var ondragenter: ((DragEvent) -> Any )?
-    public var ondragstart: ((DragEvent) -> Any )?
+    internal var onblur  : ((FocusEvent) -> Unit   )?
+    internal var onclick : ((MouseEvent) -> Boolean)?
+    internal var onfocus : ((FocusEvent) -> Unit   )?
+    internal var oninput : ((InputEvent) -> Boolean)?
+    internal var onscroll: ((Event     ) -> Boolean)?
+    internal var onchange: ((Event     ) -> Boolean)?
+    internal var onselect: ((Event     ) -> Boolean)?
 
-    public var dir: String
+    internal var ondrop     : ((DragEvent) -> Unit)?
+    internal var ondragend  : ((DragEvent) -> Unit)?
+    internal var ondragover : ((DragEvent) -> Unit)?
+    internal var ondragenter: ((DragEvent) -> Unit)?
+    internal var ondragstart: ((DragEvent) -> Unit)?
 
-    public fun focus()
-    public fun blur ()
+    internal fun addEventListener   (to: String, listener: (Event) -> Unit)
+    internal fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+    internal fun removeEventListener(to: String, listener: (Event) -> Unit)
+    internal fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+
+    internal var dir: String
+
+    internal fun focus()
+    internal fun focus(options: FocusOptions)
+    internal fun blur ()
+}
+
+internal expect external interface AddEventListenerOptions: JsAny {
+    var passive: Boolean?
+    var once   : Boolean?
 }
 
 internal expect fun HTMLElement.stopMonitoringSize ()
@@ -216,80 +241,80 @@ internal expect fun HTMLElement.startMonitoringSize()
 
 internal expect var HTMLElement.role: String?
 
-internal expect fun HTMLElement.addEventListener_        (to: String, listener: (Event) -> Unit)
-internal expect fun HTMLElement.removeEventListener_     (to: String, listener: (Event) -> Unit)
 internal expect fun HTMLElement.addActiveEventListener   (to: String, listener: (Event) -> Unit)
 internal expect fun HTMLElement.removeActiveEventListener(to: String, listener: (Event) -> Unit)
 
 internal expect var HTMLInputElement.orient: String?
 internal expect fun HTMLInputElement.setOrientation(orientation: Orientation)
 
-public expect interface ElementCreationOptions
+internal expect external interface ElementCreationOptions: JsAny
 
-public expect abstract class StyleSheet
+internal expect abstract external class StyleSheet: JsAny
 
 internal expect inline operator fun StyleSheetList.get(index: Int): StyleSheet?
 
-public expect abstract class StyleSheetList {
-    public abstract val length: Int
+internal expect abstract external class StyleSheetList: JsAny {
+    internal abstract val length: Int
 
-    public fun item(index: Int): StyleSheet?
+    internal fun item(index: Int): StyleSheet?
 }
 
-public expect abstract class HTMLStyleElement: HTMLElement {
+internal expect abstract external class HTMLStyleElement: HTMLElement {
     internal val sheet: StyleSheet?
 }
 
-public expect abstract class HTMLMetaElement: HTMLElement {
-    public var name   : String
-    public var content: String
+internal expect abstract external class HTMLMetaElement: HTMLElement {
+    internal var name   : String
+    internal var content: String
 }
 
-public expect class Document {
+internal expect external class Document: JsAny {
     internal val head: HTMLHeadElement?
     internal var body: HTMLElement?
-    internal val styleSheets: StyleSheetList
+//    internal val styleSheets: StyleSheetList
 
-//    internal fun createElement  (localName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
-//    internal fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions = object: ElementCreationOptions {}): Element
+    internal fun addEventListener   (to: String, listener: (Event) -> Unit)
+    internal fun removeEventListener(to: String, listener: (Event) -> Unit)
+    internal fun getSelection       (): Selection?
+//    internal fun getCaretFromPoint  (point: Point): CaretPosition?
+//    internal fun elementFromPoint   (point: Point): Element?
+
+    internal fun createElement  (localName: String, options: ElementCreationOptions): Element
+    internal fun createElement  (localName: String): Element
+    internal fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element
+    internal fun createElementNS(namespace: String?, qualifiedName: String): Element
 
     internal fun createTextNode(data: String): Text
     internal fun createRange(): Range
 }
 
-internal expect fun Document.addEventListener   (to: String, listener: (Event) -> Unit)
-internal expect fun Document.removeEventListener(to: String, listener: (Event) -> Unit)
-internal expect fun Document.getSelection(): Selection?
-internal expect fun Document.getCaretFromPoint(point: Point): CaretPosition?
-internal expect fun Document.elementFromPoint(point: Point): Element?
+//internal class CaretPosition(val offsetNode: Node, val offset: Int)
 
-internal expect fun Document.createElement_  (localName: String, options: ElementCreationOptions): Element
-internal expect fun Document.createElement_  (localName: String): Element
-internal expect fun Document.createElementNS_(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element
-internal expect fun Document.createElementNS_(namespace: String?, qualifiedName: String): Element
-
-internal class CaretPosition(val offsetNode: Node, val offset: Int)
-
-public expect class Range {
+internal expect external class Range: JsAny {
     internal val collapsed: Boolean
     internal fun setStart(node: Node, offset: Int)
     internal fun setEnd  (node: Node, offset: Int)
 }
 
-internal expect class Selection {
+internal expect external class Selection: JsAny {
     fun removeAllRanges()
     fun addRange(range: Range)
 }
 
-public expect abstract class CharacterData: Node
-public expect          class Text: CharacterData
-public expect abstract class HTMLImageElement : HTMLElement {
+internal expect abstract external class CharacterData: Node
+
+internal expect external class Text: CharacterData
+
+internal expect abstract external class HTMLImageElement: HTMLElement {
     internal var src     : String
     internal val complete: Boolean
+    internal val width   : Int
+    internal val height  : Int
 }
 
-public expect abstract class HTMLHeadElement : HTMLElement
-public expect abstract class HTMLInputElement: HTMLElement {
+internal expect abstract external class HTMLHeadElement : HTMLElement
+
+internal expect abstract external class HTMLInputElement: HTMLElement {
     internal var type         : String
     internal var step         : String
     internal var value        : String
@@ -305,33 +330,42 @@ public expect abstract class HTMLInputElement: HTMLElement {
     internal var selectionEnd  : Int?
 
     internal val files: FileList?
+
+    internal fun setSelectionRange(start: Int, end: Int)
 }
 
-internal expect fun HTMLInputElement.setSelectionRange(start: Int, end: Int)
 internal expect fun HTMLInputElement.focusInput()
 
-public expect abstract class HTMLButtonElement: HTMLElement {
+internal expect abstract external class HTMLButtonElement: HTMLElement {
     internal var disabled: Boolean
 }
-public expect abstract class HTMLAnchorElement: HTMLElement {
-    public abstract var href  : String
-    public abstract var host  : String
-    public          var target: String
+
+internal expect abstract external class HTMLAnchorElement: HTMLElement {
+    internal abstract var href  : String
+    internal abstract var host  : String
+    internal          var target: String
 }
 
-public expect abstract class HTMLIFrameElement: HTMLElement {
-    public open var src: String
+internal expect abstract external class HTMLIFrameElement: HTMLElement {
+    internal open var src: String
 }
 
-public expect open class ResizeObserver(callback: (Array<ResizeObserverEntry>, ResizeObserver) -> Unit) {
-    public fun observe(target: Node, options: ResizeObserverInit)
-    public fun unobserve(target: Node)
+internal expect open external class ResizeObserver(callback: (JsArray<ResizeObserverEntry>, ResizeObserver) -> Unit): JsAny {
+    internal fun observe   (target: Node, options: ResizeObserverInit)
+    internal fun observe   (target: Node                             )
+    internal fun unobserve (target: Node)
+    internal fun disconnect()
 }
 
-public expect interface ResizeObserverInit {
-    public open var box: String?
+internal expect fun ResizeObserver.observeResize(target: Node, box: String)
+
+internal expect external interface ResizeObserverInit: JsAny {
+    var box: String?
 }
 
-public expect abstract class ResizeObserverEntry {
-    public open val contentRect: DOMRect
+internal expect abstract external class ResizeObserverEntry: JsAny {
+    internal open val contentRect: DOMRect
+    internal open val target: HTMLElement
 }
+
+internal expect val document: Document

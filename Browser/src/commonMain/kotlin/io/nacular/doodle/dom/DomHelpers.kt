@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package io.nacular.doodle.dom
 
 import io.nacular.doodle.drawing.AffineTransform
@@ -16,7 +14,6 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.math.max
 import kotlin.math.min
-
 
 internal fun HTMLElement.childAt(index: Int): Node? = when {
     index >= 0 && index < children.length -> children[index]
@@ -44,7 +41,11 @@ internal fun Node.addIfNotPresent(child: Node, at: Int) {
 
 internal inline fun Node.insert(element: Node, index: Int) = insertBefore(element, childAt(index))
 
-internal inline fun Node.remove(element: Node) = removeChild(element)
+// FIXME: Reinstate once WASM exception handling works
+//internal inline fun Node.remove(element: Node) = removeChild(element)
+
+@Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
+internal expect fun Node.remove(element: Node): Node?
 
 internal inline val HTMLElement.top    get() = offsetTop.toDouble   ()
 internal inline val HTMLElement.left   get() = offsetLeft.toDouble  ()

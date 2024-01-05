@@ -1,22 +1,26 @@
+@file:Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
+
 package io.nacular.doodle.dom
 
 /**
  * Created by Nicholas Eddy on 3/12/20.
  */
-public expect abstract class EventTarget
+public expect abstract external class EventTarget: JsAny
 
-public expect open class Event {
+public expect open external class Event(): JsAny {
+    public constructor(name: String)
+
     public val target: EventTarget?
 
     public fun stopPropagation()
     public fun preventDefault ()
 }
 
-public expect open class UIEvent: Event {
+public expect open external class UIEvent: Event {
     public val detail: Int
 }
 
-public expect open class KeyboardEvent: UIEvent {
+public expect open external class KeyboardEvent: UIEvent {
     public val ctrlKey : Boolean
     public val shiftKey: Boolean
     public val altKey  : Boolean
@@ -26,7 +30,7 @@ public expect open class KeyboardEvent: UIEvent {
     public val code    : String
 }
 
-public expect open class MouseEvent: UIEvent {
+public expect open external class MouseEvent: UIEvent {
     public open val pageX   : Double
     public open val pageY   : Double
     public open val clientX : Int
@@ -39,28 +43,30 @@ public expect open class MouseEvent: UIEvent {
     public open val buttons : Short
 }
 
-public expect open class PointerEvent: MouseEvent {
+public expect open external class PointerEvent: MouseEvent {
     public val pointerId  : Int
     public val pointerType: String
 }
 
-public expect open class WheelEvent: MouseEvent {
+public expect open external class WheelEvent: MouseEvent {
     public val deltaX: Double
     public val deltaY: Double
 }
 
-public expect abstract class TouchList {
+public expect abstract external class TouchList {
     public abstract val length: Int
 }
 
-public expect open class TouchEvent: UIEvent {
+public expect open external class TouchEvent: UIEvent {
     public val touches: TouchList
 }
 
-public expect class InputEvent: UIEvent
+public expect external class InputEvent: UIEvent
 
-public expect class FocusEvent: UIEvent
+public expect external class FocusEvent: UIEvent {
+    public val relatedTarget: EventTarget?
+}
 
-public expect class DragEvent: MouseEvent {
+public expect external class DragEvent: MouseEvent {
     internal val dataTransfer: DataTransfer?
 }

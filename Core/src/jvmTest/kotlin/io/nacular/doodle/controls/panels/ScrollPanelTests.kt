@@ -1,6 +1,5 @@
 package io.nacular.doodle.controls.panels
 
-import JsName
 import io.mockk.Called
 import io.mockk.CapturingSlot
 import io.mockk.Runs
@@ -26,13 +25,11 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 5/15/18.
  */
 class ScrollPanelTests {
-    @Test @JsName("cannotAssignPanelToItself")
-    fun `cannot assign panel to itself`() {
+    @Test fun `cannot assign panel to itself`() {
         assertFailsWith<IllegalArgumentException> { panel().let { it.content = it } }
     }
 
-    @Test @JsName("contentsTrackedProperly")
-    fun `contents tracked properly`() {
+    @Test fun `contents tracked properly`() {
         val panel    = ScrollPanel()
         val content  = mockk<View>()
         val observer = mockk<PropertyObserver<ScrollPanel, View?>>()
@@ -47,8 +44,7 @@ class ScrollPanelTests {
         verify(exactly = 1) { observer(panel, null, content) }
     }
 
-    @Test @JsName("contentsRemovedProperly")
-    fun `contents removed properly`() {
+    @Test fun `contents removed properly`() {
         val panel    = ScrollPanel()
         val content  = mockk<View>()
         val observer = mockk<PropertyObserver<ScrollPanel, View?>>()
@@ -67,8 +63,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("delegatesRenderToBehavior")
-    fun `delegates render to behavior`() {
+    @Test fun `delegates render to behavior`() {
         val behavior = behavior()
         val panel    = panel(behavior)
         val canvas   = mockk<Canvas>()
@@ -84,8 +79,7 @@ class ScrollPanelTests {
         verify { canvas wasNot Called }
     }
 
-    @Test @JsName("delegatesContainsPointToBehavior")
-    fun `delegates contains point to behavior`() {
+    @Test fun `delegates contains point to behavior`() {
         val behavior = behavior()
         val panel    = panel(behavior).apply { size = Size(100, 100) }
         val point    = Point(4, 78)
@@ -95,8 +89,7 @@ class ScrollPanelTests {
         verify(exactly = 1) { behavior.contains(panel, point) }
     }
 
-    @Test @JsName("scrollToPoint")
-    fun `scroll to point`() {
+    @Test fun `scroll to point`() {
         val behavior = behavior()
         val panel    = panel(behavior)
 
@@ -113,8 +106,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("scrollBy")
-    fun `scroll by`() {
+    @Test fun `scroll by`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
@@ -135,8 +127,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("scrollToVisiblePoint")
-    fun `scroll to visible point`() {
+    @Test fun `scroll to visible point`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
@@ -157,8 +148,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("scrollToVisibleRect")
-    fun `scroll to visible rect`() {
+    @Test fun `scroll to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
@@ -179,8 +169,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("scrollHorizontallyToVisibleRect")
-    fun `scroll horizontally to visible rect`() {
+    @Test fun `scroll horizontally to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
@@ -201,8 +190,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("scrollVerticallyToVisibleRect")
-    fun `scroll vertically to visible rect`() {
+    @Test fun `scroll vertically to visible rect`() {
         val behavior = behavior()
         val start    = Point(5.0, 5.0)
 
@@ -223,8 +211,7 @@ class ScrollPanelTests {
         }
     }
 
-    @Test @JsName("widthConstraintsWork")
-    fun `width constraints work`() {
+    @Test fun `width constraints work`() {
         val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
             contentWidthConstraints = { it eq parent.width }
@@ -236,8 +223,7 @@ class ScrollPanelTests {
         expect(300.0) { content.width }
     }
 
-    @Test @JsName("heightConstraintsWork")
-    fun `height constraints work`() {
+    @Test fun `height constraints work`() {
         val content = spyk(container { size = Size(100, 100) })
         val panel   = ScrollPanel(content).apply {
             contentHeightConstraints = { it eq parent.height / 2 }
@@ -249,8 +235,7 @@ class ScrollPanelTests {
         expect(325.0) { content.height }
     }
 
-    @Test @JsName("idealSizeTracksContent")
-    fun `ideal size tracks content`() {
+    @Test fun `ideal size tracks content`() {
         val content = view {}
         val panel   = ScrollPanel(content)
 
@@ -265,8 +250,7 @@ class ScrollPanelTests {
         expect(null) { panel.idealSize }
     }
 
-    @Test @JsName("obeysBehaviorOnScroll")
-    fun `obeys behavior on-scroll`() {
+    @Test fun `obeys behavior on-scroll`() {
         val onScroll = CapturingSlot<(Point) -> Unit>()
 
         val behavior = mockk<ScrollPanelBehavior>().apply {
@@ -281,8 +265,7 @@ class ScrollPanelTests {
         expect(point) { panel.scroll }
     }
 
-    @Test @JsName("disconnectsOldBehaviorOnScroll")
-    fun `disconnects old behavior on-scroll`() {
+    @Test fun `disconnects old behavior on-scroll`() {
         val behavior = object: ScrollPanelBehavior {
             override var onScroll: ((Point) -> Unit)? = null
             override var scrollBarSizeChanged: ((ScrollPanelBehavior.ScrollBarType, Double) -> Unit)? = null

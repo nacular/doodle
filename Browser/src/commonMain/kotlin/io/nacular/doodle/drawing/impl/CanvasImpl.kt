@@ -1,16 +1,15 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.core.Camera
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HTMLImageElement
+import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.Text
-import io.nacular.doodle.dom.clear
-import io.nacular.doodle.dom.cloneNode_
-import io.nacular.doodle.core.Camera
-import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.Overflow.Visible
+import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.index
 import io.nacular.doodle.dom.left
 import io.nacular.doodle.dom.numChildren
@@ -32,6 +31,7 @@ import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
 import io.nacular.doodle.dom.top
 import io.nacular.doodle.dom.translate
+import io.nacular.doodle.dom.willChange
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
@@ -61,7 +61,6 @@ import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.splitMatches
-import io.nacular.doodle.dom.willChange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 import kotlin.contracts.ExperimentalContracts
@@ -540,7 +539,7 @@ internal open class CanvasImpl(
         var result = possible
 
         if (result == null || result !is HTMLImageElement || result.parent != null && result.nodeName != image.nodeName) {
-            result = image.cloneNode_(false)
+            result = image.cloneNode(false)
             (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
             result.src              = image.src

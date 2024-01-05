@@ -17,6 +17,7 @@ import io.nacular.doodle.drawing.impl.NativeButtonFactory
 import io.nacular.doodle.drawing.impl.NativeButtonFactoryImpl
 import io.nacular.doodle.drawing.impl.NativeCheckBoxRadioButtonFactory
 import io.nacular.doodle.drawing.impl.NativeCheckBoxRadioButtonFactoryImpl
+import io.nacular.doodle.drawing.impl.NativeEventHandler
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
 import io.nacular.doodle.drawing.impl.NativeEventHandlerImpl
 import io.nacular.doodle.drawing.impl.NativeEventListener
@@ -58,12 +59,14 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
             bindSingleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
 
             bindSingleton<NativeEventHandlerFactory> {
-                { element: HTMLElement, listener: NativeEventListener ->
-                    NativeEventHandlerImpl(
-                        instanceOrNull(),
-                        element,
-                        listener
-                    )
+                object: NativeEventHandlerFactory {
+                    override fun invoke(element: HTMLElement, listener: NativeEventListener): NativeEventHandler {
+                        return NativeEventHandlerImpl(
+                            instanceOrNull(),
+                            element,
+                            listener
+                        )
+                    }
                 }
             }
         }

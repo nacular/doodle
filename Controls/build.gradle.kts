@@ -5,8 +5,9 @@ plugins {
 kotlin {
     explicitApi()
 
-    jsTargets ()
-    jvmTargets()
+    jsTargets    ()
+    jvmTargets   ()
+    wasmJsTargets()
 
     sourceSets {
         all {

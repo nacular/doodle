@@ -2,6 +2,7 @@ package io.nacular.doodle.drawing
 
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Color.Companion.Transparent
@@ -12,8 +13,6 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.times
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
-import JsName
-import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -28,8 +27,7 @@ class PatternPaintTests {
         mockkStatic("io.nacular.doodle.drawing.PatternPaintKt")
     }
 
-    @Test @JsName("sizeCorrect")
-    fun `size correct`() {
+    @Test fun `size correct`() {
         listOf(
             Empty,
             Size(  1    ),
@@ -39,8 +37,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("fillCorrect")
-    fun `fill correct`() {
+    @Test fun `fill correct`() {
         listOf<(PatternCanvas) -> Unit>(
             {                                },
             { it.rect(Rectangle(), Stroke()) }
@@ -49,8 +46,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("visibilityCorrect")
-    fun `visibility correct`() {
+    @Test fun `visibility correct`() {
         listOf(
             Empty,
             Size(  1    ),
@@ -60,8 +56,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("transformCorrect")
-    fun `transform correct`() {
+    @Test fun `transform correct`() {
         listOf(
             Identity,
             Identity.rotate(30 * degrees)
@@ -70,8 +65,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("stripesEmptyIfColorsTransparent")
-    fun `stripes empty if colors transparent`() {
+    @Test fun `stripes empty if colors transparent`() {
         listOf(
                 Red opacity 0f to Transparent,
                 null to null
@@ -80,15 +74,13 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("stripesSizeCorrect")
-    fun `stripes size correct`() {
+    @Test fun `stripes size correct`() {
         listOf(20.0, 1.0, 3.4).forEach {
             expect(Size(it, it * 2)) { stripedPaint(stripeWidth = it, evenRowColor = Red).size }
         }
     }
 
-    @Test @JsName("stripesRendersCorrectly")
-    fun `stripes renders correctly`() {
+    @Test fun `stripes renders correctly`() {
         data class Attributes(val stripWidth: Double, val evenColor: Color?, val oddColor: Color?, val transform: AffineTransform2D)
 
         listOf(
@@ -117,8 +109,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("horizontalStripesUsesStripes")
-    fun `horizontal stripes uses stripes`() {
+    @Test fun `horizontal stripes uses stripes`() {
         data class Attributes(val rowHeight: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
@@ -139,8 +130,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("verticalStripesUsesStripes")
-    fun `vertical stripes uses stripes`() {
+    @Test fun `vertical stripes uses stripes`() {
         data class Attributes(val colWidth: Double, val evenColor: Color?, val oddColor: Color?)
 
         listOf(
@@ -161,8 +151,7 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("checkerEmptyIfColorsTransparent")
-    fun `checker empty if colors transparent`() {
+    @Test fun `checker empty if colors transparent`() {
         listOf(
             Red opacity 0f to Transparent,
             null to null
@@ -171,15 +160,13 @@ class PatternPaintTests {
         }
     }
 
-    @Test @JsName("checkerSizeCorrect")
-    fun `checker size correct`() {
+    @Test fun `checker size correct`() {
         listOf(Size(20.0, 10.0), Size(1.0), Size(3.4, 0.0), Empty).forEach {
             expect(it * 2) { checkerPaint(checkerSize = it, firstColor = Red).size }
         }
     }
 
-    @Test @JsName("checkerRendersCorrectly")
-    fun `checker renders correctly`() {
+    @Test fun `checker renders correctly`() {
         data class Attributes(val checkerSize: Size, val firstColor: Color?, val secondColor: Color?)
 
         listOf(

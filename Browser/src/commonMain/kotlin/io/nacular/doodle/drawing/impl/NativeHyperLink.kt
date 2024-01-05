@@ -1,12 +1,12 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.HTMLAnchorElement
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLAnchorElement
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.Overflow.Visible
+import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setHeightPercent
@@ -18,7 +18,6 @@ import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.dom.setProperty_
 
 /**
  * Created by Nicholas Eddy on 12/7/19.
@@ -109,7 +108,7 @@ internal class NativeHyperLink internal constructor(
     private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
          when {
              new  -> linkElement.style.removeProperty("pointer-events"        )
-             else -> linkElement.style.setProperty_  ("pointer-events", "none")
+             else -> linkElement.style.setProperty   ("pointer-events", "none")
          }
     }
 

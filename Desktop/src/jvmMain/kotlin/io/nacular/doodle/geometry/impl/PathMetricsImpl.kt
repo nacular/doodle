@@ -7,7 +7,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.skia.skia
 import org.jetbrains.skia.PathMeasure
 
-public class PathMetricsImpl(private val pathMeasure: PathMeasure): PathMetrics {
+internal class PathMetricsImpl(private val pathMeasure: PathMeasure): PathMetrics {
     override fun width (path: Path): Double    = path.skia().computeTightBounds().width.toDouble ()
     override fun height(path: Path): Double    = path.skia().computeTightBounds().height.toDouble()
     override fun size  (path: Path): Size      = path.skia().computeTightBounds().run { Size(width, height) }

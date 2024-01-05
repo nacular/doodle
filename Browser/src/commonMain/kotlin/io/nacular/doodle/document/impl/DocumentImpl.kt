@@ -38,7 +38,7 @@ internal class DocumentImpl(
         private val graphicsDevice: GraphicsDevice<RealGraphicsSurface>,
                     htmlFactory   : HtmlFactory): Document() {
     private val root = htmlFactory.create<HTMLElement>().apply {
-        style.setDisplay (Block ())
+        style.setDisplay    (Block ())
         style.setDomPosition(Static())
         // TODO: Enable text selection
 //        style.userSelect = "text"
@@ -85,7 +85,7 @@ internal class DocumentImpl(
     override fun inline(text: String, font: Font?) {
         root.add(textFactory.wrapped(text, font, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
             style.setDomPosition(Static())
-            style.setDisplay (Inline())
+            style.setDisplay    (Inline())
         })
     }
 

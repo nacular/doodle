@@ -7,7 +7,6 @@ import io.nacular.doodle.dom.HTMLCanvasElement
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.letterSpacing
-import io.nacular.doodle.dom.measureText
 import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.dom.wordSpacing
 import io.nacular.doodle.drawing.Font

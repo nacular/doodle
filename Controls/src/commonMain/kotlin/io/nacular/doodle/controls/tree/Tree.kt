@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.controls.tree
 
-import io.nacular.doodle.JvmName
 import io.nacular.doodle.accessibility.TreeRole
 import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.ItemVisualizer
@@ -28,12 +27,12 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Path
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
+import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.math.min
 

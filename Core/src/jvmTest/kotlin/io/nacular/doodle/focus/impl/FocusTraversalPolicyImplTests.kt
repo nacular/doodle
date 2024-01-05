@@ -1,6 +1,5 @@
 package io.nacular.doodle.focus.impl
 
-import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -42,8 +41,7 @@ private class NodeBuilder<T>(var value: T, val children: MutableList<NodeBuilder
 private fun <T> rootNode(value: T, block: NodeBuilder<T>.() -> Unit = {}): TreeNode<T> = NodeBuilder(value).also { block(it) }.build()
 
 class FocusTraversalPolicyImplTests {
-    @Test @JsName("defaultContainerWorks")
-    fun `default in container works`() {
+    @Test fun `default in container works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             container(0).also { expect(null      ) { default(within = it) } }
             container(5).also { expect(it.first()) { default(within = it) } }
@@ -53,8 +51,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("firstContainerWorks")
-    fun `first in container works`() {
+    @Test fun `first in container works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             container(0).also { expect(null      ) { first(within = it) } }
             container(5).also { expect(it.first()) { first(within = it) } }
@@ -64,8 +61,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("lastContainerWorks")
-    fun `last in container works`() {
+    @Test fun `last in container works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             container(0).also { expect(null     ) { last(within = it) } }
             container(5).also { expect(it.last()) { last(within = it) } }
@@ -75,16 +71,14 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("nextContainerNotAncestorNoOps")
-    fun `next in container not ancestor no-ops`() {
+    @Test fun `next in container not ancestor no-ops`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             container(0).also { expect(null) { next(within = it, from = mockk()) } }
             container(5).also { expect(null) { next(within = it, from = mockk()) } }
         }
     }
 
-    @Test @JsName("nextSimpleContainerWorks")
-    fun `next in simple container works`() {
+    @Test fun `next in simple container works`() {
         val root = rootNode("container") {
             child("0")
             child("1")
@@ -109,8 +103,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("nextGoesToFirstInChildContainer")
-    fun `next goes to first in child container`() {
+    @Test fun `next goes to first in child container`() {
         val root = rootNode("container") {
             child("0")
             child("1") {
@@ -127,8 +120,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("nextGoesFromLastInContainerToFirstInParent")
-    fun `next goes from last in container to first in parent`() {
+    @Test fun `next goes from last in container to first in parent`() {
         val root = rootNode("container") {
             child("0")
             child("1") {
@@ -147,8 +139,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("previousSimpleContainerWorks")
-    fun `previous in simple container works`() {
+    @Test fun `previous in simple container works`() {
         container(5).also { container ->
             listOf(
                     0 to 4,
@@ -168,8 +159,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("previousGoesToPreviousSiblingFromNestedContainer")
-    fun `previous goes to previous sibling from nested container`() {
+    @Test fun `previous goes to previous sibling from nested container`() {
         val root = rootNode("container") {
             child("0")
             child("1") {
@@ -187,8 +177,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("previousGoesToLastInSiblingFromNestedContainer")
-    fun `previous goes to last in sibling from nested container`() {
+    @Test fun `previous goes to last in sibling from nested container`() {
         val root = rootNode("container") {
             child("0") {
                 child("0")
@@ -211,32 +200,28 @@ class FocusTraversalPolicyImplTests {
 
     // =====
 
-    @Test @JsName("defaultDisplayWorks")
-    fun `default in display works`() {
+    @Test fun `default in display works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             display(0).also { expect(null      ) { default(display = it) } }
             display(5).also { expect(it.first()) { default(display = it) } }
         }
     }
 
-    @Test @JsName("firstDisplayWorks")
-    fun `first in display works`() {
+    @Test fun `first in display works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             display(0).also { expect(null      ) { first(display = it) } }
             display(5).also { expect(it.first()) { first(display = it) } }
         }
     }
 
-    @Test @JsName("lastDisplayWorks")
-    fun `last in display works`() {
+    @Test fun `last in display works`() {
         FocusTraversalPolicyImpl(alwaysFocusable).apply {
             display(0).also { expect(null     ) { last(display = it) } }
             display(5).also { expect(it.last()) { last(display = it) } }
         }
     }
 
-    @Test @JsName("nextSimpleDisplayWorks")
-    fun `next in simple display works`() {
+    @Test fun `next in simple display works`() {
         display(5).also { display ->
             listOf(
                 0 to 1,
@@ -256,8 +241,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    @Test @JsName("previousSimpleDisplayWorks")
-    fun `previous in simple display works`() {
+    @Test fun `previous in simple display works`() {
         display(5).also { display ->
             listOf(
                 0 to 4,

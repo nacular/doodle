@@ -1,14 +1,14 @@
 [versions]
-kotlinVersion     = { strictly = "1.9.21" }
-dateTimeVersion   = { strictly = "0.4.1"  }
-coroutinesVersion = { strictly = "1.7.3"  }
+kotlinVersion     = { strictly = "1.9.22" }
+dateTimeVersion   = { strictly = "0.5.0"  }
+coroutinesVersion = { strictly = "1.8.0-RC"  }
 skikoVersion      = { strictly = "0.7.79" }
-kodeinVersion     = { strictly = "7.20.2" }
-measuredVersion   = { strictly = "0.4.0-SNAPSHOT"  }
+kodeinVersion     = { strictly = "7.21.1" }
+measuredVersion   = { strictly = "0.4.0-SNAPSHOT" }
 dokkaVersion      = { strictly = "1.9.0"  }
 koverVersion      = { strictly = "0.7.3"  }
 slf4jVersion      = { strictly = "2.0.9"  }
-mockkVersion      = { strictly = "1.13.7" }
+mockkVersion      = { strictly = "1.13.8" }
 jupiterVersion    = { strictly = "5.10.0" }
 logbackVersion    = { strictly = "1.4.11" }
 

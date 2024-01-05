@@ -58,11 +58,7 @@ private class MapWrapper<K, V>: AbstractMutableMap<K, V>(), MutableIterable<Muta
         }
 
         // Perhaps it was null, and we don't contain the key?
-        if (ourValue == null && !containsKey(key)) {
-            return false
-        }
-
-        return true
+        return !(ourValue == null && !containsKey(key))
     }
     private fun createEntrySet(): MutableSet<MutableEntry<K, V>> = EntrySet()
 

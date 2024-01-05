@@ -8,6 +8,7 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.HasProject
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
 
 fun KotlinMultiplatformExtension.jsTargets() {
@@ -41,7 +42,27 @@ fun KotlinMultiplatformExtension.jsTargets() {
     }
 }
 
-fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "1.8") {
+@OptIn(ExperimentalWasmDsl::class)
+fun KotlinMultiplatformExtension.wasmJsTargets() {
+    compilerOptions()
+
+    wasmJs {
+        compilations.all {
+            kotlinOptions {
+                moduleKind = "umd"
+                sourceMap  = !releaseBuild
+                if (sourceMap) {
+                    sourceMapEmbedSources = "always"
+                }
+            }
+        }
+        browser {
+            testTask { enabled = false }
+        }
+    }
+}
+
+fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
     compilerOptions()
 
     jvm {
@@ -138,10 +159,8 @@ private fun KotlinMultiplatformExtension.compilerOptions() {
     targets.configureEach {
         compilations.configureEach {
             compilerOptions.configure {
-                freeCompilerArgs.run {
-                    add("-Xexpect-actual-classes")
-                    add("-opt-in=kotlin.ExperimentalUnsignedTypes")
-                }
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+                freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
             }
         }
     }

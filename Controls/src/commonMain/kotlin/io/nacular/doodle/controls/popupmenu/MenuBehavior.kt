@@ -129,7 +129,7 @@ public abstract class MenuBehavior: Behavior<Menu> {
     /**
      * Allows implementors to specify a [Menu]'s insets.
      */
-    public var Menu.insets: Insets get() = this.insets_; set(value) { this.insets_ = value }
+    public var Menu.insets: Insets get() = this.insetsInternal; set(value) { this.insetsInternal = value }
 
     /**
      * Allows implementors to check whether any of the [Menu]'s items have an icon.

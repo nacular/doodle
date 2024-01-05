@@ -83,7 +83,7 @@ public class Menu private constructor(
         }
     }
 
-    internal var insets_: Insets get() = insets; set(new) { insets = new }
+    internal var insetsInternal: Insets get() = insets; set(new) { insets = new }
 
     internal var anyItemWithIcon_: Boolean = false; private set
 

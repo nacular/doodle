@@ -8,12 +8,12 @@ pluginManagement {
 rootProject.name = "doodle"
 
 include(
-"Animation",
-"Browser",
-"Controls",
-"Core",
-"Themes",
-"Desktop"
+    "Animation",
+    "Browser",
+    "Controls",
+    "Core",
+    "Themes",
+    "Desktop"
 )
 
 project(":Animation").name = "animation"

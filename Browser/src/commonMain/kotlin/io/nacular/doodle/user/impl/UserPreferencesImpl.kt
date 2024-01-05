@@ -11,7 +11,7 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 /**
  * Created by Nicholas Eddy on 9/22/19.
  */
-public class UserPreferencesImpl(window: Window): UserPreferences {
+internal class UserPreferencesImpl(window: Window): UserPreferences {
     private val isDark = window.matchMedia("(prefers-color-scheme: dark)")
     private var old    = colorScheme
 

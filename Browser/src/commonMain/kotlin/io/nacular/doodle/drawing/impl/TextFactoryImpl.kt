@@ -1,20 +1,19 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Inline
 import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
+import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setColor
 import io.nacular.doodle.dom.setDisplay
+import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setLineHeight
-import io.nacular.doodle.dom.setPosition
-import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent

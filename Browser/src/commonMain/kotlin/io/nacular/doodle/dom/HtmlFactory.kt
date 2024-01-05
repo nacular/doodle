@@ -4,16 +4,16 @@ package io.nacular.doodle.dom
  * Created by Nicholas Eddy on 10/24/17.
  */
 
-public interface HtmlFactory {
-    public val root: HTMLElement
+internal interface HtmlFactory {
+    val root: HTMLElement
 
-    public fun <T: HTMLElement> create(           ): T
-    public fun <T: HTMLElement> create(tag: String): T
+    fun <T: HTMLElement> create(           ): T
+    fun <T: HTMLElement> create(tag: String): T
 
-    public fun createText (text  : String                        ): Text
-    public fun createImage(source: String                        ): HTMLImageElement
-    public fun createOrUse(tag   : String, possible: HTMLElement?): HTMLElement
+    fun createText (text  : String                        ): Text
+    fun createImage(source: String                        ): HTMLImageElement
+    fun createOrUse(tag   : String, possible: HTMLElement?): HTMLElement
 
-    public fun createInput (): HTMLInputElement
-    public fun createButton(): HTMLButtonElement
+    fun createInput (): HTMLInputElement
+    fun createButton(): HTMLButtonElement
 }

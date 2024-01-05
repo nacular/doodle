@@ -1,16 +1,34 @@
 package io.nacular.doodle.dom
 
-/**
- * Created by Nicholas Eddy on 3/12/20.
- */
-internal actual typealias Window   = org.w3c.dom.Window
-internal actual typealias Location = org.w3c.dom.Location
+internal actual abstract external class Location {
+    actual open var host: String
+}
 
-internal actual inline fun Window.setTimeout_   (handler: Any, timeout: Int, vararg arguments: Any?) = this.setTimeout(handler, timeout, arguments)
-internal actual inline fun Window.clearTimeout_ (handle: Int) = this.clearTimeout(handle)
-internal actual inline fun Window.setInterval_  (handler: Any, timeout: Int, vararg arguments: Any?) = this.setInterval(handler, timeout, arguments)
-internal actual inline fun Window.clearInterval_(handle: Int) = this.clearInterval(handle)
+internal actual external class Navigator {
+    actual val userAgent: String
+}
 
-internal actual val window = kotlinx.browser.window
+internal actual abstract external class Window {
+    actual val navigator: Navigator
+    actual val performance: Performance?
+    actual open val location: Location
 
-internal actual typealias MediaQueryList = org.w3c.dom.MediaQueryList
+    actual fun matchMedia           (query: String): MediaQueryList
+    actual fun cancelAnimationFrame (handle: Int)
+    actual fun requestAnimationFrame(callback: (Double) -> Unit): Int
+
+    actual fun setTimeout   (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    actual fun clearTimeout (handle: Int)
+    actual fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    actual fun clearInterval(handle: Int)
+
+    internal actual fun addEventListener   (eventName: String, callback: () -> Unit)
+    internal actual fun removeEventListener(eventName: String, callback: () -> Unit)
+}
+
+internal actual external val window: Window
+
+internal actual abstract external class MediaQueryList {
+    public actual val matches: Boolean
+    public actual fun addListener(listener: ((Event) -> Unit)?)
+}

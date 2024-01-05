@@ -6,7 +6,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.Overflow.Visible
+import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setMargin

@@ -5,8 +5,11 @@ plugins {
 kotlin {
     explicitApi()
 
-    jsTargets ()
-    jvmTargets()
+    jsTargets    ()
+    jvmTargets   ()
+    wasmJsTargets()
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         all {
@@ -38,6 +41,10 @@ kotlin {
 
         jsTest.dependencies {
             implementation(kotlin("test-js"))
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(jsCommon)
         }
     }
 }

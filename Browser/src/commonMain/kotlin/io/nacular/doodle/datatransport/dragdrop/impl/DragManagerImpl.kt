@@ -22,9 +22,9 @@ import io.nacular.doodle.dom.DragEvent
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HTMLInputElement
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.cloneNode_
-import io.nacular.doodle.dom.get
+import io.nacular.doodle.dom.contains
 import io.nacular.doodle.dom.setPosition
+import io.nacular.doodle.dom.toJsString
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.Renderable
@@ -70,7 +70,7 @@ internal class DragManagerImpl(
     }
 
     private fun contains(dataTransfer: DataTransfer, mimeType: Files): Boolean {
-        if ("Files" !in dataTransfer.types) {
+        if (dataTransfer.types.contains("Files".toJsString())) {
             return false
         }
 
@@ -92,15 +92,15 @@ internal class DragManagerImpl(
     private fun createBundle(dataTransfer: DataTransfer?) = dataTransfer?.let { transfer ->
         object: DataBundle {
             @Suppress("UNCHECKED_CAST")
-            override fun <T> get(type: MimeType<T>) = when (type) {
+            override fun <T> get(type: MimeType<T>) = when(type) {
                 is Files -> getFiles(transfer, type) as? T
                 in this  -> transfer.getData(type.toString()) as? T
                 else     -> null
             }
 
-            override fun <T> contains(type: MimeType<T>) = when (type) {
+            override fun <T> contains(type: MimeType<T>) = when(type) {
                 is Files -> contains(transfer, type)
-                else     -> "$type" in transfer.types
+                else     -> transfer.types.contains("$type".toJsString())
             }
 
             override val includedTypes: List<MimeType<*>> by lazy {
@@ -219,7 +219,7 @@ internal class DragManagerImpl(
 
                     override fun render(canvas: Canvas) {
                         (canvas as? NativeCanvas)?.apply {
-                            addData(listOf((graphicsDevice[view].rootElement.cloneNode_(deep = true) as HTMLElement)))
+                            addData(listOf((graphicsDevice[view].rootElement.cloneNode(deep = true) as HTMLElement)))
                         }
                     }
                 }
@@ -371,7 +371,7 @@ internal class DragManagerImpl(
     private fun createVisual(visual: Renderable, position: Point) {
         class CanvasWrapper(private val delegate: NativeCanvas): NativeCanvas by delegate {
             override fun addData(elements: List<HTMLElement>, at: Point) {
-                delegate.addData(elements.map { it.cloneNode_(deep = true) as HTMLElement }, at)
+                delegate.addData(elements.map { it.cloneNode(deep = true) as HTMLElement }, at)
             }
         }
 

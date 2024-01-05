@@ -15,7 +15,6 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
-import io.nacular.doodle.dom.cloneNode_
 import io.nacular.doodle.dom.index
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.parent
@@ -69,7 +68,7 @@ class CanvasImplTests {
     init {
         mockkStatic("io.nacular.doodle.dom.DomHelpersKt")
         mockkStatic(Node::childAt                       )
-        mockkStatic(Node::cloneNode_                    )
+        mockkStatic(Node::cloneNode                     )
     }
 
     @Test @JsName("defaultsValid") fun `defaults valid`() {
@@ -581,7 +580,7 @@ class CanvasImplTests {
         validateRender { renderParent, _, _, _, _ ->
             val clone = mockk<HTMLImageElement>()
             val img   = mockk<HTMLImageElement>().apply {
-                every { cloneNode_(false) } returns clone
+                every { cloneNode(false) } returns clone
             }
 
             every { image.image } returns img

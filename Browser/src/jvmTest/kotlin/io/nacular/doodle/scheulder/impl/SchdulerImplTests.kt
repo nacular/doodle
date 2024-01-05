@@ -7,10 +7,6 @@ import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.dom.Window
-import io.nacular.doodle.dom.clearInterval_
-import io.nacular.doodle.dom.clearTimeout_
-import io.nacular.doodle.dom.setInterval_
-import io.nacular.doodle.dom.setTimeout_
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
 import io.nacular.doodle.time.Timer
@@ -24,10 +20,10 @@ import kotlin.test.Test
 
 class SchedulerImplTests {
     init {
-        mockkStatic(Window::setTimeout_   )
-        mockkStatic(Window::clearTimeout_ )
-        mockkStatic(Window::setInterval_  )
-        mockkStatic(Window::clearInterval_)
+        mockkStatic(Window::setTimeout   )
+        mockkStatic(Window::clearTimeout )
+        mockkStatic(Window::setInterval  )
+        mockkStatic(Window::clearInterval)
     }
 
     @Test fun `animation scheduler calls on next frame`() {
@@ -76,7 +72,7 @@ class SchedulerImplTests {
         }
 
         verifyOrder {
-            window.setInterval_(any(), ((1 * seconds) `in` milliseconds).toInt())
+            window.setInterval(any(), ((1 * seconds) `in` milliseconds).toInt())
             callback(2 * seconds)
             callback(1 * seconds)
             callback(1 * seconds)
@@ -95,7 +91,7 @@ class SchedulerImplTests {
         }
 
         verifyOrder {
-            window.setTimeout_(any(), ((10 * seconds) `in` milliseconds).toInt())
+            window.setTimeout(any(), ((10 * seconds) `in` milliseconds).toInt())
         }
     }
 
@@ -128,12 +124,12 @@ class SchedulerImplTests {
     private fun window() = mockk<Window>().apply {
         val timeOut = slot<Int>()
 
-        every { setTimeout_(captureLambda(), capture(timeOut)) } answers {
+        every { setTimeout(captureLambda(), capture(timeOut)) } answers {
             lambda<() -> Unit>().captured()
             0
         }
 
-        every { setInterval_(captureLambda(), capture(timeOut)) } answers {
+        every { setInterval(captureLambda(), capture(timeOut)) } answers {
             lambda<() -> Unit>().captured()
             lambda<() -> Unit>().captured()
             lambda<() -> Unit>().captured()

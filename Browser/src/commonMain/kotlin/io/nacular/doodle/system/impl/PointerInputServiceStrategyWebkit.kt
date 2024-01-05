@@ -8,9 +8,7 @@ import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.addActiveEventListener
-import io.nacular.doodle.dom.addEventListener
 import io.nacular.doodle.dom.removeActiveEventListener
-import io.nacular.doodle.dom.removeEventListener
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.Cursor
@@ -196,10 +194,10 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun registerCallbacks(element: HTMLElement) = element.run {
         // TODO: Figure out fallback in case PointerEvent not present
-        ondblclick      = { doubleClick  (it)                      }
-        onpointerdown   = { pointerDown  (it); followPointer(this) }
-        onpointerover   = { pointerEnter (it)                      }
-        onpointercancel = { pointerCancel(it)                      }
+        ondblclick      = { doubleClick  (it)                            }
+        onpointerdown   = { pointerDown  (it); followPointer(this); true }
+        onpointerover   = { pointerEnter (it)                            }
+        onpointercancel = { pointerCancel(it)                            }
 
         addActiveEventListener(TOUCH_MOVE,    preventTouchDefault     )
         addActiveEventListener(TOUCH_START,   preventTouchStartDefault)

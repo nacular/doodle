@@ -24,6 +24,8 @@ import io.nacular.doodle.focus.impl.DefaultFocusabilityChecker
 import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.focus.impl.FocusTraversalPolicyImpl
 import io.nacular.doodle.focus.impl.FocusabilityChecker
+import io.nacular.doodle.geometry.PathMetrics
+import io.nacular.doodle.geometry.impl.PathMetricsImpl
 import io.nacular.doodle.image.ImageLoader
 import io.nacular.doodle.image.impl.Base64Decoder
 import io.nacular.doodle.image.impl.ImageLoaderImpl
@@ -34,6 +36,8 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.theme.native.NativePointerPreprocessor
+import io.nacular.doodle.user.UserPreferences
+import io.nacular.doodle.user.impl.UserPreferencesImpl
 import io.nacular.doodle.utils.RelativePositionMonitor
 import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import org.kodein.di.DI.Module
@@ -51,12 +55,14 @@ import java.util.Base64
  */
 public class Modules {
     public companion object {
+        /** Enables focus management by providing access to [FocusManager]. */
         public val FocusModule: Module = Module(allowSilentOverride = true, name = "Focus") {
             bindSingleton<FocusabilityChecker>  { DefaultFocusabilityChecker(                                  ) }
             bindSingleton<FocusTraversalPolicy> { FocusTraversalPolicyImpl  (instance()                        ) }
             bindSingleton<FocusManager>         { FocusManagerImpl          (instance(), instance(), instance()) }
         }
 
+        /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
             bindInstance { NativePointerPreprocessor() }
 
@@ -65,6 +71,7 @@ public class Modules {
             bindSingleton<PointerInputManager> { PointerInputManagerImpl(instance(), instance(), instance(), instance<NativePointerPreprocessor>()) }
         }
 
+        /** Enables keyboard use. Includes [FocusModule]. */        /** Enables keyboard use. Includes [FocusModule]. */
         public val KeyboardModule: Module = Module(allowSilentOverride = true, name = "Keyboard") {
             importOnce(FocusModule)
 
@@ -78,6 +85,7 @@ public class Modules {
             bindSingleton<KeyboardFocusManager>{ KeyboardFocusManagerImpl(instance(), instance(), keys                                  ) }
         }
 
+        /** Enable use of [FontLoader]. */
         public val FontModule: Module = Module(allowSilentOverride = true, name = "Font") {
             bind<FontLoader>() with singleton { FontLoaderImpl(instance()) }
         }
@@ -92,6 +100,7 @@ public class Modules {
             bindSingleton<DragManager> { DragManagerImpl(instance(), instance(), instance(), instance()) }
         }
 
+        /** Enable use of [ImageLoader]. */
         public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
             bindSingleton<ImageLoader>{
                 ImageLoaderImpl(
@@ -105,15 +114,27 @@ public class Modules {
             }
         }
 
+        /** Enable use of [PopupManager]. */
         public val PopupModule: Module = Module(allowSilentOverride = true, name = "Popup") {
             bindSingleton<RelativePositionMonitor> { RelativePositionMonitorImpl() }
             bindSingleton<PopupManager>            { PopupManagerImpl(instance(), instance(), instance()) }
         }
 
+        /** Enable use of [ModalManager]; includes [PopupModule]. */
         public val ModalModule: Module = Module(allowSilentOverride = true, name = "Modal") {
             importOnce(PopupModule)
 
             bindSingleton<ModalManager>{ ModalManagerImpl(instance(), instanceOrNull()) }
+        }
+
+        /** Enable use of [PathMetrics]. */
+        public val PathModule: Module = Module(allowSilentOverride = true, name = "Path") {
+            bindSingleton<PathMetrics>{ PathMetricsImpl(instance()) }
+        }
+
+        /** Enable use of [UserPreferences]. */
+        public val UserPreferencesModule: Module = Module(allowSilentOverride = true, name = "UserPreferences") {
+            bindSingleton<UserPreferences>{ UserPreferencesImpl() }
         }
     }
 }

@@ -1,36 +1,43 @@
+@file:Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
+
 package io.nacular.doodle.dom
 
-// Expecting this interface doesn't work for some reason
-//public expect interface SVGBoundingBoxOptions {
-//    var stroke : Boolean?
-//    var markers: Boolean?
-//}
+internal expect external interface SVGBoundingBoxOptions: JsAny {
+    var fill   : Boolean?
+    var stroke : Boolean?
+    var markers: Boolean?
+    var clipped: Boolean?
+}
 
-public expect abstract class SVGElement()            : Element, ElementCSSInlineStyle
-public expect abstract class SVGRectElement          : SVGGeometryElement
-public expect abstract class SVGPathElement          : SVGGeometryElement
-public expect abstract class SVGTextElement          : SVGTextPositioningElement
-public expect abstract class SVGCircleElement        : SVGGeometryElement
-public expect abstract class SVGEllipseElement       : SVGGeometryElement
-public expect abstract class SVGPolygonElement       : SVGGeometryElement
-public expect abstract class SVGPatternElement       : SVGElement
-public expect abstract class SVGGradientElement      : SVGElement
-public expect abstract class SVGLinearGradientElement: SVGGradientElement
-public expect abstract class SVGRadialGradientElement: SVGGradientElement
+internal expect abstract external class SVGElement(): Element, ElementCSSInlineStyle {
+    fun getBBox(options: SVGBoundingBoxOptions): DOMRect
+}
+internal expect abstract external class SVGRectElement          : SVGGeometryElement
+internal expect abstract external class SVGPathElement          : SVGGeometryElement
+internal expect abstract external class SVGTextElement          : SVGTextPositioningElement
+internal expect abstract external class SVGCircleElement        : SVGGeometryElement
+internal expect abstract external class SVGEllipseElement       : SVGGeometryElement
+internal expect abstract external class SVGPolygonElement       : SVGGeometryElement
+internal expect abstract external class SVGPatternElement       : SVGElement
+internal expect abstract external class SVGGradientElement      : SVGElement
+internal expect abstract external class SVGLinearGradientElement: SVGGradientElement
+internal expect abstract external class SVGRadialGradientElement: SVGGradientElement
 
-public data class BoundingBoxOptions(
-        public var fill   : Boolean? = true,
-        public var stroke : Boolean? = false,
-        public var markers: Boolean? = false,
-        public var clipped: Boolean? = false
+internal class BoundingBoxOptions(
+    var fill   : Boolean? = true,
+    var stroke : Boolean? = false,
+    var markers: Boolean? = false,
+    var clipped: Boolean? = false
 )
 
-public expect abstract class SVGGraphicsElement: SVGElement
+internal expect abstract external class SVGGraphicsElement: SVGElement
 
 internal expect fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect
 
-public expect abstract class SVGGeometryElement       : SVGGraphicsElement {
-    public fun getTotalLength(): Float
+internal expect abstract external class SVGGeometryElement: SVGGraphicsElement {
+    fun getTotalLength(): Float
 }
-public expect abstract class SVGTextContentElement    : SVGGraphicsElement
-public expect abstract class SVGTextPositioningElement: SVGTextContentElement
+
+internal expect abstract external class SVGTextContentElement: SVGGraphicsElement
+
+internal expect abstract external class SVGTextPositioningElement: SVGTextContentElement

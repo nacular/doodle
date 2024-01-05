@@ -3,9 +3,11 @@ package io.nacular.doodle.dom
 /**
  * Created by Nicholas Eddy on 3/12/20.
  */
-public actual abstract class EventTarget
+public actual abstract class EventTarget: JsAny
 
-public actual open class Event {
+public actual open class Event actual constructor(): JsAny {
+    public actual constructor(name: String): this()
+
     public actual val target: EventTarget? = null
 
     public actual fun stopPropagation() {}
@@ -61,4 +63,10 @@ public actual open class TouchEvent: UIEvent() {
 
 public actual class InputEvent: UIEvent()
 
-public actual class FocusEvent: UIEvent()
+public actual class FocusEvent: UIEvent() {
+    public actual val relatedTarget: EventTarget? = null
+}
+
+public actual class DragEvent: MouseEvent() {
+    internal actual val dataTransfer: DataTransfer? = null
+}

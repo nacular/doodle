@@ -1,17 +1,33 @@
 package io.nacular.doodle.dom
 
-import kotlinx.dom.clear
-import org.w3c.dom.get
+internal actual inline operator fun NodeList.get(index: Int): Node? = this.item(index)
 
-/**
- * Created by Nicholas Eddy on 8/9/19.
- */
+internal actual abstract external class NodeList actual constructor() {
+    actual abstract val length: Int
 
-internal actual inline operator fun NodeList.get(index: Int): Node? = get(index)
+    actual open fun item(index: Int): Node?
+}
 
-internal actual typealias NodeList = org.w3c.dom.NodeList
+internal actual abstract external class Node: JsAny {
+    actual fun cloneNode    (deep : Boolean           ): Node
+    actual fun appendChild  (node : Node              ): Node
+    actual fun removeChild  (child: Node              ): Node
+    actual fun insertBefore (node : Node, child: Node?): Node
+    actual fun replaceChild (node : Node, child: Node ): Node
+    actual fun contains     (other: Node?             ): Boolean
+    actual fun hasChildNodes(                         ): Boolean
 
-internal actual typealias Node = org.w3c.dom.Node
+    actual val nodeName     : String
+    actual val firstChild   : Node?
+    actual val parentNode   : Node?
+    actual val childNodes   : NodeList
+    actual val nextSibling  : Node?
+    actual var textContent  : String?
+    actual val parentElement: Element?
+}
 
-internal actual fun Node.clear(): Unit = clear()
-internal actual inline fun Node.cloneNode_(deep: Boolean) = this.cloneNode(deep)
+internal actual fun Node.clear() {
+    while (hasChildNodes()) {
+        removeChild(firstChild!!)
+    }
+}

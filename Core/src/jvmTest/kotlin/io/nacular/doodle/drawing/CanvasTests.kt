@@ -1,6 +1,5 @@
 package io.nacular.doodle.drawing
 
-import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
@@ -103,8 +102,7 @@ private class TestCanvas: Canvas {
 }
 
 class CanvasTests {
-    @Test @JsName("scaleWithDefaults")
-    fun `scale with defaults works`() {
+    @Test fun `scale with defaults works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
 
@@ -113,8 +111,7 @@ class CanvasTests {
         verify { block(canvas) }
     }
 
-    @Test @JsName("scale")
-    fun `scale works`() {
+    @Test fun `scale works`() {
         val canvas = spyk(TestCanvas())
         val x      = 45.0
         val y      = 1.0
@@ -125,8 +122,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.scale(x, y), block) }
     }
 
-    @Test @JsName("scaleAroundWithDefaults")
-    fun `scale around with defaults works`() {
+    @Test fun `scale around with defaults works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
 
@@ -135,8 +131,7 @@ class CanvasTests {
         verify { block(canvas) }
     }
 
-    @Test @JsName("scaleAround")
-    fun `scale around works`() {
+    @Test fun `scale around works`() {
         val canvas = spyk(TestCanvas()).apply {
             every { size } returns Size(457)
         }
@@ -150,8 +145,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.translate(around).scale(x, y).translate(-around), block) }
     }
 
-    @Test @JsName("rotate")
-    fun `rotate works`() {
+    @Test fun `rotate works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
         val by     = 56 * degrees
@@ -161,8 +155,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.rotate(by), block) }
     }
 
-    @Test @JsName("rotateAround")
-    fun `rotate around works`() {
+    @Test fun `rotate around works`() {
         val canvas = spyk(TestCanvas())
         val by     = 56 * degrees
         val around = Point(4.0, 2.9)
@@ -173,8 +166,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.translate(around).rotate(by).translate(-around), block) }
     }
 
-    @Test @JsName("translateAround")
-    fun `translate works`() {
+    @Test fun `translate works`() {
         val canvas = spyk(TestCanvas())
         val by     = Point(4.0, 2.9)
         val block  = mockk<Canvas.() -> Unit>()
@@ -184,8 +176,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.translate(by), block) }
     }
 
-    @Test @JsName("flipVertically")
-    fun `flip vertically works`() {
+    @Test fun `flip vertically works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
 
@@ -194,8 +185,7 @@ class CanvasTests {
         verify { canvas.scale(1.0, -1.0, block) }
     }
 
-    @Test @JsName("flipVerticallyAround")
-    fun `flip vertically around works`() {
+    @Test fun `flip vertically around works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
         val around = 4.5
@@ -205,8 +195,7 @@ class CanvasTests {
         verify { canvas.transform(Identity.translate(y = around).scale(1.0, -1.0).translate(y = -around), block) }
     }
 
-    @Test @JsName("flipHorizontally")
-    fun `flip horizontally works`() {
+    @Test fun `flip horizontally works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
 
@@ -215,8 +204,7 @@ class CanvasTests {
         verify { canvas.scale(-1.0, 1.0, block) }
     }
 
-    @Test @JsName("flipHorizontallyAround")
-    fun `flip horizontally around works`() {
+    @Test fun `flip horizontally around works`() {
         val canvas = spyk(TestCanvas())
         val block  = mockk<Canvas.() -> Unit>()
         val around = 4.5

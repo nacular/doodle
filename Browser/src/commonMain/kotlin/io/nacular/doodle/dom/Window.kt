@@ -1,28 +1,36 @@
+@file:Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
+
 package io.nacular.doodle.dom
 
-/**
- * Created by Nicholas Eddy on 3/12/20.
- */
-public expect abstract class Location {
-    public open var host: String
+internal expect abstract external class Location {
+    open var host: String
 }
 
-public expect abstract class Window {
-    public open val location: Location
-
-    public fun matchMedia           (query: String): MediaQueryList
-    public fun cancelAnimationFrame (handle: Int)
-    public fun requestAnimationFrame(callback: (Double) -> Unit): Int
+internal expect external class Navigator {
+    val userAgent: String
 }
 
-internal expect fun Window.setTimeout_   (handler: Any, timeout: Int, vararg arguments: Any?): Int
-internal expect fun Window.clearTimeout_ (handle: Int)
-internal expect fun Window.setInterval_  (handler: Any, timeout: Int, vararg arguments: Any?): Int
-internal expect fun Window.clearInterval_(handle: Int)
+internal expect abstract external class Window {
+    open val location   : Location
+    val navigator  : Navigator
+    val performance: Performance?
+
+    fun matchMedia           (query: String): MediaQueryList
+    fun cancelAnimationFrame (handle: Int)
+    fun requestAnimationFrame(callback: (Double) -> Unit): Int
+
+    internal fun setTimeout   (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    internal fun clearTimeout (handle: Int)
+    internal fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    internal fun clearInterval(handle: Int)
+
+    internal fun addEventListener   (eventName: String, callback: () -> Unit)
+    internal fun removeEventListener(eventName: String, callback: () -> Unit)
+}
 
 internal expect val window: Window
 
-public expect abstract class MediaQueryList {
-    public val matches: Boolean
-    public fun addListener(listener: ((Event) -> Unit)?)
+internal expect abstract external class MediaQueryList {
+    val matches: Boolean
+    fun addListener(listener: ((Event) -> Unit)?)
 }

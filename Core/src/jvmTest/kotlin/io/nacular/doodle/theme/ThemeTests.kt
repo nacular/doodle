@@ -1,6 +1,5 @@
 package io.nacular.doodle.theme
 
-import JsName
 import io.mockk.MockKMatcherScope
 import io.mockk.every
 import io.mockk.mockk
@@ -21,7 +20,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
@@ -34,8 +33,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 9/14/20.
  */
 class ThemeTests {
-    @Test @JsName("selectingNewThemeWorks")
-    fun `selecting new theme works`() {
+    @Test fun `selecting new theme works`() {
         val child1      = viewAcceptingTheme()
         val popupChild1 = viewAcceptingTheme()
         val popup1      = viewAcceptingTheme()
@@ -120,8 +118,7 @@ class ThemeTests {
         override fun showPopup(view: View) {}
     }
 
-    @Test @JsName("installsThemeOnUpdate")
-    fun `installs theme on update`() {
+    @Test fun `installs theme on update`() {
         val manager  = ThemeManagerImpl(dummyDisplay)
         val newTheme = mockk<Theme>()
         val view     = view {}
@@ -133,8 +130,7 @@ class ThemeTests {
         verify(exactly = 1) { newTheme.install(dummyDisplay, seqEq(sequenceOf(view))) }
     }
 
-    @Test @JsName("respectsViewAcceptsThemes")
-    fun `respects View acceptsThemes`() {
+    @Test fun `respects View acceptsThemes`() {
         val manager  = ThemeManagerImpl(dummyDisplay)
         val newTheme = mockk<Theme>()
         val view     = mockk<View>().apply {

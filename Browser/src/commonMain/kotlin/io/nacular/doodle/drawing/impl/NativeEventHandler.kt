@@ -3,7 +3,9 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.dom.HTMLElement
 
 
-internal typealias NativeEventHandlerFactory = (element: HTMLElement, listener: NativeEventListener) -> NativeEventHandler
+internal interface NativeEventHandlerFactory {
+    operator fun invoke(element: HTMLElement, listener: NativeEventListener): NativeEventHandler
+}
 
 internal interface NativeEventHandler {
     fun startConsumingPointerMoveEvents(onlySelf: Boolean = false)

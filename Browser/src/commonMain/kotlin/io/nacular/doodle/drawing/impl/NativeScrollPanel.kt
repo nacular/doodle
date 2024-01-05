@@ -1,34 +1,35 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.ResizeObserver
-import io.nacular.doodle.dom.ResizeObserverInit
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Horizontal
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Vertical
 import io.nacular.doodle.core.View
+import io.nacular.doodle.dom.Auto
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.Hidden
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.Overflow.Auto
-import io.nacular.doodle.dom.Overflow.Hidden
-import io.nacular.doodle.dom.Overflow.Scroll
+import io.nacular.doodle.dom.ResizeObserver
+import io.nacular.doodle.dom.Scroll
 import io.nacular.doodle.dom.add
+import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.height
+import io.nacular.doodle.dom.observeResize
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
+import io.nacular.doodle.dom.scrollBehavior
 import io.nacular.doodle.dom.scrollTo
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.width
+import io.nacular.doodle.dom.willChange
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.scheduler.Scheduler
-import io.nacular.doodle.dom.scrollBehavior
-import io.nacular.doodle.dom.willChange
 import kotlin.math.max
 import kotlin.math.min
 
@@ -167,7 +168,7 @@ internal class NativeScrollPanel internal constructor(
 
     private val observer = ResizeObserver { updates,_ ->
         try {
-            val entry = updates.first()
+            val entry = updates[0]!! // .first()
 
             if (entry.contentRect.width > 0 && rootElement.width > 0) {
                 barChanged(Vertical, entry.run { panel.width - contentRect.width }.also { barWidth = it })
@@ -184,9 +185,7 @@ internal class NativeScrollPanel internal constructor(
     }
 
     init {
-        observer.observe(rootElement, object: ResizeObserverInit {
-            override var box: String? = "content-box"
-        })
+        observer.observeResize(rootElement, box = "content-box")
 
         rootElement.apply {
             updateScroll()

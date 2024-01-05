@@ -15,7 +15,7 @@ import io.nacular.doodle.geometry.Size
 /**
  * Created by Nicholas Eddy on 12/4/17.
  */
-public class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
+internal class PathMetricsImpl(private val svgFactory: SvgFactory): PathMetrics {
     override fun width (path: Path): Double = size(path).width
     override fun height(path: Path): Double = size(path).height
 

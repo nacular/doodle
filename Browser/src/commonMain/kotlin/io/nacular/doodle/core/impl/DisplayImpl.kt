@@ -41,7 +41,6 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList

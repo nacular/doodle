@@ -8,7 +8,6 @@ import io.mockk.verify
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.GraphicsSurface
-import JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -16,8 +15,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 2/26/18.
  */
 class RealGraphicsDeviceTests {
-    @Test @JsName("create")
-    fun `create works`() {
+    @Test fun `create works`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val surface1       = mockk<GraphicsSurface>()
         val surface2       = mockk<GraphicsSurface>()
@@ -33,8 +31,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { surface2.index = 0 }
     }
 
-    @Test @JsName("getNoParentNoChildrenWorks")
-    fun `get no parent, no children works`() {
+    @Test fun `get no parent, no children works`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val surface        = mockk<GraphicsSurface>()
 
@@ -47,8 +44,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { surface.zOrder = 0 }
     }
 
-    @Test @JsName("getNoParentWithChildrenWorks")
-    fun `get no parent, with children works`() {
+    @Test fun `get no parent, with children works`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val surface        = mockk<GraphicsSurface>()
         val parent         = container {}
@@ -65,8 +61,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { surface.zOrder = 0 }
     }
 
-    @Test @JsName("getWithParentNoChildrenWorks")
-    fun `get with parent, no children works`() {
+    @Test fun `get with parent, no children works`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val parentSurface  = mockk<GraphicsSurface>()
         val childSurface   = mockk<GraphicsSurface>()
@@ -87,8 +82,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { childSurface.zOrder  = 0 }
     }
 
-    @Test @JsName("getWithParentWithChildrenWorks")
-    fun `get with parent, with children works`() {
+    @Test fun `get with parent, with children works`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val parentSurface  = mockk<GraphicsSurface>()
         val childSurface   = mockk<GraphicsSurface>()
@@ -115,8 +109,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { nestedSurface.zOrder = 0 }
     }
 
-    @Test @JsName("resultsCached")
-    fun `results cached`() {
+    @Test fun `results cached`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val parentSurface  = mockk<GraphicsSurface>()
         val childSurface   = mockk<GraphicsSurface>()
@@ -145,8 +138,7 @@ class RealGraphicsDeviceTests {
         verify(exactly = 1) { nestedSurface.zOrder = 0 }
     }
 
-    @Test @JsName("releaseView")
-    fun `release view`() {
+    @Test fun `release view`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val parentSurface1 = mockk<GraphicsSurface>()
         val childSurface1  = mockk<GraphicsSurface>()
@@ -185,8 +177,7 @@ class RealGraphicsDeviceTests {
         }
     }
 
-    @Test @JsName("releaseSurface")
-    fun `release surface`() {
+    @Test fun `release surface`() {
         val surfaceFactory = mockk<GraphicsSurfaceFactory<GraphicsSurface>>()
         val parentSurface1 = mockk<GraphicsSurface>()
         val childSurface1  = mockk<GraphicsSurface>()

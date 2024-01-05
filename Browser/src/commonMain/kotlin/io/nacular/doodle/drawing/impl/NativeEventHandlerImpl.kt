@@ -2,8 +2,6 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.addEventListener_
-import io.nacular.doodle.dom.removeEventListener_
 import io.nacular.doodle.focus.NativeFocusManager
 
 
@@ -42,13 +40,13 @@ internal class NativeEventHandlerImpl(
     private fun focusOut(event: Event) { onFocusOut(event) }
 
     override fun registerFocusInListener() {
-        element.addEventListener_("focusin",  ::focusIn )
-        element.addEventListener_("focusout", ::focusOut)
+        element.addEventListener("focusin",  ::focusIn )
+        element.addEventListener("focusout", ::focusOut)
     }
 
     override fun unregisterFocusInListener() {
-        element.removeEventListener_("focusin",  ::focusIn )
-        element.removeEventListener_("focusout", ::focusOut)
+        element.removeEventListener("focusin",  ::focusIn )
+        element.removeEventListener("focusout", ::focusOut)
     }
 
     override fun registerKeyListener  () {

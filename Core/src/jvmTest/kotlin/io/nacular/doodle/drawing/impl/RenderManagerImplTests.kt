@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.drawing.impl
 
-import JsName
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -52,8 +51,7 @@ import kotlin.test.expect
 class RenderManagerImplTests {
     // TODO: Add tests to make sure things in cleanup list never get rendered
 
-    @Test @JsName("rendersAreBatched")
-    fun `renders are batched`() {
+    @Test fun `renders are batched`() {
         val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
         val display   = display(view)
@@ -72,8 +70,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, view)
     }
 
-    @Test @JsName("laysOutDisplayOnSizeChange")
-    fun `lays out display on size change`() {
+    @Test fun `lays out display on size change`() {
 
         val display = display(view())
 
@@ -90,8 +87,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { display.relayout() }
     }
 
-    @Test @JsName("laysOutDisplayOnNewChild")
-    fun `lays out display on new child`() {
+    @Test fun `lays out display on new child`() {
 
         val display = display(view())
 
@@ -108,8 +104,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { display.relayout() }
     }
 
-    @Test @JsName("laysOutDisplayOnChildBoundsChange")
-    fun `lays out display on child bounds change`() {
+    @Test fun `lays out display on child bounds change`() {
         val child = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
         val display = display(child)
@@ -123,8 +118,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { display.relayout() }
     }
 
-    @Test @JsName("renderIgnoresUnknownViews")
-    fun `render ignores unknown views`() {
+    @Test fun `render ignores unknown views`() {
         val view = spyk(view())
 
         renderManager().first.render(view)
@@ -132,8 +126,7 @@ class RenderManagerImplTests {
         verify(exactly = 0) { view.render(any()) }
     }
 
-    @Test @JsName("rendersDisplayedViews")
-    fun `renders displayed views`() {
+    @Test fun `renders displayed views`() {
         val views         = (0 until 2).mapTo(mutableListOf()) { spyk(view()) }
         val display       = display(*views.toTypedArray())
         val renderManager = renderManager(display)
@@ -143,8 +136,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("rendersNewViews")
-    fun `renders new views`() {
+    @Test fun `renders new views`() {
         val child = spyk(view())
 
         val display        = display()
@@ -166,8 +158,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface setProperty "transform" value transform }
     }
 
-    @Test @JsName("rendersViewsMovedToNewTopLevelParent")
-    fun `renders views moved to new top-level parent`() {
+    @Test fun `renders views moved to new top-level parent`() {
         val parent1  = container()
         val parent2  = container()
         val children = (0 .. 3).map { spyk(view()).apply { bounds = Rectangle(10, 15) } }
@@ -201,8 +192,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("rendersViewsMovedToNewNestedParent")
-    fun `renders views moved to new nested parent`() {
+    @Test fun `renders views moved to new nested parent`() {
         val grandParent = container()
         val parent1  = container()
         val parent2  = container()
@@ -255,8 +245,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("rendersNewPopups")
-    fun `renders new popups`() {
+    @Test fun `renders new popups`() {
         val child = spyk(view())
 
         val display        = display()
@@ -278,8 +267,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface setProperty "transform" value transform }
     }
 
-    @Test @JsName("handlesBecomingInvisibleBeforeFirstRender")
-    fun `handles becoming invisible before first render`() {
+    @Test fun `handles becoming invisible before first render`() {
         val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
         val display   = display(view)
@@ -311,8 +299,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
-    @Test @JsName("removesTopLevelViews")
-    fun `removes top-level views`() {
+    @Test fun `removes top-level views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -330,8 +317,7 @@ class RenderManagerImplTests {
         verifyChildRemovedProperly(container)
     }
 
-    @Test @JsName("removesPopups")
-    fun `removes popups`() {
+    @Test fun `removes popups`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display()
         val scheduler = ManualAnimationScheduler()
@@ -351,8 +337,7 @@ class RenderManagerImplTests {
         verifyChildRemovedProperly(container)
     }
 
-    @Test @JsName("onlyUpdatesIndexViewConvertedPopup")
-    fun `only updates index view converted to popup`() {
+    @Test fun `only updates index view converted to popup`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -382,8 +367,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("noopRemoveAddTopLevelViews")
-    fun `no-op remove, add top-level views`() {
+    @Test fun `no-op remove, add top-level views`() {
         val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
@@ -407,8 +391,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("handlesChildSwapped")
-    fun `handles child swapped`() {
+    @Test fun `handles child swapped`() {
         val child1   = spyk(view())
         val child2   = spyk(view())
         val child3   = spyk(view())
@@ -439,8 +422,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { child2.removedFromDisplay_() }
     }
 
-    @Test @JsName("handlesChildSwappedTopLevel")
-    fun `handles child swapped top-level`() {
+    @Test fun `handles child swapped top-level`() {
         val child1   = spyk(view())
         val child2   = spyk(view())
         val child3   = spyk(view())
@@ -472,8 +454,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { child2.removedFromDisplay_() }
     }
 
-    @Test @JsName("handlesIndexChange")
-    fun `handles index change`() {
+    @Test fun `handles index change`() {
         val child1   = spyk(view())
         val child2   = spyk(view())
         val parent   = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2) }
@@ -495,8 +476,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("zOrderChangeTopLevelViews")
-    fun `z-order change top-level views`() {
+    @Test fun `z-order change top-level views`() {
         val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
@@ -520,8 +500,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("opacityChangeHandled")
-    fun `opacity change handled`() {
+    @Test fun `opacity change handled`() {
         val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
         val display = display(view)
         val surface = mockk<GraphicsSurface>()
@@ -535,8 +514,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface.opacity = 0.3f }
     }
 
-    @Test @JsName("initializesGraphicsSurface")
-    fun `initializes graphics surface`() {
+    @Test fun `initializes graphics surface`() {
         val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
         val display = display(view)
         val surface = mockk<GraphicsSurface>()
@@ -551,8 +529,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface.transform = Identity }
     }
 
-    @Test @JsName("initializesPopupGraphicsSurface")
-    fun `initializes popup graphics surface`() {
+    @Test fun `initializes popup graphics surface`() {
         val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
         val display = display()
         val surface = mockk<GraphicsSurface>()
@@ -569,8 +546,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { surface.transform = Identity }
     }
 
-    @Test @JsName("removesNestedViews")
-    fun `removes nested views`() {
+    @Test fun `removes nested views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
         val display   = display(container)
@@ -590,8 +566,7 @@ class RenderManagerImplTests {
         verifyChildRemovedProperly(firstChild)
     }
 
-    @Test @JsName("movesNestedViewsToParent")
-    fun `moves nested views to parent`() {
+    @Test fun `moves nested views to parent`() {
         val parent = spyk<Container>().apply {
             bounds    = Rectangle(size = Size(10.0, 10.0))
             children += spyk(container()).apply {
@@ -621,8 +596,7 @@ class RenderManagerImplTests {
         expect(true) { grandChild in parent.children }
     }
 
-    @Test @JsName("rerendersOnBoundsChanged")
-    fun `rerenders on bounds changed`() {
+    @Test fun `rerenders on bounds changed`() {
         val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
@@ -634,8 +608,7 @@ class RenderManagerImplTests {
         verify(exactly = 2) { view.render(any()) }
     }
 
-    @Test @JsName("rerendersOnBecomingVisible")
-    fun `rerenders on becoming visible`() {
+    @Test fun `rerenders on becoming visible`() {
         val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display = display(view)
 
@@ -650,8 +623,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, view)
     }
 
-    @Test @JsName("rerendersOnAddedBecomingVisible")
-    fun `rerenders on added becoming visible`() {
+    @Test fun `rerenders on added becoming visible`() {
         val parent  = container()
         val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display = display(parent)
@@ -689,8 +661,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("doesNotRerenderOnBoundsZeroed")
-    fun `does not rerender on bounds zeroed`() {
+    @Test fun `does not rerender on bounds zeroed`() {
         val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
@@ -702,8 +673,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
-    @Test @JsName("doesNotRerenderOnPositionChanged")
-    fun `does not rerender on position changed`() {
+    @Test fun `does not rerender on position changed`() {
         val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
@@ -715,8 +685,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
-    @Test @JsName("doesNotRerenderOnSizeZeroed")
-    fun `does not re-render on size zeroed`() {
+    @Test fun `does not re-render on size zeroed`() {
         val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
@@ -728,8 +697,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { view.render(any()) }
     }
 
-    @Test @JsName("rendersPreExistingNestedViews")
-    fun `renders pre-existing nested views`() {
+    @Test fun `renders pre-existing nested views`() {
         val container = container()
         val child     = spyk(view())
 
@@ -742,8 +710,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child)
     }
 
-    @Test @JsName("rendersReAddedNestedViews")
-    fun `renders re-added nested views`() {
+    @Test fun `renders re-added nested views`() {
         val container = container()
         val child     = spyk(view())
 
@@ -759,8 +726,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test @JsName("rendersNewNestedViews")
-    fun `renders new nested views`() {
+    @Test fun `renders new nested views`() {
         val container = container()
         val child     = spyk(view())
 
@@ -778,8 +744,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child)
     }
 
-    @Test @JsName("rendersNewNestedViewInserted")
-    fun `renders new nested view inserted`() {
+    @Test fun `renders new nested view inserted`() {
         val container = container()
         val child     = spyk(view())
         val display   = display(container)
@@ -798,17 +763,13 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child)
     }
 
-    @Test @JsName("doesNotRenderInvisibleViews")
-    fun `does not render invisible views`() = doesNotRender(spyk(view()).apply { visible = false })
+    @Test fun `does not render invisible views`() = doesNotRender(spyk(view()).apply { visible = false })
 
-    @Test @JsName("doesNotRenderInvisibleChildren")
-    fun `does not render invisible children`() = doesNotRenderChild(spyk(view()).apply { visible = false })
+    @Test fun `does not render invisible children`() = doesNotRenderChild(spyk(view()).apply { visible = false })
 
-    @Test @JsName("doesNotRenderZeroBoundsViews")
-    fun `does not render zero bounds views`() = doesNotRender(spyk(view()).apply { bounds = Rectangle.Empty })
+    @Test fun `does not render zero bounds views`() = doesNotRender(spyk(view()).apply { bounds = Rectangle.Empty })
 
-    @Test @JsName("renderNowIgnoresUnknownViews")
-    fun `renderNow ignores unknown views`() {
+    @Test fun `renderNow ignores unknown views`() {
         val view = spyk(view())
 
         renderManager().first.renderNow(view)
@@ -816,8 +777,7 @@ class RenderManagerImplTests {
         verify(exactly = 0) { view.render(any()) }
     }
 
-    @Test @JsName("renderNowWorks")
-    fun `renderNow works`() {
+    @Test fun `renderNow works`() {
         val view = spyk(view())
 
         renderManager(display(view)).also { (renderManager, _) ->
@@ -829,8 +789,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("revalidatesParentWhenNewViews")
-    fun `revalidates parent out when new views`() {
+    @Test fun `revalidates parent out when new views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
@@ -845,35 +804,25 @@ class RenderManagerImplTests {
         verify(exactly = 1) { container.revalidate_() }
     }
 
-    @Test @JsName("laysOutParentOnSizeChanged")
-    fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
+    @Test fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
 
-    @Test @JsName("doesNotLayOutParentOnSizeChangedWhenIgnored")
-    fun `does not lay out parent on size changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.size *= 2.0 }
+    @Test fun `does not lay out parent on size changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.size *= 2.0 }
 
-    @Test @JsName("laysOutParentOnPositionChanged")
-    fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
+    @Test fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
 
-    @Test @JsName("doesNotLayOutParentOnPositionChangedIgnored")
-    fun `does not lay out parent on position changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.x += 2.0 }
+    @Test fun `does not lay out parent on position changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.x += 2.0 }
 
-    @Test @JsName("laysOutParentOnVisibilityChanged")
-    fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
+    @Test fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
 
-    @Test @JsName("doesNotLayOutParentOnIdealSizeChanged")
-    fun `does not lay out parent on ideal-size changed`() = verifyLayout(count = 1) { it.idealSize = Size(100) }
+    @Test fun `does not lay out parent on ideal-size changed`() = verifyLayout(count = 1) { it.idealSize = Size(100) }
 
-    @Test @JsName("laysOutParentOnIdealSizeChangedNotIgnored")
-    fun `lays out parent on ideal-size changed when not ignored`() = verifyLayout(layout(ignoreChildIdealSize = false)) { it.idealSize = Size(100) }
+    @Test fun `lays out parent on ideal-size changed when not ignored`() = verifyLayout(layout(ignoreChildIdealSize = false)) { it.idealSize = Size(100) }
 
-    @Test @JsName("doesNotLayOutParentOnMinSizeChanged")
-    fun `does not lay out parent on min-size changed`() = verifyLayout(count = 1) { it.minimumSize = Size(100) }
+    @Test fun `does not lay out parent on min-size changed`() = verifyLayout(count = 1) { it.minimumSize = Size(100) }
 
-    @Test @JsName("laysOutParentOnMinSizeChangedNotIgnored")
-    fun `lays out parent on min-size changed when not ignored`() = verifyLayout(layout(ignoreChildMinSize = false)) { it.minimumSize = Size(100) }
+    @Test fun `lays out parent on min-size changed when not ignored`() = verifyLayout(layout(ignoreChildMinSize = false)) { it.minimumSize = Size(100) }
 
-    @Test @JsName("reflectsVisibilityChange")
-    fun `reflects visibility change`() {
+    @Test fun `reflects visibility change`() {
         val container = spyk<Container> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = spyk<View>(     ).apply { bounds = Rectangle(size = Size( 10.0,  10.0)) }
 
@@ -898,8 +847,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { childSurface.visible = true }
     }
 
-    @Test @JsName("reflectsTransformChange")
-    fun `reflects transform change`() {
+    @Test fun `reflects transform change`() {
         val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
         val childSurface   = mockk<GraphicsSurface>()
@@ -916,8 +864,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { childSurface.transform = Identity.rotate(57 * degrees) }
     }
 
-    @Test @JsName("installsThemeForDisplayedViews")
-    fun `installs theme for displayed views`() {
+    @Test fun `installs theme for displayed views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
@@ -932,8 +879,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { themeManager.update(child    ) }
     }
 
-    @Test @JsName("installsThemeForReAddedViews")
-    fun `installs theme for re-added views`() {
+    @Test fun `installs theme for re-added views`() {
         val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
@@ -953,8 +899,7 @@ class RenderManagerImplTests {
         verify(exactly = 2) { themeManager.update(child    ) }
     }
 
-    @Test @JsName("rendersWhenReAddedTopLevel")
-    fun `renders removed when re-added (top-level)`() {
+    @Test fun `renders removed when re-added (top-level)`() {
         val child     = spyk(view())
         val display   = display(child)
         val scheduler = ManualAnimationScheduler()
@@ -974,8 +919,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test @JsName("removesViewFromOldContainerWhenMovedToDisplay")
-    fun `removes view from old container when moved to display`() {
+    @Test fun `removes view from old container when moved to display`() {
         val child     = spyk(view())
         val container = container()
         val display   = display(container)
@@ -996,8 +940,7 @@ class RenderManagerImplTests {
         expect(true) { container.children.isEmpty() }
     }
 
-    @Test @JsName("removesViewFromDisplayWhenMovedToContainer")
-    fun `removes view from display when moved to container`() {
+    @Test fun `removes view from display when moved to container`() {
         val child     = spyk(view())
         val container = container()
         val display   = display(child, container)
@@ -1016,8 +959,7 @@ class RenderManagerImplTests {
         expect(1) { display.children.size }
     }
 
-    @Test @JsName("rendersMovedFromParentToDisplay")
-    fun `renders moved from parent to display`() {
+    @Test fun `renders moved from parent to display`() {
         val child     = spyk(view())
         val container = container()
 
@@ -1041,8 +983,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test @JsName("noOpRemovedReAddedSameParent")
-    fun `no-op removed re-added same parent`() {
+    @Test fun `no-op removed re-added same parent`() {
         val child     = spyk(view())
         val container = container()
 
@@ -1068,8 +1009,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child)
     }
 
-    @Test @JsName("rendersRemovedReAddedDifferentParent")
-    fun `renders removed re-added different parent`() {
+    @Test fun `renders removed re-added different parent`() {
         val child      = spyk(view())
         val container1 = container()
         val container2 = container()
@@ -1096,8 +1036,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test @JsName("rendersRemovedReAddedNestedDifferentParent")
-    fun `renders removed re-added nested different parent`() {
+    @Test fun `renders removed re-added nested different parent`() {
         val child      = spyk(view())
         val container1 = container()
         val container2 = container()
@@ -1125,8 +1064,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, child, 2)
     }
 
-    @Test @JsName("updatesTopLevelOnContentDirectionChange")
-    fun `updates top-level on content direction change`() {
+    @Test fun `updates top-level on content direction change`() {
         val child1  = spyk(view())
         val child2  = spyk(view())
         val observer = slot<ChangeObserver<Display>>()
@@ -1143,8 +1081,7 @@ class RenderManagerImplTests {
         verify { child2.contentDirectionChanged_() }
     }
 
-    @Test @JsName("updatesTopLevelOnMirrorChange")
-    fun `updates top-level on mirror change`() {
+    @Test fun `updates top-level on mirror change`() {
         val child1  = spyk(view())
         val child2  = spyk(view())
         val observer = slot<ChangeObserver<Display>>()
@@ -1161,8 +1098,7 @@ class RenderManagerImplTests {
         verify { child2.updateNeedsMirror() }
     }
 
-    @Test @JsName("notifiesTopLevelOfDisplayRectChange")
-    fun `notifies top level of display rect change`() {
+    @Test fun `notifies top level of display rect change`() {
         val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
 
         // Cannot use spyk since it has issues https://github.com/mockk/mockk/issues/342
@@ -1191,8 +1127,7 @@ class RenderManagerImplTests {
         verify { handleDisplayRectEvent(oldRect, newRect) }
     }
 
-    @Test @JsName("displayRectChangeWorksWhenEnabledEate")
-    fun `display rect change works when enabled late`() {
+    @Test fun `display rect change works when enabled late`() {
         val handleDisplayRectEvent = mockk<(Rectangle, Rectangle) -> Unit>()
 
         // Cannot use spyk since it has issues https://github.com/mockk/mockk/issues/342
@@ -1224,8 +1159,7 @@ class RenderManagerImplTests {
         verify { handleDisplayRectEvent(oldRect, newRect) }
     }
 
-    @Test @JsName("displayRectNotificationWorks")
-    fun `display rect notification works`() {
+    @Test fun `display rect notification works`() {
         data class Data(
                 val grandParent: Rectangle,
                 val parent     : Rectangle,
@@ -1270,8 +1204,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("coldDisplayRectCallWorks")
-    fun `cold display rect call works`() {
+    @Test fun `cold display rect call works`() {
         data class Data(
                 val grandParent: Rectangle,
                 val parent     : Rectangle,
@@ -1302,8 +1235,7 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test @JsName("stopsMonitoringDisplayRectWhenDisabled")
-    fun `stops monitoring display rect when disabled`() {
+    @Test fun `stops monitoring display rect when disabled`() {
         val child = spyk(view()).apply {
             monitorsDisplayRect = true
         }

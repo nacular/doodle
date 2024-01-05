@@ -5,8 +5,11 @@ plugins {
 kotlin {
     explicitApi()
 
-    jsTargets ()
-    jvmTargets()
+    jsTargets    ()
+    jvmTargets   ()
+    wasmJsTargets()
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         all {
@@ -24,6 +27,10 @@ kotlin {
             implementation(kotlin("test-annotations-common"))
         }
 
+        val jsCommon by creating { dependsOn(commonMain.get()) }
+
+        jsMain.get().dependsOn(jsCommon)
+
         jvmTest.dependencies {
             implementation(kotlin("test")        )
             implementation(libs.bundles.test.libs)
@@ -31,6 +38,10 @@ kotlin {
 
         jsTest.dependencies {
             implementation(kotlin("test-js"))
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(jsCommon)
         }
     }
 }

@@ -1,6 +1,5 @@
 package io.nacular.doodle.deviceinput
 
-import JsName
 import io.mockk.Ordering.ORDERED
 import io.mockk.Runs
 import io.mockk.every
@@ -44,8 +43,7 @@ import kotlin.test.Test
  * Created by Nicholas Eddy on 2/27/18.
  */
 class PointerInputManagerImplTests {
-    @Test @JsName("correctDefaultCursorOnInit")
-    fun `correct default cursor on init`() {
+    @Test fun `correct default cursor on init`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
 
@@ -55,8 +53,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 1) { inputService.cursor  = null    }
     }
 
-    @Test @JsName("displayCursorOnInit")
-    fun `display cursor on init`() {
+    @Test fun `display cursor on init`() {
         val display      = display(Help)
         val inputService = mockk<PointerInputService>()
 
@@ -66,8 +63,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 1) { inputService.cursor  = Help    }
     }
 
-    @Test @JsName("handlesDisplayCursorChanges")
-    fun `handles display cursor changes`() {
+    @Test fun `handles display cursor changes`() {
         val display      = display(Help)
         val inputService = mockk<PointerInputService>()
 
@@ -84,8 +80,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 1) { inputService.cursor = Move }
     }
 
-    @Test @JsName("cursorOnPointerEnterExitViewDisplay")
-    fun `correct cursor on pointer-enter,exit view - display`() {
+    @Test fun `correct cursor on pointer-enter,exit view - display`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
@@ -108,8 +103,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 2) { inputService.cursor = null }
     }
 
-    @Test @JsName("correctCursorOnCoveredViewCursorChanged")
-    fun `correct cursor on covered view cursor changed`() {
+    @Test fun `correct cursor on covered view cursor changed`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
@@ -140,8 +134,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 2) { inputService.cursor = Crosshair }
     }
 
-    @Test @JsName("displayCursorOverridesCoveredView")
-    fun `display cursor overrides covered view`() {
+    @Test fun `display cursor overrides covered view`() {
         val display      = display(Progress)
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
@@ -172,8 +165,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 5) { inputService.cursor = Progress }
     }
 
-    @Test @JsName("pointerDownNoHit")
-    fun `pointer down, no hit`() {
+    @Test fun `pointer down, no hit`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -195,8 +187,7 @@ class PointerInputManagerImplTests {
         verify(exactly = 0) { child.handlePointerEvent_(any()) }
     }
 
-    @Test @JsName("noEventPointerDownDisabled")
-    fun `no event pointer down, disabled`() {
+    @Test fun `no event pointer down, disabled`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -218,8 +209,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerDownDisabledGoesToParent")
-    fun `pointer down, disabled goes to parent`() {
+    @Test fun `pointer down, disabled goes to parent`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val grandParent  = spyk(Container())
@@ -260,8 +250,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerDownInformsHandler")
-    fun `pointer down, informs handler`() {
+    @Test fun `pointer down, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -286,8 +275,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerDownInformsParentHandler")
-    fun `pointer down, informs parent handler`() {
+    @Test fun `pointer down, informs parent handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val parent       = spyk(view())
@@ -318,8 +306,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerDragInformsHandler")
-    fun `pointer drag, informs handler`() {
+    @Test fun `pointer drag, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -344,8 +331,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointerMoveInformsHandler")
-    fun `pointer move, informs handler`() {
+    @Test fun `pointer move, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -371,8 +357,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("singleClickInformsHandler")
-    fun `single-click, informs handler`() {
+    @Test fun `single-click, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -399,8 +384,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("downUpOutsideInformsHandler")
-    fun `down, up outside, informs handler`() {
+    @Test fun `down, up outside, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -427,8 +411,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("downOutsideUpInsideInformsHandler")
-    fun `down outside, up inside, informs handler`() {
+    @Test fun `down outside, up inside, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -454,8 +437,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("upInsideInformsHandler")
-    fun `up inside, informs handler`() {
+    @Test fun `up inside, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -478,8 +460,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("doubleClickInformsHandler")
-    fun `double-click, informs handler`() {
+    @Test fun `double-click, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
@@ -502,8 +483,7 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test @JsName("pointersCleanedUpWhenViewDisabled")
-    fun `cleans up pointers when view disabled`() {
+    @Test fun `cleans up pointers when view disabled`() {
         val enabledChanged = slot<PropertyObserver<View, Boolean>>()
         val display        = display()
         val inputService   = mockk<PointerInputService>()

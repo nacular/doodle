@@ -1,6 +1,5 @@
 package io.nacular.doodle.core
 
-import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -20,7 +19,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 9/17/21.
  */
 class DisplayTests {
-    @Test @JsName("widthHeightWorks") fun `width + height works`() {
+    @Test fun `width + height works`() {
         val size    = Size(100, 97)
         val display = mockk<Display>().apply {
             every { this@apply.size } returns size
@@ -30,7 +29,7 @@ class DisplayTests {
         expect(size.height) { display.height }
     }
 
-    @Test @JsName("fillWorks") fun `fill works`() {
+    @Test fun `fill works`() {
         val display = mockk<Display>()
 
         display.fill(Red)
@@ -38,7 +37,7 @@ class DisplayTests {
         verify (exactly = 1) { display.fill(Red.paint) }
     }
 
-    @Test @JsName("centerWorks") fun `center works`() {
+    @Test fun `center works`() {
         val size    = Size(100, 97)
         val display = mockk<Display>().apply {
             every { this@apply.size } returns size
