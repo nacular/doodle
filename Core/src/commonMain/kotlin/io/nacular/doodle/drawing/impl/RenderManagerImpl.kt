@@ -212,6 +212,8 @@ public open class RenderManagerImpl(
             val highestAncestor = view.highestAncestor
 
             if (highestAncestor in display || highestAncestor in popups) {
+                view.display?.let { it -= view } // Remove from other display if any
+
                 view.addedToDisplay(display, this, accessibilityManager)
 
                 dirtyViews          += view

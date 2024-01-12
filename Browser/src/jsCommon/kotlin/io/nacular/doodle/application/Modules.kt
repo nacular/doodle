@@ -9,6 +9,8 @@ import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.document.Document
 import io.nacular.doodle.controls.modal.ModalManager
 import io.nacular.doodle.controls.modal.ModalManagerImpl
+import io.nacular.doodle.controls.popupmenu.MenuFactory
+import io.nacular.doodle.controls.popupmenu.MenuFactoryImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
@@ -78,7 +80,7 @@ public class Modules {
 
         /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bindSingleton<ViewFinder>                  { ViewFinderImpl                   (instance()                        ) }
+            bindSingleton<ViewFinder>                  { ViewFinderImpl                   (                                  ) }
             bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (document,   instance()            ) }
             bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                        ) }
             bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()) }
@@ -179,6 +181,11 @@ public class Modules {
         /** Enable use of [UserPreferences]. */
         public val UserPreferencesModule: Module = Module(allowSilentOverride = true, name = "UserPreferences") {
             bindSingleton<UserPreferences>{ UserPreferencesImpl(window) }
+        }
+
+        /** Enable use of [MenuFactory]. */
+        public val MenuFactoryModule: Module = Module(allowSilentOverride = true, name = "MenuFactory") {
+            bindSingleton<MenuFactory> { MenuFactoryImpl(instance(), instance(), instanceOrNull()) }
         }
     }
 }

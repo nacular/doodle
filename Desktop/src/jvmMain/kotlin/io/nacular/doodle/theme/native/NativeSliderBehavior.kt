@@ -11,6 +11,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import io.nacular.doodle.utils.Orientation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -21,7 +22,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.MOUSE_DRAGGED
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import javax.swing.BoundedRangeModel
-import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -31,7 +31,7 @@ import kotlin.math.pow
 internal class NativeSliderBehavior<T>(
         private val appScope                 : CoroutineScope,
         private val uiDispatcher             : CoroutineContext,
-        private val window                   : JPanel,
+        private val window                   : WindowDiscovery,
         private val swingGraphicsFactory     : SwingGraphicsFactory,
         private val focusManager             : FocusManager?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?
@@ -208,7 +208,7 @@ internal class NativeSliderBehavior<T>(
                 idealSize = nativePeer.preferredSize.run { Size(width, height) }
             }
 
-            window.add(nativePeer)
+            window.frameFor(view)?.add(nativePeer)
 
             if (view.hasFocus) {
                 nativePeer.requestFocusInWindow()
@@ -232,7 +232,7 @@ internal class NativeSliderBehavior<T>(
         }
 
         appScope.launch(uiDispatcher) {
-            window.remove(nativePeer)
+            window.frameFor(view)?.remove(nativePeer)
         }
     }
 }

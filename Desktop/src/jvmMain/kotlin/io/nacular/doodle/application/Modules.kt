@@ -4,12 +4,16 @@ import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.modal.ModalManager
 import io.nacular.doodle.controls.modal.ModalManagerImpl
+import io.nacular.doodle.controls.popupmenu.MenuFactory
+import io.nacular.doodle.controls.popupmenu.MenuFactoryImpl
+import io.nacular.doodle.core.InternalDisplay
+import io.nacular.doodle.core.Window
+import io.nacular.doodle.core.WindowGroup
+import io.nacular.doodle.core.WindowImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.datatransport.dragdrop.impl.DragManagerImpl
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManagerImpl
-import io.nacular.doodle.deviceinput.PointerInputManager
-import io.nacular.doodle.deviceinput.PointerInputManagerImpl
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.deviceinput.ViewFinderImpl
 import io.nacular.doodle.drawing.FontLoader
@@ -33,6 +37,7 @@ import io.nacular.doodle.image.impl.UrlDecoder
 import io.nacular.doodle.system.KeyInputService
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
+import io.nacular.doodle.system.impl.DesktopPointerInputManagers
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.theme.native.NativePointerPreprocessor
@@ -42,13 +47,15 @@ import io.nacular.doodle.utils.RelativePositionMonitor
 import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
+import org.kodein.di.bindFactory
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
+import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 import org.kodein.di.singleton
 import java.net.URLDecoder
-import java.util.Base64
+import java.util.*
 
 /**
  * Created by Nicholas Eddy on 5/20/21.
@@ -66,12 +73,12 @@ public class Modules {
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
             bindInstance { NativePointerPreprocessor() }
 
-            bindSingleton<ViewFinder>          { ViewFinderImpl         (instance()                                                               ) }
-            bindSingleton<PointerInputService> { PointerInputServiceImpl(instance(), instance(), instanceOrNull()                                 ) }
-            bindSingleton<PointerInputManager> { PointerInputManagerImpl(instance(), instance(), instance(), instance<NativePointerPreprocessor>()) }
+            bindSingleton<ViewFinder>          { ViewFinderImpl            (                                        ) }
+            bindSingleton<PointerInputService> { PointerInputServiceImpl   (instance(), instance(), instanceOrNull()) }
+            bindSingleton                      { DesktopPointerInputManagers(instance(), instance(), instance(), instance<NativePointerPreprocessor>())  }
         }
 
-        /** Enables keyboard use. Includes [FocusModule]. */        /** Enables keyboard use. Includes [FocusModule]. */
+        /** Enables keyboard use. Includes [FocusModule]. */
         public val KeyboardModule: Module = Module(allowSilentOverride = true, name = "Keyboard") {
             importOnce(FocusModule)
 
@@ -117,14 +124,26 @@ public class Modules {
         /** Enable use of [PopupManager]. */
         public val PopupModule: Module = Module(allowSilentOverride = true, name = "Popup") {
             bindSingleton<RelativePositionMonitor> { RelativePositionMonitorImpl() }
-            bindSingleton<PopupManager>            { PopupManagerImpl(instance(), instance(), instance()) }
+            bindSingleton<PopupManager>            {
+                factory<Window, PopupManager>()(instance<WindowGroup>().main)
+            }
+
+            bindFactory<Window, PopupManager> {
+                PopupManagerImpl(it.display as InternalDisplay, (it as WindowImpl).renderManager, instance())
+            }
         }
 
         /** Enable use of [ModalManager]; includes [PopupModule]. */
         public val ModalModule: Module = Module(allowSilentOverride = true, name = "Modal") {
             importOnce(PopupModule)
 
-            bindSingleton<ModalManager>{ ModalManagerImpl(instance(), instanceOrNull()) }
+            bindSingleton<ModalManager>{
+                factory<Window, ModalManager>()(instance<WindowGroup>().main)
+            }
+
+            bindFactory<Window, ModalManager> {
+                ModalManagerImpl(factory<Window, PopupManager>()(it), instanceOrNull())
+            }
         }
 
         /** Enable use of [PathMetrics]. */
@@ -135,6 +154,17 @@ public class Modules {
         /** Enable use of [UserPreferences]. */
         public val UserPreferencesModule: Module = Module(allowSilentOverride = true, name = "UserPreferences") {
             bindSingleton<UserPreferences>{ UserPreferencesImpl() }
+        }
+
+        /** Enable use of [MenuFactory]. */
+        public val MenuFactoryModule: Module = Module(allowSilentOverride = true, name = "MenuFactory") {
+            bindSingleton<MenuFactory>{
+                factory<Window, MenuFactory>()(instance<WindowGroup>().main)
+            }
+
+            bindFactory<Window, MenuFactory> {
+                MenuFactoryImpl(factory<Window, PopupManager>()(it), instance(), instanceOrNull())
+            }
         }
     }
 }

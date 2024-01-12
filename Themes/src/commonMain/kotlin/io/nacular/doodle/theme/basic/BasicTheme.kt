@@ -45,8 +45,6 @@ import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.Display
-import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -72,6 +70,7 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
+import io.nacular.doodle.theme.Scene
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
@@ -127,10 +126,10 @@ private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer
 
 @Suppress("UNCHECKED_CAST")
 public open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
-    override fun install(display: Display, all: Sequence<View>) {
+    override fun install(scene: Scene) {
         configProvider.config = config
 
-        super.install(display, all)
+        super.install(scene)
     }
 
     public open val config: BasicThemeConfig = object: BasicThemeConfig {}

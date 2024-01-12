@@ -17,6 +17,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.Dimension
@@ -32,11 +33,10 @@ import java.nio.file.Files
 import javax.swing.JButton
 import javax.swing.JFileChooser
 import javax.swing.JFileChooser.APPROVE_OPTION
-import javax.swing.JPanel
 import javax.swing.filechooser.FileFilter
 import kotlin.coroutines.CoroutineContext
 
-internal class NativeFileSelectorStylerImpl(window: JPanel): NativeFileSelectorStyler {
+internal class NativeFileSelectorStylerImpl(window: WindowDiscovery): NativeFileSelectorStyler {
     private val fileHandler = FileSelectionHandler(window)
 
     override fun invoke(fileSelector: FileSelector, behavior: Behavior<FileSelector>): Behavior<FileSelector> = NativeFileSelectorBehaviorWrapper(
@@ -46,7 +46,7 @@ internal class NativeFileSelectorStylerImpl(window: JPanel): NativeFileSelectorS
     )
 }
 
-private class FileSelectionHandler(private val window: JPanel) {
+private class FileSelectionHandler(private val window: WindowDiscovery) {
     private val fileChooser: JFileChooser by lazy {
         JFileChooser().apply { isAcceptAllFileFilterUsed = false }
     }
@@ -77,9 +77,11 @@ private class FileSelectionHandler(private val window: JPanel) {
                     }
                 }
 
-                showOpenDialog(window).let { result ->
-                    if (result == APPROVE_OPTION) {
-                        return fileChooser.selectedFiles.map { SimpleFile(it) }
+                window.frameFor(fileSelector)?.let {
+                    showOpenDialog(it).let { result ->
+                        if (result == APPROVE_OPTION) {
+                            return fileChooser.selectedFiles.map { SimpleFile(it) }
+                        }
                     }
                 }
             }
@@ -101,7 +103,7 @@ private class NativeFileSelectorBehaviorWrapper(private val fileHandler: FileSel
 internal class NativeFileSelectorBehavior(
         private val appScope                 : CoroutineScope,
         private val uiDispatcher             : CoroutineContext,
-        private val window                   : JPanel,
+        private val window                   : WindowDiscovery,
         private val swingGraphicsFactory     : SwingGraphicsFactory,
         private val focusManager             : FocusManager?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?,
@@ -199,7 +201,7 @@ internal class NativeFileSelectorBehavior(
                 idealSize = nativePeer.preferredSize.run { Size(width, height) }
             }
 
-            window.add(nativePeer)
+            window.frameFor(view)?.add(nativePeer)
 
             if (view.hasFocus) {
                 nativePeer.requestFocusInWindow()
@@ -221,7 +223,7 @@ internal class NativeFileSelectorBehavior(
         }
 
         appScope.launch(uiDispatcher) {
-            window.remove(nativePeer)
+            window.frameFor(view)?.remove(nativePeer)
         }
     }
 }

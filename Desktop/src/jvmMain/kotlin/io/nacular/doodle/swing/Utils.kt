@@ -16,14 +16,14 @@ import io.nacular.doodle.system.Cursor.Companion.Text
 import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.system.Cursor.Companion.Wait
 import io.nacular.doodle.system.Cursor.Companion.custom
-import org.jetbrains.skiko.SkiaLayer
+import java.awt.Component
 import java.awt.Cursor
 import java.awt.event.MouseEvent
 
 /**
  * Created by Nicholas Eddy on 10/4/21.
  */
-internal fun MouseEvent.location(window: SkiaLayer): Point {
+internal fun MouseEvent.location(window: Component): Point {
     val windowScreenLocation = window.locationOnScreen
     return locationOnScreen.run { Point(x - windowScreenLocation.x, y - windowScreenLocation.y) }
 }

@@ -530,3 +530,24 @@ private class ObservableProperty<S, T>(initial: T, private val equality: (T, T) 
         }
     }
 }
+
+/**
+ * Creates a new Pool that is based on another of a different type.
+ *
+ * @param T type of the original Pool
+ * @param V type of the new Pool
+ * @param by way to create an observer for the new Pool based on one for the original
+ */
+public fun <T, V> Pool<T>.map(by: (V) -> T): Pool<V> = object: Pool<V> {
+    private val map = mutableMapOf<V, T>()
+
+    override fun plusAssign(item: V) {
+        this@map += by(item).also {
+            map[item] = it
+        }
+    }
+
+    override fun minusAssign(item: V) {
+        map[item]?.let { this@map -= it }
+    }
+}

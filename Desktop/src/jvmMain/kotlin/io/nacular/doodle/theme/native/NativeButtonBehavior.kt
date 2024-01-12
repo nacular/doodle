@@ -3,13 +3,14 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
-import java.awt.event.MouseEvent.*
+import java.awt.event.MouseEvent.MOUSE_DRAGGED
+import java.awt.event.MouseEvent.MOUSE_MOVED
 import javax.swing.JButton
-import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
 
@@ -45,14 +46,14 @@ internal class JButtonPeer(focusManager: FocusManager?, button: Button): JButton
 }
 
 internal class NativeButtonBehavior(
-        window                   : JPanel,
-        appScope                 : CoroutineScope,
-        uiDispatcher             : CoroutineContext,
-        swingGraphicsFactory     : SwingGraphicsFactory,
-        textMetrics              : TextMetrics,
-        swingFocusManager        : javax.swing.FocusManager,
-        focusManager             : FocusManager?,
-        nativePointerPreprocessor: NativePointerPreprocessor?
+    window                   : WindowDiscovery,
+    appScope                 : CoroutineScope,
+    uiDispatcher             : CoroutineContext,
+    swingGraphicsFactory     : SwingGraphicsFactory,
+    textMetrics              : TextMetrics,
+    swingFocusManager        : javax.swing.FocusManager,
+    focusManager             : FocusManager?,
+    nativePointerPreprocessor: NativePointerPreprocessor?
 ): AbstractNativeButtonBehavior<Button, JButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer (button: Button) = JButtonPeer(focusManager, button)
 }

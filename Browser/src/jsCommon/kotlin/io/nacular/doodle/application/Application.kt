@@ -62,6 +62,8 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
+import io.nacular.doodle.theme.Scene
+import io.nacular.doodle.theme.SingleDisplayScene
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.PerformanceTimer
 import io.nacular.doodle.utils.IdGenerator
@@ -237,27 +239,28 @@ private open class ApplicationHolderImpl protected constructor(
         val userAgent = window.navigator.userAgent
         val isSafari  = "Safari" in userAgent && "Chrome" !in userAgent
 
-        bindSingleton<Timer>                                       { PerformanceTimer          (window.performance                                                    ) }
-        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                ) }
-        bindSingleton<Display>                                     { DisplayImpl               (instance(), instance(), root                                          ) }
-        bindSingleton<Scheduler>                                   { SchedulerImpl             (window, instance()                                                ) }
-        bindSingleton<SvgFactory>                                  { SvgFactoryImpl            (root, document                                                        ) }
-        bindSingleton<IdGenerator>                                 { SimpleIdGenerator         (idPrefix                                                              ) }
-        bindSingleton<HtmlFactory>                                 { HtmlFactoryImpl           (root, document                                                        ) }
-        bindSingleton<TextFactory>                                 { TextFactoryImpl           (instance()                                                            ) }
-        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
-        bindSingleton<ElementRuler>                                { ElementRulerImpl          (instance()                                                            ) }
-        bindSingleton<SystemStyler>                                { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
-        bindSingleton<CanvasFactory>                               { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), isSafari ) }
-        bindSingleton<RenderManager>                               { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
-        bindSingleton<FontSerializer>                              { FontSerializerImpl        (instance()                                                            ) }
-        bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (window                                                            ) } // FIXME: Provide fallback in case not supported
-        bindSingleton<GraphicsDevice<RealGraphicsSurface>>         { RealGraphicsDevice        (instance()                                                            ) }
-        bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
+        bind<Timer>                                      () with singleton { PerformanceTimer          (window.performance                                                    ) }
+        bind<Scene>                                      () with singleton { SingleDisplayScene        (instance()                                                            ) }
+        bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                ) }
+        bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
+        bind<Scheduler>                                  () with singleton { SchedulerImpl             (window, instance()                                                    ) }
+        bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                        ) }
+        bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
+        bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
+        bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                            ) }
+        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
+        bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                            ) }
+        bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
+        bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), isSafari  ) }
+        bind<RenderManager>                              () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
+        bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                            ) }
+        bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (window                                                                ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
+        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
 
         // TODO: Can this be handled better?
-        bindSingleton                                              { instance<Display>     () as DisplayImpl }
-        bindSingleton<InternalDisplay>                             { instance<DisplayImpl> ()                }
+        bind<DisplayImpl>    () with singleton { instance<Display>     () as DisplayImpl }
+        bind<InternalDisplay>() with singleton { instance<DisplayImpl> ()                }
 
         importAll(modules, allowOverride = true)
     }

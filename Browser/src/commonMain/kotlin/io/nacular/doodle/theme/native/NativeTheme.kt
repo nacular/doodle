@@ -200,8 +200,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
 
             bindBehavior<RadioButton>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
-                it.behavior =
-                    NativeRadioButtonBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
+                it.behavior = NativeRadioButtonBehavior(instance(), instance(), instanceOrNull(), it) as Behavior<Button>
             }
         }
 

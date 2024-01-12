@@ -1,28 +1,29 @@
 package io.nacular.doodle.application
 
-import io.nacular.doodle.core.Display
-import io.nacular.doodle.core.InternalDisplay
-import io.nacular.doodle.core.impl.DisplayImpl
+import io.nacular.doodle.core.Window
+import io.nacular.doodle.core.WindowGroup
+import io.nacular.doodle.core.WindowGroupImpl
+import io.nacular.doodle.core.WindowImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
-import io.nacular.doodle.deviceinput.PointerInputManager
-import io.nacular.doodle.drawing.GraphicsDevice
-import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.DesktopRenderManagerImpl
-import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
-import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
 import io.nacular.doodle.scheduler.impl.StrandImpl
+import io.nacular.doodle.system.impl.DesktopPointerInputManagers
+import io.nacular.doodle.theme.InternalThemeManager
+import io.nacular.doodle.theme.Scene
 import io.nacular.doodle.time.Timer
 import io.nacular.doodle.time.impl.TimerImpl
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,7 +38,6 @@ import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.PathMeasure
 import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkikoGestureEvent
 import org.jetbrains.skiko.SkikoInputEvent
 import org.jetbrains.skiko.SkikoKeyboardEvent
@@ -50,15 +50,16 @@ import org.kodein.di.DirectDI
 import org.kodein.di.bind
 import org.kodein.di.bindFactory
 import org.kodein.di.bindInstance
+import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
+import org.kodein.di.provider
 import org.kodein.di.singleton
-import java.awt.Dimension
-import javax.swing.JFrame
-import javax.swing.JFrame.EXIT_ON_CLOSE
+import java.awt.Toolkit
 import javax.swing.UIManager
+import kotlin.system.exitProcess
 
 /**
  * Created by Nicholas Eddy on 5/14/21.
@@ -91,10 +92,10 @@ internal class CustomSkikoView: SkikoView {
 }
 
 private open class ApplicationHolderImpl protected constructor(
-        previousInjector    : DirectDI,
-        allowDefaultDarkMode: Boolean      = false,
-        modules             : List<Module> = emptyList(),
-        private val isNested: Boolean      = false): Application {
+    previousInjector    : DirectDI,
+    allowDefaultDarkMode: Boolean      = false,
+    modules             : List<Module> = emptyList()
+): Application {
 
     private inner class ShutdownHook: Thread() {
         override fun run() {
@@ -103,16 +104,10 @@ private open class ApplicationHolderImpl protected constructor(
         }
     }
 
-    private val appScope      = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val skiaWindow    = JFrame().apply {
-        defaultCloseOperation = EXIT_ON_CLOSE
-    }
+    private val defaultFontName = UIManager.getDefaults().getFont("defaultFont")?.fontName ?: "Courier"
 
-    private val skiaLayer = SkiaLayer().apply {
-        addView(CustomSkikoView())
-    }
-
-    private val defaultFont    = Font(Typeface.makeFromName("Courier", FontStyle(300, 5, UPRIGHT)), 13f)
+    private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val defaultFont    = Font(Typeface.makeFromName(defaultFontName.also { println("DEFAULT FONT: $it") }, FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.default)
     }
@@ -120,28 +115,47 @@ private open class ApplicationHolderImpl protected constructor(
     private var injector = direct {
         extend(previousInjector, copy = All)
 
-        bindInstance                                               { appScope                                                                                                  }
-        bindInstance                                               { Clock.System                                                                                              }
-        bindInstance                                               { skiaWindow                                                                                                }
-        bindInstance                                               { skiaLayer                                                                                                 }
-        bindInstance                                               { defaultFont                                                                                               }
-        bindInstance                                               { fontCollection                                                                                            }
-        bindFactory<Unit, PathMeasure>                             { PathMeasure               (                                                                             ) }
-        bindSingleton<Timer>                                       { TimerImpl                 (instance()                                                                   ) }
-        bindSingleton<Strand>                                      { StrandImpl                (instance(), instance()                                                       ) }
-        bindSingleton<Display>                                     { DisplayImpl               (instance(), Dispatchers.Swing, instance(), instance(), instance(), instance()) }
-        bindSingleton<Scheduler>                                   { SchedulerImpl             (instance(), instance()                                                       ) }
-        bindSingleton<TextMetrics>                                 { TextMetricsImpl           (instance(), instance()                                                       ) }
-        bindSingleton<RenderManager>                               { DesktopRenderManagerImpl  (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()       ) }
-        bindSingleton<AnimationScheduler>                          { AnimationSchedulerImpl    (instance(), Dispatchers.Swing, instance()                                    ) }
-        bindSingleton<GraphicsDevice<RealGraphicsSurface>>         { RealGraphicsDevice        (instance()                                                                   ) }
-        bindSingleton<GraphicsSurfaceFactory<RealGraphicsSurface>> { RealGraphicsSurfaceFactory(instance(), instance(), instance()                                           ) }
+        bindInstance                      { appScope          }
+        bindInstance                      { Clock.System      }
+        bindInstance<CoroutineDispatcher> { Dispatchers.Swing }
+
+        bindInstance                      { defaultFont    }
+        bindInstance                      { fontCollection }
+        bindFactory<Unit, PathMeasure>    { PathMeasure()  }
+
+        bind<Timer>             () with singleton { TimerImpl             (instance()                        ) }
+        bind<Scene>             () with singleton { MultiDisplayScene     (provider()                        ) }
+        bind<Strand>            () with singleton { StrandImpl            (instance(), instance()            ) }
+        bind<Scheduler>         () with singleton { SchedulerImpl         (instance(), instance()            ) }
+        bind<TextMetrics>       () with singleton { TextMetricsImpl       (instance(), instance()            ) }
+        bind<AnimationScheduler>() with singleton { AnimationSchedulerImpl(instance(), instance(), instance()) }
+
+        bind<WindowGroup>() with singleton {
+            WindowGroupImpl { undecorated ->
+                WindowImpl(
+                    appScope       = instance(),
+                    defaultFont    = instance(),
+                    uiDispatcher   = instance(),
+                    fontCollection = instance(),
+                    graphicsDevices = { layer ->
+                        RealGraphicsDevice(RealGraphicsSurfaceFactory(layer, instance(), instance()))
+                    },
+                    renderManagers = { display ->
+                        DesktopRenderManagerImpl(display, instance(), instanceOrNull(), instanceOrNull())
+                    },
+                    undecorated = undecorated,
+                    size = Toolkit.getDefaultToolkit().screenSize.run { Size(width, height) }
+                )
+            }
+        }
+
+        bindSingleton { instance<WindowGroup>().main.display }
+
+        bindProvider<WindowGroupImpl> { instance<WindowGroup>() as WindowGroupImpl }
 
         // TODO: Can this be handled better?
-        bindSingleton                                              { instance<Display>           () as DisplayImpl                                                             }
-        bindSingleton<InternalDisplay>                             { instance<DisplayImpl>       ()                                                                            }
-        bindSingleton                                              { instance<AnimationScheduler>() as AnimationSchedulerImpl                                                  }
-        bindSingleton                                              { instance<TextMetrics>       () as TextMetricsImpl                                                         }
+        bindSingleton { instance<AnimationScheduler>() as AnimationSchedulerImpl }
+        bindSingleton { instance<TextMetrics>       () as TextMetricsImpl        }
 
         modules.forEach {
             import(it, allowOverride = true)
@@ -161,19 +175,24 @@ private open class ApplicationHolderImpl protected constructor(
         Runtime.getRuntime().addShutdownHook(ShutdownHook())
     }
 
+    private val shutdownListener = { _: Window ->
+        exitProcess(0)
+    }
+
     protected fun run() {
-        skiaLayer.attachTo(skiaWindow.contentPane)
+        injector.instanceOrNull<DesktopPointerInputManagers>()
+        injector.instanceOrNull<KeyboardFocusManager>       ()
+        injector.instanceOrNull<DragManager>                ()
+        val windowGroup = injector.instanceOrNull<WindowGroupImpl>()?.also {
+            injector.instanceOrNull<InternalThemeManager>()
 
-        skiaWindow.preferredSize = Dimension(800, 600)
-        skiaWindow.pack()
-        skiaWindow.isVisible = true
-
-        injector.instance      <RenderManager>       ()
-        injector.instanceOrNull<PointerInputManager> ()
-        injector.instanceOrNull<KeyboardFocusManager>()
-        injector.instanceOrNull<DragManager>         ()
+            it.start()
+        }
 
         application = injector.instance()
+
+        // FIXME: Allow the app to make this decision
+        windowGroup?.main?.closed?.plusAssign(shutdownListener)
     }
 
     override fun shutdown() {
@@ -181,15 +200,20 @@ private open class ApplicationHolderImpl protected constructor(
             return
         }
 
+        shutdownListener
+
         application?.shutdown()
 
-        (injector.instance<Scheduler>                    () as? SchedulerImpl)?.shutdown()
-        injector.instance<DisplayImpl>                   ().shutdown()
-        injector.instance<AnimationSchedulerImpl>        ().shutdown()
-        injector.instanceOrNull<DragManager>             ()?.shutdown()
-        injector.instanceOrNull<PointerInputManager>     ()?.shutdown()
-        injector.instanceOrNull<KeyboardFocusManager>    ()?.shutdown()
-//        injector.instanceOrNull<AccessibilityManagerImpl>()?.shutdown()
+        injector.instanceOrNull<WindowGroupImpl>()?.let {
+            it.main.closed -= shutdownListener
+            it.shutdown()
+        }
+
+        (injector.instance<Scheduler>                       () as? SchedulerImpl)?.shutdown()
+        injector.instance<AnimationSchedulerImpl>           ().shutdown()
+        injector.instanceOrNull<DragManager>                ()?.shutdown()
+        injector.instanceOrNull<DesktopPointerInputManagers>()?.shutdown()
+        injector.instanceOrNull<KeyboardFocusManager>       ()?.shutdown()
 
         injector = direct {}
 

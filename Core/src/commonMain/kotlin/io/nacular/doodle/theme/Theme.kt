@@ -17,12 +17,18 @@ import io.nacular.doodle.utils.observable
  */
 public interface Theme {
     /**
-     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s present in the [Display].
+     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s and [Display]s.
      *
-     * @param display
-     * @param all the Views (recursively) within the Display
+     * @param scene to apply the Theme to
      */
-    public fun install(display: Display, all: Sequence<View>)
+    public fun install(scene: Scene)
+
+    /**
+     * Called whenever a new View is added to a [Scene] this Theme has already been installed to.
+     *
+     * @param view being added to the scene
+     */
+    public fun install(view: View)
 
     // FIXME: Add uninstall once there's a clean way to support that given ad hoc behavior registration
 }
@@ -52,15 +58,21 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
     internal abstract fun update(view: View)
 }
 
+@Internal
+public interface Scene {
+    public fun forEachView   (block: (View   ) -> Unit)
+    public fun forEachDisplay(block: (Display) -> Unit)
+}
+
 /** @suppress */
 @Internal
-public class ThemeManagerImpl(private val display: InternalDisplay): InternalThemeManager() {
+public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() {
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
     override var selected: Theme? by observable(null) { old,new ->
         new?.apply {
             themes += this
-            install(display, allViews)
+            install(scene)
         }
 
         (selectionChanged as PropertyObserversImpl).forEach { it(this, old, new) }
@@ -70,20 +82,32 @@ public class ThemeManagerImpl(private val display: InternalDisplay): InternalThe
 
     override fun update(view: View) {
         if (view.acceptsThemes) {
-            selected?.install(display, sequenceOf(view))
+            selected?.install(view)
         }
+    }
+}
+
+@Internal
+public class SingleDisplayScene(private val display: InternalDisplay): Scene {
+
+    private class DummyRoot(children: List<View>): Node<View> {
+        override val value    = object: View() {}
+        override val children = children.asSequence().map { NodeAdapter(it) }
+    }
+
+    private class NodeAdapter(override val value: View): Node<View> {
+        override val children get() = value.children_.asSequence().map { NodeAdapter(it) }
     }
 
     private val allViews: Sequence<View> get() = Sequence {
         BreadthFirstTreeIterator(DummyRoot(display.popups + display.children))
     }.drop(1).filter { it.acceptsThemes }
-}
 
-private class DummyRoot(children: List<View>): Node<View> {
-    override val value    = object: View() {}
-    override val children = children.asSequence().map { NodeAdapter(it) }
-}
+    override fun forEachView(block: (View) -> Unit) {
+        allViews.forEach(block)
+    }
 
-private class NodeAdapter(override val value: View): Node<View> {
-    override val children get() = value.children_.asSequence().map { NodeAdapter(it) }
+    override fun forEachDisplay(block: (Display) -> Unit) {
+        block(this.display)
+    }
 }

@@ -18,6 +18,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +34,6 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JPasswordField
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -85,7 +85,7 @@ public interface NativeTextFieldBehaviorModifierBuilder {
 }
 
 internal class NativeTextFieldStylerImpl(
-        private val window              : JPanel,
+        private val window              : WindowDiscovery,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
         private val defaultFont         : SkiaFont,
@@ -108,7 +108,7 @@ internal class NativeTextFieldStylerImpl(
 }
 
 private class NativeTextFieldBehaviorWrapper(
-                    window              : JPanel,
+                    window              : WindowDiscovery,
                     appScope            : CoroutineScope,
                     uiDispatcher        : CoroutineContext,
                     defaultFont         : SkiaFont,
@@ -178,7 +178,7 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
 }
 
 internal open class NativeTextFieldBehavior(
-        private val window              : JPanel,
+        private val window              : WindowDiscovery,
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
         private val defaultFont         : SkiaFont,
@@ -423,7 +423,7 @@ internal open class NativeTextFieldBehavior(
         appScope.launch(uiDispatcher) {
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
-            window.add(nativePeer)
+            window.frameFor(view)?.add(nativePeer)
             nativePeer.revalidate()
 
             if (view.hasFocus) {
@@ -457,7 +457,7 @@ internal open class NativeTextFieldBehavior(
         }
 
         appScope.launch(uiDispatcher) {
-            window.remove(nativePeer)
+            window.frameFor(view)?.remove(nativePeer)
         }
     }
 

@@ -1,15 +1,18 @@
 package io.nacular.doodle.system
 
+import io.nacular.doodle.core.Display
 
 public interface PointerInputService {
-    public var cursor     : Cursor?
-    public var toolTipText: String
+    public fun getCursor     (display: Display                 ): Cursor?
+    public fun setCursor     (display: Display, cursor: Cursor?)
+    public fun getToolTipText(display: Display                 ): String
+    public fun setToolTipText(display: Display, text: String   )
 
-    public operator fun plusAssign (listener: Listener)
-    public operator fun minusAssign(listener: Listener)
+    public fun addListener   (display: Display, listener: Listener)
+    public fun removeListener(display: Display, listener: Listener)
 
-    public operator fun plusAssign (preprocessor: Preprocessor)
-    public operator fun minusAssign(preprocessor: Preprocessor)
+    public fun addPreprocessor   (display: Display, preprocessor: Preprocessor)
+    public fun removePreprocessor(display: Display, preprocessor: Preprocessor)
 
     public interface Listener {
         public operator fun invoke(event: SystemPointerEvent)

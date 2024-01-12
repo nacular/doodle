@@ -2,7 +2,7 @@
 kotlinVersion     = { strictly = "1.9.22" }
 dateTimeVersion   = { strictly = "0.5.0"  }
 coroutinesVersion = { strictly = "1.8.0-RC"  }
-skikoVersion      = { strictly = "0.7.79" }
+skikoVersion      = { strictly = "0.7.90" }
 kodeinVersion     = { strictly = "7.21.1" }
 measuredVersion   = { strictly = "0.4.0-SNAPSHOT" }
 dokkaVersion      = { strictly = "1.9.0"  }

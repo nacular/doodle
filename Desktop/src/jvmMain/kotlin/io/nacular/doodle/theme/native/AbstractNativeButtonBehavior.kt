@@ -12,24 +12,23 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
-
 internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
-        private   val window                   : JPanel,
-        private   val appScope                 : CoroutineScope,
-        private   val uiDispatcher             : CoroutineContext,
-                      textMetrics              : TextMetrics,
-        private   val swingGraphicsFactory     : SwingGraphicsFactory,
-        private   val swingFocusManager        : javax.swing.FocusManager,
-        protected val focusManager             : FocusManager?,
-        private   val nativePointerPreprocessor: NativePointerPreprocessor?
+    private   val window                   : WindowDiscovery,
+    private   val appScope                 : CoroutineScope,
+    private   val uiDispatcher             : CoroutineContext,
+                  textMetrics              : TextMetrics,
+    private   val swingGraphicsFactory     : SwingGraphicsFactory,
+    private   val swingFocusManager        : javax.swing.FocusManager,
+    protected val focusManager             : FocusManager?,
+    private   val nativePointerPreprocessor: NativePointerPreprocessor?
 ): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) where P: JComponent, P: AbstractNativeButtonBehavior.Peer {
 
     internal interface Peer {
@@ -106,7 +105,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
                 idealSize = nativePeer.preferredSize.run { Size(width, height) }
             }
 
-            window.add(nativePeer)
+            window.frameFor(view)?.add(nativePeer)
 
             if (view.hasFocus) {
                 nativePeer.requestFocusInWindow()
@@ -130,7 +129,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         nativePointerPreprocessor?.remove(view)
 
         appScope.launch(uiDispatcher) {
-            window.remove(nativePeer)
+            window.frameFor(view)?.remove(nativePeer)
 
             destroyPeer(view, nativePeer)
         }

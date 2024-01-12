@@ -1,6 +1,9 @@
 package io.nacular.doodle.datatransport.dragdrop.impl
 
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.WindowGroupImpl
+import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.datatransport.DataBundle
 import io.nacular.doodle.datatransport.Files
 import io.nacular.doodle.datatransport.LocalFile
@@ -55,11 +58,13 @@ import java.awt.Point as AwtPoint
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-        private val skiaLayer          : SkiaLayer,
-        private val viewFinder         : ViewFinder,
-        private val defaultFont        : Font,
-        private val fontCollection     : FontCollection): DragManager, DragGestureListener {
+                windowGroup    : WindowGroupImpl,
+    private val viewFinder     : ViewFinder,
+    private val defaultFont    : Font,
+    private val fontCollection : FontCollection
+): DragManager, DragGestureListener {
 
+    private val displays               = mutableMapOf<SkiaLayer, Display>()
     private var dropAllowed            = false
     private var currentAction          = null as Action?
     private var currentDropHandler     = null as Pair<View, DropReceiver>?
@@ -119,17 +124,17 @@ internal class DragManagerImpl(
         override fun <T> contains(type: MimeType<T>) = type in support
     }
 
-    init {
-        dragSource.createDefaultDragGestureRecognizer(skiaLayer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
+    private fun setupDisplay(display: DisplayImpl) {
+        dragSource.createDefaultDragGestureRecognizer(display.skiaLayer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
 
-        skiaLayer.transferHandler = object: TransferHandler() {
+        display.skiaLayer.transferHandler = object: TransferHandler() {
             override fun canImport(support: TransferSupport): Boolean {
                 (dragOperation?.bundle ?: createBundle(support)).let {
                     if (currentDropHandler == null) {
                         dropAllowed = false
                     }
 
-                    dropAllowed = dragUpdate(it, action(support), support.dropLocation.dropPoint.run { Point(x, y) })
+                    dropAllowed = dragUpdate(display, it, action(support), support.dropLocation.dropPoint.run { Point(x, y) })
                 }
 
                 return dropAllowed
@@ -162,6 +167,19 @@ internal class DragManagerImpl(
                 return succeeded
             }
         }
+
+        displays[display.skiaLayer] = display
+    }
+
+    init {
+        windowGroup.displays.forEach(::setupDisplay)
+
+        windowGroup.displaysChanged += { _, removed, added ->
+            removed.forEach {
+                displays.remove(it.skiaLayer)
+            }
+            added.forEach(::setupDisplay)
+        }
     }
 
     override fun shutdown() {
@@ -172,10 +190,12 @@ internal class DragManagerImpl(
             return
         }
 
-        val mouseEvent = event.triggerEvent as? MouseEvent
-        val location   = mouseEvent?.location(skiaLayer) ?: return
+        val skiaLayer  = event.component as? SkiaLayer ?: return
+        val display    = displays[skiaLayer] ?: return
+        val mouseEvent = event.triggerEvent as? MouseEvent ?: return
+        val location   = mouseEvent.location(skiaLayer)
 
-        viewFinder.find(location).let {
+        viewFinder.find(display, location).let {
             var view = it
 
             while (view != null) {
@@ -264,9 +284,9 @@ internal class DragManagerImpl(
 
     private fun action(support: TransferSupport) = action(support.dropAction)
 
-    private fun dragUpdate(bundle: DataBundle, desired: Action?, location: Point): Boolean {
+    private fun dragUpdate(display: Display, bundle: DataBundle, desired: Action?, location: Point): Boolean {
         var dropAllowed = this.dropAllowed
-        val dropHandler = getDropEventHandler(viewFinder.find(location))
+        val dropHandler = getDropEventHandler(viewFinder.find(display, location))
 
         if (dropHandler != currentDropHandler) {
             currentDropHandler?.let { (view, handler) ->

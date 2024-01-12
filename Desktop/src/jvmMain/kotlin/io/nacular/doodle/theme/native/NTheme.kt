@@ -10,10 +10,15 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.View
+import io.nacular.doodle.core.WindowGroupImpl
+import io.nacular.doodle.drawing.GraphicsDevice
+import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.system.impl.NativeScrollHandlerFinder
 import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
+import io.nacular.doodle.theme.Scene
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
@@ -26,11 +31,24 @@ import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 import java.awt.GraphicsEnvironment
 import javax.swing.FocusManager
+import javax.swing.JPanel
 
 private typealias NTheme = NativeTheme
 
-public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
+public class NativeTheme internal constructor(behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
+    private lateinit var scene: Scene
+
     override fun toString(): String = this::class.simpleName ?: ""
+
+    override fun install(scene: Scene) {
+        super.install(scene)
+        this.scene = scene
+    }
+
+    internal class WindowDiscovery(private val windowGroup: WindowGroupImpl) {
+        fun frameFor (view: View): JPanel?                              = windowGroup.owner(view)?.skiaLayer
+        fun deviceFor(view: View): GraphicsDevice<RealGraphicsSurface>? = windowGroup.owner(view)?.graphicsDevice
+    }
 
     public companion object {
         public val NativeTheme: Module = Module(name = "NativeTheme") {
@@ -53,6 +71,8 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
                     }
                 }
             }
+
+            bindSingleton { WindowDiscovery(instance()) }
         }
 
         @Suppress("MemberVisibilityCanBePrivate")
@@ -82,7 +102,6 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
                         window                    = instance(),
                         appScope                  = instance(),
                         uiDispatcher              = Dispatchers.Swing,
-                        graphicsDevice            = instance(),
                         swingGraphicsFactory      = instance(),
                         nativeScrollHandlerFinder = instanceOrNull(),
                         nativePointerPreprocessor = instanceOrNull()) }

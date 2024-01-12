@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -15,7 +16,6 @@ import java.awt.event.MouseEvent.MOUSE_DRAGGED
 import java.awt.event.MouseEvent.MOUSE_MOVED
 import java.net.URI
 import javax.swing.JLabel
-import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
 internal class NativeHyperLinkStylerImpl: NativeHyperLinkStyler {
@@ -96,14 +96,14 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
 
 
 internal class NativeHyperLinkBehavior(
-        window                   : JPanel,
-        appScope                 : CoroutineScope,
-        uiDispatcher             : CoroutineContext,
-        swingGraphicsFactory     : SwingGraphicsFactory,
-        textMetrics              : TextMetrics,
-        swingFocusManager        : javax.swing.FocusManager,
-        focusManager             : FocusManager?,
-        nativePointerPreprocessor: NativePointerPreprocessor?
+    window                   : WindowDiscovery,
+    appScope                 : CoroutineScope,
+    uiDispatcher             : CoroutineContext,
+    swingGraphicsFactory     : SwingGraphicsFactory,
+    textMetrics              : TextMetrics,
+    swingFocusManager        : javax.swing.FocusManager,
+    focusManager             : FocusManager?,
+    nativePointerPreprocessor: NativePointerPreprocessor?
 ): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
     override fun createPeer(button: HyperLink) = HyperLinkPeer(focusManager, button)
 }

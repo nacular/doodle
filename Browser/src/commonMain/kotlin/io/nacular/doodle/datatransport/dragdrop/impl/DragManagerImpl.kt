@@ -1,5 +1,6 @@
 package io.nacular.doodle.datatransport.dragdrop.impl
 
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.datatransport.DataBundle
 import io.nacular.doodle.datatransport.Files
@@ -33,7 +34,6 @@ import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.system.PointerInputService
 import io.nacular.doodle.system.PointerInputService.Preprocessor
 import io.nacular.doodle.system.SystemPointerEvent
@@ -44,12 +44,13 @@ import io.nacular.doodle.system.impl.PointerLocationResolver
 
 @Suppress("NestedLambdaShadowedImplicitParameter")
 internal class DragManagerImpl(
-                      private val viewFinder             : ViewFinder,
-                      private val scheduler              : Scheduler,
-                      private val pointerInputService    : PointerInputService,
-                      private val pointerLocationResolver: PointerLocationResolver,
-                      private val graphicsDevice         : GraphicsDevice<RealGraphicsSurface>,
-                                  htmlFactory            : HtmlFactory): DragManager {
+      private val display                : Display,
+      private val viewFinder             : ViewFinder,
+      private val pointerInputService    : PointerInputService,
+      private val pointerLocationResolver: PointerLocationResolver,
+      private val graphicsDevice         : GraphicsDevice<RealGraphicsSurface>,
+                  htmlFactory            : HtmlFactory
+): DragManager {
     private var pointerDown            = null as PointerEvent?
     private var rootElement            = htmlFactory.root
     private var dropAllowed            = false
@@ -123,7 +124,7 @@ internal class DragManagerImpl(
     }
 
     init {
-        pointerInputService += object: Preprocessor {
+        pointerInputService.addPreprocessor(display, object: Preprocessor {
             override fun invoke(event: SystemPointerEvent) {
                 when (event.type) {
                     Up   -> pointerUp  (     )
@@ -131,7 +132,7 @@ internal class DragManagerImpl(
                     else -> {}
                 }
             }
-        }
+        })
 
         rootElement.ondragover = { event ->
             if (event.target !is HTMLInputElement) {
@@ -185,7 +186,7 @@ internal class DragManagerImpl(
     private fun pointerEvent(event: SystemPointerEvent, view: View) = PointerEvent(view, event)
 
     private fun pointerDown(event: SystemPointerEvent) {
-        viewFinder.find(event.location).let {
+        viewFinder.find(display, event.location).let {
             var view = it
 
             while (view != null) {
@@ -317,14 +318,12 @@ internal class DragManagerImpl(
             currentDropHandler = null
 
             pointerUp()
-
-            null
         }
     }
 
     private fun dragUpdate(bundle: DataBundle, desired: Action?, location: Point): Boolean {
         var dropAllowed = this.dropAllowed
-        val dropHandler = getDropEventHandler(viewFinder.find(location))
+        val dropHandler = getDropEventHandler(viewFinder.find(display, location))
 
         if (dropHandler != currentDropHandler) {
             currentDropHandler?.let { (view, handler) ->

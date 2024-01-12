@@ -3,13 +3,14 @@ package io.nacular.doodle.controls.popupmenu
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.scheduler.Scheduler
 
 /**
  * Item added to a [Menu] via [MenuCreationContext].
  */
-public sealed interface MenuItem {
+public interface MenuItem {
     /**
      * Determines whether the item is enabled.
      */
@@ -67,6 +68,7 @@ public interface MenuFactory {
     public operator fun invoke(close: (Menu) -> Unit, block: MenuCreationContext.() -> Unit): Menu
 }
 
+@Internal
 public class MenuFactoryImpl(
     private val popups      : PopupManager,
     private val scheduler   : Scheduler,

@@ -1,7 +1,10 @@
 package io.nacular.doodle.system.impl
 
 import io.nacular.doodle.application.CustomSkikoView
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.WindowGroupImpl
+import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.swing.doodle
@@ -54,6 +57,7 @@ import org.jetbrains.skiko.SkikoPointerEventKind.ENTER
 import org.jetbrains.skiko.SkikoPointerEventKind.EXIT
 import org.jetbrains.skiko.SkikoPointerEventKind.MOVE
 import org.jetbrains.skiko.SkikoPointerEventKind.UP
+import java.awt.Component
 import java.awt.Cursor.CROSSHAIR_CURSOR
 import java.awt.Cursor.DEFAULT_CURSOR
 import java.awt.Cursor.E_RESIZE_CURSOR
@@ -71,9 +75,7 @@ import java.awt.Cursor.W_RESIZE_CURSOR
 import java.awt.event.MouseWheelEvent
 import java.awt.Cursor as AwtCursor
 
-internal interface NativeScrollHandler {
-    operator fun invoke(event: MouseWheelEvent, pointInTarget: Point)
-}
+internal typealias NativeScrollHandler = (event: MouseWheelEvent, pointInTarget: Point) -> Unit
 
 internal class NativeScrollHandlerFinder {
     private val handlers = mutableMapOf<View, NativeScrollHandler>()
@@ -91,13 +93,13 @@ internal class NativeScrollHandlerFinder {
  * Created by Nicholas Eddy on 5/24/21.
  */
 internal class PointerInputServiceImpl(
-        private val skiaLayer                : SkiaLayer,
-        private val viewFinder               : ViewFinder,
-        private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?
+    private val windowGroup              : WindowGroupImpl,
+    private val viewFinder               : ViewFinder,
+    private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?
 ): PointerInputService {
     private var started       = false
-    private val listeners     = mutableSetOf<Listener>()
-    private val preprocessors = mutableSetOf<Preprocessor>()
+    private val listeners     = mutableMapOf<Display, MutableSet<Listener>>()
+    private val preprocessors = mutableMapOf<Display, MutableSet<Preprocessor>>()
 
     private fun Cursor?.swing() = when (this) {
 //        None      -> null
@@ -130,46 +132,64 @@ internal class PointerInputServiceImpl(
         else      -> AwtCursor(DEFAULT_CURSOR)
     }
 
-    override var cursor: Cursor?
-        get(   ) = skiaLayer.cursor.doodle()
-        set(new) { skiaLayer.cursor = new.swing() }
+    override fun getCursor(display: Display) = (display as? DisplayImpl)?.skiaLayer?.cursor?.doodle()
 
-    // FIXME: Implement
-    override var toolTipText: String
-        get(   ) = "" //skiaLayer.toolTipText
-        set(new) {
-            // This doesn't work
-//            skiaLayer.toolTipText = new
-        }
+    override fun setCursor(display: Display, cursor: Cursor?) {
+        (display as? DisplayImpl)?.skiaLayer?.cursor = cursor.swing()
+    }
 
-    override operator fun plusAssign (listener: Listener) { listeners.plusAssign (listener); if (listeners.size == 1) startUp() }
-    override operator fun minusAssign(listener: Listener) { listeners.minusAssign(listener); shutdown()                         }
+    // FIXME: This doesn't seem to work
+    override fun getToolTipText(display: Display): String = (display as? DisplayImpl)?.skiaLayer?.toolTipText ?: ""
 
-    override operator fun plusAssign (preprocessor: Preprocessor) { preprocessors.plusAssign (preprocessor); if (preprocessors.size == 1) startUp() }
-    override operator fun minusAssign(preprocessor: Preprocessor) { preprocessors.minusAssign(preprocessor); shutdown()                             }
+    // FIXME: This doesn't seem to work
+    override fun setToolTipText(display: Display, text: String) {
+//        (display as? DisplayImpl)?.skiaLayer?.toolTipText = text
+    }
 
-    private fun skikoPointerEvent(e: SkikoPointerEvent) {
+    override fun addListener   (display: Display, listener: Listener) { listeners.getOrPut(display) { mutableSetOf() }.plusAssign (listener); if (listeners.size == 1) startUp() }
+    override fun removeListener(display: Display, listener: Listener) { listeners[display]?.minusAssign(listener); shutdown() }
+
+    override fun addPreprocessor   (display: Display, preprocessor: Preprocessor) { preprocessors.getOrPut(display) { mutableSetOf() }.plusAssign (preprocessor); if (preprocessors.size == 1) startUp() }
+    override fun removePreprocessor(display: Display, preprocessor: Preprocessor) { preprocessors[display]?.minusAssign(preprocessor); shutdown()                             }
+
+    private fun skikoPointerEvent(display: DisplayImpl, e: SkikoPointerEvent) {
         when (e.kind) {
-            SkikoPointerEventKind.SCROLL -> handleMouseWheel(e)
-            else                         -> notifyPointerEvent(e, e.type)
+            SkikoPointerEventKind.SCROLL -> handleMouseWheel  (display, e        )
+            else                         -> notifyPointerEvent(display, e, e.type)
         }
     }
 
-    private fun skikoGestureEvent(e: SkikoGestureEvent) {
+    private fun skikoGestureEvent(display: Display, e: SkikoGestureEvent) {
         // TODO: Implement
     }
 
     private fun startUp() {
         if (!started) {
-            (skiaLayer.skikoView as CustomSkikoView).apply {
-                onPointerEvent = this@PointerInputServiceImpl::skikoPointerEvent
-                onGestureEvent = this@PointerInputServiceImpl::skikoGestureEvent
+            windowGroup.displays.forEach(::setupDisplay)
+
+            windowGroup.displaysChanged += { _, removed, added ->
+                removed.forEach(::teardownDisplay)
+                added.forEach  (::setupDisplay   )
             }
 
-            // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
-            skiaLayer.canvas.isFocusable = false
-
             started = true
+        }
+    }
+
+    private fun setupDisplay(display: DisplayImpl) {
+        (display.skiaLayer.skikoView as CustomSkikoView).apply {
+            onPointerEvent = { skikoPointerEvent(display, it) }
+            onGestureEvent = { skikoGestureEvent(display, it) }
+        }
+
+        // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
+        display.skiaLayer.canvas.isFocusable = false
+    }
+
+    private fun teardownDisplay(display: DisplayImpl) {
+        (display.skiaLayer.skikoView as CustomSkikoView).apply {
+            onPointerEvent = {}
+            onGestureEvent = {}
         }
     }
 
@@ -179,16 +199,16 @@ internal class PointerInputServiceImpl(
         }
     }
 
-    private fun notifyPointerEvent(pointerEvent: SkikoPointerEvent, type: Type): Boolean {
+    private fun notifyPointerEvent(display: Display, pointerEvent: SkikoPointerEvent, type: Type): Boolean {
         val event = pointerEvent.toDoodle(type)
 
-        preprocessors.takeWhile { !event.consumed }.forEach { it(event) }
-        listeners.takeWhile     { !event.consumed }.forEach { it(event) }
+        preprocessors[display]?.takeWhile { !event.consumed }?.forEach { it(event) }
+        listeners    [display]?.takeWhile { !event.consumed }?.forEach { it(event) }
 
         return event.consumed
     }
 
-    private fun handleMouseWheel(e: SkikoPointerEvent) {
+    private fun handleMouseWheel(display: DisplayImpl, e: SkikoPointerEvent) {
         // TODO: Expose wheel events to View generally?
         if (nativeScrollHandlerFinder == null) {
             return
@@ -196,9 +216,9 @@ internal class PointerInputServiceImpl(
 
         val wheelEvent = e.platform as MouseWheelEvent
 
-        val absoluteLocation = wheelEvent.location(skiaLayer)
+        val absoluteLocation = wheelEvent.location(display.skiaLayer)
 
-        viewFinder.find(absoluteLocation)?.let {
+        viewFinder.find(display, absoluteLocation)?.let {
             var target = it as View?
 
             while (target != null) {
@@ -213,6 +233,16 @@ internal class PointerInputServiceImpl(
                 target = target.parent
             }
         }
+    }
+
+    private fun MouseWheelEvent.skiaLayer(): SkiaLayer? {
+        var result: Component? = component
+
+        while (result != null && result !is SkiaLayer) {
+            result = result.parent
+        }
+
+        return result as? SkiaLayer
     }
 }
 

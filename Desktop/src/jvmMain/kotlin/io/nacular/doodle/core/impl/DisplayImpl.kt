@@ -26,11 +26,10 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.skia.skia33
 import io.nacular.doodle.skia.skia44
 import io.nacular.doodle.system.Cursor
-import io.nacular.doodle.utils.ChangeObserver
+import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
-import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
@@ -56,12 +55,12 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
  */
 // FIXME: Move common parts to common code
 internal class DisplayImpl(
-    private val appScope      : CoroutineScope,
-    private val uiDispatcher  : CoroutineContext,
-    private val skiaLayer     : SkiaLayer,
-    private val defaultFont   : Font,
-    private val fontCollection: FontCollection,
-    private val device        : GraphicsDevice<RealGraphicsSurface>,
+    private  val appScope      : CoroutineScope,
+    private  val uiDispatcher  : CoroutineContext,
+    internal val skiaLayer     : SkiaLayer,
+    private  val defaultFont   : Font,
+    private  val fontCollection: FontCollection,
+    internal val device        : GraphicsDevice<RealGraphicsSurface>,
 ): InternalDisplay {
     override var insets = Insets.None
 

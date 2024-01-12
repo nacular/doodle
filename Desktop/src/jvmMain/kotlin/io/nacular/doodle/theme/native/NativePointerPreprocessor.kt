@@ -5,9 +5,7 @@ import io.nacular.doodle.deviceinput.EventPreprocessor
 import io.nacular.doodle.event.PointerEvent
 
 
-internal interface NativePointerHandler {
-    operator fun invoke(event: PointerEvent)
-}
+internal typealias NativePointerHandler = (event: PointerEvent) -> Unit
 
 internal class NativePointerPreprocessor: EventPreprocessor {
     private val handlers: MutableMap<View, NativePointerHandler> = mutableMapOf()

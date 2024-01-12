@@ -1,6 +1,5 @@
 package io.nacular.doodle.theme
 
-import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 
 /**
@@ -9,7 +8,11 @@ import io.nacular.doodle.core.View
 public class CompositeTheme(vararg themes: Theme): Theme {
     private var themes = mutableSetOf(*themes)
 
-    override fun install(display: Display, all: Sequence<View>): Unit = all.forEach { view -> themes.forEach { it.install(display, sequenceOf(view)) } }
+    override fun install(scene: Scene): Unit = themes.forEach { it.install(scene) }
+
+    override fun install(view: View) {
+        themes.forEach { it.install(view) }
+    }
 
     public operator fun plus(other: Theme): CompositeTheme = this.apply { themes.plusAssign(other) }
 

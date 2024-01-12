@@ -8,15 +8,15 @@ import io.nacular.doodle.geometry.Point
 /** @suppress */
 @Internal
 public interface ViewFinder {
-    public fun find(at: Point): View?
+    public fun find(within: Display, at: Point): View?
 }
 
 /** @suppress */
 @Internal
-public class ViewFinderImpl(private val display: Display): ViewFinder {
-    override fun find(at: Point): View? {
+public class ViewFinderImpl: ViewFinder {
+    override fun find(within: Display, at: Point): View? {
         var newPoint = at
-        var view     = display.child(at)?.takeIf { it.enabled }
+        var view     = within.child(at)?.takeIf { it.enabled }
 
         while(view != null) {
             newPoint = view.toLocal(newPoint, view.parent)
