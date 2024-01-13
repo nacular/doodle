@@ -189,3 +189,5 @@ public class Modules {
         }
     }
 }
+
+public expect val Modules.Companion.HtmlElementViewFactory: Module

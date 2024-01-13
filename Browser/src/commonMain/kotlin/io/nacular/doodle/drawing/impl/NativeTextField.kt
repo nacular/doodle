@@ -23,6 +23,7 @@ import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStyler.Style
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.caretColor
+import io.nacular.doodle.dom.cssStyle
 import io.nacular.doodle.dom.focusInput
 import io.nacular.doodle.dom.rgba
 import io.nacular.doodle.dom.setBackgroundColor
@@ -44,8 +45,6 @@ import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.IdGenerator
 import kotlin.math.max
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 
 internal interface NativeTextFieldFactory {
@@ -422,21 +421,6 @@ internal class NativeTextField(
 
         if (textField.purpose == Integer) {
             inputElement.pattern = "[0-9]*"
-        }
-    }
-
-    private fun cssStyle(initial: Style? = null): ReadWriteProperty<NativeTextField, Style?> = object:
-        ReadWriteProperty<NativeTextField, Style?> {
-        private var value = initial
-
-        override fun getValue(thisRef: NativeTextField, property: KProperty<*>) = value
-
-        override fun setValue(thisRef: NativeTextField, property: KProperty<*>, @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE") new: Style?) {
-            if (new?.css != value?.css) {
-                value?.delete()
-
-                value = new
-            }
         }
     }
 

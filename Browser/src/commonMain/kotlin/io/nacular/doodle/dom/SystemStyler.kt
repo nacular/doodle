@@ -2,6 +2,8 @@ package io.nacular.doodle.dom
 
 import io.nacular.doodle.dom.SystemStyler.Style
 import io.nacular.doodle.utils.IdGenerator
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * Created by Nicholas Eddy on 10/31/17.
@@ -16,6 +18,21 @@ internal interface SystemStyler {
     fun insertRule(css: String): Style?
 
     fun shutdown()
+}
+
+internal fun <T> cssStyle(initial: Style? = null): ReadWriteProperty<T, Style?> = object:
+    ReadWriteProperty<T, Style?> {
+    private var value = initial
+
+    override fun getValue(thisRef: T, property: KProperty<*>) = value
+
+    override fun setValue(thisRef: T, property: KProperty<*>, @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE") new: Style?) {
+        if (new?.css != value?.css) {
+            value?.delete()
+
+            value = new
+        }
+    }
 }
 
 internal class SystemStylerImpl(
@@ -37,8 +54,8 @@ internal class SystemStylerImpl(
 
     private val id = when(htmlFactory.root) {
         document.body -> null
-        else          -> "#${when (val i = htmlFactory.root.id) {
-            "" -> idGenerator.nextId().also { htmlFactory.root.id = it }
+        else          -> ".${when (val i = htmlFactory.root.className) {
+            "" -> idGenerator.nextId().also { htmlFactory.root.className = it }
             else      -> i
         }}"
     }
@@ -70,20 +87,17 @@ internal class SystemStylerImpl(
                 tryInsertRule("${prefix()} * { box-sizing:inherit }", numStyles)
 
                 tryInsertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
-                tryInsertRule("${prefix("body")} pre { overflow:visible }",   numStyles)
-                tryInsertRule("${prefix("body")} div { display:inline }",     numStyles)
+                tryInsertRule("${prefix("body")} pre { overflow:visible }", numStyles)
+                tryInsertRule("${prefix("body")} :where(div) { display:inline }", numStyles)
                 tryInsertRule("${prefix("body")} div:focus { outline:none }", numStyles)
-                tryInsertRule("${prefix("body")} b { pointer-events:none }",  numStyles)
+                tryInsertRule("${prefix("body")} b { pointer-events:none }", numStyles)
 
                 tryInsertRule("${prefix()} pre { margin:0;pointer-events:none }", numStyles)
                 tryInsertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible;pointer-events:none }", numStyles)
                 tryInsertRule("${prefix()} svg * { position:absolute }", numStyles)
                 tryInsertRule("${prefix()} button div svg { left:0px }", numStyles)
 
-                try {
-                    tryInsertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
-                } catch (ignore: Throwable) {
-                }
+                tryInsertRule("input[type=text]::-ms-clear{ display:none }", numStyles)
             }
         }
     }
@@ -120,7 +134,7 @@ internal class SystemStylerImpl(
                     }
                 }
             } else null
-        } catch (ignored: Throwable) { null }
+        } catch (ignored: Throwable) { ignored.printStackTrace(); null }
     }
 
     override fun shutdown() {
