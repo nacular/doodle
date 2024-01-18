@@ -36,7 +36,9 @@ public actual class FileReader actual constructor(): JsAny {
     public actual fun readAsArrayBuffer(delegate: File                  ) {}
 }
 
-public actual class Uint8Array actual constructor(array: JsArray<JsNumber>) {
+public actual class ArrayBuffer: JsAny
+
+public actual class Uint8Array actual constructor(array: ArrayBuffer) {
     public actual val length: Int = 0
 }
 

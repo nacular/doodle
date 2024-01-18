@@ -1,10 +1,8 @@
 package io.nacular.doodle.datatransport
 
+import io.nacular.doodle.dom.ArrayBuffer
 import io.nacular.doodle.dom.File
 import io.nacular.doodle.dom.FileReader
-import io.nacular.doodle.dom.JsArray
-import io.nacular.doodle.dom.JsNumber
-import io.nacular.doodle.dom.JsString
 import io.nacular.doodle.dom.Uint8Array
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.toDouble
@@ -38,7 +36,7 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
             }
 
             reader.onloadend = {
-                val uint8Array = Uint8Array(reader.result as JsArray<JsNumber>)
+                val uint8Array = Uint8Array(reader.result as ArrayBuffer)
 
                 coroutine.resume((0 until uint8Array.length).map {
                     uint8Array[it]
@@ -66,7 +64,7 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
             }
 
             reader.onloadend = {
-                coroutine.resume((reader.result as? JsString)?.toString())
+                coroutine.resume(reader.result.toString())
             }
 
             reader.onprogress = {
@@ -94,7 +92,7 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
             }
 
             reader.onloadend = {
-                var encoded = ((reader.result as? JsString).toString()).replace("^data:(.*,)?".toRegex(), "")
+                var encoded = reader.result.toString().replace("^data:(.*,)?".toRegex(), "")
 
                 if ((encoded.length % 4) > 0) {
                     encoded = encoded.padEnd(4 - (encoded.length % 4), '=')
@@ -112,6 +110,9 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
             reader.readAsDataURL(delegate)
 
         } catch (e: CancellationException) {
+            println("cancelled")
+            e.printStackTrace()
+
             coroutine.resumeWithException(e)
         }
     }

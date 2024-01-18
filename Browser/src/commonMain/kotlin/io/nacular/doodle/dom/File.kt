@@ -38,7 +38,9 @@ public expect external class FileReader(): JsAny {
     public fun readAsArrayBuffer(delegate: File                  )
 }
 
-public expect external class Uint8Array(array: JsArray<JsNumber>) {
+public expect external class ArrayBuffer: JsAny
+
+public expect external class Uint8Array(array: ArrayBuffer) {
     public val length: Int
 }
 
