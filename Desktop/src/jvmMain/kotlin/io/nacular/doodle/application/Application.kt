@@ -107,7 +107,7 @@ private open class ApplicationHolderImpl protected constructor(
     private val defaultFontName = UIManager.getDefaults().getFont("defaultFont")?.fontName ?: "Courier"
 
     private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val defaultFont    = Font(Typeface.makeFromName(defaultFontName.also { println("DEFAULT FONT: $it") }, FontStyle(300, 5, UPRIGHT)), 13f)
+    private val defaultFont    = Font(Typeface.makeFromName(defaultFontName, FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.default)
     }

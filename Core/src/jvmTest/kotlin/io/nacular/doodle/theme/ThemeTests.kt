@@ -1,6 +1,5 @@
 package io.nacular.doodle.theme
 
-import io.mockk.MockKMatcherScope
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -45,15 +44,25 @@ class ThemeTests {
             every { children_ } returns ObservableList(listOf(child1))
         }
 
-        val display = mockk<InternalDisplay>().apply {
-            every { popups   } returns listOf(popup1, popup2)
-            every { children } returns ObservableList(listOf(parent1, parent2))
+        val expectedSequence = listOf(popup1, popup2, parent1, parent2, popupChild1, child1)
+        val scene    = mockk<Scene>().apply {
+            every { forEachDisplay(captureLambda()) } answers {
+                lambda<(Display) -> Unit>().captured(mockk())
+            }
+            every { forEachView(captureLambda()) } answers {
+                expectedSequence.forEach(lambda<(View) -> Unit>().captured)
+            }
         }
-        val manager  = ThemeManagerImpl(display)
-        val sequence = slot<Sequence<View>>()
+        val manager  = ThemeManagerImpl(scene)
+        val sequence = mutableListOf<View>()
 
+        val targetScene = slot<Scene>()
         val newTheme = mockk<Theme>().apply {
-            every { install(any(), capture(sequence)) } answers {}
+            every { install(capture(targetScene)) } answers {
+                targetScene.captured.forEachView {
+                    sequence += it
+                }
+            }
         }
         val observer = mockk<PropertyObserver<ThemeManager, Theme?>>()
 
@@ -71,10 +80,8 @@ class ThemeTests {
             when {
                 new != null -> {
                     expect(true) { new in manager.themes }
-                    // FIXME: Not sure why this fails for mockk
-//                    verify(exactly = 1) { new.install(display, seqEq(sequenceOf(popup1, popup2, parent1, parent2, popupChild1, child1))) }
-                    verify(exactly = 1) { new.install(display, any()) }
-                    assertContentEquals(sequence.captured.toList(), listOf(popup1, popup2, parent1, parent2, popupChild1, child1))
+                    verify(exactly = 1) { new.install(scene) }
+                    assertContentEquals(sequence, expectedSequence)
                 }
             }
 
@@ -119,7 +126,8 @@ class ThemeTests {
     }
 
     @Test fun `installs theme on update`() {
-        val manager  = ThemeManagerImpl(dummyDisplay)
+        val scene    = scene(dummyDisplay)
+        val manager  = ThemeManagerImpl(scene)
         val newTheme = mockk<Theme>()
         val view     = view {}
 
@@ -127,11 +135,12 @@ class ThemeTests {
 
         manager.update(view)
 
-        verify(exactly = 1) { newTheme.install(dummyDisplay, seqEq(sequenceOf(view))) }
+        verify(exactly = 1) { newTheme.install(scene) }
     }
 
     @Test fun `respects View acceptsThemes`() {
-        val manager  = ThemeManagerImpl(dummyDisplay)
+        val scene    = scene(dummyDisplay)
+        val manager  = ThemeManagerImpl(scene)
         val newTheme = mockk<Theme>()
         val view     = mockk<View>().apply {
             every { acceptsThemes } returns false
@@ -141,12 +150,20 @@ class ThemeTests {
 
         manager.update(view)
 
-        verify(exactly = 0) { newTheme.install(dummyDisplay, seqEq(sequenceOf(view))) }
+        verify(exactly = 0) { newTheme.install(view) }
     }
 
-    private fun <T> MockKMatcherScope.seqEq(seq: Sequence<T>) = match<Sequence<T>> {
-        it.toList() == seq.toList()
+    private fun scene(display: InternalDisplay) = mockk<Scene>().apply {
+        every { forEachDisplay(captureLambda()) } answers {
+            lambda<(Display) -> Unit>().captured(display)
+        }
+        every { forEachView(captureLambda()) } answers {
+            val lambda = lambda<(View) -> Unit>().captured
+
+            display.children.forEach(lambda)
+        }
     }
+
     private fun viewAcceptingTheme() = mockk<View>().apply {
         every { acceptsThemes } returns true
     }

@@ -311,7 +311,7 @@ public open class RenderManagerImpl(
                 }
             } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
 
-            if (pendingLayout.isEmpty() && newRenders.none { it !in neverRendered } && pendingBoundsChange.isEmpty()) {
+            if (pendingLayout.isEmpty() && newRenders.none { it !in neverRendered } && pendingBoundsChange.none { it !in neverRendered }) {
                 break
             }
 

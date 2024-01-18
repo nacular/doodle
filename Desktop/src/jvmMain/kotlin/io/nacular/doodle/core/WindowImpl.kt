@@ -13,8 +13,8 @@ import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.SwingCanvas
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.theme.native.toDoodle
 import io.nacular.doodle.utils.ChangeObserver
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -40,14 +40,14 @@ import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 
 internal class WindowImpl(
-    appScope       : CoroutineScope,
-    uiDispatcher   : CoroutineDispatcher,
+                appScope       : CoroutineScope,
     private val defaultFont    : Font,
-    fontCollection : FontCollection,
-    graphicsDevices: (SkiaLayer  ) -> RealGraphicsDevice<RealGraphicsSurface>,
+                uiDispatcher   : CoroutineDispatcher,
+                fontCollection : FontCollection,
+                graphicsDevices: (SkiaLayer  ) -> RealGraphicsDevice<RealGraphicsSurface>,
     private val renderManagers : (DisplayImpl) -> RenderManager,
-    size           : Size,
-    undecorated    : Boolean = false
+                size           : Size,
+                undecorated    : Boolean = false
 ): Window {
     private inner class MenuBarImpl: MenuBar {
         override fun invoke(block: CreationContext.() -> Unit) {
@@ -73,12 +73,11 @@ internal class WindowImpl(
 
     private class SwingMenuItem(val menu: JMenuItem): MenuItem, ItemInfo {
         override val text     get() = menu.text
-        override val font     get() = null // FIXME
+        override val font     get() = menu.font.toDoodle()
         override var enabled  get() = menu.isEnabled; set(new) { menu.isEnabled = new }
         override val selected get() = menu.isSelected
         override val mirrored get() = false // FIXME
     }
-
 
     private inner class JMenuCreationContext(private val jMenu: JMenu): MenuCreationContext {
         override fun menu(title: String, context: MenuCreationContext.() -> Unit): MenuItem {
@@ -94,18 +93,7 @@ internal class WindowImpl(
         override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
             val item = SwingMenuItem(JMenuItem(title))
 
-            icon?.let { icon ->
-                item.menu.icon = object: javax.swing.Icon {
-                    override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-                        (g as? Graphics2D)?.let {
-                            icon.render(item, SwingCanvas(it, defaultFont, icon.size(item)), at = Origin)
-                        }
-                    }
-
-                    override fun getIconWidth () = icon.size(item).width.toInt ()
-                    override fun getIconHeight() = icon.size(item).height.toInt()
-                }
-            }
+            icon?.toAwt(item)?.let { item.menu.icon = it }
 
             item.menu.addActionListener { fired(item) }
 
@@ -129,6 +117,17 @@ internal class WindowImpl(
         }
     }
 
+    private fun <T: Any> Icon<T>.toAwt(item: T) = object: javax.swing.Icon {
+        override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
+            (g as? Graphics2D)?.let {
+                render(item, SwingCanvas(it, defaultFont, size(item)), at = Point(x, y))
+            }
+        }
+
+        override fun getIconWidth () = size(item).width.toInt ()
+        override fun getIconHeight() = size(item).height.toInt()
+    }
+
     private inner class JPopupMenuCreationContext(private val jPopupMenu: JPopupMenu): MenuCreationContext {
         override fun menu(title: String, context: MenuCreationContext.() -> Unit): MenuItem {
             val menu = SwingMenuItem(JMenu(title))
@@ -143,19 +142,7 @@ internal class WindowImpl(
         override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
             val item = SwingMenuItem(JMenuItem(title))
 
-            icon?.let { icon ->
-                item.menu.icon = object: javax.swing.Icon {
-                    override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-                        (g as? Graphics2D)?.let {
-                            icon.render(item, SwingCanvas(it, defaultFont, icon.size(item)), at = Origin)
-                        }
-                    }
-
-                    override fun getIconWidth () = icon.size(item).width.toInt ()
-                    override fun getIconHeight() = icon.size(item).height.toInt()
-                }
-            }
-
+            icon?.toAwt(item)?.let { item.menu.icon = it }
             item.menu.addActionListener { fired(item) }
 
             jPopupMenu.add(item.menu)
@@ -177,7 +164,6 @@ internal class WindowImpl(
             jPopupMenu.addSeparator()
         }
     }
-
 
     private val skiaWindow = JFrame().apply {
         isUndecorated = undecorated
@@ -213,15 +199,7 @@ internal class WindowImpl(
     override var focusable            get() = skiaWindow.focusableWindowState; set(new) { skiaWindow.focusableWindowState = new }
     override var triesToAlwaysBeOnTop get() = skiaWindow.isAlwaysOnTop;        set(new) { skiaWindow.isAlwaysOnTop        = new }
 
-    override val display: Display = DisplayImpl(
-        appScope,
-        uiDispatcher,
-        skiaLayer,
-        defaultFont,
-        fontCollection,
-        graphicsDevice
-    )
-
+    override val display: Display
     override val menuBar: MenuBar by lazy { MenuBarImpl() }
 
     init {
@@ -230,6 +208,15 @@ internal class WindowImpl(
         skiaWindow.preferredSize = size.run { Dimension(width.toInt(), height.toInt()) }
         skiaWindow.pack()
         skiaWindow.isVisible = true
+
+        display = DisplayImpl(
+            appScope,
+            uiDispatcher,
+            skiaLayer,
+            defaultFont,
+            fontCollection,
+            graphicsDevice
+        )
     }
 
     fun start() {

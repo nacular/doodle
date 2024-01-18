@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
+import io.nacular.doodle.core.Display
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.PointerInputService.Listener
 import io.nacular.doodle.system.PointerInputService.Preprocessor
@@ -16,18 +17,20 @@ import kotlin.test.expect
 class PointerInputServiceImplTests {
     @Test fun `cursor works`() {
         val mockCursor = mockk<Cursor>()
+        val display    = mockk<Display>()
         val strategy   = mockk<PointerInputServiceStrategy>().apply {
             every { cursor } returns mockCursor
         }
 
-        expect(PointerInputServiceImpl(strategy).cursor) { mockCursor }
+        expect(PointerInputServiceImpl(strategy).getCursor(display)) { mockCursor }
     }
 
     @Test fun `set cursor works`() {
         val strategy   = mockk<PointerInputServiceStrategy>()
+        val display    = mockk<Display>()
         val mockCursor = mockk<Cursor>()
 
-        PointerInputServiceImpl(strategy).cursor = mockCursor
+        PointerInputServiceImpl(strategy).setCursor(display, mockCursor)
 
         verify(exactly = 1) {
             strategy.cursor = mockCursor
@@ -36,19 +39,21 @@ class PointerInputServiceImplTests {
 
     @Test fun `tooltip works`() {
         val value    = "some tooltip text"
+        val display  = mockk<Display>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
             every { toolTipText } returns value
         }
 
-        expect(PointerInputServiceImpl(strategy).toolTipText) { value }
+        expect(PointerInputServiceImpl(strategy).getToolTipText(display)) { value }
     }
 
     @Test fun `set tooltip works`() {
+        val display  = mockk<Display>()
         val strategy = mockk<PointerInputServiceStrategy>()
 
         val value = "some tooltip text"
 
-        PointerInputServiceImpl(strategy).toolTipText = value
+        PointerInputServiceImpl(strategy).setToolTipText(display, value)
 
         verify(exactly = 1) {
             strategy.toolTipText = value
@@ -68,6 +73,7 @@ class PointerInputServiceImplTests {
     @Test fun `+= listener works`() {
         val sysEvent = mockk<SystemPointerEvent>()
         val handler  = slot<EventHandler>()
+        val display  = mockk<Display>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
             every { this@apply.startUp(capture(handler)) } answers {}
         }
@@ -76,8 +82,8 @@ class PointerInputServiceImplTests {
         val listener2 = mockk<Listener>()
 
         PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += listener2
+            this.addListener(display, listener1)
+            this.addListener(display, listener2)
         }
 
         handler.captured(sysEvent)
@@ -95,6 +101,7 @@ class PointerInputServiceImplTests {
     @Test fun `-= listener works`() {
         val sysEvent1 = mockk<SystemPointerEvent>()
         val sysEvent2 = mockk<SystemPointerEvent>()
+        val display   = mockk<Display>()
         val handler   = slot<EventHandler>()
         val strategy  = mockk<PointerInputServiceStrategy>().apply {
             every { this@apply.startUp(capture(handler)) } answers {}
@@ -104,13 +111,13 @@ class PointerInputServiceImplTests {
         val listener2 = mockk<Listener>()
 
         val service = PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += listener2
+            this.addListener(display, listener1)
+            this.addListener(display, listener2)
         }
 
         handler.captured(sysEvent1)
 
-        service -= listener1
+        service.removeListener(display, listener1)
 
         handler.captured(sysEvent2)
 
@@ -126,17 +133,18 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `shutdown when all listeners removed`() {
+        val display   = mockk<Display>()
         val strategy  = mockk<PointerInputServiceStrategy>()
         val listener1 = mockk<Listener>()
         val listener2 = mockk<Listener>()
 
         val service = PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += listener2
+            this.addListener(display, listener1)
+            this.addListener(display, listener2)
         }
 
-        service -= listener1
-        service -= listener2
+        service.removeListener(display, listener1)
+        service.removeListener(display, listener2)
 
         verifyOrder {
             strategy.startUp (any())
@@ -145,8 +153,9 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `+= preprocessor works`() {
-        val sysEvent = mockk<SystemPointerEvent>()
+        val display  = mockk<Display>()
         val handler  = slot<EventHandler>()
+        val sysEvent = mockk<SystemPointerEvent>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
             every { this@apply.startUp(capture(handler)) } answers {}
         }
@@ -155,8 +164,8 @@ class PointerInputServiceImplTests {
         val preprocessor2 = mockk<Preprocessor>()
 
         PointerInputServiceImpl(strategy).apply {
-            this += preprocessor1
-            this += preprocessor2
+            this.addPreprocessor(display, preprocessor1)
+            this.addPreprocessor(display, preprocessor2)
         }
 
         handler.captured(sysEvent)
@@ -172,6 +181,7 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `-= preprocessor works`() {
+        val display   = mockk<Display>()
         val sysEvent1 = mockk<SystemPointerEvent>()
         val sysEvent2 = mockk<SystemPointerEvent>()
         val handler   = slot<EventHandler>()
@@ -183,13 +193,13 @@ class PointerInputServiceImplTests {
         val preprocessor2 = mockk<Preprocessor>()
 
         val service = PointerInputServiceImpl(strategy).apply {
-            this += preprocessor1
-            this += preprocessor2
+            this.addPreprocessor(display, preprocessor1)
+            this.addPreprocessor(display, preprocessor2)
         }
 
         handler.captured(sysEvent1)
 
-        service -= preprocessor1
+        service.removePreprocessor(display, preprocessor1)
 
         handler.captured(sysEvent2)
 
@@ -205,17 +215,18 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `shutdown when all preprocessor removed`() {
+        val display       = mockk<Display>()
         val strategy      = mockk<PointerInputServiceStrategy>()
         val preprocessor1 = mockk<Preprocessor>()
         val preprocessor2 = mockk<Preprocessor>()
 
         val service = PointerInputServiceImpl(strategy).apply {
-            this += preprocessor1
-            this += preprocessor2
+            this.addPreprocessor(display, preprocessor1)
+            this.addPreprocessor(display, preprocessor2)
         }
 
-        service -= preprocessor1
-        service -= preprocessor2
+        service.removePreprocessor(display, preprocessor1)
+        service.removePreprocessor(display, preprocessor2)
 
         verifyOrder {
             strategy.startUp(any())
@@ -224,6 +235,7 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `obeys listener, processor precedence`() {
+        val display  = mockk<Display>()
         val sysEvent = mockk<SystemPointerEvent>()
         val handler  = slot<EventHandler>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
@@ -236,10 +248,10 @@ class PointerInputServiceImplTests {
         val preprocessor2  = mockk<Preprocessor> ()
 
         PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += preprocessor1
-            this += listener2
-            this += preprocessor2
+            this.addListener    (display, listener1    )
+            this.addPreprocessor(display, preprocessor1)
+            this.addListener    (display, listener2    )
+            this.addPreprocessor(display, preprocessor2)
         }
 
         handler.captured(sysEvent)
@@ -257,6 +269,7 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `preprocessor consumes`() {
+        val display  = mockk<Display>()
         val sysEvent = mockk<SystemPointerEvent>()
         val handler  = slot<EventHandler>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
@@ -273,10 +286,10 @@ class PointerInputServiceImplTests {
         }
 
         PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += preprocessor1
-            this += listener2
-            this += preprocessor2
+            this.addListener    (display, listener1    )
+            this.addPreprocessor(display, preprocessor1)
+            this.addListener    (display, listener2    )
+            this.addPreprocessor(display, preprocessor2)
         }
 
         handler.captured(sysEvent)
@@ -297,6 +310,7 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `listener consumes`() {
+        val display  = mockk<Display>()
         val sysEvent = mockk<SystemPointerEvent>()
         val handler  = slot<EventHandler>()
         val strategy = mockk<PointerInputServiceStrategy>().apply {
@@ -313,10 +327,10 @@ class PointerInputServiceImplTests {
         val preprocessor2 = mockk<Preprocessor>()
 
         PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += preprocessor1
-            this += listener2
-            this += preprocessor2
+            this.addListener    (display, listener1    )
+            this.addPreprocessor(display, preprocessor1)
+            this.addListener    (display, listener2    )
+            this.addPreprocessor(display, preprocessor2)
         }
 
         handler.captured(sysEvent)
@@ -336,23 +350,24 @@ class PointerInputServiceImplTests {
     }
 
     @Test fun `shutdown when all handles removed`() {
+        val display       = mockk<Display>()
         val strategy      = mockk<PointerInputServiceStrategy>()
-        val listener1      = mockk<Listener>     ()
-        val listener2      = mockk<Listener>     ()
-        val preprocessor1  = mockk<Preprocessor> ()
-        val preprocessor2  = mockk<Preprocessor> ()
+        val listener1     = mockk<Listener>     ()
+        val listener2     = mockk<Listener>     ()
+        val preprocessor1 = mockk<Preprocessor> ()
+        val preprocessor2 = mockk<Preprocessor> ()
 
         val service = PointerInputServiceImpl(strategy).apply {
-            this += listener1
-            this += preprocessor1
-            this += listener2
-            this += preprocessor2
+            this.addListener    (display, listener1)
+            this.addPreprocessor(display, preprocessor1)
+            this.addListener    (display, listener2)
+            this.addPreprocessor(display, preprocessor2)
         }
 
-        service -= listener2
-        service -= listener1
-        service -= preprocessor1
-        service -= preprocessor2
+        service.removeListener    (display, listener2    )
+        service.removeListener    (display, listener1    )
+        service.removePreprocessor(display, preprocessor2)
+        service.removePreprocessor(display, preprocessor1)
 
         verifyOrder {
             strategy.startUp(any())

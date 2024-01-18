@@ -61,52 +61,6 @@ import java.awt.geom.AffineTransform as AWTTransform
 
 
 internal class SwingCanvas(private val graphics: Graphics2D, private val defaultFont: SkiaFont, private val initialSize: Size): Canvas {
-    init {
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    }
-
-    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
-        with(transform) {
-            graphics.transform = AWTTransform().apply {
-                setTransform(m00, m10,
-                             m01, m11,
-                             m02, m12)
-            }
-        }
-    }
-
-    override fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit) {
-        // TODO: No perspective transform support in Swing
-        transform(transform, block)
-    }
-
-    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {
-        graphics.clip = java.awt.Rectangle(
-            rectangle.position.run { java.awt.Point(x.toInt(), y.toInt()) },
-            rectangle.size.run { Dimension(width.toInt(), height.toInt()) }
-        )
-    }
-
-    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
-        graphics.clip = java.awt.Polygon(
-            polygon.points.map { it.x.toInt() }.toIntArray(),
-            polygon.points.map { it.y.toInt() }.toIntArray(),
-            polygon.points.size
-        )
-    }
-
-    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {
-        graphics.clip = Ellipse2D.Double(
-            ellipse.center.x,
-            ellipse.center.y,
-            ellipse.xRadius,
-            ellipse.yRadius
-        )
-    }
-
-    override fun clip(path: Path, block: Canvas.() -> Unit) {
-        graphics.clip = path.toShape()
-    }
 
     private class ShadowedCanvas(private val delegate: Graphics2D, private val shadow: Shadow): DelegatingGraphics2D(delegate) {
 
@@ -173,6 +127,59 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         override fun fill(s: Shape?) = shadowed { fill(s) }
     }
 
+    init {
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    }
+
+    override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
+        val oldTransform = graphics.transform
+
+        with(transform) {
+            graphics.transform = AWTTransform(
+                scaleX,     shearY,
+                shearX,     scaleY,
+                translateX, translateY
+            )
+        }
+
+        block()
+
+        graphics.transform = oldTransform
+    }
+
+    override fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit) {
+        // TODO: No perspective transform support in Swing
+        transform(transform, block)
+    }
+
+    override fun clip(rectangle: Rectangle, radius: Double, block: Canvas.() -> Unit) {
+        clip(java.awt.Rectangle(
+            rectangle.position.run { java.awt.Point(x.toInt(), y.toInt()) },
+            rectangle.size.run { Dimension(width.toInt(), height.toInt()) }
+        ), block)
+    }
+
+    override fun clip(polygon: Polygon, block: Canvas.() -> Unit) {
+        clip(java.awt.Polygon(
+            polygon.points.map { it.x.toInt() }.toIntArray(),
+            polygon.points.map { it.y.toInt() }.toIntArray(),
+            polygon.points.size
+        ), block)
+    }
+
+    override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) {
+        clip(Ellipse2D.Double(
+            ellipse.center.x,
+            ellipse.center.y,
+            ellipse.xRadius,
+            ellipse.yRadius
+        ), block)
+    }
+
+    override fun clip(path: Path, block: Canvas.() -> Unit) {
+        clip(path.toShape(), block)
+    }
+
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         block(SwingCanvas(ShadowedCanvas(graphics, shadow), defaultFont, initialSize))
     }
@@ -196,13 +203,6 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
         graphics.drawString(text.attributedString().iterator, at.x.toInt(), at.y.toInt())
-    }
-
-    private fun drawWrappedText(g: Graphics2D, text: StyledText, bounds: Rectangle) {
-        val context  = FontRenderContext(null, true, false)
-        val measurer = LineBreakMeasurer(text.attributedString().iterator, context)
-
-        measurer.nextLayout(bounds.width.toFloat())
     }
 
     override fun wrapped(
@@ -261,21 +261,6 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
 
     override fun path(points: List<Point>, fill: Paint, fillRule: Renderer.FillRule?) = path_(points, fill = fill)
 
-    private fun StyledText.attributedString(textSpacing: TextSpacing = TextSpacing()) = AttributedString(text).apply {
-        var start = 0
-
-        forEach {
-            addAttribute(
-                TextAttribute.FONT,
-                it.second.font.toAwt(defaultFont).deriveFont(mapOf(TextAttribute.TRACKING to textSpacing.letterSpacing)),
-                start,
-                start + it.first.length
-            )
-
-            start += it.first.length
-        }
-    }
-
     override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) = graphics.with(fill) {
         fill(path.toShape())
     }
@@ -328,6 +313,38 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         fill    : Paint?
     ) {
         TODO("Not yet implemented")
+    }
+
+    private fun clip(shape: Shape, block: Canvas.() -> Unit) {
+        val oldClip = graphics.clip
+
+        graphics.clip = shape
+
+        block()
+
+        graphics.clip = oldClip
+    }
+
+    private fun drawWrappedText(g: Graphics2D, text: StyledText, bounds: Rectangle) {
+        val context  = FontRenderContext(null, true, false)
+        val measurer = LineBreakMeasurer(text.attributedString().iterator, context)
+
+        measurer.nextLayout(bounds.width.toFloat())
+    }
+
+    private fun StyledText.attributedString(textSpacing: TextSpacing = TextSpacing()) = AttributedString(text).apply {
+        var start = 0
+
+        forEach {
+            addAttribute(
+                TextAttribute.FONT,
+                it.second.font.toAwt(defaultFont).deriveFont(mapOf(TextAttribute.TRACKING to textSpacing.letterSpacing)),
+                start,
+                start + it.first.length
+            )
+
+            start += it.first.length
+        }
     }
 
     private val SkiaImage.awt: AwtImage get() = BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB).apply {

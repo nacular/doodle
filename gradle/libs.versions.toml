@@ -1,32 +1,36 @@
 [versions]
-kotlinVersion     = { strictly = "1.9.22" }
-dateTimeVersion   = { strictly = "0.5.0"  }
-coroutinesVersion = { strictly = "1.8.0-RC"  }
-skikoVersion      = { strictly = "0.7.90" }
-kodeinVersion     = { strictly = "7.21.1" }
-measuredVersion   = { strictly = "0.4.0-SNAPSHOT" }
-dokkaVersion      = { strictly = "1.9.0"  }
-koverVersion      = { strictly = "0.7.3"  }
-slf4jVersion      = { strictly = "2.0.9"  }
-mockkVersion      = { strictly = "1.13.8" }
-jupiterVersion    = { strictly = "5.10.0" }
-logbackVersion    = { strictly = "1.4.11" }
+
+coroutinesVersion = { strictly = "1.8.0-RC" }
+dateTimeVersion   = { strictly = "0.5.0"    }
+dokkaVersion      = { strictly = "1.9.0"    }
+jupiterVersion    = { strictly = "5.10.0"   }
+kodeinVersion     = { strictly = "7.21.1"   }
+kotlinVersion     = { strictly = "1.9.22"   }
+koverVersion      = { strictly = "0.7.3"    }
+logbackVersion    = { strictly = "1.4.11"   }
+measuredVersion   = { strictly = "0.4.0"    }
+mockkVersion      = { strictly = "1.13.8"   }
+skikoVersion      = { strictly = "0.7.90"   }
+slf4jVersion      = { strictly = "2.0.9"    }
 
 [libraries]
-mockk             = { module = "io.mockk:mockk",                                 version.ref = "mockkVersion"      }
-measured          = { module = "io.nacular.measured:measured",                   version.ref = "measuredVersion"   }
-datetime          = { module = "org.jetbrains.kotlinx:kotlinx-datetime",         version.ref = "dateTimeVersion"   }
-slf4j-api         = { module = "org.slf4j:slf4j-api",                            version.ref = "slf4jVersion"      }
-kodein-di         = { module = "org.kodein.di:kodein-di",                        version.ref = "kodeinVersion"     }
-junit-jupiter     = { module = "org.junit.jupiter:junit-jupiter",                version.ref = "jupiterVersion"    }
-coroutines-core   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",  version.ref = "coroutinesVersion" }
-coroutines-test   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test",  version.ref = "coroutinesVersion" }
-logback-classic   = { module = "ch.qos.logback:logback-classic",                 version.ref = "logbackVersion"    }
-coroutines-swing  = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutinesVersion" }
 
-[bundles]
-test-libs         = ["mockk", "slf4j-api", "junit-jupiter", "logback-classic"]
+coroutines-core   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",  version.ref = "coroutinesVersion" }
+coroutines-swing  = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutinesVersion" }
+coroutines-test   = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test",  version.ref = "coroutinesVersion" }
+datetime          = { module = "org.jetbrains.kotlinx:kotlinx-datetime",         version.ref = "dateTimeVersion"   }
+junit-jupiter     = { module = "org.junit.jupiter:junit-jupiter",                version.ref = "jupiterVersion"    }
+kodein-di         = { module = "org.kodein.di:kodein-di",                        version.ref = "kodeinVersion"     }
+logback-classic   = { module = "ch.qos.logback:logback-classic",                 version.ref = "logbackVersion"    }
+measured          = { module = "io.nacular.measured:measured",                   version.ref = "measuredVersion"   }
+mockk             = { module = "io.mockk:mockk",                                 version.ref = "mockkVersion"      }
+slf4j-api         = { module = "org.slf4j:slf4j-api",                            version.ref = "slf4jVersion"      }
 
 [plugins]
-dokka             = { id = "org.jetbrains.dokka",         version.ref = "dokkaVersion"  }
-kover             = { id = "org.jetbrains.kotlinx.kover", version.ref = 'koverVersion'  }
+
+dokka             = { id = "org.jetbrains.dokka",                                version.ref = "dokkaVersion"     }
+kover             = { id = "org.jetbrains.kotlinx.kover",                        version.ref = 'koverVersion'     }
+
+[bundles]
+
+test-libs         = ["mockk", "slf4j-api", "junit-jupiter", "logback-classic"]

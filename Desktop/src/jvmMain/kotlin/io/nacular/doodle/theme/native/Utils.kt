@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.native
 
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.Font.Style
 import io.nacular.doodle.drawing.Font.Style.Italic
 import io.nacular.doodle.drawing.Font.Style.Normal
 import io.nacular.doodle.drawing.Font.Style.Oblique
@@ -168,6 +169,20 @@ internal fun Font?.toAwt(default: SkiaFont) = when (this) {
             }
         }
     ))
+}
+
+internal fun AwtFont?.toDoodle(): Font? = when (this) {
+    null -> null
+    else -> object: Font {
+        override val size  : Int    get() = this@toDoodle.size
+        override val style : Style  get() = when {
+            this@toDoodle.isItalic      -> Italic
+            this@toDoodle.isTransformed -> Oblique()
+            else                        -> Normal
+        }
+        override val weight: Int    get() = this@toDoodle.attributes[WEIGHT] as? Int ?: 0
+        override val family: String get() = this@toDoodle.family
+    }
 }
 
 internal fun SkiaFont.textStyle() = TextStyle().apply {
