@@ -110,9 +110,6 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
             reader.readAsDataURL(delegate)
 
         } catch (e: CancellationException) {
-            println("cancelled")
-            e.printStackTrace()
-
             coroutine.resumeWithException(e)
         }
     }
