@@ -132,14 +132,18 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     }
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
-        val oldTransform = graphics.transform
+        val oldTransform = graphics.transform.clone() as AWTTransform
+        val newTransform = oldTransform.clone() as AWTTransform
 
         with(transform) {
-            graphics.transform = AWTTransform(
+            // for some reason graphics.transform.concatenate doesn't change the graphics.transform
+            newTransform.concatenate(AWTTransform(
                 scaleX,     shearY,
                 shearX,     scaleY,
                 translateX, translateY
-            )
+            ))
+
+            graphics.transform = newTransform
         }
 
         block()

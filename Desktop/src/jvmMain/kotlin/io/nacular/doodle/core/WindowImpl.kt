@@ -38,6 +38,7 @@ import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
+import javax.swing.Icon as SwingIcon
 
 internal class WindowImpl(
                 appScope       : CoroutineScope,
@@ -90,26 +91,10 @@ internal class WindowImpl(
             return menu
         }
 
-        override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
-            val item = SwingMenuItem(JMenuItem(title))
+        override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit) = prompt(title, icon, fired)
 
-            icon?.toAwt(item)?.let { item.menu.icon = it }
-
-            item.menu.addActionListener { fired(item) }
-
-            jMenu.add(item.menu)
-
-            return item
-        }
-
-        override fun prompt(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
-            val item = SwingMenuItem(JMenuItem(title))
-
-            item.menu.addActionListener { fired(item) }
-
-            jMenu.add(item.menu)
-
-            return item
+        override fun prompt(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit) = menuItem(title, icon, fired).apply {
+            jMenu.add(menu)
         }
 
         override fun separator() {
@@ -117,15 +102,14 @@ internal class WindowImpl(
         }
     }
 
-    private fun <T: Any> Icon<T>.toAwt(item: T) = object: javax.swing.Icon {
-        override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-            (g as? Graphics2D)?.let {
-                render(item, SwingCanvas(it, defaultFont, size(item)), at = Point(x, y))
-            }
-        }
+    private fun menuItem(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): SwingMenuItem {
+        val item = SwingMenuItem(JMenuItem(title))
 
-        override fun getIconWidth () = size(item).width.toInt ()
-        override fun getIconHeight() = size(item).height.toInt()
+        icon?.swing(item)?.let { item.menu.icon = it }
+
+        item.menu.addActionListener { fired(item) }
+
+        return item
     }
 
     private inner class JPopupMenuCreationContext(private val jPopupMenu: JPopupMenu): MenuCreationContext {
@@ -139,30 +123,26 @@ internal class WindowImpl(
             return menu
         }
 
-        override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
-            val item = SwingMenuItem(JMenuItem(title))
+        override fun action(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit) = prompt(title, icon, fired)
 
-            icon?.toAwt(item)?.let { item.menu.icon = it }
-            item.menu.addActionListener { fired(item) }
-
-            jPopupMenu.add(item.menu)
-
-            return item
-        }
-
-        override fun prompt(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit): MenuItem {
-            val item = SwingMenuItem(JMenuItem(title))
-
-            item.menu.addActionListener { fired(item) }
-
-            jPopupMenu.add(item.menu)
-
-            return item
+        override fun prompt(title: String, icon: Icon<ItemInfo>?, fired: (MenuItem) -> Unit) = menuItem(title, icon, fired).apply {
+            jPopupMenu.add(menu)
         }
 
         override fun separator() {
             jPopupMenu.addSeparator()
         }
+    }
+
+    private fun <T: Any> Icon<T>.swing(item: T) = object: SwingIcon {
+        override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
+            (g as? Graphics2D)?.let {
+                render(item, SwingCanvas(it, defaultFont, size(item)), at = Point(x, y))
+            }
+        }
+
+        override fun getIconWidth () = size(item).width.toInt ()
+        override fun getIconHeight() = size(item).height.toInt()
     }
 
     private val skiaWindow = JFrame().apply {
