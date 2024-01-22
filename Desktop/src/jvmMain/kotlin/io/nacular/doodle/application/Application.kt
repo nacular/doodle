@@ -1,6 +1,5 @@
 package io.nacular.doodle.application
 
-import io.nacular.doodle.core.Window
 import io.nacular.doodle.core.WindowGroup
 import io.nacular.doodle.core.WindowGroupImpl
 import io.nacular.doodle.core.WindowImpl
@@ -58,8 +57,8 @@ import org.kodein.di.instanceOrNull
 import org.kodein.di.provider
 import org.kodein.di.singleton
 import java.awt.Toolkit
+import java.util.*
 import javax.swing.UIManager
-import kotlin.system.exitProcess
 
 
 /**
@@ -176,24 +175,17 @@ private open class ApplicationHolderImpl protected constructor(
         Runtime.getRuntime().addShutdownHook(ShutdownHook())
     }
 
-    private val shutdownListener = { _: Window ->
-        exitProcess(0)
-    }
-
     protected fun run() {
         injector.instanceOrNull<DesktopPointerInputManagers>()
         injector.instanceOrNull<KeyboardFocusManager>       ()
         injector.instanceOrNull<DragManager>                ()
-        val windowGroup = injector.instanceOrNull<WindowGroupImpl>()?.also {
+        injector.instanceOrNull<WindowGroupImpl>()?.also {
             injector.instanceOrNull<InternalThemeManager>()
 
             it.start()
         }
 
         application = injector.instance()
-
-        // FIXME: Allow the app to make this decision
-        windowGroup?.main?.closed?.plusAssign(shutdownListener)
     }
 
     override fun shutdown() {
@@ -201,15 +193,9 @@ private open class ApplicationHolderImpl protected constructor(
             return
         }
 
-        shutdownListener
-
         application?.shutdown()
 
-        injector.instanceOrNull<WindowGroupImpl>()?.let {
-            it.main.closed -= shutdownListener
-            it.shutdown()
-        }
-
+        injector.instanceOrNull<WindowGroupImpl>            ()?.shutdown()
         (injector.instance<Scheduler>                       () as? SchedulerImpl)?.shutdown()
         injector.instance<AnimationSchedulerImpl>           ().shutdown()
         injector.instanceOrNull<DragManager>                ()?.shutdown()

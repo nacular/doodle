@@ -13,6 +13,7 @@ import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.SwingCanvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.native.toDoodle
 import io.nacular.doodle.utils.ChangeObserver
@@ -38,6 +39,7 @@ import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
+import kotlin.system.exitProcess
 import javax.swing.Icon as SwingIcon
 
 internal class WindowImpl(
@@ -165,8 +167,9 @@ internal class WindowImpl(
 
     override val closed: ChangeObservers<WindowImpl> = ChangeObserversImpl(this)
 
-    override var size get() = skiaWindow.size.run { Size(width, height) }; set(new) {
+    override var bounds get() = skiaWindow.bounds.run { Rectangle(x, y, width, height) }; set(new) {
         skiaWindow.isVisible     = false
+        skiaWindow.bounds        = java.awt.Rectangle(new.x.toInt(), new.y.toInt(), new.width.toInt(), new.height.toInt())
         skiaWindow.preferredSize = Dimension(new.width.toInt(), new.height.toInt())
         skiaWindow.pack()
         skiaWindow.isVisible     = true
@@ -224,13 +227,17 @@ internal class WindowImpl(
     override fun close() {
         (display as DisplayImpl).shutdown()
 
+        skiaWindow.isVisible = false
+        skiaWindow.dispose()
+
         (closed as ChangeObserversImpl).forEach { it(this) }
     }
 }
 
 internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImpl): WindowGroup {
+    override         val windows     = mutableListOf<WindowImpl>()
+
     private          var started     = false
-    private          val windows     = mutableListOf<WindowImpl>()
     private          val allDisplays = ObservableSet<DisplayImpl>()
     private lateinit var closeHandler: ChangeObserver<WindowImpl>
 
@@ -248,13 +255,26 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
         }
     }
 
-    override val main: Window
+    override val windowsChanged: ChangeObservers<WindowGroup> = ChangeObserversImpl(this)
+
+    override var mainWindowCloseBehavior: (() -> Unit)? = null
+
+    override lateinit var main: Window
 
     init {
         closeHandler = {
             it.closed   -= closeHandler
             windows     -= it
             allDisplays -= it.display as DisplayImpl
+
+            (windowsChanged as ChangeObserversImpl).forEach { it(this) }
+
+            if (it == main) {
+                when (val behavior = mainWindowCloseBehavior) {
+                    null -> exitProcess(0)
+                    else -> behavior()
+                }
+            }
         }
 
         main = this()
@@ -266,6 +286,8 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
         it.closed   += closeHandler
         windows     += it
         allDisplays += it.display as DisplayImpl
+
+        (windowsChanged as ChangeObserversImpl).forEach { it(this) }
 
         if (started) {
             it.start()
@@ -281,7 +303,7 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
 
     fun owner(of: View): WindowImpl? = windows.find { it.display.ancestorOf(of) }
 
-    override fun shutdown() {
+    fun shutdown() {
         while (windows.isNotEmpty()) {
             windows.firstOrNull()?.close()
         }
