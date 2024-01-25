@@ -238,14 +238,14 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         graphics.drawImage(
             (image as ImageImpl).skiaImage.awt,
-            destination.x.toInt(),
-            destination.y.toInt(),
-            destination.width.toInt(),
+            destination.x.toInt     (),
+            destination.y.toInt     (),
+            destination.width.toInt (),
             destination.height.toInt(),
-            source.x.toInt(),
-            source.y.toInt(),
-            source.width.toInt(),
-            source.height.toInt()
+            source.x.toInt          (),
+            source.y.toInt          (),
+            source.width.toInt      (),
+            source.height.toInt     ()
         ) { _,flags,_,_,_,_ ->
             flags == ALLBITS
         }
@@ -373,15 +373,15 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     private fun Paint.awt() = when (this) {
         is ColorPaint           -> Color(this.color.run { (red.toUInt() shl 16) + (green.toUInt() shl 8) + blue.toUInt() }.toInt())
         is LinearGradientPaint -> java.awt.LinearGradientPaint(
-            start.run { Point2D.Double(x, y) },
-            end.run { Point2D.Double(x, y) },
-            colors.map { it.offset }.toFloatArray(),
+            start.run  { Point2D.Double(x, y) },
+            end.run    { Point2D.Double(x, y) },
+            colors.map { it.offset        }.toFloatArray(),
             colors.map { it.color.toAwt() }.toTypedArray()
         )
         is RadialGradientPaint -> java.awt.RadialGradientPaint(
-            start.center .run { Point2D.Double(x, y) },
+            start.center.run { Point2D.Double(x, y) },
             start.radius.toFloat(),
-            colors.map { it.offset }.toFloatArray(),
+            colors.map { it.offset        }.toFloatArray(),
             colors.map { it.color.toAwt() }.toTypedArray()
         )
         else -> Color.BLACK
@@ -407,17 +407,17 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     private fun rect_(rectangle: Rectangle, stroke: Stroke? = null, fill: Paint? = null) {
         graphics.with(stroke) {
             drawRect(
-                rectangle.x.toInt(),
-                rectangle.y.toInt(),
-                rectangle.width.toInt(),
+                rectangle.x.toInt     (),
+                rectangle.y.toInt     (),
+                rectangle.width.toInt (),
                 rectangle.height.toInt()
             )
         }
         graphics.with(fill) {
-            graphics.fillRect(
-                rectangle.x.toInt(),
-                rectangle.y.toInt(),
-                rectangle.width.toInt(),
+            fillRect(
+                rectangle.x.toInt     (),
+                rectangle.y.toInt     (),
+                rectangle.width.toInt (),
                 rectangle.height.toInt()
             )
         }
@@ -426,9 +426,9 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     private fun rect_(rectangle: Rectangle, radius: Double, stroke: Stroke? = null, fill: Paint? = null) {
         graphics.with(fill) {
             fillRoundRect(
-                rectangle.x.toInt(),
-                rectangle.y.toInt(),
-                rectangle.width.toInt(),
+                rectangle.x.toInt     (),
+                rectangle.y.toInt     (),
+                rectangle.width.toInt (),
                 rectangle.height.toInt(),
                 radius.toInt(),
                 radius.toInt()
@@ -436,9 +436,9 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         }
         graphics.with(stroke) {
             drawRoundRect(
-                rectangle.x.toInt(),
-                rectangle.y.toInt(),
-                rectangle.width.toInt(),
+                rectangle.x.toInt     (),
+                rectangle.y.toInt     (),
+                rectangle.width.toInt (),
                 rectangle.height.toInt(),
                 radius.toInt(),
                 radius.toInt()
@@ -474,15 +474,19 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
 
     private fun Graphics2D.with(fill: Paint?, block: Graphics2D.() -> Unit) {
         if (fill != null) {
-            this.paint = fill.awt()
+            val old = paint
+            paint = fill.awt()
             block(this)
+            paint = old
         }
     }
 
     private fun Graphics2D.with(stroke: Stroke?, block: Graphics2D.() -> Unit) {
         if (stroke != null) {
+            val old = this.stroke
             this.stroke = stroke.awt()
             block(this)
+            this.stroke = old
         }
     }
 }

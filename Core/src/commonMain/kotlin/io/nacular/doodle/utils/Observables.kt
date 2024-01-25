@@ -143,7 +143,7 @@ public interface ObservableList<E>: MutableList<E> {
     public operator fun minusAssign(element: E)
 
     /**
-     * Replaces to list's contents with [elements].
+     * Replaces the list's contents with [elements].
      *
      * @param elements to replace the contents with
      * @return `true` if any changes made to the list
