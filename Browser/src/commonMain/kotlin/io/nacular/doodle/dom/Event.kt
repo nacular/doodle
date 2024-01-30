@@ -26,8 +26,8 @@ public expect open external class KeyboardEvent: UIEvent {
     public val altKey  : Boolean
     public val metaKey : Boolean
     public val keyCode : Int
-    public val key     : String
-    public val code    : String
+    public val key     : String? // Chrome makes these null on form autofill for some reason
+    public val code    : String? // Chrome makes these null on form autofill for some reason
 }
 
 public expect open external class MouseEvent: UIEvent {

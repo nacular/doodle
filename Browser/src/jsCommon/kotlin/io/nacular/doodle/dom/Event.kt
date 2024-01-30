@@ -21,8 +21,8 @@ public actual open external class KeyboardEvent: UIEvent {
     public actual val altKey  : Boolean
     public actual val metaKey : Boolean
     public actual val keyCode : Int
-    public actual val key     : String
-    public actual val code    : String
+    public actual val key     : String?
+    public actual val code    : String?
 }
 
 public actual open external class MouseEvent: UIEvent {

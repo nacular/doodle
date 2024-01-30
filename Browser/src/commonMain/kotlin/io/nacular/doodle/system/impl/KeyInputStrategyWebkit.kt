@@ -1,7 +1,7 @@
 package io.nacular.doodle.system.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.KeyboardEvent
 import io.nacular.doodle.event.KeyCode
@@ -11,6 +11,7 @@ import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.KeyState.Type.Down
 import io.nacular.doodle.event.KeyState.Type.Up
 import io.nacular.doodle.event.KeyText
+import io.nacular.doodle.system.KeyInputService
 import io.nacular.doodle.system.KeyInputService.KeyResponse.Consumed
 import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.SystemInputEvent.Modifier
@@ -62,14 +63,17 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
         else                                                                                        -> false
     }.ifFalse { event.preventBrowserDefault() }
 
-    private fun keyPress(event: KeyboardEvent) = when (KeyCode(event.code)) {
+    private fun keyPress(event: KeyboardEvent) = when (event.code?.let { KeyCode(it) }) {
         Space -> previousKeyDownResponse || isNativeElement(event.target)
         else  -> true
     }
 
-    private fun dispatchKeyEvent(event: KeyboardEvent, type: Type) = eventHandler?.invoke(
-        KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
-    ) ?: Ignored
+    private fun dispatchKeyEvent(event: KeyboardEvent, type: Type): KeyInputService.KeyResponse = when {
+        event.code != null && event.key != null -> eventHandler?.invoke(
+            KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
+        ) ?: Ignored
+        else -> Ignored
+    }
 
     private fun createModifiers(event: KeyboardEvent) = mutableSetOf<Modifier>().also {
         event.altKey.ifTrue   { it += Alt   }
@@ -79,8 +83,8 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
     }
 
     private fun registerCallbacks(element: HTMLElement) = element.apply {
-        onkeyup    = { this@KeyInputStrategyWebkit.keyUp  (it) }
-        onkeydown  = { this@KeyInputStrategyWebkit.keyDown(it) }
+        onkeyup    = { this@KeyInputStrategyWebkit.keyUp   (it) }
+        onkeydown  = { this@KeyInputStrategyWebkit.keyDown (it) }
         onkeypress = { this@KeyInputStrategyWebkit.keyPress(it) }
     }
 

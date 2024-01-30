@@ -16,10 +16,9 @@ public class ButtonGroup(public var allowDeselectAll: Boolean = false, vararg bu
         button.model.buttonGroup = this
 
         if (button.model.selected) {
-            if (selectedModel == null) {
-                selectedModel = button.model
-            } else {
-                button.model.selected = false
+            when (selectedModel) {
+                null -> selectedModel = button.model
+                else -> button.model.selected = false
             }
         }
     }
