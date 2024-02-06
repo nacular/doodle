@@ -35,7 +35,7 @@ public interface PopupMenu {
 }
 
 /**
- * Represents a single window an application.
+ * Represents a single window in an application.
  */
 public sealed interface Window {
     /** Location of the window's left edge. */

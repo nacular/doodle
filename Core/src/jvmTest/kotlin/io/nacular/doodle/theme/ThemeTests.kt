@@ -114,6 +114,8 @@ class ThemeTests {
 
         override fun child(at: Point) = null
 
+        override fun child(at: Point, predicate: (View) -> Boolean) = null
+
         override fun ancestorOf(view: View) = false
 
         override fun relayout() {}

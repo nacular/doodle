@@ -103,6 +103,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
     override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
         private set
+
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
@@ -242,30 +243,34 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override fun child(at: Point): View? = fromAbsolute(at).let { point ->
         when (val result = layout?.child(positionableWrapper, point)) {
-            null, Ignored -> {
-                var child     = null as View?
-                var topZOrder = 0
-
-                popUps.asReversed().forEach {
-                    if (it.visible && point in it && (child == null)) {
-                        child = it
-                    }
-                }
-
-                if (child == null) {
-                    children.asReversed().forEach {
-                        if (it.visible && point in it && (child == null || it.zOrder > topZOrder)) {
-                            child     = it
-                            topZOrder = it.zOrder
-                        }
-                    }
-                }
-
-                child
-            }
+            null, Ignored -> child_(point) { true }
             is Found      -> result.child as? View
             is Empty      -> null
         }
+    }
+
+    override fun child(at: Point, predicate: (View) -> Boolean): View? = child_(fromAbsolute(at), predicate)
+
+    private fun child_(at: Point, predicate: (View) -> Boolean): View? {
+        var child     = null as View?
+        var topZOrder = 0
+
+        popUps.asReversed().forEach {
+            if (it.visible && at in it && (child == null) && predicate(it)) {
+                child = it
+            }
+        }
+
+        if (child == null) {
+            children.asReversed().forEach {
+                if (it.visible && at in it && (child == null || it.zOrder > topZOrder) && predicate(it)) {
+                    child     = it
+                    topZOrder = it.zOrder
+                }
+            }
+        }
+
+        return child
     }
 
     override fun iterator() = children.iterator()

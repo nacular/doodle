@@ -275,6 +275,32 @@ class PointerInputManagerImplTests {
         }
     }
 
+    @Test fun `pointer down, pass-through`() {
+        val display      = display()
+        val inputService = mockk<PointerInputService>()
+        val child        = spyk(view())
+
+        child.position = Point(9.0, 9.0)
+        child.pointerChanged += mockk()
+
+        every { child.shouldHandlePointerEvent_(any()) } returns false
+        every { display.child(any()            ) } returns null
+        every { display.child(Point(10.0, 10.0)) } returns child
+
+        display.children += child
+
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+
+        manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+
+        verify(atLeast = 1) { inputService.setToolTipText(display, "") }
+
+        verify(exactly = 0) {
+            child.filterPointerEvent_(any())
+            child.handlePointerEvent_(any())
+        }
+    }
+
     @Test fun `pointer down, informs parent handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
@@ -305,6 +331,40 @@ class PointerInputManagerImplTests {
             parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
         }
     }
+
+    @Test fun `pointer down, pass-through informs parent handler`() {
+        val display      = display()
+        val inputService = mockk<PointerInputService>()
+        val parent       = spyk(view(), name = "parent")
+        val child        = spyk(view(), name = "child" )
+
+        parent.position  = Point(9.0, 9.0)
+        parent.children_ += child
+
+        every { child.shouldHandlePointerEvent_(any())  } returns false
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(), any()            ) } returns null
+        every { display.child(Point(10.0, 10.0)       ) } returns parent
+        every { display.child(Point(10.0, 10.0), any()) } returns parent
+        every { child.parent                            } returns parent
+
+        display.children += parent
+
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+
+        manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
+
+        verify(atLeast = 1) { inputService.setToolTipText(display, "") }
+
+        verify(ORDERED) {
+            parent.filterPointerEvent_(pointerEvent(parent, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Enter, Point(1.0, 1.0), Button1, 2, emptySet()))
+
+            parent.filterPointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+            parent.handlePointerEvent_(pointerEvent(parent, child, id = 0, Down,  Point(1.0, 1.0), Button1, 2, emptySet()))
+        }
+    }
+
 
     @Test fun `pointer drag, informs handler`() {
         val display      = display()
@@ -516,15 +576,14 @@ class PointerInputManagerImplTests {
         }
     }
 
-    @Test
-    fun `cleans up listeners on exit`() {
+    @Test fun `cleans up listeners on exit`() {
         val cursorChanged    = slot<PropertyObserver<View, Cursor?>>()
         val enabledChanged   = slot<PropertyObserver<View, Boolean>>()
         val boundsChanged    = slot<PropertyObserver<View, Rectangle>>()
         val transformChanged = slot<PropertyObserver<View, AffineTransform>>()
         val display          = display()
         val inputService     = mockk<PointerInputService>()
-        val child            = focusableView().apply {
+        val child            = focusableView("child").apply {
             every { this@apply.cursorChanged    += capture(cursorChanged   ) } just Runs
             every { this@apply.enabledChanged   += capture(enabledChanged  ) } just Runs
             every { this@apply.boundsChanged    += capture(boundsChanged   ) } just Runs
@@ -557,18 +616,20 @@ class PointerInputManagerImplTests {
         }
     }
 
-    private fun focusableView() = mockk<View>().apply {
-        every { parent                } returns null
-        every { enabled               } returns true
-        every { visible               } returns true
-        every { focusable             } returns true
-        every { focusCycleRoot_       } returns null
-        every { shouldYieldFocus()    } returns true
-        every { focusTraversalPolicy_ } returns null
+    private fun focusableView(name: String? = null) = mockk<View>(name) {
+        every { parent                                 } returns null
+        every { enabled                                } returns true
+        every { visible                                } returns true
+        every { focusable                              } returns true
+        every { focusCycleRoot_                        } returns null
+        every { shouldYieldFocus()                     } returns true
+        every { focusTraversalPolicy_                  } returns null
+        every { shouldHandlePointerEvent_(any())       } returns true
+        every { shouldHandlePointerMotionEvent_(any()) } returns true
     }
 
-    private fun display(cursor: Cursor? = null) = mockk<Display>().apply {
-        every { this@apply.cursor } returns cursor
+    private fun display(cursor: Cursor? = null) = mockk<Display> {
+        every { this@mockk.cursor } returns cursor
     }
 
     private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View = view {

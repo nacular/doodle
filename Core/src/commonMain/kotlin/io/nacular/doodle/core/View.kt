@@ -486,13 +486,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private val pointerFilter_ by lazy { SetPool<PointerListener>() }
 
+    private val pointerChanged_ by lazy { SetPool<PointerListener>() }
+
+    private val pointerPassedThrough_ by lazy { SetPool<PointerListener>() }
+
     /** [PointerListener]s that are notified during the sinking phase of pointer event handling. */
     public val pointerFilter: Pool<PointerListener> get() = pointerFilter_
 
-    private val pointerChanged_ by lazy { SetPool<PointerListener>() }
-
     /** [PointerListener]s that are notified during the bubbling phase of pointer event handling. */
     public val pointerChanged: Pool<PointerListener> get() = pointerChanged_
+
+    /**
+     * [PointerListener]s that are ONLY notified if a View chooses to pass a pointer event
+     * through to Views below it. This allows actions to be taken for events that would
+     * otherwise be relayed to other, underlying Views.
+     *
+     * @see shouldHandlePointerEvent
+     */
+    public val pointerPassedThrough: Pool<PointerListener> get() = pointerPassedThrough_
 
     private val keyChanged_ by lazy { SetPool<KeyListener>() }
 
@@ -501,13 +512,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private val pointerMotionFilter_ by lazy { SetPool<PointerMotionListener>() }
 
+    private val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
+
+    private val pointerMotionPassedThrough_ by lazy { SetPool<PointerMotionListener>() }
+
     /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
     public val pointerMotionFilter: Pool<PointerMotionListener> get() = pointerMotionFilter_
 
-    private val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
-
     /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
     public val pointerMotionChanged: Pool<PointerMotionListener> get() = pointerMotionChanged_
+
+    /**
+     * [PointerMotionListener]s that are ONLY notified if a View chooses to pass a pointer event
+     * through to Views below it. This allows actions to be taken for events that would
+     * otherwise be relayed to other, underlying Views.
+     *
+     * @see shouldHandlePointerEvent
+     */
+    public val pointerMotionPassedThrough: Pool<PointerMotionListener> get() = pointerMotionPassedThrough_
 
     /** Recognizer used to determine whether a [PointerEvent] should result in a [DragOperation] */
     public var dragRecognizer: DragRecognizer? = null
@@ -780,25 +802,27 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected open fun child(at: Point): View? = when {
         false == childrenClipPath?.contains(at) -> null
         else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
-            null, Ignored -> {
-                var child     = null as View?
-                var topZOrder = 0
-
-                children.asReversed().forEach {
-                    if (it.visible && at in it && (child == null || it.zOrder > topZOrder)) {
-                        child = it
-                        topZOrder = it.zOrder
-                    }
-                }
-
-                child
-            }
+            null, Ignored -> child_(at) { true }
             is Found      -> result.child as? View
             is Empty      -> null
         }
     }
 
     internal fun child_(at: Point) = child(at)
+
+    internal fun child_(at: Point, predicate: (View) -> Boolean): View? {
+        var child     = null as View?
+        var topZOrder = 0
+
+        children.asReversed().forEach {
+            if (it.visible && at in it && (child == null || it.zOrder > topZOrder) && predicate(it)) {
+                child     = it
+                topZOrder = it.zOrder
+            }
+        }
+
+        return child
+    }
 
     /**
      * Gives the View an opportunity to render itself (excludes any children) to the given Canvas.
@@ -972,15 +996,26 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param event The event
      */
     protected open fun filterPointerEvent(event: PointerEvent): Unit = pointerFilter_.forEach {
-        when(event.type) {
-            Up    -> it.released(event)
-            Down  -> it.pressed (event)
-            Exit  -> it.exited  (event)
-            Enter -> it.entered (event)
-            Click -> it.clicked (event)
-            else  -> return
+        it.notify(event)
+    }
+
+    internal fun shouldHandlePointerEvent_(event: PointerEvent) = shouldHandlePointerEvent(event).also {
+        if (!it) {
+            notifyOfPassThrough(event)
         }
     }
+
+    internal fun notifyOfPassThrough(event: PointerEvent) {
+        pointerPassedThrough_.forEach {
+            it.notify(event)
+        }
+    }
+
+    /**
+     * Determines whether the given [event] should be passed through the View to underlying items.
+     * This method is only called when a View would normally be sent an event like the one provided.
+     */
+    protected open fun shouldHandlePointerEvent(event: PointerEvent): Boolean = true
 
     internal fun handlePointerEvent_(event: PointerEvent) = handlePointerEvent(event)
 
@@ -990,14 +1025,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param event The event
      */
     protected open fun handlePointerEvent(event: PointerEvent): Unit = pointerChanged_.forEach {
-        when(event.type) {
-            Up    -> it.released(event)
-            Down  -> it.pressed (event)
-            Exit  -> it.exited  (event)
-            Enter -> it.entered (event)
-            Click -> it.clicked (event)
-            else  -> return
-        }
+        it.notify(event)
     }
 
     internal fun filterPointerMotionEvent_(event: PointerEvent) = filterPointerMotionEvent(event)
@@ -1008,12 +1036,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param event The event
      */
     protected open fun filterPointerMotionEvent(event: PointerEvent): Unit = pointerMotionFilter_.forEach {
-        when(event.type) {
-            Move -> it.moved  (event)
-            Drag -> it.dragged(event)
-            else -> return
+        it.notify(event)
+    }
+
+    internal fun shouldHandlePointerMotionEvent_(event: PointerEvent) = shouldHandlePointerMotionEvent(event).also {
+        if (!it) {
+            pointerMotionPassedThrough_.forEach {
+                it.notify(event)
+            }
         }
     }
+
+    /**
+     * Determines whether the given [event] should be passed through the View to underlying items.
+     * This method is only called when a View would normally be sent an event like the one provided.
+     *
+     * NOTE: Consuming this event won't prevent it from passing through
+     */
+    protected open fun shouldHandlePointerMotionEvent(event: PointerEvent): Boolean = true
 
     internal fun handlePointerMotionEvent_(event: PointerEvent) = handlePointerMotionEvent(event)
 
@@ -1023,11 +1063,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param event The event
      */
     protected open fun handlePointerMotionEvent(event: PointerEvent): Unit = pointerMotionChanged_.forEach {
-        when(event.type) {
-            Move -> it.moved  (event)
-            Drag -> it.dragged(event)
-            else -> return
-        }
+        it.notify(event)
     }
 
     /**
@@ -1132,6 +1168,25 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
+
+    private fun PointerListener.notify(event: PointerEvent) {
+        when(event.type) {
+            Up    -> released(event)
+            Down  -> pressed (event)
+            Exit  -> exited  (event)
+            Enter -> entered (event)
+            Click -> clicked (event)
+            else  -> {}
+        }
+    }
+
+    private fun PointerMotionListener.notify(event: PointerEvent) {
+        when(event.type) {
+            Move -> moved  (event)
+            Drag -> dragged(event)
+            else -> {}
+        }
+    }
 
     private fun notifySizePreferencesChanged(old: SizePreferences, new: SizePreferences) {
         renderManager?.sizePreferencesChanged(this, old, new)

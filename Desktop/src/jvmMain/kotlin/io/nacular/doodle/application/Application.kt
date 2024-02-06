@@ -57,7 +57,6 @@ import org.kodein.di.instanceOrNull
 import org.kodein.di.provider
 import org.kodein.di.singleton
 import java.awt.Toolkit
-import java.util.*
 import javax.swing.UIManager
 
 
@@ -210,11 +209,13 @@ private open class ApplicationHolderImpl protected constructor(
     companion object {
         operator fun invoke(previousInjector    : DirectDI,
                             allowDefaultDarkMode: Boolean      = false,
-                            modules             : List<Module> = emptyList()): Application {
-            return ApplicationHolderImpl(previousInjector, allowDefaultDarkMode, modules).apply {
-                appScope.launch(Dispatchers.Swing) {
-                    run()
-                }
+                            modules             : List<Module> = emptyList()) = ApplicationHolderImpl(
+            previousInjector,
+            allowDefaultDarkMode,
+            modules
+        ).apply {
+            appScope.launch(Dispatchers.Swing) {
+                run()
             }
         }
     }

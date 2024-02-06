@@ -118,6 +118,12 @@ public interface Display: Iterable<View> {
     public fun child(at: Point): View?
 
     /**
+     * @param at the x,y within the Display's coordinate-space
+     * @return a View if one is found to contain the given point and match [predicate]
+     */
+    public fun child(at: Point, predicate: (View) -> Boolean): View?
+
+    /**
      * Adds [view] to the Display.
      *
      * @param view to be added

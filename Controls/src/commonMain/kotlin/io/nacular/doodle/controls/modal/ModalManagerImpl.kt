@@ -128,22 +128,4 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
             coroutine.resumeWithException(e)
         }
     }
-
-    private fun ModalContextImpl<*>.registerListeners() {
-        pointerChanged_.forEach {
-            overlay.pointerChanged += it
-        }
-        pointerMotionChanged_.forEach {
-            overlay.pointerMotionChanged += it
-        }
-    }
-
-    private fun ModalContextImpl<*>.unregisterListeners() {
-        pointerChanged_.forEach {
-            overlay.pointerChanged -= it
-        }
-        pointerMotionChanged_.forEach {
-            overlay.pointerMotionChanged -= it
-        }
-    }
 }
