@@ -22,13 +22,35 @@ public interface ModalManager {
      * @property pointerMotionOutsideModalChanged allows listening to pointer-motion events outside the modal
      */
     public interface ModalContext<T> {
+        /** @see backgroundMode */
+        public enum class BackgroundMode { Replace, Overlay }
+
         /**
          * Paint used to fill the background behind the modal View.
          */
-        public var background : Paint
+        public var background: Paint
+
+        /**
+         * Determines how the modal's background affects those from any underlying
+         * modals. [Replace][BackgroundMode.Replace] will swap out any underlying background
+         * with this one, so there is no stacking, while [Overlay][BackgroundMode.Overlay] will
+         * simply add this background atop any existing one.
+         *
+         * The default is [Replace][BackgroundMode.Replace]
+         */
+        public var backgroundMode: BackgroundMode
 
         /** Notified whenever Pointer events occur outside the modal View */
         public val pointerOutsideModalChanged: Pool<PointerListener>
+
+        /**
+         * Indicates whether pointer events outside the modal View should be
+         * passed through to underlying Views. The default is `false`.
+         *
+         * Setting this to `true` does not affect notifications for [pointerOutsideModalChanged],
+         * or [pointerMotionOutsideModalChanged].
+         */
+        public var allowPointerThrough: Boolean
 
         /** Notified whenever Pointer motion events occur outside the modal View */
         public val pointerMotionOutsideModalChanged: Pool<PointerMotionListener>

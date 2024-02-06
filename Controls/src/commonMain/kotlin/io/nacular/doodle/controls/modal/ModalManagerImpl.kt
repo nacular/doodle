@@ -3,6 +3,9 @@ package io.nacular.doodle.controls.modal
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.modal.ModalManager.Modal
 import io.nacular.doodle.controls.modal.ModalManager.ModalContext
+import io.nacular.doodle.controls.modal.ModalManager.ModalContext.BackgroundMode
+import io.nacular.doodle.controls.modal.ModalManager.ModalContext.BackgroundMode.Overlay
+import io.nacular.doodle.controls.modal.ModalManager.ModalContext.BackgroundMode.Replace
 import io.nacular.doodle.controls.modal.ModalManager.ModalType
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
@@ -10,6 +13,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
@@ -31,16 +35,6 @@ import kotlin.coroutines.suspendCoroutine
 @Internal
 @Suppress("PrivatePropertyName")
 public class ModalManagerImpl(private val popupManager: PopupManager, private val focusManager: FocusManager?): ModalManager {
-    private var background: Paint? by observable(null) { _,_ ->
-        overlay.rerenderNow()
-    }
-
-    private val overlay = object: View() {
-        override fun render(canvas: Canvas) {
-            background?.let { canvas.rect(bounds.atOrigin, fill = it) }
-        }
-    }
-
     private val overlayConstraints: ConstraintDslContext.(Bounds) -> Unit = { it.edges eq parent.edges }
 
     private val modalStack = mutableListOf<ModalContextImpl<*>>()
@@ -54,12 +48,25 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
         val pointerChanged_       by lazy { SetPool<PointerListener>      () }
         val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
 
+        var overlay = object: View() {
+            override fun shouldHandlePointerEvent      (event: PointerEvent) = !allowPointerThrough
+            override fun shouldHandlePointerMotionEvent(event: PointerEvent) = !allowPointerThrough
+
+            override fun render(canvas: Canvas) {
+                canvas.rect(bounds.atOrigin, fill = this@ModalContextImpl.background)
+            }
+        }
+
         override val pointerOutsideModalChanged      : Pool<PointerListener>       get() = pointerChanged_
         override val pointerMotionOutsideModalChanged: Pool<PointerMotionListener> get() = pointerMotionChanged_
 
-        override var background: Paint by observable(background) { _,new ->
-            this@ModalManagerImpl.background = new
+        override var allowPointerThrough = false
+
+        override var background: Paint by observable(background) { _,_ ->
+            overlay.rerenderNow()
         }
+
+        override var backgroundMode: BackgroundMode by observable(Replace) { _,_ -> updateBackground() }
 
         override fun reLayout() {
             if (::modalType.isInitialized) {
@@ -69,6 +76,38 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
         override fun completed(result: T) {
             completed_(result)
+        }
+
+        init {
+            updateBackground()
+        }
+
+        fun updateBackground() {
+            modalStack.takeWhile { it != this }.forEach {
+                it.overlay.visible = backgroundMode == Overlay
+            }
+        }
+
+        fun registerListeners() {
+            pointerChanged_.forEach {
+                overlay.pointerChanged       += it
+                overlay.pointerPassedThrough += it
+            }
+            pointerMotionChanged_.forEach {
+                overlay.pointerMotionChanged       += it
+                overlay.pointerMotionPassedThrough += it
+            }
+        }
+
+        fun unregisterListeners() {
+            pointerChanged_.forEach {
+                overlay.pointerChanged       -= it
+                overlay.pointerPassedThrough -= it
+            }
+            pointerMotionChanged_.forEach {
+                overlay.pointerMotionChanged       -= it
+                overlay.pointerMotionPassedThrough -= it
+            }
         }
     }
 
@@ -81,25 +120,18 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
                 modalStack.removeLast().let {
                     popupManager.hide(it.modalType.view)
+                    popupManager.hide(it.overlay       )
                     it.unregisterListeners()
                     previousFocusOwner = it.focusOwner
                 }
 
-                popupManager.hide(overlay)
+                modalStack.forEach {
+                    it.overlay.visible = true
+                    it.updateBackground()
+                }
 
                 modalStack.lastOrNull()?.let { modal ->
-                    popupManager.hide(modal.modalType.view)
-                    this.background = modal.background
-
                     modal.registerListeners()
-
-                    popupManager.show(overlay, overlayConstraints)
-
-                    when (val type = modal.modalType) {
-                        is Modal                      -> popupManager.show(type.view, type.layout)
-                        is ModalManager.RelativeModal -> popupManager.show(type.view, type.relativeTo, type.layout)
-                    }
-
                     previousFocusOwner?.let { focusManager?.requestFocus(it) }
                 }
             }
@@ -107,8 +139,6 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
             with(contents(modal)) {
                 modal.modalType = this
             }
-
-            popupManager.hide(overlay)
 
             modalStack.lastOrNull()?.unregisterListeners()
 
@@ -118,8 +148,8 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
             focusManager?.clearFocus()
 
-            background = modal.background
-            popupManager.show(overlay, overlayConstraints)
+            popupManager.show(modal.overlay, overlayConstraints)
+
             when (val type = modal.modalType) {
                 is Modal                      -> popupManager.show(type.view, type.layout)
                 is ModalManager.RelativeModal -> popupManager.show(type.view, type.relativeTo, type.layout)
