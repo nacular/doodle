@@ -277,12 +277,12 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
             }
         }
 
-        main = this()
+        main = this {}
 
         allDisplays += windows.map { it.display as DisplayImpl }
     }
 
-    override fun invoke(frameLess: Boolean) = windowFactory(frameLess).also {
+    override fun invoke(frameLess: Boolean, builder: Window.() -> Unit) = windowFactory(frameLess).also {
         it.closed   += closeHandler
         windows     += it
         allDisplays += it.display as DisplayImpl
@@ -292,7 +292,7 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
         if (started) {
             it.start()
         }
-    }
+    }.apply(builder)
 
     fun start() {
         if (started) return

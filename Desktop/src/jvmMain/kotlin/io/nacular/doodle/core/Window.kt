@@ -129,7 +129,8 @@ public interface WindowGroup {
      * Creates and shows a new window.
      *
      * @param frameLess indicates whether the window has chrome (see [Window.decorated]).
+     * @param builder to configure the resulting window.
      * @return the new window
      */
-    public operator fun invoke(frameLess: Boolean = false): Window
+    public operator fun invoke(frameLess: Boolean = false, builder: Window.() -> Unit = {}): Window
 }
