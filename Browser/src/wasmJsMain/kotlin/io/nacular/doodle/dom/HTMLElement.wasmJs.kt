@@ -21,6 +21,6 @@ private fun tryInsertRule(sheet: CSSStyleSheet, rule: String, index: Int): Int =
     try {
         return sheet.insertRule(rule, index);
     } catch (error) {
-        -1; //throw Error();
+        return -1;
     }
 }""")

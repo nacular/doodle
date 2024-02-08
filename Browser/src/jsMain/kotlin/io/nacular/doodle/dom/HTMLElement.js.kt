@@ -16,11 +16,10 @@ internal actual fun CSSStyleSheet.tryInsertRule(
     index: Int
 ): Int = tryInsertRule(this, rule, index)
 
-
 private fun tryInsertRule(sheet: CSSStyleSheet, rule: String, index: Int): Int = js("""
 try {
     return sheet.insertRule(rule, index);
 } catch (error) {
-    throw Error();
+    return -1;
 }
 """) as Int

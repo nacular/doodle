@@ -5,13 +5,12 @@ import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.ImageLoader
-import io.nacular.doodle.scheduler.Scheduler
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 
-internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val scheduler: Scheduler, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
+internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val images: MutableMap<String, Image> = mutableMapOf()): ImageLoader {
 
     private val loading           = mutableMapOf<String, HTMLImageElement>()
     private val pendingCoroutines = mutableMapOf<String, MutableList<Continuation<Image?>>>()
@@ -29,7 +28,7 @@ internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val
                         removeListeners(this)
                     }
 
-                    onerror = { //_,_,_,_,_ ->
+                    onerror = {
                         loading -= source
                         removeListeners(this)
                         notify(source, coroutine)

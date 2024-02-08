@@ -157,7 +157,7 @@ public class Modules {
 
         /** Enable use of [ImageLoader]. */
         public val ImageModule: Module = Module(allowSilentOverride = true, name = "Image") {
-            bindSingleton<ImageLoader>{ ImageLoaderImpl(instance(), instance()) }
+            bindSingleton<ImageLoader>{ ImageLoaderImpl(instance()) }
         }
 
         /** Enable use of [PopupManager]. */
