@@ -6,7 +6,10 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.constraints.constrain
 
 /**
- * Created by Nicholas Eddy on 8/30/18.
+ * Simple View that uses a [Spinner] internally to allow switching between the themes within
+ * a [ThemeManager].
+ *
+ * @param themeManager to manage
  */
 public class ThemePicker(themeManager: ThemeManager): View() {
     private val model   = MutableListSpinnerModel<Theme?>()

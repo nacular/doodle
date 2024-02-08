@@ -8,18 +8,15 @@ import org.jetbrains.skia.svg.SVGDOM
 import java.io.InputStream
 import org.jetbrains.skia.Image as SkiaImage
 
-public interface UrlDecoder {
-    public fun decode(string: String, encoding: String): String
+internal interface UrlDecoder {
+    fun decode(string: String, encoding: String): String
 }
 
-public interface Base64Decoder {
-    public fun decode(string: String): ByteArray
+internal interface Base64Decoder {
+    fun decode(string: String): ByteArray
 }
 
-/**
- * Created by Nicholas Eddy on 5/20/21.
- */
-public class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val base64Decoder: Base64Decoder): ImageLoader {
+internal class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val base64Decoder: Base64Decoder): ImageLoader {
     private val loadedImages   = mutableMapOf<String, Image>()
     private val dataImageRegex = Regex("^\\s*data:(?<mediaType>(?<mimeType>[a-z\\-+/]+/[a-z\\-+]+)(?<params>(;[a-z\\-]+=[a-z\\-]+)*))?;(?<encoding>[^,]*)?,(?<data>[a-zA-Z\\d!$&',()*+;=\\-._~:@/?%\\s]*\\s*)")
 

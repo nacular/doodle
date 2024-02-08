@@ -2,16 +2,20 @@
 
 package io.nacular.doodle.dom
 
+/** @suppress */
 public expect external interface JsAny
 
+/** @suppress */
 public expect external class JsString: JsAny
 
+/** @suppress */
 public expect external class JsNumber: JsAny
 
 internal expect fun JsNumber.toDouble(): Double
 
 internal expect fun String.toJsString(): JsString
 
+/** @suppress */
 public expect external class JsArray<T: JsAny?>: JsAny {
     internal val length: Int
 }

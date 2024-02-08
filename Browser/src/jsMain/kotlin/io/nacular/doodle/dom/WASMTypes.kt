@@ -1,14 +1,18 @@
 package io.nacular.doodle.dom
 
+/** @suppress */
 public actual external interface JsAny
 
 @JsName("String")
+/** @suppress */
 public actual external class JsString: JsAny
 
 @JsName("Number")
+/** @suppress */
 public actual external class JsNumber: JsAny
 
 @JsName("Array")
+/** @suppress */
 public actual external class JsArray<T: JsAny?>: JsAny {
     internal actual val length: Int
 }

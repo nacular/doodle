@@ -28,11 +28,17 @@ public class Modules {
     }
 
     public companion object {
+        /**
+         * Provides access to [ThemeManager], so it can be injected.
+         */
         public val ThemeModule: Module = Module(allowSilentOverride = true, name = "Theme") {
             bind<ThemeManager>        () with singleton { instance<InternalThemeManager>() }
             bind<InternalThemeManager>() with singleton { ThemeManagerImpl(instance()) }
         }
 
+        /**
+         * Provides access to [DynamicTheme], so it can be injected.
+         */
         public val DynamicThemeModule: Module = Module(name = "DynamicThemeModule") {
             importOnce(ThemeModule, allowOverride = true)
 

@@ -35,6 +35,10 @@ import javax.swing.JPanel
 
 private typealias NTheme = NativeTheme
 
+/**
+ * Theme incorporates [Behavior]s that style Views using the underlying platform so they look as close to native as
+ * possible.
+ */
 public class NativeTheme internal constructor(behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
     private lateinit var scene: Scene
 
@@ -50,23 +54,18 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
         fun deviceFor(view: View): GraphicsDevice<RealGraphicsSurface>? = windowGroup.owner(view)?.graphicsDevice
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     public companion object {
-        public val NativeTheme: Module = Module(name = "NativeTheme") {
-            importOnce(ThemeModule, allowOverride = true)
-
-            bindSingleton { NativeTheme(Instance(erasedSet())) }
-        }
-
         private val CommonNativeModule = Module(allowSilentOverride = true, name = "CommonNativeModule") {
             bindInstance { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration }
             bindSingleton {
                 object: SwingGraphicsFactory {
                     override fun invoke(skiaCanvas: Canvas): SkiaGraphics2D {
                         return SkiaGraphics2D(
-                                canvas         = skiaCanvas,
-                                defaultFont    = instance(),
-                                textMetrics    = instance(),
-                                fontCollection = instance()
+                            canvas         = skiaCanvas,
+                            defaultFont    = instance(),
+                            textMetrics    = instance(),
+                            fontCollection = instance()
                         )
                     }
                 }
@@ -75,7 +74,19 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindSingleton { WindowDiscovery(instance()) }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module for injecting the [NativeTheme].
+         */
+        public val NativeTheme: Module = Module(name = "NativeTheme") {
+            importOnce(ThemeModule, allowOverride = true)
+
+            bindSingleton { NativeTheme(Instance(erasedSet())) }
+        }
+
+        /**
+         * Module that provides [Behavior]s for [Button]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -91,7 +102,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             ) }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [ScrollPanel]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeScrollPanelBehavior(): Module = Module(name = "NativeScrollPanelBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -107,7 +121,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
                         nativePointerPreprocessor = instanceOrNull()) }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [Slider]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeSliderBehavior(): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -121,8 +138,11 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             ) }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
-        public fun nativeTextFieldBehavior(spellCheck: Boolean = false): Module = Module(name = "NativeTextFieldBehavior") {
+        /**
+         * Module that provides [Behavior]s for [TextField]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
+        public fun nativeTextFieldBehavior(): Module = Module(name = "NativeTextFieldBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(
@@ -148,7 +168,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             ) }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [HyperLink]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -169,7 +192,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [CheckBox]es that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -188,7 +214,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [RadioButton]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -207,7 +236,10 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [Switch]es that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeSwitchBehavior(): Module = Module(name = "NativeSwitchBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
@@ -226,11 +258,14 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             }
         }
 
-        @Suppress("MemberVisibilityCanBePrivate")
+        /**
+         * Module that provides [Behavior]s for [FileSelector]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
         public fun nativeFileSelectorBehavior(prompt: String): Module = Module(name = "NativeFileSelectorBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeFileSelectorStyler > { NativeFileSelectorStylerImpl(window = instance()) }
+            bindSingleton<NativeFileSelectorStyler> { NativeFileSelectorStylerImpl(window = instance()) }
 
             bindBehavior<FileSelector>(NTheme::class) {
                 it.behavior = NativeFileSelectorBehavior(
@@ -245,6 +280,9 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             }
         }
 
+        /**
+         * @return list of common modules for native styles.
+         */
         public fun nativeThemeBehaviors(fileSelectorPrompt: String): List<Module> = listOf(
             nativeButtonBehavior      (),
             nativeSliderBehavior      (),

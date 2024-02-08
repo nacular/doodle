@@ -1,18 +1,20 @@
 package io.nacular.doodle.dom
 
-/**
- * Created by Nicholas Eddy on 12/20/23.
- */
+/** @suppress */
 public actual interface JsAny
 
+/** @suppress */
 public actual class JsString: JsAny
 
+/** @suppress */
 public actual fun String.toJsString(): JsString = JsString()
 
+/** @suppress */
 public actual class JsNumber: JsAny
 
 internal actual fun JsNumber.toDouble(): Double = 0.0
 
+/** @suppress */
 public actual class JsArray<T: JsAny?>: JsAny {
     internal actual val length: Int = 0
 }

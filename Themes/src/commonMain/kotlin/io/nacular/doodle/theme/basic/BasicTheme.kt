@@ -163,6 +163,11 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
     @Suppress("MemberVisibilityCanBePrivate")
     public companion object {
+        private val Config = Module(name = "BasicThemeConfig") {
+            bind<ConfigProvider>  () with singleton { ConfigProviderImpl()              }
+            bind<BasicThemeConfig>() with provider  { instance<ConfigProvider>().config }
+        }
+
         public fun basicThemeModule(name: String, init: DI.Builder.() -> Unit): Module = Module(name = name) {
             importOnce(Config, allowOverride = true)
 
@@ -173,11 +178,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             importOnce(ThemeModule, allowOverride = true)
 
             bind<BasicTheme>() with singleton { BasicTheme(instance(), Instance(erasedSet())) }
-        }
-
-        private val Config = Module(name = "BasicThemeConfig") {
-            bind<ConfigProvider>  () with singleton { ConfigProviderImpl()              }
-            bind<BasicThemeConfig>() with provider  { instance<ConfigProvider>().config }
         }
 
         public fun basicListBehavior(
@@ -928,7 +928,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        public val basicThemeBehaviors: kotlin.collections.List<Module> = listOf(
+        public fun basicThemeBehaviors(): kotlin.collections.List<Module> = listOf(
             basicListBehavior(),
             basicTreeBehavior(),
             basicLabelBehavior(),
