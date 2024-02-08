@@ -274,7 +274,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         /**
          * @return list of common modules for native styles.
          */
-        public val nativeThemeBehaviors: List<DI.Module> = listOf(
+        public fun nativeThemeBehaviors(): List<DI.Module> = listOf(
             nativeButtonBehavior     (),
             nativeSliderBehavior     (),
             nativeSwitchBehavior     (),

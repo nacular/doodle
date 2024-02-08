@@ -6,7 +6,6 @@ import io.mockk.slot
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.HtmlFactory
-import io.nacular.doodle.dom.JsAny
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.expect
@@ -28,7 +27,7 @@ public class ImageLoaderImplTests {
             every { createImage(any()) } returns imageElement
         }
 
-        val loader = ImageLoaderImpl(htmlFactory, mockk())
+        val loader = ImageLoaderImpl(htmlFactory)
 
         expect(imageElement) {
             runBlocking { (loader.load("foo") as ImageImpl).image }
@@ -48,7 +47,7 @@ public class ImageLoaderImplTests {
             every { createImage(any()) } returns imageElement
         }
 
-        val loader = ImageLoaderImpl(htmlFactory, mockk())
+        val loader = ImageLoaderImpl(htmlFactory)
 
         expect(null) {
             runBlocking { loader.load("foo") }
