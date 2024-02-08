@@ -22,13 +22,13 @@ internal actual abstract external class Window {
     actual fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
     actual fun clearInterval(handle: Int)
 
-    internal actual fun addEventListener   (eventName: String, callback: () -> Unit)
-    internal actual fun removeEventListener(eventName: String, callback: () -> Unit)
+    actual fun addEventListener   (eventName: String, callback: () -> Unit)
+    actual fun removeEventListener(eventName: String, callback: () -> Unit)
 }
 
 internal actual external val window: Window
 
 internal actual abstract external class MediaQueryList {
-    public actual val matches: Boolean
-    public actual fun addListener(listener: ((Event) -> Unit)?)
+    actual val matches: Boolean
+    actual fun addListener(listener: ((Event) -> Unit)?)
 }

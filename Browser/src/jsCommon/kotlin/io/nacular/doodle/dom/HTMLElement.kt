@@ -72,7 +72,7 @@ internal actual external class TextMetrics: JsAny {
 }
 
 internal actual abstract external class CanvasRenderingContext2D: JsAny {
-    internal actual abstract var font: String
+    actual abstract var font: String
 
     actual fun measureText(string: String): TextMetrics
 }
@@ -89,14 +89,14 @@ internal actual fun CanvasRenderingContext2D.measureText_(string: String): Size 
 internal actual external interface RenderingContext
 
 internal actual abstract external class HTMLCanvasElement: HTMLElement {
-    internal actual fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext?
+    actual fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext?
 }
 
 internal actual external class DOMRect: JsAny {
-    internal actual var x     : Double
-    internal actual var y     : Double
-    internal actual var width : Double
-    internal actual var height: Double
+    actual var x     : Double
+    actual var y     : Double
+    actual var width : Double
+    actual var height: Double
 }
 
 internal actual external interface ElementCSSInlineStyle: JsAny {
@@ -104,15 +104,15 @@ internal actual external interface ElementCSSInlineStyle: JsAny {
 }
 
 internal actual abstract external class Element: Node, ParentNode {
-    internal actual open var id        : String
-    internal actual open var className : String
-    internal actual open var scrollTop : Double
-    internal actual open var scrollLeft: Double
+    actual open var id        : String
+    actual open var className : String
+    actual open var scrollTop : Double
+    actual open var scrollLeft: Double
 
-    internal actual open val clientWidth : Int
-    internal actual open val clientHeight: Int
+    actual open val clientWidth : Int
+    actual open val clientHeight: Int
 
-    internal actual open var outerHTML: String
+    actual open var outerHTML: String
 
     actual fun getBoundingClientRect(): DOMRect
 
@@ -124,13 +124,13 @@ internal actual abstract external class Element: Node, ParentNode {
 
     actual fun scrollTo(x: Double, y: Double)
 
-    internal actual abstract fun remove()
+    actual abstract fun remove()
 }
 
 internal actual abstract external class HTMLCollection actual constructor(): JsAny {
-    internal actual abstract val length: Int
+    actual abstract val length: Int
 
-    internal actual open fun item(index: Int): Element?
+    actual open fun item(index: Int): Element?
 }
 
 internal actual inline operator fun HTMLCollection.get(index: Int): Element? = this.item(index)
@@ -206,13 +206,13 @@ internal actual abstract external class StyleSheet: JsAny
 internal actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? = item(index)
 
 internal actual abstract external class StyleSheetList: JsAny {
-    internal actual abstract val length: Int
+    actual abstract val length: Int
 
     actual fun item(index: Int): StyleSheet?
 }
 
 internal actual abstract external class HTMLStyleElement: HTMLElement {
-    internal actual val sheet: StyleSheet?
+    actual val sheet: StyleSheet?
 }
 
 internal actual abstract external class HTMLMetaElement: HTMLElement {
@@ -221,29 +221,29 @@ internal actual abstract external class HTMLMetaElement: HTMLElement {
 }
 
 internal actual external class Document: JsAny {
-    internal actual val head: HTMLHeadElement?
+    actual val head: HTMLHeadElement?
     actual var body: HTMLElement?
 //    internal actual val styleSheets: StyleSheetList
 
-    internal actual fun addEventListener   (to: String, listener: (Event) -> Unit)
-    internal actual fun removeEventListener(to: String, listener: (Event) -> Unit)
-    internal actual fun getSelection       (): Selection?
+    actual fun addEventListener   (to: String, listener: (Event) -> Unit)
+    actual fun removeEventListener(to: String, listener: (Event) -> Unit)
+    actual fun getSelection       (): Selection?
 //    internal actual fun getCaretFromPoint  (point: Point): CaretPosition?
 //    internal actual fun elementFromPoint   (point: Point): Element?
 
-    internal actual fun createElement  (localName: String): Element
-    internal actual fun createElement  (localName: String, options: ElementCreationOptions): Element
-    internal actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element
-    internal actual fun createElementNS(namespace: String?, qualifiedName: String): Element
+    actual fun createElement  (localName: String): Element
+    actual fun createElement  (localName: String, options: ElementCreationOptions): Element
+    actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element
+    actual fun createElementNS(namespace: String?, qualifiedName: String): Element
 
-    internal actual fun createTextNode(data: String): Text
-    internal actual fun createRange(): Range
+    actual fun createTextNode(data: String): Text
+    actual fun createRange(): Range
 }
 
 internal actual external class Range: JsAny {
-    internal actual val collapsed: Boolean
-    internal actual fun setStart(node: Node, offset: Int)
-    internal actual fun setEnd  (node: Node, offset: Int)
+    actual val collapsed: Boolean
+    actual fun setStart(node: Node, offset: Int)
+    actual fun setEnd  (node: Node, offset: Int)
 }
 
 internal actual external class Selection: JsAny {
@@ -254,10 +254,10 @@ internal actual external class Selection: JsAny {
 internal actual abstract external class CharacterData: Node
 internal actual external          class Text: CharacterData
 internal actual abstract external class HTMLImageElement : HTMLElement {
-    internal actual var src     : String
-    internal actual val complete: Boolean
-    internal actual val width   : Int
-    internal actual val height  : Int
+    actual var src     : String
+    actual val complete: Boolean
+    actual val width   : Int
+    actual val height  : Int
 }
 
 internal actual abstract external class HTMLHeadElement : HTMLElement
@@ -267,36 +267,36 @@ internal actual external class FocusOptions: JsAny {
 }
 
 internal actual abstract external class HTMLInputElement: HTMLElement {
-    internal actual var type         : String
-    internal actual var step         : String
-    internal actual var value        : String
-    internal actual var accept       : String
-    internal actual var checked      : Boolean
-    internal actual var pattern      : String
-    internal actual var disabled     : Boolean
-    internal actual var multiple     : Boolean
-    internal actual var placeholder  : String
-    internal actual var indeterminate: Boolean
+    actual var type         : String
+    actual var step         : String
+    actual var value        : String
+    actual var accept       : String
+    actual var checked      : Boolean
+    actual var pattern      : String
+    actual var disabled     : Boolean
+    actual var multiple     : Boolean
+    actual var placeholder  : String
+    actual var indeterminate: Boolean
 
-    internal actual var selectionStart: Int?
-    internal actual var selectionEnd  : Int?
+    actual var selectionStart: Int?
+    actual var selectionEnd  : Int?
 
-    internal actual val files: FileList?
+    actual val files: FileList?
 
-    internal actual fun setSelectionRange(start: Int, end: Int)
+    actual fun setSelectionRange(start: Int, end: Int)
 }
 
 internal actual abstract external class HTMLButtonElement: HTMLElement {
-    internal actual var disabled: Boolean
+    actual var disabled: Boolean
 }
 internal actual abstract external class HTMLAnchorElement: HTMLElement {
-    internal actual abstract var href  : String
-    internal actual abstract var host  : String
+    actual abstract var href  : String
+    actual abstract var host  : String
     actual          var target: String
 }
 
 internal actual abstract external class HTMLIFrameElement: HTMLElement {
-    internal actual open var src: String
+    actual open var src: String
 }
 
 internal actual open external class ResizeObserver actual constructor(callback: (JsArray<ResizeObserverEntry>, ResizeObserver) -> Unit): JsAny {
@@ -311,8 +311,8 @@ internal actual external interface ResizeObserverInit: JsAny {
 }
 
 internal actual abstract external class ResizeObserverEntry: JsAny {
-    internal actual open val contentRect: DOMRect
-    internal actual open val target: HTMLElement
+    actual open val contentRect: DOMRect
+    actual open val target: HTMLElement
 }
 
 internal actual external val document: Document

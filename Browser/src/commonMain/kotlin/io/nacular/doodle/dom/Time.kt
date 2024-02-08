@@ -2,12 +2,12 @@
 
 package io.nacular.doodle.dom
 
-public expect abstract external class Performance {
-    public fun now(): Double
+internal expect abstract external class Performance {
+    fun now(): Double
 }
 
-public expect external class Date {
-    public companion object {
-        public fun now(): Double
+internal expect external class Date {
+    companion object {
+        fun now(): Double
     }
 }

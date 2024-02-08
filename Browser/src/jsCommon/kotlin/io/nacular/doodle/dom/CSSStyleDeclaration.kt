@@ -1,77 +1,77 @@
 package io.nacular.doodle.dom
 
 internal actual abstract external class CSSRule: JsAny {
-    internal actual var cssText: String
+    actual var cssText: String
 }
 
 internal actual abstract external class CSSRuleList: JsAny {
-    internal actual abstract val length: Int
-    internal actual fun item(index: Int): CSSRule?
+    actual abstract val length: Int
+    actual fun item(index: Int): CSSRule?
 }
 
 internal actual abstract external class CSSStyleSheet: StyleSheet {
-    internal actual val cssRules: CSSRuleList
+    actual val cssRules: CSSRuleList
 
-//    internal actual fun insertRule(rule: String, index: Int): Int
-    internal actual fun deleteRule(index: Int)
+//    actual fun insertRule(rule: String, index: Int): Int
+    actual fun deleteRule(index: Int)
 }
 
 internal actual val CSSStyleSheet.numStyles: Int get() = this.cssRules.length
 
 internal actual abstract external class CSSStyleDeclaration: JsAny {
-    internal actual var top                : String
-    internal actual var font               : String
-    internal actual var left               : String
-    internal actual var right              : String
-    internal actual var width              : String
-    internal actual var color              : String
-    internal actual var cursor             : String
-    internal actual var height             : String
-    internal actual var margin             : String
-    internal actual var bottom             : String
-    internal actual var filter             : String
-    internal actual var border             : String
-    internal actual var padding            : String
-    internal actual var zIndex             : String
-    internal actual var display            : String
-    internal actual var opacity            : String
-    internal actual var outline            : String
-    internal actual var fontSize           : String
-    internal actual var position           : String
-    internal actual var transform          : String
-    internal actual var marginTop          : String
-    internal actual var overflowX          : String
-    internal actual var overflowY          : String
-    internal actual var boxShadow          : String
-    internal actual var fontStyle          : String
-    internal actual var textAlign          : String
-    internal actual var textShadow         : String
-    internal actual var textIndent         : String
-    internal actual var fontFamily         : String
-    internal actual var fontWeight         : String
-    internal actual var background         : String
-    internal actual var marginLeft         : String
-    internal actual var whiteSpace         : String
-    internal actual var lineHeight         : String
-    internal actual var marginRight        : String
-    internal actual var borderStyle        : String
-    internal actual var borderColor        : String
-    internal actual var borderWidth        : String
-    internal actual var wordSpacing        : String
-    internal actual var fontVariant        : String
-    internal actual var borderRadius       : String
-    internal actual var marginBottom       : String
-    internal actual var outlineWidth       : String
-    internal actual var letterSpacing      : String
-    internal actual var backgroundSize     : String
-    internal actual var textDecoration     : String
-    internal actual var backgroundImage    : String
-    internal actual var backgroundColor    : String
-    internal actual var textDecorationLine : String
-    internal actual var textDecorationColor: String
-    internal actual var textDecorationStyle: String
+    actual var top                : String
+    actual var font               : String
+    actual var left               : String
+    actual var right              : String
+    actual var width              : String
+    actual var color              : String
+    actual var cursor             : String
+    actual var height             : String
+    actual var margin             : String
+    actual var bottom             : String
+    actual var filter             : String
+    actual var border             : String
+    actual var padding            : String
+    actual var zIndex             : String
+    actual var display            : String
+    actual var opacity            : String
+    actual var outline            : String
+    actual var fontSize           : String
+    actual var position           : String
+    actual var transform          : String
+    actual var marginTop          : String
+    actual var overflowX          : String
+    actual var overflowY          : String
+    actual var boxShadow          : String
+    actual var fontStyle          : String
+    actual var textAlign          : String
+    actual var textShadow         : String
+    actual var textIndent         : String
+    actual var fontFamily         : String
+    actual var fontWeight         : String
+    actual var background         : String
+    actual var marginLeft         : String
+    actual var whiteSpace         : String
+    actual var lineHeight         : String
+    actual var marginRight        : String
+    actual var borderStyle        : String
+    actual var borderColor        : String
+    actual var borderWidth        : String
+    actual var wordSpacing        : String
+    actual var fontVariant        : String
+    actual var borderRadius       : String
+    actual var marginBottom       : String
+    actual var outlineWidth       : String
+    actual var letterSpacing      : String
+    actual var backgroundSize     : String
+    actual var textDecoration     : String
+    actual var backgroundImage    : String
+    actual var backgroundColor    : String
+    actual var textDecorationLine : String
+    actual var textDecorationColor: String
+    actual var textDecorationStyle: String
 
-    internal actual var writingMode: String
+    actual var writingMode: String
 
     actual fun removeProperty(property: String): String
     actual fun setProperty   (property: String, value: String, priority: String)

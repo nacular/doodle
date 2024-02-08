@@ -1,8 +1,5 @@
 package io.nacular.doodle.dom
 
-/**
- * Created by Nicholas Eddy on 8/9/19.
- */
 internal actual abstract class SVGElement actual constructor(): Element(), ElementCSSInlineStyle {
     actual fun getBBox(options: SVGBoundingBoxOptions): DOMRect = DOMRect()
 }

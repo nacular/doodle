@@ -19,13 +19,13 @@ internal expect abstract external class Window {
     fun cancelAnimationFrame (handle: Int)
     fun requestAnimationFrame(callback: (Double) -> Unit): Int
 
-    internal fun setTimeout   (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
-    internal fun clearTimeout (handle: Int)
-    internal fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
-    internal fun clearInterval(handle: Int)
+    fun setTimeout   (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    fun clearTimeout (handle: Int)
+    fun setInterval  (handler: () -> Unit, timeout: Int, vararg arguments: JsAny?): Int
+    fun clearInterval(handle: Int)
 
-    internal fun addEventListener   (eventName: String, callback: () -> Unit)
-    internal fun removeEventListener(eventName: String, callback: () -> Unit)
+    fun addEventListener   (eventName: String, callback: () -> Unit)
+    fun removeEventListener(eventName: String, callback: () -> Unit)
 }
 
 internal expect val window: Window

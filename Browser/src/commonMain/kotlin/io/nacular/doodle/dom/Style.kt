@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package io.nacular.doodle.dom
 
 import io.nacular.doodle.drawing.AffineTransform

@@ -13,7 +13,7 @@ internal actual abstract class CSSRule: JsAny {
 }
 
 internal actual abstract class CSSRuleList: JsAny {
-    internal actual abstract val length: Int
+    actual abstract val length: Int
 
     actual fun item(index: Int): CSSRule? = null
 }
@@ -131,7 +131,7 @@ internal actual abstract class CanvasRenderingContext2D: JsAny {
     internal var _wordSpacing  : String? = ""
     internal var _letterSpacing: String? = ""
 
-    internal actual abstract var font: String
+    actual abstract var font: String
 
     actual fun measureText(string: String): TextMetrics = TextMetrics()
 }
@@ -143,7 +143,7 @@ internal actual fun CanvasRenderingContext2D.measureText_(string: String): Size 
 internal actual interface RenderingContext
 
 internal actual abstract class HTMLCanvasElement: HTMLElement() {
-    internal actual fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext? = null
+    actual fun getContext(contextId: String, vararg arguments: JsAny?): RenderingContext? = null
 }
 
 internal actual class DOMRect: JsAny {
@@ -156,9 +156,9 @@ internal actual class DOMRect: JsAny {
 internal actual abstract class HTMLCollection actual constructor(): JsAny {
     protected val values: List<Element> = mutableListOf()
 
-    internal actual abstract val length: Int
+    actual abstract val length: Int
 
-    internal actual open fun item(index: Int): Element? = try {
+    actual open fun item(index: Int): Element? = try {
         values[index]
     } catch (e: Exception) {
         null
@@ -176,14 +176,14 @@ internal actual interface ParentNode: JsAny {
 }
 
 internal actual abstract class Element: Node(), ParentNode {
-    internal actual open var id        : String = ""
-    internal actual open var className : String = ""
-    internal actual open var scrollTop : Double = 0.0
-    internal actual open var scrollLeft: Double = 0.0
-    internal actual open val clientWidth: Int = 0
-    internal actual open val clientHeight: Int = 0
+    actual open var id        : String = ""
+    actual open var className : String = ""
+    actual open var scrollTop : Double = 0.0
+    actual open var scrollLeft: Double = 0.0
+    actual open val clientWidth: Int = 0
+    actual open val clientHeight: Int = 0
 
-    internal actual open var outerHTML: String = ""
+    actual open var outerHTML: String = ""
 
     actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
@@ -192,7 +192,7 @@ internal actual abstract class Element: Node(), ParentNode {
     actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
     actual fun removeAttribute(                    qualifiedName: String               ) {}
     actual fun scrollTo(x: Double, y: Double) {}
-    internal actual abstract fun remove()
+    actual abstract fun remove()
 }
 
 internal actual class FocusOptions: JsAny {
@@ -270,18 +270,18 @@ internal actual class Document: JsAny {
     actual var body: HTMLElement?     = null
     actual val head: HTMLHeadElement? = null
 
-    internal actual fun addEventListener   (to: String, listener: (Event) -> Unit) {}
-    internal actual fun removeEventListener(to: String, listener: (Event) -> Unit) {}
-    internal actual fun getSelection       (): Selection? = null
+    actual fun addEventListener   (to: String, listener: (Event) -> Unit) {}
+    actual fun removeEventListener(to: String, listener: (Event) -> Unit) {}
+    actual fun getSelection       (): Selection? = null
 
-    internal actual fun createElement  (localName: String, options: ElementCreationOptions): Element = DummyElement
-    internal actual fun createElement  (localName: String): Element = DummyElement
-    internal actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = DummyElement
-    internal actual fun createElementNS(namespace: String?, qualifiedName: String): Element = DummyElement
+    actual fun createElement  (localName: String, options: ElementCreationOptions): Element = DummyElement
+    actual fun createElement  (localName: String): Element = DummyElement
+    actual fun createElementNS(namespace: String?, qualifiedName: String, options: ElementCreationOptions): Element = DummyElement
+    actual fun createElementNS(namespace: String?, qualifiedName: String): Element = DummyElement
 
     actual fun createTextNode(data: String): Text = Text()
 
-    internal actual fun createRange(): Range = Range()
+    actual fun createRange(): Range = Range()
 }
 
 private object DummyElement: Element() {
@@ -310,46 +310,46 @@ internal actual          class Text            : CharacterData()
 internal actual abstract class HTMLImageElement: HTMLElement() {
     actual var src     : String = ""
     actual val complete: Boolean = false
-    internal actual val width   : Int = 0
-    internal actual val height  : Int = 0
+    actual val width   : Int = 0
+    actual val height  : Int = 0
 }
 
 internal actual abstract class HTMLHeadElement : HTMLElement()
 internal actual abstract class HTMLInputElement: HTMLElement() {
-    internal var orient_ = "" as String?
+    var orient_ = "" as String?
 
-    internal actual var type           = ""
-    internal actual var step           = ""
-    internal actual var value          = ""
-    internal actual val files          = null as FileList?
-    internal actual var accept         = ""
-    internal actual var checked        = false
-    internal actual var pattern        = ""
-    internal actual var disabled       = false
-    internal actual var multiple       = false
-    internal actual var placeholder    = ""
-    internal actual var selectionEnd   = null as Int?
-    internal actual var indeterminate  = false
-    internal actual var selectionStart = null as Int?
+    actual var type           = ""
+    actual var step           = ""
+    actual var value          = ""
+    actual val files          = null as FileList?
+    actual var accept         = ""
+    actual var checked        = false
+    actual var pattern        = ""
+    actual var disabled       = false
+    actual var multiple       = false
+    actual var placeholder    = ""
+    actual var selectionEnd   = null as Int?
+    actual var indeterminate  = false
+    actual var selectionStart = null as Int?
 
-    internal actual fun setSelectionRange(start: Int, end: Int) {}
+    actual fun setSelectionRange(start: Int, end: Int) {}
 }
 
 //internal actual fun HTMLInputElement.setSelectionRange(start: Int, end: Int) {}
 internal actual fun HTMLInputElement.focusInput() {}
 
 internal actual abstract class HTMLButtonElement: HTMLElement() {
-    internal actual var disabled: Boolean = false
+    actual var disabled: Boolean = false
 }
 
 internal actual abstract class HTMLAnchorElement: HTMLElement() {
-    internal actual abstract var href  : String
-    internal actual abstract var host  : String
+    actual abstract var href  : String
+    actual abstract var host  : String
     actual          var target: String = ""
 }
 
 internal actual abstract class HTMLIFrameElement: HTMLElement() {
-    internal actual open var src: String = ""
+    actual open var src: String = ""
 }
 
 internal actual abstract class StyleSheet: JsAny
@@ -359,7 +359,7 @@ internal actual inline operator fun StyleSheetList.get(index: Int): StyleSheet? 
 internal actual abstract class StyleSheetList: JsAny {
     protected val values: List<StyleSheet> = mutableListOf()
 
-    internal actual abstract val length: Int
+    actual abstract val length: Int
 
     actual fun item(index: Int): StyleSheet? = try {
         values[index]
@@ -394,8 +394,8 @@ internal actual interface ResizeObserverInit: JsAny {
 }
 
 internal actual abstract class ResizeObserverEntry: JsAny {
-    internal actual open val contentRect: DOMRect get() = TODO("Not yet implemented")
-    internal actual open val target: HTMLElement get() = TODO("Not yet implemented")
+    actual open val contentRect: DOMRect get() = TODO("Not yet implemented")
+    actual open val target: HTMLElement get() = TODO("Not yet implemented")
 }
 
 internal actual fun ResizeObserver.observeResize(target: Node, box: String) {}

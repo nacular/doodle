@@ -24,8 +24,10 @@ internal class HtmlElementView(
     private val root = htmlFactory.create<HTMLIFrameElement>().apply {
         className = className(idGenerator)
 
-        style.setWidthPercent (100.0)
-        style.setHeightPercent(100.0)
+        if (autoScale) {
+            style.setWidthPercent (100.0)
+            style.setHeightPercent(100.0)
+        }
 
         if (autoScale) {
             element.style.setWidthPercent(100.0)

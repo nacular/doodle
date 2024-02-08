@@ -7,7 +7,8 @@ import org.kodein.di.bind
 import org.kodein.di.instance
 import org.kodein.di.singleton
 
-public actual val Modules.Companion.HtmlElementViewFactory: Module get() = Module(allowSilentOverride = true, name = "ForeignView") {
+/** Enable use of [HtmlElementViewFactory]. */
+public actual val Modules.Companion.HtmlElementViewModule: Module get() = Module(allowSilentOverride = true, name = "ForeignView") {
     bind<HtmlElementViewFactory>() with singleton {
         HtmlElementViewFactoryImpl(instance(), instance(), instance())
     }

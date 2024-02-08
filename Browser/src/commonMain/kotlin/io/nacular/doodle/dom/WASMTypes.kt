@@ -8,18 +8,18 @@ public expect external class JsString: JsAny
 
 public expect external class JsNumber: JsAny
 
-public expect fun JsNumber.toDouble(): Double
+internal expect fun JsNumber.toDouble(): Double
 
-public expect fun String.toJsString(): JsString
+internal expect fun String.toJsString(): JsString
 
 public expect external class JsArray<T: JsAny?>: JsAny {
-    public val length: Int
+    internal val length: Int
 }
 
-public expect operator fun <T: JsAny?> JsArray<T>.get(index: Int          ): T?
-public expect operator fun <T: JsAny?> JsArray<T>.set(index: Int, value: T)
-public expect fun <T: JsAny?> JsArray<T>.push(value: T)
+internal expect operator fun <T: JsAny?> JsArray<T>.get(index: Int          ): T?
+internal expect operator fun <T: JsAny?> JsArray<T>.set(index: Int, value: T)
+internal expect fun <T: JsAny?> JsArray<T>.push(value: T)
 
-public expect fun JsArray<out JsString>.contains(value: JsString): Boolean
+internal expect fun JsArray<out JsString>.contains(value: JsString): Boolean
 
-public expect external fun <T : JsAny> jsArrayOf(vararg values: T): JsArray<T>
+internal expect external fun <T : JsAny> jsArrayOf(vararg values: T): JsArray<T>
