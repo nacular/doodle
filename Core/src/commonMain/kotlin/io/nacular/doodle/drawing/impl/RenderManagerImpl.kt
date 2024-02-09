@@ -302,11 +302,15 @@ public open class RenderManagerImpl(
             val maxIterations = pendingBoundsChange.size
 
             do {
-                pendingBoundsChange.firstOrNull()?.let { item ->
-                    if (item !in neverRendered ) {
-                        updateGraphicsSurface(item, graphicsDevice[item])
+                pendingBoundsChange.firstOrNull()?.also { item ->
+                    when {
+                        item !in neverRendered -> {
+                            updateGraphicsSurface(item, graphicsDevice[item])
 
-                        pendingBoundsChange.remove(item)
+                            pendingBoundsChange.remove(item)
+                        }
+                        // remove zero sized items that have never rendered since they won't be cleaned up otherwise
+                        item.size.empty -> pendingBoundsChange.remove(item)
                     }
                 }
             } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
