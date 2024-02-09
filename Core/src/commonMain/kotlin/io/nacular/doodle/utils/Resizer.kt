@@ -83,10 +83,11 @@ public class Resizer(private val view: View, private val manageCursor: Boolean =
 
     override fun dragged(event: PointerEvent) {
         event.changedInteractions.find { it.pointer == activePointer }?.let { activeInteraction ->
-            val delta = view.toLocal(activeInteraction.location, event.target) - initialPosition
+            val delta         = view.toLocal(activeInteraction.location, event.target) - initialPosition
+            val deltaInParent = view.toParent(view.toLocal(activeInteraction.location, event.target)) - view.toParent(initialPosition)
 
             if (dragMode.isEmpty() && movable) {
-                view.position += delta
+                view.position += deltaInParent
 
                 event.consume()
                 consumedDrag = true

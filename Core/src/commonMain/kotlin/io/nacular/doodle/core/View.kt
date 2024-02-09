@@ -214,6 +214,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     final override var bounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
+        if (needsMirrorTransform && old.x != new.x) {
+            resolvedTransformDirty = true
+        }
+
         boundingBox = getBoundingBox(new)
         renderManager?.boundsChanged(this, old, new)
     }
@@ -572,8 +576,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The resolved content direction for this View, including any value inherited from its [parent] if
      * [localContentDirection] is `null`. The final fallback value is [LeftRight].
      */
-    public val contentDirection: ContentDirection
-        get() = localContentDirection ?: parent?.contentDirection ?: display?.contentDirection ?: LeftRight
+    public val contentDirection: ContentDirection get() = localContentDirection ?: parent?.contentDirection ?: display?.contentDirection ?: LeftRight
 
     /**
      * Indicates whether the View should be mirrored (as though transformed using [AffineTransform.flipHorizontally]),
@@ -584,13 +587,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * Defaults to `true`
      */
-    public var mirrorWhenRightLeft: Boolean = true
-        protected set(new) {
-            if (field == new) return
-            field = new
+    public var mirrorWhenRightLeft: Boolean = true; protected set(new) {
+        if (field == new) return
+        field = new
 
-            updateNeedsMirror()
-        }
+        updateNeedsMirror()
+    }
 
     internal var mirrorWhenRightLeft_ get() = mirrorWhenRightLeft; set(new) { mirrorWhenRightLeft = new }
 
@@ -933,12 +935,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /**
+     * Maps a [Point] within the View to its parent's coordinate-space, or the [Display]'s if it is top-level.
+     *
+     * @param point to be mapped
+     * @returns a Point relative to the parent
+     */
+    public fun toParent(point: Point): Point = resolvedTransform(toPlane(point + position)).as2d()
+
+    /**
      * Maps a [Point] within the View to absolute coordinate-space.
      *
      * @param point to be mapped
      * @returns a Point relative to the un-transformed [Display]
      */
-    public fun toAbsolute(point: Point): Point = resolvedTransform.invoke(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
+    public fun toAbsolute(point: Point): Point = resolvedTransform(toPlane(point + position)).let { parent?.toAbsolute(it.as2d()) ?: display?.toAbsolute(it.as2d()) ?: it.as2d() }
 
     /**
      * Maps a [Point] from absolute coordinate-space: relative to the un-transformed [Display], into this View's coordinate-space.
