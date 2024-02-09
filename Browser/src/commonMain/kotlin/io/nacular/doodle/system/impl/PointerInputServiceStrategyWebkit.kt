@@ -1,5 +1,6 @@
 package io.nacular.doodle.system.impl
 
+import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Document
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
@@ -10,7 +11,11 @@ import io.nacular.doodle.dom.TouchEvent
 import io.nacular.doodle.dom.addActiveEventListener
 import io.nacular.doodle.dom.removeActiveEventListener
 import io.nacular.doodle.dom.setCursor
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemInputEvent.Modifier
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
@@ -33,16 +38,34 @@ import io.nacular.doodle.utils.ifFalse
 import io.nacular.doodle.utils.ifTrue
 
 internal class PointerLocationResolverImpl(private val document: Document, private val htmlFactory: HtmlFactory): PointerLocationResolver {
-    var nested = false
+    var owner: View? = null
 
     override fun invoke(event: MouseEvent): Point = when {
-        // FIXME: This does not solve for cases where apps have transforms
-        /*!nested &&*/ htmlFactory.root != document.body -> {
-            val rect = htmlFactory.root.getBoundingClientRect()
+        htmlFactory.root != document.body -> {
+            owner?.let { o ->
+                val boundingBox = htmlFactory.root.getBoundingClientRect().run { Rectangle(x, y, width, height) }
+                val inverse     = o.transform.inverse ?: Identity
 
-            Point(event.clientX - rect.x, event.clientY - rect.y)
+                val topLeft = when {
+                    o.transform.isIdentity -> boundingBox.position
+                    else                   -> getTopLeft(boundingBox, o.size)
+                }
+
+                val location = inverse(Point(event.clientX, event.clientY) - if(o.transform.isIdentity) topLeft else Origin)
+
+                location.as2d()
+            } ?: run {
+                val rectPos = htmlFactory.root.getBoundingClientRect().run { Point(x, y) }
+                Point(event.clientX - rectPos.x, event.clientY - rectPos.y)
+            }
         }
         else -> Point(event.clientX, event.clientY)
+    }
+
+    private fun getTopLeft(boundingBox: Rectangle, ownerSize: Size): Point {
+        // FIXME: Implement this so it finds the top-left point of owner in absolute coordinates based on
+        // the bounding box
+        return Origin
     }
 }
 

@@ -57,9 +57,6 @@ import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
 import io.nacular.doodle.scheduler.impl.StrandImpl
-import io.nacular.doodle.system.SystemPointerEvent
-import io.nacular.doodle.system.impl.PointerInputServiceStrategy
-import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
 import io.nacular.doodle.theme.Scene
@@ -74,7 +71,6 @@ import org.kodein.di.DI
 import org.kodein.di.DI.Module
 import org.kodein.di.DirectDI
 import org.kodein.di.bind
-import org.kodein.di.bindSingleton
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
@@ -150,25 +146,6 @@ public fun createNestedApplication(
     allowDefaultDarkMode: Boolean,
     modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root as HTMLElement, allowDefaultDarkMode, modules)
 
-private class NestedPointerInputStrategy(private val view: ApplicationView, private val delegate: PointerInputServiceStrategy): PointerInputServiceStrategy by(delegate) {
-    override fun startUp(handler: EventHandler) {
-        // Provide an adapter to handle mapping pointer location correctly based on ApplicationView's orientation
-        delegate.startUp(object: EventHandler {
-            override fun invoke(event: SystemPointerEvent) = handler(
-                SystemPointerEvent(
-                    event.id,
-                    event.type,
-                    view.fromAbsolute(event.location),
-                    event.buttons,
-                    event.clickCount,
-                    event.modifiers,
-                    event.nativeScrollPanel
-                )
-            )
-        })
-    }
-}
-
 private class NestedApplicationHolder(
     view                : ApplicationView,
     previousInjector    : DirectDI,
@@ -177,14 +154,7 @@ private class NestedApplicationHolder(
     modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
-        (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.let { it.nested = true } // TODO: Find better way to handle this
-        injector.instanceOrNull<PointerInputServiceStrategy>()?.let {
-            injector = DI.direct {
-                extend(injector, copy = Copy.All)
-
-                bindSingleton<PointerInputServiceStrategy>(overrides = true) { NestedPointerInputStrategy(view, it) }
-            }
-        }
+        (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.also { it.owner = view } // TODO: Find better way to handle this
 
         val display = injector.instance<Display>()
 

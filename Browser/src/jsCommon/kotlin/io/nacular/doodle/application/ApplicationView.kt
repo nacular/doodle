@@ -99,7 +99,7 @@ public class ApplicationView(htmlFactory: Any, private val nativeFocusManager: N
             canvas.addData(listOf(root))
 
             if (initialRender) {
-                application = builder(this, root)
+                application   = builder(this, root)
                 initialRender = false
             }
         }
