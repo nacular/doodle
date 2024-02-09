@@ -1,9 +1,9 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Block
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.None
 import io.nacular.doodle.dom.Visible
@@ -101,14 +101,6 @@ internal class RealGraphicsSurface private constructor(
                 var result            = index
                 val peers             = parentChildren.filter { it != this }
                 val numParentChildren = peers.size
-
-                // 0 1 2 3 4    0 1 2 3 4
-                // a B c d e -> a c d e
-                // a c d B e
-
-                // 0 1 2 3 4    0 1 2 3 4
-                // a b c D e -> a b c e
-                // a D b c e
 
                 // Check if there is any item after this one w/ a lower zOrder
                 (result until numParentChildren).forEach { index ->

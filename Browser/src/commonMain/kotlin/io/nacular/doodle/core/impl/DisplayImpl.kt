@@ -177,7 +177,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         // currently need to force left-to-right since we handle content direction
         // TODO: Need a better way to do this to avoid compromising browser/accessibility integrations
-        rootElement.dir = ""
+        if (rootElement.dir != "") {
+            rootElement.dir = ""
+        }
     }
 
     init {
