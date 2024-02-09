@@ -98,8 +98,9 @@ private open class ApplicationHolderImpl protected constructor(
 
     private inner class ShutdownHook: Thread() {
         override fun run() {
-            // TODO: Should this be run in the UI thread?
-            shutdown()
+            appScope.launch(Dispatchers.Swing) {
+                shutdown()
+            }
         }
     }
 
