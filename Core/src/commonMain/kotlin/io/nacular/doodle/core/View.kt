@@ -509,9 +509,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public val pointerPassedThrough: Pool<PointerListener> get() = pointerPassedThrough_
 
+    private val keyFilter_ by lazy { SetPool<KeyListener>() }
+
+    /** [KeyListener]s that are notified during the sinking phase of key event handling*/
+    public val keyFilter: Pool<KeyListener> get() = keyFilter_
+
     private val keyChanged_ by lazy { SetPool<KeyListener>() }
 
-    /** [KeyListener]s that are notified during of [KeyEvent]s sent to the View. */
+    /** [KeyListener]s that are notified during the bubbling phase of key event handling. */
     public val keyChanged: Pool<KeyListener> get() = keyChanged_
 
     private val pointerMotionFilter_ by lazy { SetPool<PointerMotionListener>() }
@@ -902,9 +907,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @return The set of keys that will trigger this type of traversal
      */
-    public operator fun get(traversalType: TraversalType): Set<KeyState>? {
-        return traversalKeys[traversalType]
-    }
+    public operator fun get(traversalType: TraversalType): Set<KeyState>? = traversalKeys[traversalType]
 
     /**
      * Sets the keys used to control focus traversals of the given type.
@@ -913,10 +916,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param keyStates     The set of keys that will trigger this type of traversal
      */
     public operator fun set(traversalType: TraversalType, keyStates: Set<KeyState>?) {
-        if (keyStates != null) {
-            traversalKeys[traversalType] = keyStates
-        } else {
-            traversalKeys.remove(traversalType)
+        when {
+            keyStates != null -> traversalKeys[traversalType] = keyStates
+            else              -> traversalKeys.remove(traversalType)
         }
     }
 
@@ -983,6 +985,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param new the new display rectangle
      */
     protected open fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {}
+
+    internal fun filterKeyEvent_(event: KeyEvent) = filterKeyEvent(event)
+
+    /**
+     * This is an event invoked on a View in response to a key event triggered in the subsystem.
+     *
+     * @param event The event
+     */
+    protected open fun filterKeyEvent(event: KeyEvent): Unit = keyFilter_.forEach {
+        when(event.type) {
+            Type.Up   -> it.released(event)
+            Type.Down -> it.pressed (event)
+        }
+    }
 
     internal fun handleKeyEvent_(event: KeyEvent) = handleKeyEvent(event)
 

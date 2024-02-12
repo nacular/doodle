@@ -59,12 +59,33 @@ public class KeyboardFocusManagerImpl(
 
     override operator fun invoke(keyState: KeyState): KeyResponse {
         focusManager.focusOwner?.let { focusOwner ->
+            val chain = mutableListOf(focusOwner)
+
+            var view = focusOwner.parent
+
+            while (view != null) {
+                chain += view
+                view   = view.parent
+            }
+
             val keyEvent = KeyEvent(focusOwner, keyState)
 
             preprocessKeyEvent(keyEvent)
 
-            if (!keyEvent.consumed) {
-                handleKeyEvent(focusOwner, keyState, keyEvent)
+            // Sinking
+            chain.asReversed().forEach {
+                when {
+                    !keyEvent.consumed -> it.filterKeyEvent_(keyEvent)
+                    else               -> return@forEach
+                }
+            }
+
+            // Floating
+            chain.forEach {
+                when {
+                    !keyEvent.consumed -> handleKeyEvent(it, keyState, keyEvent)
+                    else               -> return@forEach
+                }
             }
 
             if (!keyEvent.consumed) {

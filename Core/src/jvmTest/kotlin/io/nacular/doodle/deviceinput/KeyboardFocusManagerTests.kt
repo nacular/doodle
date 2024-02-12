@@ -3,12 +3,15 @@ package io.nacular.doodle.deviceinput
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyCode.Companion.Space
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyState
+import io.nacular.doodle.event.KeyState.Type.Down
 import io.nacular.doodle.event.KeyText
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType
@@ -38,7 +41,7 @@ class KeyboardFocusManagerTests {
 
     @Test  fun `notifies of event in correct order`() {
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>()
+        val focusedView     = view()
         val focusManager    = focusManager(focusedView)
         val preprocessor    = mockk<Preprocessor>()
         val postprocessor   = mockk<Postprocessor>()
@@ -48,7 +51,7 @@ class KeyboardFocusManagerTests {
         manager += preprocessor
         manager += postprocessor
 
-        val keyState = KeyState(Space, KeyText(" "), emptySet(), KeyState.Type.Down)
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
 
         manager(keyState)
 
@@ -56,14 +59,100 @@ class KeyboardFocusManagerTests {
 
         verifyOrder {
             preprocessor(keyEvent)
+            focusedView.filterKeyEvent_(keyEvent)
             focusedView.handleKeyEvent_(keyEvent)
             postprocessor(keyEvent)
         }
     }
 
+    @Test  fun `event sinks and bubbles as expected`() {
+        val grandParent  = spyk(Container(), name = "grand-parent")
+        val parent       = spyk(Container(), name = "parent"      )
+        val child        = view()
+
+        every { parent.parent } returns grandParent
+        every { child.parent  } returns parent
+
+        val keyInputService = mockk<KeyInputService>()
+        val focusManager    = focusManager(child)
+        val preprocessor    = mockk<Preprocessor>()
+        val postprocessor   = mockk<Postprocessor>()
+
+        val manager = KeyboardFocusManagerImpl(keyInputService, focusManager, defaultKeys())
+
+        manager += preprocessor
+        manager += postprocessor
+
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
+
+        manager(keyState)
+
+        val keyEvent = KeyEvent(child, keyState)
+
+        verifyOrder {
+            preprocessor(keyEvent)
+            grandParent.filterKeyEvent_(keyEvent)
+            parent.filterKeyEvent_     (keyEvent)
+            child.filterKeyEvent_      (keyEvent)
+            child.handleKeyEvent_      (keyEvent)
+            parent.handleKeyEvent_     (keyEvent)
+            grandParent.handleKeyEvent_(keyEvent)
+            postprocessor              (keyEvent)
+        }
+    }
+
+    @Test  fun `consumed event does not sinks or bubble`() {
+        val grandParent  = spyk(Container(), name = "grand-parent")
+        val parent       = spyk(Container(), name = "parent"      )
+        val child        = view()
+
+        every { parent.parent } returns grandParent
+        every { child.parent  } returns parent
+
+        val event = slot<KeyEvent>()
+        every { parent.filterKeyEvent_(capture(event)) } answers {
+            event.captured.consume()
+        }
+
+        val keyInputService = mockk<KeyInputService>()
+        val focusManager    = focusManager(child)
+        val preprocessor    = mockk<Preprocessor>()
+        val postprocessor   = mockk<Postprocessor>()
+
+        val manager = KeyboardFocusManagerImpl(keyInputService, focusManager, defaultKeys())
+
+        manager += preprocessor
+        manager += postprocessor
+
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
+
+        manager(keyState)
+
+        val keyEvent = KeyEvent(child, keyState).also {
+            // there seems to be a bug in Mockk where the data provided in the call is live
+            // and changes to it affect verification. so need to have the comparison contain
+            // the consumed = true property as well for now
+            it.consume()
+        }
+
+        verifyOrder {
+            preprocessor               (keyEvent)
+            grandParent.filterKeyEvent_(keyEvent)
+            parent.filterKeyEvent_     (keyEvent)
+        }
+
+        verify(exactly = 0) {
+            child.filterKeyEvent_      (any())
+            child.handleKeyEvent_      (any())
+            parent.handleKeyEvent_     (any())
+            grandParent.handleKeyEvent_(any())
+            postprocessor              (any())
+        }
+    }
+
     @Test  fun `preprocessor suppresses event when consumed`() {
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>()
+        val focusedView     = view()
         val focusManager    = focusManager(focusedView)
 
         val event           = slot<KeyEvent>()
@@ -80,11 +169,12 @@ class KeyboardFocusManagerTests {
         manager += preprocessor
         manager += postprocessor
 
-        val keyState = KeyState(Space, KeyText(" "), emptySet(), KeyState.Type.Down)
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
 
         manager(keyState)
 
         verify(exactly = 1) { preprocessor(event.captured)       }
+        verify(exactly = 0) { focusedView.filterKeyEvent_(any()) }
         verify(exactly = 0) { focusedView.handleKeyEvent_(any()) }
         verify(exactly = 0) { postprocessor(any())               }
     }
@@ -92,7 +182,7 @@ class KeyboardFocusManagerTests {
     @Test fun `view suppresses event when consumed`() {
         val event           = slot<KeyEvent>()
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>().apply {
+        val focusedView     = view().apply {
             every { handleKeyEvent_(capture(event)) } answers {
                 event.captured.consume()
             }
@@ -106,12 +196,13 @@ class KeyboardFocusManagerTests {
         manager += preprocessor
         manager += postprocessor
 
-        val keyState = KeyState(Space, KeyText(" "), emptySet(), KeyState.Type.Down)
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
 
         manager(keyState)
 
         verifyOrder {
             preprocessor(event.captured)
+            focusedView.filterKeyEvent_(event.captured)
             focusedView.handleKeyEvent_(event.captured)
         }
 
@@ -120,7 +211,7 @@ class KeyboardFocusManagerTests {
 
     @Test fun `no notifications when listener removed`() {
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>()
+        val focusedView     = view()
         val focusManager    = focusManager(focusedView)
         val preprocessor    = mockk<Preprocessor>()
         val postprocessor   = mockk<Postprocessor>()
@@ -133,12 +224,13 @@ class KeyboardFocusManagerTests {
         manager -= preprocessor
         manager -= postprocessor
 
-        val keyState = KeyState(Space, KeyText(" "), emptySet(), KeyState.Type.Down)
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
 
         manager(keyState)
 
         val keyEvent = KeyEvent(focusedView, keyState)
 
+        verify(exactly = 1) { focusedView.filterKeyEvent_(keyEvent) }
         verify(exactly = 1) { focusedView.handleKeyEvent_(keyEvent) }
         verify(exactly = 0) { preprocessor (any()) }
         verify(exactly = 0) { postprocessor(any()) }
@@ -155,7 +247,7 @@ class KeyboardFocusManagerTests {
         manager += preprocessor
         manager += postprocessor
 
-        val keyState = KeyState(Space, KeyText(" "), emptySet(), KeyState.Type.Down)
+        val keyState = KeyState(Space, KeyText(" "), emptySet(), Down)
 
         manager(keyState)
 
@@ -179,7 +271,7 @@ class KeyboardFocusManagerTests {
     @Test fun `no focus downward on non-focus cycle root`() {
         val key = mockk<KeyState>()
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>().apply {
+        val focusedView     = view().apply {
             every { this@apply[any()   ] } returns null
             every { this@apply[Downward] } returns setOf(key)
             every { isFocusCycleRoot_    } returns false
@@ -196,9 +288,17 @@ class KeyboardFocusManagerTests {
         }
     }
 
+    private fun view() = mockk<View>().apply {
+        every { parent } returns null
+    }
+
+    private fun defaultKeys() = mockk<Map<TraversalType, Set<KeyState>>> {
+        every { this@mockk[any()] } returns emptySet<KeyState>()
+    }
+
     private fun verifyFocusTraversal(type: TraversalType, keyState: KeyState, config: (View, MutableMap<TraversalType, Set<KeyState>>) -> Unit) {
         val keyInputService = mockk<KeyInputService>()
-        val focusedView     = mockk<View>().apply {
+        val focusedView     = view().apply {
             every { this@apply[any()] } returns null
             every { isFocusCycleRoot_ } returns true
         }

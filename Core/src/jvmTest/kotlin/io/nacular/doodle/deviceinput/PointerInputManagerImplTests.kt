@@ -365,7 +365,6 @@ class PointerInputManagerImplTests {
         }
     }
 
-
     @Test fun `pointer drag, informs handler`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
