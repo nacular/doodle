@@ -305,6 +305,13 @@ public fun Rectangle.with(width: Double = this.width, height: Double = this.heig
 public fun Rectangle.with(size: Size): Rectangle = Rectangle(x, y, size.width, size.height)
 
 /**
+ * Returns a new Rectangle with the same size as [this], but with its center moved to [at].
+ *
+ * @param at the point to center
+ */
+public fun Rectangle.centered(at: Point): Rectangle = at(at - Point(width / 2, height / 2))
+
+/**
  * Interpolates between 2 [Rectangle]s
  */
 public fun lerp(first: Rectangle, second: Rectangle, fraction: Float): Rectangle = Rectangle(
