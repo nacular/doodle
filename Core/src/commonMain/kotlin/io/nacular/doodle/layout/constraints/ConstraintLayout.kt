@@ -657,6 +657,42 @@ public open class ConstraintDslContext internal constructor() {
         left eq point.x
     )
 
+    public operator fun Position.plus(point: Point): Position = Position(
+        top  = top  + point.y,
+        left = left + point.x
+    )
+
+    public operator fun Position.minus(point: Point): Position = Position(
+        top  = top  - point.y,
+        left = left - point.x
+    )
+
+    public operator fun Point.plus(position: Position): Position = Position(
+        top  = y + position.top,
+        left = x + position.left
+    )
+
+    public operator fun Point.minus(position: Position): Position = Position(
+        top  = y - position.top,
+        left = x - position.left
+    )
+
+    public operator fun ConstPosition.plus(point: Point): ConstPosition = ConstPosition(
+        writable + point
+    )
+
+    public operator fun ConstPosition.minus(point: Point): ConstPosition = ConstPosition(
+        writable - point
+    )
+
+    public operator fun Point.plus(position: ConstPosition): ConstPosition = ConstPosition(
+        this + position.writable
+    )
+
+    public operator fun Point.minus(position: ConstPosition): ConstPosition = ConstPosition(
+        this - position.writable
+    )
+
     public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(  value.toDouble() )
 
