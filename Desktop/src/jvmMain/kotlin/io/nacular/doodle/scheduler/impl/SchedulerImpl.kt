@@ -128,12 +128,14 @@ internal class AnimationSchedulerImpl(appScope: CoroutineScope, uiDispatcher: Co
 
     override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = object: Task {
         init {
-            val start = timer.now
+            var last = timer.now
 
             debounceQueue.post {
                 if (!completed) {
                     completed = true
-                    job(timer.now - start)
+                    val now = timer.now
+                    job(now - last)
+                    last = now
                 }
             }
         }

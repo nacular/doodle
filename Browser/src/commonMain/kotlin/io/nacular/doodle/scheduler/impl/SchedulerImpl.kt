@@ -35,10 +35,12 @@ private class SimpleTask(private val window: Window, timer: Timer, time: Measure
 }
 
 private open class AnimationTask(private val window: Window, job: (Measure<Time>) -> Unit): Task {
+    private var last = 0.0
 
-    private val value = window.requestAnimationFrame { time ->
+    private val value = window.requestAnimationFrame {
         completed = true
-        job(time * milliseconds)
+        job((it - last) * milliseconds)
+        last = it
     }
 
     override var completed = false
