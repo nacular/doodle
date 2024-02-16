@@ -640,8 +640,8 @@ internal open class VectorRendererSvg constructor(
         setStroke(null)
     }
 
-    private fun makeArc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath(makeArcPathData(center, radius, sweep, rotation))
-    private fun makeWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath("${makeArcPathData(center, radius, sweep, rotation)} L${center.x},${center.y}")
+    private fun makeArc  (center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath("${makeArcPathData(center, radius, sweep, rotation)}Z")
+    private fun makeWedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>) = withPath("${makeArcPathData(center, radius, sweep, rotation)} L${center.x},${center.y}Z")
 
     private fun withPath(path: String): SVGPathElement = createOrUse<SVGPathElement>("path").apply {
         setPathData(path)
@@ -657,7 +657,7 @@ internal open class VectorRendererSvg constructor(
 
         val largeArc = if (sweep > 180 * degrees) "1" else "0"
 
-        return "M$startX,$startY A$radius,$radius ${rotation `in` degrees } $largeArc,0 $endX,$endY"
+        return "M$startX,$startY A$radius,$radius ${rotation `in` degrees } $largeArc,0 $endX,${endY}"
     }
 
     private fun makePath(vararg points: Point): SVGPathElement {
