@@ -28,14 +28,17 @@ import io.nacular.doodle.utils.Direction.South
 import io.nacular.doodle.utils.Direction.West
 import kotlin.math.max
 
-public class Resizer(private val view: View, private val manageCursor: Boolean = true): PointerListener, PointerMotionListener {
+public class Resizer(
+    private val view        : View,
+    private val manageCursor: Boolean = true,
+    public  var movable     : Boolean = true
+): PointerListener, PointerMotionListener {
 
     init {
         view.pointerChanged       += this
         view.pointerMotionChanged += this
     }
 
-    public var movable    : Boolean        = true
     public var directions : Set<Direction> = setOf(North, East, South, West)
     public var hotspotSize: Double         = 5.0
 
