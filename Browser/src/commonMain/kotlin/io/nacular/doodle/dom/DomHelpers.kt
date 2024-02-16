@@ -191,10 +191,16 @@ internal fun SVGElement.setFloodColor(color: Color?) = convert(color) {
     setAttribute("flood-color",  it)
 }
 
-internal fun SVGElement.setFillPattern(pattern: SVGElement?) = setAttribute("fill", when (pattern) {
-    null -> none
-    else -> "url(#${pattern.id})"
-})
+internal fun SVGElement.setFillPattern(pattern: SVGElement?, opacity: Float = 1f) {
+    setAttribute("fill", when (pattern) {
+        null -> none
+        else -> "url(#${pattern.id})"
+    })
+
+    if (opacity != 1f) {
+        setAttribute("fill-opacity", "$opacity")
+    }
+}
 
 internal fun SVGTextElement.setWordSpacing(spacing: Double) = when (spacing) {
     0.0  -> removeAttribute("word-spacing"            )
@@ -230,10 +236,14 @@ internal fun SVGElement.setStroke(stroke: Stroke?) {
     }
 }
 
-internal fun SVGElement.setStrokePattern(pattern: SVGElement?) = setAttribute("stroke", when (pattern) {
-    null -> none
-    else -> "url(#${pattern.id})"
-})
+internal fun SVGElement.setStrokePattern(pattern: SVGElement?, opacity: Float = 1f) {
+    setAttribute("stroke", when (pattern) {
+        null -> none
+        else -> "url(#${pattern.id})"
+    })
+
+    setAttribute("stroke-opacity", "$opacity")
+}
 
 private fun dashArray(dashes: DoubleArray?) = dashes?.map { max(0.0, it) }?.joinToString(",") ?: ""
 

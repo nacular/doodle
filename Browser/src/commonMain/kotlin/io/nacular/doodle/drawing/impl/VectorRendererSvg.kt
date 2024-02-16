@@ -43,7 +43,6 @@ import io.nacular.doodle.dom.setPathData
 import io.nacular.doodle.dom.setPatternTransform
 import io.nacular.doodle.dom.setPoints
 import io.nacular.doodle.dom.setPosition
-import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setRX
 import io.nacular.doodle.dom.setRY
 import io.nacular.doodle.dom.setRadius
@@ -64,6 +63,7 @@ import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.GradientPaint
+import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
@@ -100,6 +100,9 @@ import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 internal open class VectorRendererSvg constructor(
         protected var context       : CanvasContext,
@@ -694,6 +697,7 @@ internal open class VectorRendererSvg constructor(
             is PatternPaint        -> canvasFillHandler.fill        (this, element, fill)
             is LinearGradientPaint -> linearGradientFillHandler.fill(this, element, fill)
             is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill)
+            is ImagePaint          -> imageFillHandler.fill         (this, element, fill)
         }
 
         if (clearOutline) {
@@ -707,6 +711,7 @@ internal open class VectorRendererSvg constructor(
             is PatternPaint        -> canvasFillHandler.stroke        (this, element, fill)
             is LinearGradientPaint -> linearGradientFillHandler.stroke(this, element, fill)
             is RadialGradientPaint -> radialGradientFillHandler.stroke(this, element, fill)
+            is ImagePaint          -> imageFillHandler.stroke         (this, element, fill)
         }
 
         element.setStroke(stroke)
@@ -746,6 +751,19 @@ internal open class VectorRendererSvg constructor(
         if (id.isBlank()) { setId(nextId()) }
 
         val oldRenderPosition = renderPosition
+
+        with(shadow) {
+            val width  = this@VectorRendererSvg.context.size.width  + 2 * (blurRadius + abs(if (horizontal < blurRadius) 0.0 else horizontal - blurRadius))
+            val height = this@VectorRendererSvg.context.size.height + 2 * (blurRadius + abs(if (vertical   < blurRadius) 0.0 else vertical   - blurRadius))
+            val shadowRect = Rectangle(
+                x = max(-width + blurRadius, min(-blurRadius, -(blurRadius + horizontal))),
+                y = max(-width + blurRadius, min(-blurRadius, -(blurRadius + vertical  ))),
+                width  * 1.1,
+                height * 1.1
+            )
+
+            setBounds(shadowRect)
+        }
 
         renderPosition = firstChild
 
@@ -887,23 +905,23 @@ internal open class VectorRendererSvg constructor(
                 renderer.completeOperation(pattern)
 
                 paint.paint(PatternCanvas(object: CanvasContext {
-                    override var size get() = paint.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
-                    override val renderRegion = pattern
+                    override var size get()            = paint.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
+                    override val renderRegion          = pattern
                     override var renderPosition: Node? = pattern
-                    override val shadows get() = context.shadows
-                    override fun markDirty() = context.markDirty()
-                    override val isRawData get() = context.isRawData
+                    override val shadows get()         = context.shadows
+                    override fun markDirty()           = context.markDirty()
+                    override val isRawData get()       = context.isRawData
                 }, svgFactory, htmlFactory, textMetrics, idGenerator, pattern))
 
                 return pattern
             }
 
             override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
-                element.setFillPattern(makeFill(renderer, paint))
+                element.setFillPattern(makeFill(renderer, paint), paint.opacity)
             }
 
             override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
-                element.setStrokePattern(makeFill(renderer, paint))
+                element.setStrokePattern(makeFill(renderer, paint), paint.opacity)
             }
         }
     }
@@ -912,7 +930,7 @@ internal open class VectorRendererSvg constructor(
         override val shadows: MutableList<Shadow> = mutableListOf()
     }
 
-    private class PatternCanvas(
+    private inner class PatternCanvas(
             context       : CanvasContext,
             svgFactory    : SvgFactory,
             htmlFactory   : HtmlFactory,
@@ -995,7 +1013,7 @@ internal open class VectorRendererSvg constructor(
 
         override fun shadow(shadow: Shadow, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
             contextWrapper.shadows += shadow
-            block (this  )
+            block(this)
             contextWrapper.shadows -= shadow
         }
 
@@ -1004,19 +1022,52 @@ internal open class VectorRendererSvg constructor(
 
             addIfNotPresent(makeRect(rectangle, radius) ,0)
         }
+    }
 
-        private fun createImage(image: ImageImpl, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {
-            /*
-             * xlink:href (https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) is deprecated for SVG 2.0, but Safari doesn't seem to support just href yet
-             */
-            setAttributeNS("http://www.w3.org/2000/svg",   "xlink", "http://www.w3.org/1999/xlink")
-            setAttributeNS("http://www.w3.org/1999/xlink", "href",  image.source)
+    private fun createImage(image: Image, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {
+        /*
+         * xlink:href (https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) is deprecated for SVG 2.0, but Safari doesn't seem to support just href yet
+         */
+        setAttributeNS("http://www.w3.org/2000/svg",   "xlink", "http://www.w3.org/1999/xlink")
+        setAttributeNS("http://www.w3.org/1999/xlink", "href",  image.source)
+        setAttribute("preserveAspectRatio", "none")
 
-            setBounds(destination)
+        setBounds(destination)
 
-            style.apply {
-                setOpacity     (opacity)
-                setBorderRadius(radius )
+        style.apply {
+            setOpacity     (opacity)
+            setBorderRadius(radius )
+        }
+    }
+
+    private val imageFillHandler: FillHandler<ImagePaint> by lazy {
+        object: FillHandler<ImagePaint> {
+            private fun makeFill(renderer: VectorRendererSvg, paint: ImagePaint): SVGElement {
+                // FIXME: Re-use elements when possible
+                val pattern = createOrUse<SVGPatternElement>("pattern").apply {
+                    if (id.isBlank()) { setId(nextId()) }
+
+                    setAttribute("patternUnits", "userSpaceOnUse")
+
+                    val destination = Rectangle(paint.size)
+
+                    setBounds(destination)
+                    clear    (           )
+
+                    add(createImage(paint.image, destination, opacity = paint.opacity, radius = 0.0))
+                }
+
+                renderer.completeOperation(pattern)
+
+                return pattern
+            }
+
+            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint) {
+                element.setFillPattern(makeFill(renderer, paint))
+            }
+
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint) {
+                element.setStrokePattern(makeFill(renderer, paint))
             }
         }
     }

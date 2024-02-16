@@ -55,6 +55,7 @@ import io.nacular.doodle.drawing.GradientPaint
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.darker
@@ -976,6 +977,7 @@ public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<
                 is LinearGradientPaint -> LinearGradientPaint(paint.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = paint.start, end = paint.end)
                 is RadialGradientPaint -> RadialGradientPaint(paint.colors.map { GradientPaint.Stop(it.color.darker(), it.offset) }, start = paint.start, end = paint.end)
                 is ImagePaint          -> ImagePaint(image = paint.image, size = paint.size, opacity = paint.opacity * 0.5f)
+                is PatternPaint        -> PatternPaint(paint.bounds, paint.transform, paint.opacity * 0.5f, paint.paint)
                 else                   -> paint
             }
         }

@@ -35,8 +35,10 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.path
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
+import io.nacular.doodle.image.height
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.image.impl.SvgImage
+import io.nacular.doodle.image.width
 import io.nacular.doodle.skia.rrect
 import io.nacular.doodle.skia.skia
 import io.nacular.doodle.skia.skia33
@@ -63,6 +65,7 @@ import org.jetbrains.skia.FilterBlurMode.NORMAL
 import org.jetbrains.skia.FilterTileMode.REPEAT
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.MaskFilter
+import org.jetbrains.skia.Matrix33
 import org.jetbrains.skia.Matrix44
 import org.jetbrains.skia.PaintStrokeCap.BUTT
 import org.jetbrains.skia.PaintStrokeCap.ROUND
@@ -122,7 +125,7 @@ internal class CanvasImpl(
             is ColorPaint          -> result.color  = color.skia()
             is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skia(), end.skia(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skia(), start.radius.toFloat(), end.center.skia(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT) }
+            is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT, Matrix33.Companion.makeScale((size.width / image.width).toFloat(), (size.height / image.height).toFloat())) }
             is PatternPaint        -> {
                 // FIXME: Reuse bitmaps?
                 val bitmap = Bitmap().apply {

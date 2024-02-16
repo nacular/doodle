@@ -1,24 +1,23 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.BorderStyle.None
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.setBorderStyle
+import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setHeight
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setLeft
-import io.nacular.doodle.dom.setPosition
-import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setSize
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setWidth

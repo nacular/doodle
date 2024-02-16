@@ -9,6 +9,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.GradientPaint
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.LinearGradientPaint
+import io.nacular.doodle.drawing.PatternPaint
 import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
@@ -85,6 +86,7 @@ public val defaultDisabledPaintMapper: PaintMapper = {
         is LinearGradientPaint -> LinearGradientPaint(it.colors.map { GradientPaint.Stop(it.color.lighter(), it.offset) }, start = it.start, end = it.end)
         is RadialGradientPaint -> RadialGradientPaint(it.colors.map { GradientPaint.Stop(it.color.lighter(), it.offset) }, start = it.start, end = it.end)
         is ImagePaint          -> ImagePaint(image = it.image, size = it.size, opacity = it.opacity * 0.5f)
+        is PatternPaint        -> PatternPaint(it.bounds, it.transform, it.opacity * 0.5f, it.paint)
         else                   -> it
     }
 }

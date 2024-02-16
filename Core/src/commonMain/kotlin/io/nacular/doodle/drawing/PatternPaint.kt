@@ -74,10 +74,16 @@ public interface PatternCanvas: CommonCanvas {
  *
  * @property bounds of the Canvas that will be repeated
  * @property transform applied to the fill
+ * @property opacity global opacity of the Canvas that will be repeated
  * @property paint operations for the Canvas
  */
-public class PatternPaint(public val bounds: Rectangle, public val transform: AffineTransform2D = Identity, public val paint: PatternCanvas.() -> Unit): Paint() {
-    public constructor(size: Size, transform: AffineTransform2D = Identity, fill: PatternCanvas.() -> Unit): this(Rectangle(size = size), transform, fill)
+public class PatternPaint(
+    public val bounds   : Rectangle,
+    public val transform: AffineTransform2D = Identity,
+    public val opacity  : Float = 1f,
+    public val paint    : PatternCanvas.() -> Unit
+): Paint() {
+    public constructor(size: Size, transform: AffineTransform2D = Identity, opacity: Float = 1f, fill: PatternCanvas.() -> Unit): this(Rectangle(size = size), transform, opacity, fill)
 
     public val size: Size get() = bounds.size
 
