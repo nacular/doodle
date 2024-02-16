@@ -24,9 +24,7 @@ public abstract class Polygon: Shape {
         if (this === other) return true
         if (other !is Polygon) return false
 
-        if (points != other.points) return false
-
-        return true
+        return points == other.points
     }
 
     override fun hashCode(): Int = points.hashCode()
@@ -148,25 +146,25 @@ private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon
 }
 
 /**
- * Creates a [Regular polygon](https://en.wikipedia.org/wiki/Regular_polygon) by inscribing it within the circle.
+ * Creates a [Regular polygon](https://en.wikipedia.org/wiki/Regular_polygon) by inscribing it within the ellipse.
  *
  * @param sides the polygon should have
- * @param rotation of the polygon's first point around the circle
+ * @param rotation of the polygon's first point around the ellipse
  * @return the polygon
  */
-public fun Circle.inscribed(sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
+public fun Ellipse.inscribed(sides: Int, rotation: Measure<Angle> = 0 * degrees): ConvexPolygon? {
     if (sides < 3) return null
 
     val interPointSweep = 360 / sides * degrees
-    val topOfCircle     = center - Point(0.0, radius)
+    val topOfCircle     = center - Point(0.0, yRadius)
 
-    val points = mutableListOf(Point(topOfCircle.x + radius * sin(rotation), topOfCircle.y + radius * (1 - cos(rotation))))
+    val points = mutableListOf(Point(topOfCircle.x + xRadius * sin(rotation), topOfCircle.y + yRadius * (1 - cos(rotation))))
 
     var current: Point
 
     repeat(sides - 1) {
         val angle = interPointSweep * (it + 1) + rotation
-        current = Point(topOfCircle.x + radius * sin(angle), topOfCircle.y + radius * (1 - cos(angle)))
+        current = Point(topOfCircle.x + xRadius * sin(angle), topOfCircle.y + yRadius * (1 - cos(angle)))
         points += current
     }
 

@@ -44,6 +44,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Vector3D
+import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
@@ -1260,6 +1261,13 @@ public inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T
  * The View's center point in its **parent's** coordinate system.
  */
 public val View.center: Point get() = position + Point(width/2, height/2)
+
+/**
+ * Moves the View's center to the given point.
+ *
+ * @param at the point to center
+ */
+public fun View.centered(at: Point) { bounds = bounds.centered(at) }
 
 /**
  * @param filter used in search

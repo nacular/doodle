@@ -57,3 +57,10 @@ public open class Ellipse(public val center: Point, public val xRadius: Double, 
  * @return the ellipse
  */
 public fun Rectangle.inscribedEllipse(): Ellipse = Ellipse(xRadius = width / 2, yRadius = height / 2, center = center)
+
+/**
+ * @param insetX to shorten [xRadius][Ellipse.xRadius] by
+ * @param insetY to shorten [yRadius][Ellipse.yRadius] by
+ * @return an Ellipse with the same attributes as this, but with xRadius and yRadius shortened by [insetX] and [insetY] respectively.
+ */
+public fun Ellipse.inset(insetX: Double, insetY: Double = insetX): Ellipse = Ellipse(center, xRadius - insetX, yRadius - insetY)
