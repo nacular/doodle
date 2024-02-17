@@ -1,5 +1,7 @@
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
+import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URL
 
@@ -11,6 +13,12 @@ plugins {
 
 repositories {
     mavenCentral()
+}
+
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.dokka:dokka-base:1.9.10")
+    }
 }
 
 subprojects {
@@ -35,6 +43,21 @@ subprojects {
     setupPublication(dokkaJar)
 
     setupSigning()
+
+    tasks.dokkaHtml.configure {
+        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+            customAssets             = listOf(file("doodle_repo_image_shorter.png"))
+//            customStyleSheets        = listOf(file("my-styles.css"))
+            footerMessage            = "(c) 2024 Nacular"
+            separateInheritedMembers = false
+//            templatesDir = file("dokka/templates")
+            mergeImplicitExpectActualDeclarations = false
+        }
+//        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+//            customAssets = listOf(file("custom-assets/modelgoblin-logo.svg"))
+//            customStyleSheets = listOf(file("custom-assets/logo-styles.css"))
+//        }
+    }
 
     tasks.withType<DokkaTaskPartial>().configureEach {
         outputDirectory.set(buildDir.resolve("javadoc"))
