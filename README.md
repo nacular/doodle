@@ -7,17 +7,11 @@
 [![API](https://img.shields.io/badge/API-orange?style=for-the-badge)](https://nacular.github.io/doodle/)
 [![License: MIT](https://img.shields.io/badge/MIT_License-green.svg?style=for-the-badge)](https://github.com/pusolito/doodle/blob/master/LICENSE)
 
-Doodle helps you create beautiful, modern apps entirely in [Kotlin](http://kotlinlang.org), that just work across platforms. Doodle [apps for Web](https://nacular.github.io/doodle/docs/applications) do not use HTML, CSS or JavaScript libraries and are completely unaware of the Browser. This makes it easy to target [multiple platforms](https://kotlinlang.org/docs/reference/platform-specific-declarations.html) with a single application.
+Doodle helps you create beautiful, modern apps entirely in [Kotlin](http://kotlinlang.org). Its render model is intuitive yet powerful, making it easy to achieve [complex UIs](https://nacular.github.io/doodle-tutorials/docs/introduction) with pixel level precision and layouts. This simplicity and power applies to everything from user input to drag and drop. Doodle lets you build and animate anything.
 
+Start creating your app for Web and Desktop; just define your View hierarchy and business logic, and go.
 
 https://github.com/nacular/doodle/assets/9815928/7340bb3c-b1c4-4a79-96ce-002d6f255e0b
-
-
-Doodle already supports the Browser (JavaScript and WASM) and Desktop (JVM); and more platforms are planned.
-
-Doodle's render model is intuitive, yet powerful. It makes complex rendering easy with a powerful, vector based approach and fully customizable layouts. And this is just the beginning. Doodle simplifies user input (pointers, keyboards, drag-drop), enables pixel level precision, and lets you animate anything.
-
-Getting started is really simply; just define your View hierarchy and business logic, then go.
 
 ## Hello World
 ```kotlin
