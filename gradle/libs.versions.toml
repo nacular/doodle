@@ -1,17 +1,17 @@
 [versions]
 
-coroutinesVersion = { strictly = "1.8.0-RC" }
-dateTimeVersion   = { strictly = "0.5.0"    }
-dokkaVersion      = { strictly = "1.9.0"    }
-jupiterVersion    = { strictly = "5.10.0"   }
-kodeinVersion     = { strictly = "7.21.1"   }
-kotlinVersion     = { strictly = "1.9.22"   }
-koverVersion      = { strictly = "0.7.3"    }
-logbackVersion    = { strictly = "1.4.11"   }
-measuredVersion   = { strictly = "0.4.0"    }
-mockkVersion      = { strictly = "1.13.8"   }
-skikoVersion      = { strictly = "0.7.90"   }
-slf4jVersion      = { strictly = "2.0.9"    }
+coroutinesVersion = { strictly = "1.8.0"  }
+dateTimeVersion   = { strictly = "0.5.0"  }
+dokkaVersion      = { strictly = "1.9.0"  }
+jupiterVersion    = { strictly = "5.10.0" }
+kodeinVersion     = { strictly = "7.21.1" }
+kotlinVersion     = { strictly = "1.9.22" }
+koverVersion      = { strictly = "0.7.3"  }
+logbackVersion    = { strictly = "1.4.11" }
+measuredVersion   = { strictly = "0.4.0"  }
+mockkVersion      = { strictly = "1.13.8" }
+skikoVersion      = { strictly = "0.7.90" }
+slf4jVersion      = { strictly = "2.0.9"  }
 
 [libraries]
 
