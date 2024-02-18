@@ -1,5 +1,6 @@
 package io.nacular.doodle.application
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.WindowGroup
 import io.nacular.doodle.core.WindowGroupImpl
 import io.nacular.doodle.core.WindowImpl
@@ -70,6 +71,8 @@ public inline fun <reified T: Application> application(
     bind<Application> { singleton(creator = creator) }
 }, allowDefaultDarkMode, modules)
 
+/** @suppress */
+@Internal
 public fun createApplication(
         injector            : DirectDI,
         allowDefaultDarkMode: Boolean,
