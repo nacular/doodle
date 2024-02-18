@@ -141,9 +141,10 @@ internal class DisplayImpl(
         }
 
     private var renderJob: Job? = null
+    private var shutDown        = false
 
     private fun requestRender() {
-        if (renderJob == null || renderJob?.isActive != true) {
+        if ((renderJob == null || renderJob?.isActive != true) && !shutDown){
             renderJob = appScope.launch(uiDispatcher) {
                 skiaLayer.needRedraw()
             }
@@ -278,6 +279,8 @@ internal class DisplayImpl(
     }
 
     fun shutdown() {
+        shutDown = true
+
         children.clear()
         popUps.clear()
 
