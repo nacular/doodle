@@ -60,7 +60,7 @@ import java.util.*
 /**
  * Created by Nicholas Eddy on 5/20/21.
  */
-public class Modules {
+public class Modules private constructor() {
     public companion object {
         /** Enables focus management by providing access to [FocusManager]. */
         public val FocusModule: Module = Module(allowSilentOverride = true, name = "Focus") {

@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 /**
  * Created by Nicholas Eddy on 4/15/20.
  */
-public class Modules {
+public class Modules private constructor() {
     public enum class BehaviorResult { Matched, NotMatched }
 
     public interface BehaviorResolver {

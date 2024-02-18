@@ -68,7 +68,7 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 
-public class Modules {
+public class Modules private constructor() {
     public companion object {
         /** Enables focus management by providing access to [FocusManager]. */
         public val FocusModule: Module = Module(allowSilentOverride = true, name = "Focus") {
