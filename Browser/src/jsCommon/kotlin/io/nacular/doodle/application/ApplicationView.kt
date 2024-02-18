@@ -42,6 +42,7 @@ public class ApplicationViewFactory private constructor(
     }
 }
 
+/** @suppress */
 @Internal
 public class ApplicationView(htmlFactory: Any, private val nativeFocusManager: NativeFocusManager?, private val builder: (ApplicationView, Any) -> Application): View() {
 

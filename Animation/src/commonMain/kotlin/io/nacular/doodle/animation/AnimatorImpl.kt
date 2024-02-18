@@ -187,7 +187,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
     private class AnimationBlockImpl(private val animator: AnimatorImpl): AnimationBlock {
         private data class NumericAnimationInfoImpl<T, V>(val animationPlan: NumericAnimationPlan<T, V>, val block: (T) -> Unit): NumericAnimationInfo<T, V>()
 
-        override operator fun <T, V> NumericAnimationPlan<T, V>.invoke(definitions: (T) -> Unit) = NumericAnimationInfoImpl(this, definitions)
+        override operator fun <T, V> NumericAnimationPlan<T, V>.invoke(onChange: (T) -> Unit) = NumericAnimationInfoImpl(this, onChange)
 
         override infix fun <T, V> Pair<T, T>.using(animation: NumericAnimationInfo<T, V>): Animation<T> = (animation as NumericAnimationInfoImpl).let {
             animator(this, using = it.animationPlan, it.block)

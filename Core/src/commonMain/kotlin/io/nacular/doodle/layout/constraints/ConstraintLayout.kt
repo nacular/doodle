@@ -971,6 +971,8 @@ public fun <T: Positionable> Iterable<T>.constrain(
 
 /**
  * Utility for applying constraints to a single [Rectangle] relative to another.
+ *
+ * @suppress
  */
 @Internal
 public class Constrainer {

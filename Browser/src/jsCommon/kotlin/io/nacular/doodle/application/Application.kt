@@ -103,15 +103,17 @@ public inline fun <reified T: Application> application(
  * @param modules to use for the application
  * @param creator block that constructs the application
  */
+/** @suppress */
 @Internal
 public inline fun <reified T: Application> application(
              root                : Any,
-             allowDefaultDarkMode: Boolean     = false,
+             allowDefaultDarkMode: Boolean      = false,
              modules             : List<Module> = emptyList(),
     noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
+/** @suppress */
 @Internal
 public inline fun <reified T: Application> nestedApplication(
              view                : ApplicationView,

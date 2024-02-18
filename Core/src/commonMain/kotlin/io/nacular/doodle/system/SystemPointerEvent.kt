@@ -4,6 +4,7 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.geometry.Point
 
 public class SystemPointerEvent @Internal constructor(
+        /** @suppress */
         @Internal public val id               : Int,
                   public val type             : Type,
                   public val location         : Point,

@@ -1,6 +1,5 @@
 package io.nacular.doodle.animation
 
-import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Pausable
 import io.nacular.doodle.utils.Pool
 import kotlin.properties.ReadWriteProperty
@@ -39,19 +38,25 @@ public sealed interface Animator {
         public fun completed(animator: Animator, animations: Set<Animation<*>>) {}
     }
 
+    /**
+     * Contains data about a numeric animation. This is an intermediate type that is generated
+     * in the process of building animations.
+     *
+     * @see [AnimationBlock]
+     */
     public abstract class NumericAnimationInfo<T, V> internal constructor()
 
     /**
      * Allows block-style animations to be defined and started. These animations are then grouped and
-     * managed by a top-level [Completable]. Callers are then able to monitor/cancel the entire group
+     * managed by a top-level [Animation]. Callers are then able to monitor/cancel the entire group
      * using the returned value.
      *
      * ```
      * val animations = animate {
-     *     innerAnimation1 = 0f to 1f using = tween(...).invoke {
+     *     innerAnimation1 = 0f to 1f using (tween(...)).invoke {
      *     }
      *
-     *     innerAnimation1 = start(customAnimation) {
+     *     innerAnimation2 = start(customAnimation) {
      *     }
      *     ...
      * }.apply {
@@ -64,16 +69,19 @@ public sealed interface Animator {
      */
     public interface AnimationBlock {
         /**
-         * Initiates a [NumericAnimationPlan] using the input from [NumericAnimationPlan.invoke]
+         * Initiates an [Animation] from a [NumericAnimationInfo].
          *
-         * @param animation created from a [NumericAnimationPlan]
+         * @param animation info from a [NumericAnimationPlan]
+         * @see [NumericAnimationPlan.invoke]
          */
         public infix fun <T, V> Pair<T, T>.using(animation: NumericAnimationInfo<T, V>): Animation<T>
 
         /**
-         * Defines the consumption block for a [NumericAnimationPlan] that is
+         * Creates a [NumericAnimationInfo] for a [NumericAnimationPlan].
+         *
+         * @param onChange notified of changes to the animating value
          */
-        public operator fun <T, V> NumericAnimationPlan<T, V>.invoke(definitions: (T) -> Unit): NumericAnimationInfo<T, V>
+        public operator fun <T, V> NumericAnimationPlan<T, V>.invoke(onChange: (T) -> Unit): NumericAnimationInfo<T, V>
 
         /**
          * Starts a custom animation

@@ -58,6 +58,7 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
     internal abstract fun update(view: View)
 }
 
+/** @suppress */
 @Internal
 public interface Scene {
     public fun forEachView   (block: (View   ) -> Unit)
@@ -87,6 +88,7 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
     }
 }
 
+/** @suppress */
 @Internal
 public class SingleDisplayScene(private val display: InternalDisplay): Scene {
 

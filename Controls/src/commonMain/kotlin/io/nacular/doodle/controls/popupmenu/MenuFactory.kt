@@ -68,6 +68,7 @@ public interface MenuFactory {
     public operator fun invoke(close: (Menu) -> Unit, block: MenuCreationContext.() -> Unit): Menu
 }
 
+/** @suppress */
 @Internal
 public class MenuFactoryImpl(
     private val popups      : PopupManager,

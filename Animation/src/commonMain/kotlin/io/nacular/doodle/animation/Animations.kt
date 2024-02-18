@@ -36,6 +36,9 @@ public interface AnimationPlan<T> {
 
 /**
  * Defines how quickly [T] is changing over a period of time
+ *
+ * @property change that would occur
+ * @property over this given time period
  */
 public class Velocity<T>(public val change: T, public val over: Measure<Time>)
 
@@ -167,6 +170,12 @@ public fun <T: Units> tween(
     delay    : Measure<Time> = zeroMillis,
 ): FiniteNumericAnimationPlan<Measure<T>, Double> = tween(units.animationConverter, easing, duration, delay)
 
+/**
+ * Defines an [easing] over some [duration].
+ *
+ * @property easing function
+ * @property duration of the easing
+ */
 public data class Easing(val easing: EasingFunction, val duration : Measure<Time>)
 
 /**
@@ -239,13 +248,36 @@ public fun tweenColor(
 
 // region ================ Key Frames ========================
 
+/**
+ * Configuration block used when constructing key-frame animations.
+ */
 public interface KeyFrameBlock<T> {
+    /**
+     * Defines a single frame within a key-frame animation.
+     */
     public sealed interface Frame<T> {
+        /**
+         * Specifies how to transition to the subsequent frame from this one.
+         *
+         * @param easing used to transition
+         */
         public infix fun then(easing: EasingFunction)
     }
 
+    /**
+     * Specifies the frame for the animation at [timeStamp].
+     *
+     * @param timeStamp for the total animation
+     * @return the frame
+     */
     public infix fun T.at(timeStamp: Measure<Time>): Frame<T>
 
+    /**
+     * Specifies the frame for the animation at [fraction] of the total animation time.
+     *
+     * @param fraction of the total animation time
+     * @return the frame
+     */
     public infix fun T.at(fraction: Float): Frame<T>
 }
 
@@ -344,7 +376,20 @@ public fun keyFramesColor(
 
 // region ================ Repetition ========================
 
-public enum class RepetitionType { Restart, Reverse }
+/**
+ * Defines the kind of repetition an animation can have
+ */
+public enum class RepetitionType {
+    /**
+     * The animation will start from the beginning when it repeats.
+     */
+    Restart,
+
+    /**
+     * The animation will reverse from its current state when it repeats.
+     */
+    Reverse
+}
 
 /**
  * Repeats the given [animationPlan] for the specified number of [times].
