@@ -17,3 +17,20 @@ internal class DynamicProperty<T: JsAny>(private val name: String, private val o
         }
     }
 }
+
+internal class OptionalDynamicProperty<T: JsAny>(private val name: String, private val onError: ((Throwable) -> String?)? = null): ReadWriteProperty<T, String?> {
+    override fun getValue(thisRef: T, property: KProperty<*>): String? = when (onError) {
+        null -> (thisRef[name] as? JsString).toString()
+        else -> try { (thisRef[name] as? JsString).toString() } catch (throwable: Throwable) { onError.invoke(throwable) }
+    }
+
+    override fun setValue(thisRef: T, property: KProperty<*>, value: String?) {
+        try {
+            value?.toJsString()?.let {
+            thisRef[name] = it
+            }
+        } catch (throwable: Throwable) {
+            onError?.invoke(throwable)
+        }
+    }
+}
