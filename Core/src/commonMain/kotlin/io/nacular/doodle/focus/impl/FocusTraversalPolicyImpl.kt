@@ -1,8 +1,10 @@
 package io.nacular.doodle.focus.impl
 
 import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.focus.FocusTraversalPolicy
+import io.nacular.doodle.utils.ObservableList
 import kotlin.math.max
 
 /**
@@ -14,18 +16,21 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
     override fun first  (within: View): View? = firstRecursive(within.children_)
     override fun last   (within: View): View? = lastRecursive (within.children_)
 
-    override fun next    (within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next    (within, it.parent, it) }
+    override fun next    (within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { first(it) ?: next(within, it.parent, it) }
     override fun previous(within: View, from: View?): View? = from?.takeIf { within ancestorOf_ it }?.let { previous(within, it.parent, it) }
 
     override fun default(display: Display): View? = first         (display         )
     override fun first  (display: Display): View? = firstRecursive(display.children)
     override fun last   (display: Display): View? = lastRecursive (display.children)
 
-    override fun next    (display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { first(it) ?: next    (DisplayView(display), it.parent, it) }
-    override fun previous(display: Display, from: View?): View? = from?.takeIf { display ancestorOf it }?.let { previous(DisplayView(display), it.parent, it) }
+    override fun next    (display: Display, from: View?): View? = from?.takeIf { it.displayed }?.let { first(it) ?: next(DisplayView(display), it.parent, it) }
+    override fun previous(display: Display, from: View?): View? = from?.takeIf { it.displayed }?.let { previous(DisplayView(display), it.parent, it) }
 
     private class DisplayView(val display_: Display): View() {
-        override val children get() = display_.children
+        override val children get() = when (display_) {
+            is InternalDisplay -> ObservableList(display_.popups + display_.children)
+            else               -> display_.children
+        }
     }
 
     private fun firstRecursive(children: List<View>): View? {
@@ -33,7 +38,7 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
             if (focusabilityChecker(it)) {
                 return it
             }
-            firstRecursive(it.children_)?.let{
+            firstRecursive(it.children_)?.let {
                 return it
             }
         }
@@ -152,7 +157,7 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
 
                 return when {
                     focusabilityChecker(parent) -> parent
-                    else                           -> previous(cycleRoot, parent.parent, parent)
+                    else                        -> previous(cycleRoot, parent.parent, parent)
                 }
             }
         }
