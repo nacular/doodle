@@ -20,6 +20,7 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.addIfNotPresent
 import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.height
+import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBackgroundImage
 import io.nacular.doodle.dom.setBackgroundSize
@@ -145,6 +146,8 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     private val canvas              = canvasFactory(canvasElement)
     private val positionableWrapper = PositionableWrapper()
     private var fill                = null as Paint?
+
+    val renderOffset: Int get() = canvasElement.parent?.let { 1 } ?: 0
 
     override var transform: AffineTransform = Identity
         set (new) {

@@ -226,7 +226,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                            ) }
         bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (window                                                                ) } // FIXME: Provide fallback in case not supported
         bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
-        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance()                                                ) }
+        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance(), instance()                                    ) }
 
         // TODO: Can this be handled better?
         bind<DisplayImpl>    () with singleton { instance<Display>     () as DisplayImpl }
