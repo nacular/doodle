@@ -15,10 +15,12 @@ fun KotlinMultiplatformExtension.jsTargets() {
     compilerOptions()
 
     js {
+        val isRelease = releaseBuild
+
         compilations.all {
             kotlinOptions {
                 moduleKind = "umd"
-                sourceMap  = !releaseBuild
+                sourceMap  = !isRelease
                 if (sourceMap) {
                     sourceMapEmbedSources = "always"
                 }
@@ -32,7 +34,7 @@ fun KotlinMultiplatformExtension.jsTargets() {
         binaries.withType<JsIrBinary>().all {
             linkTask.configure {
                 kotlinOptions {
-                    sourceMap = !releaseBuild
+                    sourceMap = !isRelease
                     if (sourceMap) {
                         sourceMapEmbedSources = "always"
                     }
