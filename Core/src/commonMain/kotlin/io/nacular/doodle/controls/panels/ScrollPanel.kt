@@ -152,7 +152,14 @@ public open class ScrollPanel(content: View? = null): View() {
     }
 
     /** The current scroll offset. */
-    public var scroll: Point = Origin; private set
+    public var scroll: Point by observable(Origin) { old, new ->
+        (scrollChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+    }; private set
+
+    /**
+     * Notifies of changes to [scroll]
+     */
+    public val scrollChanged: PropertyObservers<ScrollPanel, Point> by lazy { PropertyObserversImpl(this) }
 
     /** Behavior governing how the panel works */
     public var behavior: ScrollPanelBehavior? by behavior { old, new ->
