@@ -47,14 +47,49 @@ internal class RealGraphicsSurface private constructor(
     private val htmlFactory             : HtmlFactory,
     private val canvasFactory           : CanvasFactory,
     private var parent                  : RealGraphicsSurface?,
-    isContainer             : Boolean,
-    canvasElement           : HTMLElement,
-    addToRootIfNoParent     : Boolean,
-    private val nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): GraphicsSurface {
+                isContainer             : Boolean,
+                canvasElement           : HTMLElement,
+                addToRootIfNoParent     : Boolean,
+    private val nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>,
+    private val rootElementOffset       : () -> Int
+): GraphicsSurface {
 
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, element: HTMLElement, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>): this(htmlFactory, canvasFactory, null, false, element, true, nonPopupTopLevelSurfaces)
-    constructor(htmlFactory: HtmlFactory, canvasFactory: CanvasFactory, nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>, parent: RealGraphicsSurface? = null, view: View, isContainer: Boolean = false, addToRootIfNoParent: Boolean = true): this(
-            htmlFactory, canvasFactory, parent, isContainer, canvasElement(view, htmlFactory), addToRootIfNoParent, nonPopupTopLevelSurfaces)
+    constructor(
+        htmlFactory             : HtmlFactory,
+        canvasFactory           : CanvasFactory,
+        element                 : HTMLElement,
+        nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>,
+        rootElementOffset       : () -> Int
+    ): this(
+        htmlFactory,
+        canvasFactory,
+        null,
+        false,
+        element,
+        true,
+        nonPopupTopLevelSurfaces,
+        rootElementOffset
+    )
+
+    constructor(
+        htmlFactory             : HtmlFactory,
+        canvasFactory           : CanvasFactory,
+        nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>,
+        parent                  : RealGraphicsSurface? = null,
+        view                    : View,
+        isContainer             : Boolean = false,
+        addToRootIfNoParent     : Boolean = true,
+        rootElementOffset       : () -> Int
+    ): this(
+        htmlFactory,
+        canvasFactory,
+        parent,
+        isContainer,
+        canvasElement(view, htmlFactory),
+        addToRootIfNoParent,
+        nonPopupTopLevelSurfaces,
+        rootElementOffset
+    )
 
     override var visible = true; set(new) {
         field = new
@@ -445,8 +480,8 @@ internal class RealGraphicsSurface private constructor(
                     nonPopupTopLevelSurfaces.addOrAppend(realIndex, this)
                 }
 
-                htmlFactory.root.remove(rootElement           )
-                htmlFactory.root.insert(rootElement, realIndex)
+                htmlFactory.root.remove(rootElement                                 )
+                htmlFactory.root.insert(rootElement, realIndex + rootElementOffset())
             }
             else -> parent?.setIndex(this, realIndex, shift)
         }

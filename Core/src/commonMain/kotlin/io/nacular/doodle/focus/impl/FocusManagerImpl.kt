@@ -92,8 +92,9 @@ public class FocusManagerImpl(
             Backward -> focusView = if (focusCycleRoot != null) policy.previous(focusCycleRoot, focusView) else policy.previous(display, focusView)
             Upward   -> focusCycleRoot?.let { requestFocus(focusCycleRoot) }
             Downward -> focusView?.let {
-                if (it.isFocusCycleRoot_) {
-                    focusView = policy.default(it)
+                focusView = when {
+                    it.isFocusCycleRoot_ -> policy.default(it)
+                    else                 -> policy.first  (it)
                 }
             }
         }
@@ -102,39 +103,44 @@ public class FocusManagerImpl(
     }
 
     private fun requestFocusInternal(view: View?) {
-        if (focusOwner != view && (view == null || focusable(view))) {
-            val oldFocusOwner = focusOwner
+        when {
+            focusOwner == view               -> return
+            view != null && !focusable(view) -> moveFocusDownward(view)
+            else -> {
+                val oldFocusOwner = focusOwner
 
-            if (oldFocusOwner != null) {
-                when {
-                    oldFocusOwner.shouldYieldFocus() -> {
-                        stopMonitorProperties(oldFocusOwner)
-                        oldFocusOwner.focusLost(view)
+                if (oldFocusOwner != null) {
+                    when {
+                        oldFocusOwner.shouldYieldFocus() -> {
+                            stopMonitorProperties(oldFocusOwner)
+                            oldFocusOwner.focusLost(view)
+                        }
+
+                        else -> return
                     }
-                    else -> return
                 }
+
+                if (finalFocusOwner == null || !enabled) {
+                    finalFocusOwner = view
+                }
+
+                // short-circuit (and record intended view) if disabled
+                if (!enabled) {
+                    return
+                }
+
+                focusOwner = view
+
+                focusOwner?.let { focusOwner ->
+                    focusOwner.focusGained(oldFocusOwner)
+
+                    focusCycleRoot = focusOwner.focusCycleRoot_
+
+                    startMonitorProperties(focusOwner)
+                }
+
+                (focusChanged as PropertyObserversImpl<FocusManager, View?>)(oldFocusOwner, focusOwner)
             }
-
-            if (finalFocusOwner == null || !enabled) {
-                finalFocusOwner = view
-            }
-
-            // short-circuit (and record intended view) if disabled
-            if (!enabled) {
-                return
-            }
-
-            focusOwner = view
-
-            focusOwner?.let { focusOwner ->
-                focusOwner.focusGained(oldFocusOwner)
-
-                focusCycleRoot = focusOwner.focusCycleRoot_
-
-                startMonitorProperties(focusOwner)
-            }
-
-            (focusChanged as PropertyObserversImpl<FocusManager, View?>)(oldFocusOwner, focusOwner)
         }
     }
 

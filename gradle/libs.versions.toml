@@ -9,7 +9,7 @@ kotlinVersion     = { strictly = "2.0.0-Beta4" }
 koverVersion      = { strictly = "0.7.3"  }
 logbackVersion    = { strictly = "1.4.11" }
 measuredVersion   = { strictly = "0.4.0"  }
-mockkVersion      = { strictly = "1.13.8" }
+mockkVersion      = { strictly = "1.13.9" }
 skikoVersion      = { strictly = "0.7.90" }
 slf4jVersion      = { strictly = "2.0.9"  }
 

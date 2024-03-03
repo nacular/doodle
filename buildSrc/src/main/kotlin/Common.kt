@@ -75,9 +75,9 @@ fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
 }
 
 fun MavenPom.setupPom() {
-    name.set       ("Doodle"                                 )
-    description.set("A pure Kotlin, UI framework for the Web")
-    url.set        ("https://github.com/nacular/doodle"      )
+    name.set       ("Doodle"                                             )
+    description.set("A pure Kotlin, UI framework for the Web and Desktop")
+    url.set        ("https://github.com/nacular/doodle"                  )
     licenses {
         license {
             name.set("MIT"                                )
