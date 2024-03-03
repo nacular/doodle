@@ -1,3 +1,5 @@
+@file:Suppress("EXTERNAL_TYPE_EXTENDS_NON_EXTERNAL_TYPE")
+
 package io.nacular.doodle.dom
 
 internal actual inline operator fun NodeList.get(index: Int): Node? = this.item(index)

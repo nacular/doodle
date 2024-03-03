@@ -159,7 +159,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
     }
 
     private class ConfigProviderImpl: ConfigProvider {
-        override var config = object: BasicThemeConfig {}
+        override var config: BasicThemeConfig = object: BasicThemeConfig {}
     }
 
     @Suppress("MemberVisibilityCanBePrivate")

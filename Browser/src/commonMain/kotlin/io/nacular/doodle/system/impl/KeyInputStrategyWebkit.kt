@@ -70,7 +70,7 @@ internal class KeyInputStrategyWebkit(private val htmlFactory: HtmlFactory): Key
 
     private fun dispatchKeyEvent(event: KeyboardEvent, type: Type): KeyInputService.KeyResponse = when {
         event.code != null && event.key != null -> eventHandler?.invoke(
-            KeyState(KeyCode(event.code), KeyText(event.key), createModifiers(event), type), event.target
+            KeyState(KeyCode(event.code!!), KeyText(event.key!!), createModifiers(event), type), event.target
         ) ?: Ignored
         else -> Ignored
     }

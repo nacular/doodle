@@ -21,13 +21,13 @@ import kotlin.coroutines.suspendCoroutine
  * Created by Nicholas Eddy on 12/28/21.
  */
 internal actual class SimpleFile actual constructor(private val delegate: File): LocalFile {
-    override val name        : String              get() = delegate.name
-    override val size        : Measure<BinarySize> get() = delegate.size.toDouble() * bytes
-    override val type        : String              get() = delegate.type
-    override val isClosed    : Boolean             get() = delegate.isClosed
-    override val lastModified: Measure<Time>       get() = delegate.lastModified * milliseconds
+    actual override val name        : String              get() = delegate.name
+    actual override val size        : Measure<BinarySize> get() = delegate.size.toDouble() * bytes
+    actual override val type        : String              get() = delegate.type
+    actual override val isClosed    : Boolean             get() = delegate.isClosed
+    actual override val lastModified: Measure<Time>       get() = delegate.lastModified * milliseconds
 
-    override suspend fun read(progress: (Float) -> Unit): ByteArray? = suspendCoroutine { coroutine ->
+    actual override suspend fun read(progress: (Float) -> Unit): ByteArray? = suspendCoroutine { coroutine ->
         try {
             val reader = FileReader()
 
@@ -55,7 +55,7 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
         }
     }
 
-    override suspend fun readText(encoding: String?, progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
+    actual override suspend fun readText(encoding: String?, progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
         try {
             val reader = FileReader()
 
@@ -83,7 +83,7 @@ internal actual class SimpleFile actual constructor(private val delegate: File):
         }
     }
 
-    override suspend fun readBase64(progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
+    actual override suspend fun readBase64(progress: (Float) -> Unit): String? = suspendCoroutine { coroutine ->
         try {
             val reader = FileReader()
 

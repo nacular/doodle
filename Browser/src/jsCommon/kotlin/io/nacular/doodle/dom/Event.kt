@@ -1,3 +1,5 @@
+@file:Suppress("EXTERNAL_TYPE_EXTENDS_NON_EXTERNAL_TYPE")
+
 package io.nacular.doodle.dom
 
 internal actual abstract external class EventTarget: JsAny

@@ -71,7 +71,7 @@ public class ColorPicker(color: Color): View() {
 
                 rerender()
 
-                (changed as PropertyObserversImpl).forEach { it(this, old, new) }
+                (changed as PropertyObserversImpl).invoke(old, new)
             }
 
         private var selection = color.saturation to 1f - color.value
@@ -230,7 +230,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = (new / (360 * degrees)).toFloat()
 
-            (changed as PropertyObserversImpl).forEach { it(this@HueStrip, old, field) }
+            (changed as PropertyObserversImpl)(old, field)
         }
 
         init {
@@ -280,7 +280,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = new
 
-            (changed as PropertyObserversImpl).forEach { it(this@OpacityStrip, old, field) }
+            (changed as PropertyObserversImpl)(old, field)
         }
 
         init {

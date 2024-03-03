@@ -81,6 +81,16 @@ public interface PoolObserver<T> {
  */
 public expect open class SetPool<T> private constructor(delegate: MutableSet<T>): Pool<T>, Set<T> {
     public constructor()
+
+    override val size: Int
+
+    override fun contains   (element : T            ): Boolean
+    override fun containsAll(elements: Collection<T>): Boolean
+    override fun isEmpty    (                       ): Boolean
+    override fun iterator   (                       ): Iterator<T>
+
+    override fun plusAssign (item: T)
+    override fun minusAssign(item: T)
 }
 
 /**
@@ -89,7 +99,18 @@ public expect open class SetPool<T> private constructor(delegate: MutableSet<T>)
  *
  * @param delegate that underlies this pool
  */
-public expect open class ObservableSetPool<T>(delegate: SetPool<T>): ObservablePool<T>, Set<T>
+public expect open class ObservableSetPool<T>(delegate: SetPool<T>): ObservablePool<T>, Set<T> {
+    override val size   : Int
+    override val changed: Pool<PoolObserver<T>>
+
+    override fun contains   (element : T            ): Boolean
+    override fun containsAll(elements: Collection<T>): Boolean
+    override fun isEmpty    (                       ): Boolean
+    override fun iterator   (                       ): Iterator<T>
+
+    override fun plusAssign (item: T)
+    override fun minusAssign(item: T)
+}
 
 /**
  * [ChangeObservers] implemented using a [SetPool].
