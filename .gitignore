@@ -1,5 +1,6 @@
 .idea/
 .gradle/
+.kotlin/
 .DS_Store
 out/
 build/
