@@ -46,6 +46,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.core.then
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
@@ -134,8 +135,9 @@ public fun <T> textField(
     TextField().apply {
         textChanged  += { _,_,new      -> validate(field, new) }
         focusChanged += { _,_,hasFocus ->
-            if (!hasFocus) {
-                validate(field, text)
+            when {
+                !hasFocus -> validate(field, text)
+                else      -> parent?.scrollTo(bounds)
             }
         }
 
@@ -180,15 +182,7 @@ public fun textField(
 public fun check(label: View): FieldVisualizer<Boolean> = field {
     container {
         + label
-        + CheckBox().apply {
-            initial.ifValid { selected = it }
-
-            selectedChanged += { _,_,_ ->
-                state = Valid(selected)
-            }
-
-            state = Valid(selected)
-        }
+        + checkBox()
 
         focusable = false
 
@@ -204,15 +198,7 @@ public fun check(label: View): FieldVisualizer<Boolean> = field {
  * @param label used for the checkbox
  */
 public fun check(label: String): FieldVisualizer<Boolean> = field {
-    CheckBox(label).apply {
-        initial.ifValid { selected = it }
-
-        selectedChanged += { _,_,_ ->
-            state = Valid(selected)
-        }
-
-        state = Valid(selected)
-    }
+    checkBox(label)
 }
 
 /**
@@ -230,6 +216,12 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
 
             selectedChanged += { _,_,_ ->
                 state = Valid(selected)
+            }
+
+            focusChanged += { _,_,focused ->
+                if (focused) {
+                    parent?.scrollTo(bounds)
+                }
             }
 
             size  = Size(30, 20)
@@ -326,6 +318,12 @@ public fun <T> slider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -383,6 +381,12 @@ public fun <T> circularSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -450,6 +454,12 @@ public fun <T> rangeSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -507,6 +517,12 @@ public fun <T> circularRangeSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -526,6 +542,12 @@ public fun file(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<L
         this.filesLoaded += { _,_,files ->
             files.firstOrNull()?.let { state = Valid(it) }
         }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -538,6 +560,12 @@ public fun files(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<
     FileSelector(allowMultiple = true, acceptedTypes).apply {
         this.filesLoaded += { _,_,files ->
             state = Valid(files)
+        }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
         }
     }
 }
@@ -974,6 +1002,12 @@ public fun <T, M: SpinnerModel<T>> spinner(
             onSuccess = { Valid(it) },
             onFailure = { Invalid() }
         )
+
+        spinner.focusChanged += { _,_,focused ->
+            if (focused) {
+                spinner.parent?.scrollTo(spinner.bounds)
+            }
+        }
     }.also(config)
 }
 
@@ -1277,7 +1311,16 @@ public fun <T> checkList(
            first : T,
     vararg rest  : T,
            config: OptionListConfig<T>.() -> Unit = {}
-): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) { CheckBox().apply { width = 16.0 } }
+): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) {
+    CheckBox().apply {
+        width = 16.0
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
+    }
+}
 
 /**
  * Creates a list of [Switch][io.nacular.doodle.controls.buttons.Switch]es that is bound to a [Field]. This controls
@@ -1309,7 +1352,13 @@ public fun <T> switchList(
             }
         }
 ) {
-    Switch()
+    Switch().apply {
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
+    }
 }
 
 /**
@@ -1929,6 +1978,22 @@ private class UninteractiveLabel(text: StyledText): Label(text) {
     }
 
     override fun contains(point: Point) = false
+}
+
+private fun FieldInfo<Boolean>.checkBox(label: String? = null) = CheckBox(label ?: "").apply {
+    initial.ifValid { selected = it }
+
+    selectedChanged += { _,_,_ ->
+        state = Valid(selected)
+    }
+
+    focusChanged += { _,_,focused ->
+        if (focused) {
+            parent?.scrollTo(bounds)
+        }
+    }
+
+    state = Valid(selected)
 }
 
 private class ExpandingVerticalLayout(private val view: View, spacing: Double, private val itemHeight: Double? = null): Layout {

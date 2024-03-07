@@ -14,9 +14,16 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 
 
+/**
+ * A [Behavior]<[Button]> that handles most of the commonly expected behavior of buttons. This makes it a good base for
+ * more complex behaviors.
+ *
+ * @param focusManager used to request focus
+ */
 public abstract class CommonButtonBehavior<in T: Button>(private val focusManager: FocusManager? = null): Behavior<T>, PointerListener, PointerMotionListener, KeyListener {
 
     @Suppress("UNCHECKED_CAST")
@@ -171,10 +178,43 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
     }
 }
 
-public inline fun <T: Button> simpleButtonRenderer(focusManager: FocusManager?, crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(focusManager) {
+/**
+ * Creates a [CommonButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param render called when updating the button
+ * @return a new [CommonButtonBehavior]
+ */
+public inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(null) {
     override fun render(view: T, canvas: Canvas) = render(view, canvas)
 }
 
-public inline fun <T: Button> simpleButtonRenderer(crossinline render: (button: T, canvas: Canvas) -> Unit): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(null) {
+/**
+ * Creates a [CommonButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param focusManager used by the backing behavior
+ * @param render called when updating the button
+ * @return a new [CommonButtonBehavior]
+ */
+public inline fun <T: Button> simpleButtonRenderer(
+                focusManager: FocusManager?,
+    crossinline render      : (button: T, canvas: Canvas) -> Unit
+): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(focusManager) {
     override fun render(view: T, canvas: Canvas) = render(view, canvas)
+}
+
+/**
+ * Creates a [CommonButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param focusManager used by the backing behavior
+ * @param contains determines whether a [Point] is within the button
+ * @param render called when updating the button
+ * @return a new [CommonButtonBehavior]
+ */
+public inline fun <T: Button> simpleButtonRenderer(
+                focusManager: FocusManager?,
+    crossinline contains    : (T, Point) -> Boolean,
+    crossinline render      : (button: T, canvas: Canvas) -> Unit
+): CommonButtonBehavior<T> = object: CommonButtonBehavior<T>(focusManager) {
+    override fun render  (view: T, canvas: Canvas) = render  (view, canvas)
+    override fun contains(view: T, point : Point ) = contains(view, point )
 }

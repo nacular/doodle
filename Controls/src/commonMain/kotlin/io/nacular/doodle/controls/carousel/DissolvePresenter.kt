@@ -13,7 +13,11 @@ import io.nacular.doodle.utils.lerp
  *
  * @param itemConstraints that determine the bounds of each item relative to the Carousel
  */
-public class DissolvePresenter<T>(itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill): ConstraintBasedPresenter<T>(itemConstraints) {
+public class DissolvePresenter<T>(
+    private val easeOut: (Float) -> Float = { it },
+    private val easeIn : (Float) -> Float = { it },
+    itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill
+): ConstraintBasedPresenter<T>(itemConstraints) {
     override fun present(
         carousel         : Carousel<T, *>,
         position         : Position,
@@ -35,8 +39,8 @@ public class DissolvePresenter<T>(itemConstraints: ConstraintDslContext.(Bounds)
                 results += this
                 setBounds(this, carousel.size)
 
-                currentItem.opacity = lerp(1f, 0f, progressToNext)
-                opacity             = lerp(0f, 1f, progressToNext)
+                currentItem.opacity = lerp(1f, 0f, easeOut(progressToNext))
+                opacity             = lerp(0f, 1f, easeIn (progressToNext))
             }
         }
 

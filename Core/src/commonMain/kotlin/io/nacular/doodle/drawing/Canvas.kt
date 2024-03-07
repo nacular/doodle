@@ -15,10 +15,7 @@ import io.nacular.doodle.image.Image
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
-import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.TextAlignment
-import io.nacular.doodle.utils.TextAlignment.Center
-import io.nacular.doodle.utils.TextAlignment.End
 import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
@@ -114,6 +111,14 @@ public interface CommonCanvas: Renderer {
     public fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint? = null)
 
     /**
+     * Draws styled text.
+     *
+     * @param text to draw
+     * @param at this point
+     */
+    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
+
+    /**
      * Draws unwrapped plain text in the default [Font].
      *
      * @param text to draw
@@ -131,20 +136,6 @@ public interface CommonCanvas: Renderer {
      * @param fill to fill with
      */
     public fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing = default)
-
-    /**
-     * Draws styled text.
-     *
-     * @param text to draw
-     * @param at this point
-     */
-    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
-
-    private val HorizontalAlignment.textAlignment get() = when (this) {
-        HorizontalAlignment.Left   -> Start
-        HorizontalAlignment.Center -> Center
-        HorizontalAlignment.Right  -> End
-    }
 
     /**
      * Draws wrapped plain text.
