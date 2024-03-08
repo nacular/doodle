@@ -540,7 +540,6 @@ internal open class CanvasImpl(
 
         if (result == null || result !is HTMLImageElement || result.parent != null && result.nodeName != image.nodeName) {
             result = image.cloneNode(false)
-            (result as? HTMLImageElement)?.ondragstart = { false } // TODO: This is a work-around for Firefox not honoring the draggable (= false) property for images
         } else {
             result.src              = image.src
             result.style.filter     = ""
