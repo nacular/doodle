@@ -28,7 +28,6 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Path
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
@@ -250,7 +249,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
             maxWidth      : Double?        = null,
             extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerPosition, footer, footerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
 
-        override val view = Tree(
+        override val view by lazy {
+            Tree(
                 model.map(extractor),
                 itemVisualizer { item: R, previous: View?, context: IndexedItem ->
                     this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
@@ -262,8 +262,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 },
                 selectionModel,
                 scrollCache = scrollCache
-        ).apply {
-            acceptsThemes = false
+            ).apply {
+                acceptsThemes = false
 
 //            expanded += { _,_ ->
 //                this@InternalTreeColumn.minWidth       = minimumSize.width
@@ -274,6 +274,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 //                this@InternalTreeColumn.minWidth       = minimumSize.width
 //                this@InternalTreeColumn.preferredWidth = minimumSize.width
 //            }
+            }
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
@@ -386,14 +387,16 @@ public open class TreeTable<T, M: TreeModel<T>>(
             override fun iterator() = TreeModelIterator(model.map(extractor), TreePathIterator(this@TreeTable))
         }
 
-        override val view = DynamicList(
-            model          = FieldModel(model, extractor),
-            itemVisualizer = itemVisualizer { _: R, _: View?, _: Any -> object : View() {} },
-            selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }),
-            scrollCache    = scrollCache,
-            fitContent     = emptySet()
-        ).apply {
-            acceptsThemes = false
+        override val view by lazy {
+            DynamicList(
+                model          = FieldModel(model, extractor),
+                itemVisualizer = itemVisualizer { _: R, _: View?, _: Any -> object : View() {} },
+                selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }),
+                scrollCache    = scrollCache,
+                fitContent     = emptySet()
+            ).apply {
+                acceptsThemes = false
+            }
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {

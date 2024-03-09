@@ -2,20 +2,26 @@ package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.table.AbstractTableBehavior.FooterCellGenerator
+import io.nacular.doodle.controls.table.AbstractTableBehavior.HeaderCellGenerator
+import io.nacular.doodle.controls.table.AbstractTableBehavior.MetaRowPositioner
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
 import io.nacular.doodle.utils.Path
+import io.nacular.doodle.utils.Pool
 
 /**
  * Indicates the y-offset and height of a table's header.
  */
-public class MetaRowGeometry(public val insetTop: Double, public val insetBottom: Double, public val height: Double)
+public class MetaRowGeometry(public val insetTop: Double = 0.0, public val insetBottom: Double = 0.0, public val height: Double = 0.0)
 
 public interface AbstractTableBehavior<T: View>: Behavior<T> {
     /**
@@ -235,8 +241,28 @@ public abstract class TableBehavior<T>: AbstractTableBehavior<Table<T, *>> {
 
     /**
      * Requests that the Table repaint a column. This will result in a call to [renderColumnBody].
+     *
+     * @param column that is dirty
      */
     protected fun Table<T, *>.columnDirty(column: Column<*>): Unit = columnDirty(column)
+
+    /** [PointerListener]s that are notified during the sinking phase of pointer event handling for the Table's header. */
+    protected val Table<T, *>.headerPointerFilter: Pool<PointerListener> get() = headerPointerFilter
+
+    /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling for the Table's header. */
+    protected val Table<T, *>.headerPointerMotionFilter: Pool<PointerMotionListener> get() = headerPointerMotionFilter
+
+    /** [PointerListener]s that are notified during the sinking phase of pointer event handling for the Table's body. */
+    protected val Table<T, *>.bodyPointerFilter: Pool<PointerListener> get() = bodyPointerFilter
+
+    /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling for the Table's body. */
+    protected val Table<T, *>.bodyPointerMotionFilter: Pool<PointerMotionListener> get() = bodyPointerMotionFilter
+
+    /** [PointerListener]s that are notified during the sinking phase of pointer event handling for the Table's footer. */
+    protected val Table<T, *>.footerPointerFilter: Pool<PointerListener> get() = footerPointerFilter
+
+    /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling for the Table's footer. */
+    protected val Table<T, *>.footerPointerMotionFilter: Pool<PointerMotionListener> get() = footerPointerMotionFilter
 }
 
 /**
@@ -356,4 +382,34 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
      * Requests that the TreeTable repaint a column. This will result in a call to [renderColumnBody].
      */
     protected fun TreeTable<T, *>.columnDirty(column: Column<*>): Unit = columnDirty(column)
+}
+
+/**
+ * Creates a [MetaRowPositioner] based on the given lambda.
+ *
+ * @param block to execute in [MetaRowPositioner.invoke]
+ * @return new MetaRowPositioner
+ */
+public fun <T> metaRowPositioner(block: (table: T) -> MetaRowGeometry): MetaRowPositioner<T> = object: MetaRowPositioner<T> {
+    override fun invoke(table: T): MetaRowGeometry = block(table)
+}
+
+/**
+ * Creates a [HeaderCellGenerator] based on the given lambda.
+ *
+ * @param block to execute in [HeaderCellGenerator.invoke]
+ * @return new HeaderCellGenerator
+ */
+public fun <T, A> headerCellGenerator(block: (table: T, column: Column<*>) -> View): HeaderCellGenerator<T> = object: HeaderCellGenerator<T> {
+    override fun <A> invoke(table: T, column: Column<A>) = block(table, column)
+}
+
+/**
+ * Creates a [FooterCellGenerator] based on the given lambda.
+ *
+ * @param block to execute in [FooterCellGenerator.invoke]
+ * @return new FooterCellGenerator
+ */
+public fun <T> footerCellGenerator(block: (table: T, column: Column<*>) -> View): FooterCellGenerator<T> = object: FooterCellGenerator<T> {
+    override fun <A> invoke(table: T, column: Column<A>) = block(table, column)
 }

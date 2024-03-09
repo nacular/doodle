@@ -154,13 +154,21 @@ public class MutableTable<T, M: MutableListModel<T>>(
             Comparator<T> { a, b -> it(a).compareTo(it(b)) }
         }
 
-        override val view: MutableList<R, *> = MutableList(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
-            override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModelWrapper, scrollCache = scrollCache, fitContent = emptySet()).apply {
-            acceptsThemes = false
+        override val view: MutableList<R, *> by lazy {
+            MutableList(
+                FieldModel(model, extractor),
+                object: ItemVisualizer<R, Any> {
+                    override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
+                },
+                selectionModelWrapper,
+                scrollCache = scrollCache,
+                fitContent = emptySet()
+            ).apply {
+                acceptsThemes = false
 
-            this@MutableInternalListColumn.editor?.let {
-                this.editor = ListEditorAdapter(it)
+                this@MutableInternalListColumn.editor?.let {
+                    this.editor = ListEditorAdapter(it)
+                }
             }
         }
     }
