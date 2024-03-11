@@ -114,20 +114,22 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
     override suspend fun <T> invoke(contents: ModalContext<T>.() -> ModalType): T = suspendCoroutine { coroutine ->
         try {
             var modalClosed = false
+            lateinit var modal: ModalContextImpl<T>
 
-            val modal = ModalContextImpl<T> { result ->
+            modal = ModalContextImpl { result ->
                 if (!modalClosed) {
                     modalClosed = true
 
                     coroutine.resume(result)
 
-                    var previousFocusOwner: View?
+                    var previousFocusOwner: View? = null
 
-                    modalStack.removeLast().let {
+                    modalStack.findLast { it == modal }?.let {
                         popupManager.hide(it.modalType.view)
                         popupManager.hide(it.overlay)
                         it.unregisterListeners()
                         previousFocusOwner = it.focusOwner
+                        modalStack.remove(it)
                     }
 
                     modalStack.forEach {
