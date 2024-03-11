@@ -181,15 +181,19 @@ private open class ApplicationHolderImpl protected constructor(
 
     private val onblur = { event: Event ->
         when {
-            // FIXME: For some reason the event coming back in WASM is an Event
-            event is FocusEvent && targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = false
+            // For some reason an Event is given for this when registered to document.body,
+            // so treat that case a window focus loss by default.
+            event is FocusEvent -> if (targetOutsideApp(event.relatedTarget)) (focusManager as? FocusManagerImpl)?.enabled = false
+            else                ->  (focusManager as? FocusManagerImpl)?.enabled = false
         }
     }
 
     private val onfocus = { event: Event ->
         when {
-            // FIXME: For some reason the event coming back in WASM is an Event
-            event is FocusEvent && targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = true
+            // For some reason an Event is given for this when registered to document.body,
+            // so treat that case a window focus gain by default.
+            event is FocusEvent -> if (targetOutsideApp(event.relatedTarget)) (focusManager as? FocusManagerImpl)?.enabled = true
+            else                -> (focusManager as? FocusManagerImpl)?.enabled = true
         }
     }
 

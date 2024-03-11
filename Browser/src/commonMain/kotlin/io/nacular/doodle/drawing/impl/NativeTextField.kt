@@ -41,6 +41,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import io.nacular.doodle.utils.IdGenerator
@@ -66,6 +67,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
     private val focusManager        : FocusManager?,
     private val textMetrics         : TextMetrics,
     private val accessibilityManager: AccessibilityManagerImpl?,
+    private val scheduler           : Scheduler,
     private val spellCheck          : Boolean,
     private val autoComplete        : Boolean
 ): NativeTextFieldFactory {
@@ -111,6 +113,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
             textMetrics,
             MobileKeyboardManagerImpl(),
             accessibilityManager,
+            scheduler,
             sizeDifference,
             spellCheck,
             autoComplete,
@@ -118,15 +121,16 @@ internal class NativeTextFieldFactoryImpl internal constructor(
 }
 
 internal class NativeTextField(
-    eventHandlerFactory  : NativeEventHandlerFactory,
+                eventHandlerFactory  : NativeEventHandlerFactory,
     private val idGenerator          : IdGenerator,
     private val systemStyler         : SystemStyler,
     private val fontSerializer       : FontSerializer,
-    htmlFactory          : HtmlFactory,
+                htmlFactory          : HtmlFactory,
     private val focusManager         : FocusManager?,
     private val textMetrics          : TextMetrics,
     private val mobileKeyboardManager: MobileKeyboardManager,
-    private val accessibilityManager: AccessibilityManagerImpl?,
+    private val accessibilityManager : AccessibilityManagerImpl?,
+    private val scheduler            : Scheduler,
     private val borderSize           : Size,
     private val spellCheck           : Boolean,
     private val autoComplete         : Boolean,
@@ -360,8 +364,16 @@ internal class NativeTextField(
     override fun onFocusLost(event: Event) = true.also {
         elementFocused = false
 
-        if (!ignoreSync && focusManager?.focusOwner == textField) {
-            focusManager.clearFocus()
+        // HACK!!
+        // Native text fields will lose focus when the user clicks outside the browser window,
+        // this will result in focus being cleared BEFORE the FocusManagerImpl can record the
+        // previously focused View to return focus to when focus comes back to the window.
+        // This hack essentially tries to "check" whether the window lost focus as a "result" of this
+        // focus loss. If so, it does not clear the focus.
+        scheduler.now {
+            if (!ignoreSync && focusManager?.focusOwner == textField) {
+                focusManager.clearFocus()
+            }
         }
     }
 
