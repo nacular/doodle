@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
+import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
@@ -116,6 +117,10 @@ internal class NativeHyperLink internal constructor(
         linkElement.tabIndex = if (new) 0 else -1
     }
 
+    private val clicked = { _: Button ->
+        linkElement.click()
+    }
+
     init {
         nativeEventHandler = handlerFactory(linkElement, this).apply {
             registerFocusListener()
@@ -127,6 +132,7 @@ internal class NativeHyperLink internal constructor(
             focusChanged        += this@NativeHyperLink.focusChanged
             enabledChanged      += this@NativeHyperLink.enabledChanged
             focusabilityChanged += this@NativeHyperLink.focusableChanged
+            fired               += this@NativeHyperLink.clicked
 
             if (customRenderer == null) styleChanged += this@NativeHyperLink.styleChanged
         }
@@ -145,6 +151,7 @@ internal class NativeHyperLink internal constructor(
             focusChanged        -= this@NativeHyperLink.focusChanged
             enabledChanged      -= this@NativeHyperLink.enabledChanged
             focusabilityChanged -= this@NativeHyperLink.focusableChanged
+            fired               -= this@NativeHyperLink.clicked
 
             if (customRenderer == null) styleChanged -= this@NativeHyperLink.styleChanged
 

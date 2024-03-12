@@ -187,6 +187,7 @@ internal actual abstract external class HTMLElement: Element, ElementCSSInlineSt
     actual fun focus()
     actual fun focus(options: FocusOptions)
     actual fun blur ()
+    actual fun click()
 
     actual fun addEventListener   (to: String, listener: (Event) -> Unit)
     actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)

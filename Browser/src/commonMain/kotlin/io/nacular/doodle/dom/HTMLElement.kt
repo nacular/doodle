@@ -225,6 +225,7 @@ internal expect abstract external class HTMLElement: Element, ElementCSSInlineSt
     fun focus()
     fun focus(options: FocusOptions)
     fun blur ()
+    fun click()
 }
 
 internal expect external interface AddEventListenerOptions: JsAny {
