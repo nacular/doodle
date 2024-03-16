@@ -68,7 +68,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         text.forEach { (text, style) ->
             element.add(create(text, style.font, textSpacing).also { element ->
                 element.style.setDisplay    (Inline()   )
-                element.style.setDomPosition   (Static()   )
+                element.style.setDomPosition(Static()   )
                 element.style.setTextSpacing(textSpacing)
 
                 applyStyle(element, style)

@@ -219,7 +219,7 @@ public enum class Target {
 
 // TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
 public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorPaint(it) }.invoke(text, target)
-public operator fun Color?.invoke(text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(text)
+public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
 
 //operator fun Color.get(text: String, fill: Fill = Foreground) = ColorFill(this).let {
 //    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
@@ -236,10 +236,11 @@ public operator fun Color?.invoke(text: () -> StyledText): StyledText = this?.le
 public operator fun Paint?.invoke(text: String, target: Target = Foreground): StyledText = this.let {
     StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
-public operator fun Paint?.invoke(text: () -> StyledText): StyledText = text().apply {
+public operator fun Paint?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
-        if (style.foreground == null && this@invoke != null) {
-            style.foreground = this@invoke
+        when {
+            style.foreground == null && target == Foreground && this@invoke != null -> style.foreground = this@invoke
+            style.background == null && target == Background && this@invoke != null -> style.background = this@invoke
         }
     }
 }
