@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.dom.DominantBaseline.TextBeforeEdge
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.SVGCircleElement
@@ -23,6 +24,7 @@ import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
+import io.nacular.doodle.dom.rgbaString
 import io.nacular.doodle.dom.setBorderRadius
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setCircle
@@ -37,6 +39,7 @@ import io.nacular.doodle.dom.setFillRule
 import io.nacular.doodle.dom.setFloodColor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setGradientUnits
+import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setId
 import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setPathData
@@ -55,11 +58,13 @@ import io.nacular.doodle.dom.setStrokePattern
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextSpacing
 import io.nacular.doodle.dom.setTransform
+import io.nacular.doodle.dom.setWidthPercent
 import io.nacular.doodle.dom.setX1
 import io.nacular.doodle.dom.setX2
 import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.GradientPaint
@@ -73,6 +78,7 @@ import io.nacular.doodle.drawing.RadialGradientPaint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.SweepGradientPaint
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -111,6 +117,100 @@ internal open class VectorRendererSvg constructor(
         private   val textMetrics   : TextMetrics,
         private   val idGenerator   : IdGenerator,
                       rootSvgElement: SVGElement? = null): VectorRenderer {
+
+    private inner class PatternCanvas(
+        context       : CanvasContext,
+        svgFactory    : SvgFactory,
+        htmlFactory   : HtmlFactory,
+        textMetrics   : TextMetrics,
+        idGenerator   : IdGenerator,
+        patternElement: SVGElement
+    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
+        private val contextWrapper = ContextWrapper(context)
+
+        init {
+            this.context = contextWrapper
+        }
+
+        override var size get() = context.size; set(@Suppress("UNUSED_PARAMETER") value) {}
+
+        override fun transform(transform: AffineTransform, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) = when {
+            transform.isIdentity -> block(this)
+            else                 -> {
+                pushGroup()
+
+                svgElement?.setTransform(transform)
+
+                block(this)
+
+                popGroup()
+            }
+        }
+
+        override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
+            if (image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)) {
+                updateRootSvg()
+
+                if (source.size == image.size && source.position == Origin) {
+                    completeOperation(createImage(image, destination, radius, opacity))
+                } else {
+                    val xRatio = destination.width  / source.width
+                    val yRatio = destination.height / source.height
+
+                    val imageElement = createImage(image,
+                        Rectangle(0 - xRatio * source.x,
+                            0 - yRatio * source.y,
+                            xRatio * image.size.width,
+                            yRatio * image.size.height),
+                        0.0,
+                        opacity)
+
+                    createClip(destination, radius).let {
+                        completeOperation(it)
+                        imageElement.style.clipPath = "url(#${it.id})"
+                    }
+
+                    completeOperation(imageElement)
+                }
+            }
+        }
+
+        override fun clip(rectangle: Rectangle, radius: Double, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
+            pushClip(rectangle.toPath(radius))
+            block   (this                    )
+            popClip (                        )
+        }
+
+        override fun clip(polygon: Polygon, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
+            pushClip(polygon.toPath())
+            block   (this            )
+            popClip (                )
+        }
+
+        override fun clip(ellipse: Ellipse, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
+            pushClip(ellipse.toPath())
+            block   (this            )
+            popClip (                )
+        }
+
+        override fun clip(path: io.nacular.doodle.geometry.Path, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
+            pushClip(path)
+            block   (this)
+            popClip (    )
+        }
+
+        override fun shadow(shadow: Shadow, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
+            contextWrapper.shadows += shadow
+            block(this)
+            contextWrapper.shadows -= shadow
+        }
+
+        private fun createClip(rectangle: Rectangle, radius: Double = 0.0) = createOrUse<SVGElement>("clipPath").apply {
+            if (id.isBlank()) { setId(nextId()) }
+
+            addIfNotPresent(makeRect(rectangle, radius) ,0)
+        }
+    }
 
     protected var svgElement    : SVGElement? = null
     private   var rootSvgElement: SVGElement? = null
@@ -698,6 +798,7 @@ internal open class VectorRendererSvg constructor(
             is LinearGradientPaint -> linearGradientFillHandler.fill(this, element, fill)
             is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill)
             is ImagePaint          -> imageFillHandler.fill         (this, element, fill)
+            is SweepGradientPaint  -> sweepGradientFillHandler.fill (this, element, fill)
         }
 
         if (clearOutline) {
@@ -707,11 +808,12 @@ internal open class VectorRendererSvg constructor(
 
     private fun strokeElement(element: SVGElement, stroke: Stroke) {
         when (val fill = stroke.fill) {
-            is ColorPaint          -> SolidFillHandler.stroke         (this, element, fill)
-            is PatternPaint        -> canvasFillHandler.stroke        (this, element, fill)
-            is LinearGradientPaint -> linearGradientFillHandler.stroke(this, element, fill)
-            is RadialGradientPaint -> radialGradientFillHandler.stroke(this, element, fill)
-            is ImagePaint          -> imageFillHandler.stroke         (this, element, fill)
+            is ColorPaint          -> SolidFillHandler.stroke         (this, element, fill, stroke)
+            is PatternPaint        -> canvasFillHandler.stroke        (this, element, fill, stroke)
+            is LinearGradientPaint -> linearGradientFillHandler.stroke(this, element, fill, stroke)
+            is RadialGradientPaint -> radialGradientFillHandler.stroke(this, element, fill, stroke)
+            is ImagePaint          -> imageFillHandler.stroke         (this, element, fill, stroke)
+            is SweepGradientPaint  -> sweepGradientFillHandler.stroke (this, element, fill, stroke)
         }
 
         element.setStroke(stroke)
@@ -872,7 +974,7 @@ internal open class VectorRendererSvg constructor(
 
     private interface FillHandler<B: Paint> {
         fun fill  (renderer: VectorRendererSvg, element: SVGElement, paint: B)
-        fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: B)
+        fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: B, stroke: Stroke)
     }
 
     private object SolidFillHandler: FillHandler<ColorPaint> {
@@ -880,7 +982,7 @@ internal open class VectorRendererSvg constructor(
             element.setFill(paint.color)
         }
 
-        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint) {
+        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint, stroke: Stroke) {
             element.setStrokeColor(paint.color)
         }
     }
@@ -920,123 +1022,9 @@ internal open class VectorRendererSvg constructor(
                 element.setFillPattern(makeFill(renderer, paint), paint.opacity)
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint), paint.opacity)
             }
-        }
-    }
-
-    private class ContextWrapper(delegate: CanvasContext): CanvasContext by delegate {
-        override val shadows: MutableList<Shadow> = mutableListOf()
-    }
-
-    private inner class PatternCanvas(
-            context       : CanvasContext,
-            svgFactory    : SvgFactory,
-            htmlFactory   : HtmlFactory,
-            textMetrics   : TextMetrics,
-            idGenerator   : IdGenerator,
-            patternElement: SVGElement
-    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
-        private val contextWrapper = ContextWrapper(context)
-
-        init {
-            this.context = contextWrapper
-        }
-
-        override var size get() = context.size; set(@Suppress("UNUSED_PARAMETER") value) {}
-
-        override fun transform(transform: AffineTransform, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) = when {
-            transform.isIdentity -> block(this)
-            else                 -> {
-                pushGroup()
-
-                svgElement?.setTransform(transform)
-
-                block(this)
-
-                popGroup()
-            }
-        }
-
-        override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
-            if (image is ImageImpl && opacity > 0 && !(source.empty || destination.empty)) {
-                updateRootSvg()
-
-                if (source.size == image.size && source.position == Origin) {
-                    completeOperation(createImage(image, destination, radius, opacity))
-                } else {
-                    val xRatio = destination.width  / source.width
-                    val yRatio = destination.height / source.height
-
-                    val imageElement = createImage(image,
-                            Rectangle(0 - xRatio * source.x,
-                                      0 - yRatio * source.y,
-                                      xRatio * image.size.width,
-                                      yRatio * image.size.height),
-                            0.0,
-                            opacity)
-
-                    createClip(destination, radius).let {
-                        completeOperation(it)
-                        imageElement.style.clipPath = "url(#${it.id})"
-                    }
-
-                    completeOperation(imageElement)
-                }
-            }
-        }
-
-        override fun clip(rectangle: Rectangle, radius: Double, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            pushClip(rectangle.toPath(radius))
-            block   (this                    )
-            popClip (                        )
-        }
-
-        override fun clip(polygon: Polygon, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            pushClip(polygon.toPath())
-            block   (this            )
-            popClip (                )
-        }
-
-        override fun clip(ellipse: Ellipse, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            pushClip(ellipse.toPath())
-            block   (this            )
-            popClip (                )
-        }
-
-        override fun clip(path: io.nacular.doodle.geometry.Path, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            pushClip(path)
-            block   (this)
-            popClip (    )
-        }
-
-        override fun shadow(shadow: Shadow, block: io.nacular.doodle.drawing.PatternCanvas.() -> Unit) {
-            contextWrapper.shadows += shadow
-            block(this)
-            contextWrapper.shadows -= shadow
-        }
-
-        private fun createClip(rectangle: Rectangle, radius: Double = 0.0) = createOrUse<SVGElement>("clipPath").apply {
-            if (id.isBlank()) { setId(nextId()) }
-
-            addIfNotPresent(makeRect(rectangle, radius) ,0)
-        }
-    }
-
-    private fun createImage(image: Image, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {
-        /*
-         * xlink:href (https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) is deprecated for SVG 2.0, but Safari doesn't seem to support just href yet
-         */
-        setAttributeNS("http://www.w3.org/2000/svg",   "xlink", "http://www.w3.org/1999/xlink")
-        setAttributeNS("http://www.w3.org/1999/xlink", "href",  image.source)
-        setAttribute("preserveAspectRatio", "none")
-
-        setBounds(destination)
-
-        style.apply {
-            setOpacity     (opacity)
-            setBorderRadius(radius )
         }
     }
 
@@ -1066,7 +1054,7 @@ internal open class VectorRendererSvg constructor(
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
         }
@@ -1084,7 +1072,7 @@ internal open class VectorRendererSvg constructor(
                     setX2(paint.end.x                )
                     setY2(paint.end.y                )
 
-                    updateStops     (paint.colors    )
+                    updateStops(paint.colors    )
                 }
 
                 renderer.completeOperation(gradient)
@@ -1096,7 +1084,7 @@ internal open class VectorRendererSvg constructor(
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
         }
@@ -1123,9 +1111,92 @@ internal open class VectorRendererSvg constructor(
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
+        }
+    }
+
+    private val sweepGradientFillHandler by lazy {
+        object: FillHandler<SweepGradientPaint> {
+            private fun makeForeign(mask: SVGElement, paint: SweepGradientPaint) = createOrUse<SVGElement>("foreignObject").apply {
+                setAttribute("width",  "100%"            )
+                setAttribute("height", "100%"            )
+                setAttribute("mask",   "url(#${mask.id})")
+
+                appendChild(htmlFactory.create<HTMLElement>().apply {
+                    val colors = paint.colors.joinToString(",") {
+                        "${it.color.rgbaString} ${it.offset * 360 * degrees `in` degrees}deg"
+                    }
+
+                    style.background = "conic-gradient(from ${(paint.rotation `in` degrees) + 90.0}deg at ${paint.center.x}px ${paint.center.y}px, $colors)"
+                    style.setWidthPercent (100.0)
+                    style.setHeightPercent(100.0)
+                })
+            }
+
+            private fun makeMask(element: SVGElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
+                if (id.isBlank()) {
+                    setId(nextId())
+                }
+
+                appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
+            }
+
+            private fun makeFill(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGElement) {
+                val mask = makeMask(element) {
+                    setFill  (White)
+                    setStroke(null )
+                }
+
+                renderer.completeOperation(mask)
+                renderer.completeOperation(makeForeign(mask, paint))
+            }
+
+            private fun makeStroke(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGElement, stroke: Stroke) {
+                val mask = makeMask(element) {
+                    setFill  (null  )
+                    setStroke(Stroke(
+                        dashes     = stroke.dashes,
+                        lineCap    = stroke.lineCap,
+                        lineJoint  = stroke.lineJoint,
+                        thickness  = stroke.thickness,
+                        dashOffset = stroke.dashOffset,
+                    ))
+                    setStrokeColor(White)
+                }
+
+                renderer.completeOperation(mask                   )
+                renderer.completeOperation(makeForeign(mask, paint))
+            }
+
+            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: SweepGradientPaint) {
+                makeFill(renderer, paint, element)
+            }
+
+            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: SweepGradientPaint, stroke: Stroke) {
+                makeStroke(renderer, paint, element, stroke)
+            }
+        }
+    }
+
+    private class ContextWrapper(delegate: CanvasContext): CanvasContext by delegate {
+        override val shadows: MutableList<Shadow> = mutableListOf()
+    }
+
+    private fun createImage(image: Image, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {
+        /*
+         * xlink:href (https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/xlink:href) is deprecated for SVG 2.0, but Safari doesn't seem to support just href yet
+         */
+        setAttributeNS("http://www.w3.org/2000/svg",   "xlink", "http://www.w3.org/1999/xlink")
+        setAttributeNS("http://www.w3.org/1999/xlink", "href",  image.source)
+        setAttribute("preserveAspectRatio", "none")
+
+        setBounds(destination)
+
+        style.apply {
+            setOpacity     (opacity)
+            setBorderRadius(radius )
         }
     }
 

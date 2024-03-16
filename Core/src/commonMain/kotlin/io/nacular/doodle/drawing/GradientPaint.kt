@@ -3,6 +3,10 @@ package io.nacular.doodle.drawing
 import io.nacular.doodle.drawing.GradientPaint.Stop
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
 
 /**
  * A gradient [Paint] that transitions between a list of [Stop]s.
@@ -76,4 +80,35 @@ public class RadialGradientPaint(colors: List<Stop>, public val start: Circle, p
      * @param end circle that the gradient stops at
      */
     public constructor(color1: Color, color2: Color, start: Circle, end: Circle): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
+}
+
+/**
+ * A [Paint] based on sweeping a "line" around a [center] point, through a series of [Stop]s to form what looks like a cone.
+ *
+ * @property center   of the cone
+ * @property rotation of the starting line
+ *
+ * @param colors   at stop angles
+ * @param center   of the cone
+ * @param rotation of the starting line
+ */
+public class SweepGradientPaint(
+               colors  : List<Stop>,
+    public val center  : Point,
+    public val rotation: Measure<Angle> = 0 * degrees
+): GradientPaint(colors) {
+    /**
+     * Creates a conic with a gradient between the given colors.
+     *
+     * @param color1 at the start angle
+     * @param color2 at the end of the sweep
+     * @param center of the cone
+     * @param rotation of the start angle
+     */
+    public constructor(
+        color1  : Color,
+        color2  : Color,
+        center  : Point,
+        rotation: Measure<Angle> = 0 * degrees
+    ): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), center, rotation)
 }

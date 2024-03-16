@@ -95,6 +95,7 @@ internal class SystemStylerImpl(
                 tryInsertRule("${prefix()} pre { margin:0;pointer-events:none }", numStyles)
                 tryInsertRule("${prefix()} svg { display:inline-block;width:100%;height:100%;overflow:visible;pointer-events:none }", numStyles)
                 tryInsertRule("${prefix()} svg * { position:absolute }", numStyles)
+                tryInsertRule("${prefix()} svg foreignObject div { position:unset;display:block }", numStyles)
                 tryInsertRule("${prefix()} button div svg { left:0px }", numStyles)
 
                 tryInsertRule("input[type=text]::-ms-clear{ display:none }", numStyles)

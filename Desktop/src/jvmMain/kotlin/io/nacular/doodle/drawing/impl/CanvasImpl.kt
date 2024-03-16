@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.CommonCanvas
+import io.nacular.doodle.drawing.SweepGradientPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
@@ -62,7 +63,9 @@ import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Measure
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.FilterBlurMode.NORMAL
+import org.jetbrains.skia.FilterTileMode.DECAL
 import org.jetbrains.skia.FilterTileMode.REPEAT
+import org.jetbrains.skia.GradientStyle
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.MaskFilter
 import org.jetbrains.skia.Matrix33
@@ -139,6 +142,16 @@ internal class CanvasImpl(
                 val matrix = (Identity.translate(bounds.x, bounds.y) * transform).skia33()
 
                 result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, matrix)
+            }
+            is SweepGradientPaint -> {
+                result.shader = Shader.makeSweepGradient(
+                    center     = center.skia(),
+                    startAngle = 0f,
+                    endAngle   = 360f,
+                    colors     = colors.map { it.color.skia() }.toIntArray(),
+                    positions  = colors.map { it.offset }.toFloatArray(),
+                    style      = GradientStyle(DECAL, isPremul = true, Identity.rotate(around = center, rotation).skia33())
+                )
             }
         }
 
