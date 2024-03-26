@@ -58,6 +58,7 @@ import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
@@ -1534,12 +1535,37 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  *
  * @see labeled
  * @param text to append to field name
+ * @param focusTarget to monitor for focus events, or `null` if the [labeled] content is the right target.
  */
-public class WhenInvalidFocusLost(text: StyledText): RequiredIndicatorStyle(text) {
+public class WhenInvalidFocusLost(text: StyledText, internal val focusTarget: View? = null): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
     public constructor(text: String = "*"): this(StyledText(text))
+}
+
+/**
+ * Only appends the indicator if explicitly requested.
+ * and it loses focus.
+ *
+ * @see labeled
+ * @param text to append to field name
+ */
+public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
+
+    internal val indicatorVisibilityChanged: ChangeObserversImpl<WhenManuallySet> by lazy { ChangeObserversImpl(this) }
+
+    /**
+     * @param text to append to field name
+     */
+    public constructor(text: String = "*"): this(StyledText(text))
+
+    /**
+     * Used to explicitly set the required indicator's visibility.
+     *
+     * Defaults to `false`.
+     */
+    public var indicatorVisible: Boolean by observable(false) { _,_ -> indicatorVisibilityChanged() }
 }
 
 /**
@@ -2040,10 +2066,18 @@ private fun <T> FieldInfo<T>.updateRequiredText(
         label.styledText = name.copy() + showRequired.text
     }
 
-    content.focusChanged += { _,_,focused ->
-        if (!focused && showRequired is WhenInvalidFocusLost && state is Invalid<T> && showRequired.text.isNotBlank()) {
-            label.styledText = name.copy() + showRequired.text
+    when (showRequired) {
+        is WhenInvalidFocusLost -> (showRequired.focusTarget ?: content).focusChanged += { _,_,focused ->
+            if (!focused && state is Invalid<T> && showRequired.text.isNotBlank()) {
+                label.styledText = name.copy() + showRequired.text
+            }
         }
+        is WhenManuallySet -> showRequired.indicatorVisibilityChanged += {
+            if (showRequired.indicatorVisible) {
+                label.styledText = name.copy() + showRequired.text
+            }
+        }
+        else              -> {}
     }
 
     stateChanged += {
@@ -2051,7 +2085,7 @@ private fun <T> FieldInfo<T>.updateRequiredText(
             it.state is Invalid<T> &&
                     showRequired.text.isNotBlank() &&
                     (showRequired !is WhenInvalidFocusLost || !content.hasFocus) -> label.styledText = name.copy() + showRequired.text
-            showRequired !is Always                                              -> label.styledText = name.copy()
+            showRequired !is Always && showRequired !is WhenManuallySet          -> label.styledText = name.copy()
         }
     }
 }
