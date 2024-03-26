@@ -1,12 +1,12 @@
 package io.nacular.doodle.document.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.document.Document
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Block
 import io.nacular.doodle.dom.Display
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Inline
 import io.nacular.doodle.dom.InlineBlock
@@ -14,7 +14,6 @@ import io.nacular.doodle.dom.Position
 import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setDisplay
-import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Font
@@ -112,8 +111,9 @@ internal class DocumentImpl(
 
         // TODO: remove listener
         view.parentChange += { _,_,_ ->
-            surface.rootElement.style.position = "initial"
-            surface.rootElement.style.display  = "initial"
+            surface.rootElement.style.position  = "initial"
+            surface.rootElement.style.display   = "initial"
+            surface.rootElement.style.transform = "translate3d(0,0,0)"
         }
 
         root.add(surface.rootElement)
