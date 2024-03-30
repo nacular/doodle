@@ -86,7 +86,6 @@ public class Resizer(
 
     override fun dragged(event: PointerEvent) {
         event.changedInteractions.find { it.pointer == activePointer }?.let { activeInteraction ->
-            val delta         = view.toLocal(activeInteraction.location, event.target) - initialPosition
             val deltaInParent = view.toParent(view.toLocal(activeInteraction.location, event.target)) - view.toParent(initialPosition)
 
             if (dragMode.isEmpty() && movable) {
@@ -103,6 +102,7 @@ public class Resizer(
                 val minWidth  = view.minimumSize.width
                 val minHeight = view.minimumSize.height
                 var consume   = false
+                val delta     = view.toLocal(activeInteraction.location, event.target) - initialPosition
 
                 when {
                     West in dragMode && West in directions -> {
