@@ -39,6 +39,7 @@ import io.nacular.doodle.dom.setFillRule
 import io.nacular.doodle.dom.setFloodColor
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setGradientUnits
+import io.nacular.doodle.dom.setHeight
 import io.nacular.doodle.dom.setHeightPercent
 import io.nacular.doodle.dom.setId
 import io.nacular.doodle.dom.setOpacity
@@ -58,9 +59,12 @@ import io.nacular.doodle.dom.setStrokePattern
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextSpacing
 import io.nacular.doodle.dom.setTransform
+import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.dom.setWidthPercent
+import io.nacular.doodle.dom.setX
 import io.nacular.doodle.dom.setX1
 import io.nacular.doodle.dom.setX2
+import io.nacular.doodle.dom.setY
 import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.drawing.AffineTransform
@@ -107,7 +111,6 @@ import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 
 internal open class VectorRendererSvg constructor(
@@ -852,19 +855,16 @@ internal open class VectorRendererSvg constructor(
     private fun outerShadow(shadow: OuterShadow) = createOrUse<SVGElement>("filter").apply {
         if (id.isBlank()) { setId(nextId()) }
 
+        setAttribute("filterUnits", "userSpaceOnUse")
+
         val oldRenderPosition = renderPosition
 
         with(shadow) {
-            val width  = this@VectorRendererSvg.context.size.width  + 2 * (blurRadius + abs(if (horizontal < blurRadius) 0.0 else horizontal - blurRadius))
-            val height = this@VectorRendererSvg.context.size.height + 2 * (blurRadius + abs(if (vertical   < blurRadius) 0.0 else vertical   - blurRadius))
-            val shadowRect = Rectangle(
-                x = max(-width + blurRadius, min(-blurRadius, -(blurRadius + horizontal))),
-                y = max(-width + blurRadius, min(-blurRadius, -(blurRadius + vertical  ))),
-                width  * 1.1,
-                height * 1.1
-            )
-
-            setBounds(shadowRect)
+            val factor = 2.6
+            setX     (-blurRadius * factor + min(0.0, horizontal)                                           )
+            setY     (-blurRadius * factor + min(0.0, vertical  )                                           )
+            setWidth (this@VectorRendererSvg.context.size.width  + 2 * blurRadius * factor + abs(horizontal))
+            setHeight(this@VectorRendererSvg.context.size.height + 2 * blurRadius * factor + abs(vertical  ))
         }
 
         renderPosition = firstChild
