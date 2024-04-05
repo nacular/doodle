@@ -13,6 +13,9 @@ import io.nacular.doodle.utils.observable
  * Created by Nicholas Eddy on 3/4/20.
  */
 public class UrlView internal constructor(htmlFactory: HtmlFactory): View() {
+    /**
+     * The URL to show in the View
+     */
     public var url: String by observable("") { _,new ->
         root.src = new
     }

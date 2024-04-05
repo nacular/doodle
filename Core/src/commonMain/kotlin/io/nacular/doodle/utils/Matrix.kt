@@ -126,7 +126,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
  *
  * @constructor creates a new instance
  */
-internal class AffineMatrix3D @Internal constructor(values: Array<Array<Double>>): SquareMatrix<Double>(values) {
+internal class AffineMatrix3D(values: Array<Array<Double>>): SquareMatrix<Double>(values) {
     override operator fun get(row: Int, col: Int): Double = when {
         row < numRows && col < numColumns -> super.get(row, col)
         row == col                        -> 1.0

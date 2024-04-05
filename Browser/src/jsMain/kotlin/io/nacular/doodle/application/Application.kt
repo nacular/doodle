@@ -20,11 +20,3 @@ public inline fun <reified T: Application> application(
              modules             : List<Module> = emptyList(),
     noinline creator             : NoArgBindingDI<*>.() -> T
 ): Application = application(root.unsafeCast<HTMLElement>(), allowDefaultDarkMode, modules, creator)
-
-public inline fun <reified T: Application> nestedApplication(
-             view                : ApplicationView,
-             root                : org.w3c.dom.HTMLElement,
-             allowDefaultDarkMode: Boolean      = false,
-             modules             : List<Module> = emptyList(),
-    noinline creator             : NoArgBindingDI<*>.() -> T
-): Application = nestedApplication(view, root.unsafeCast<HTMLElement>(), allowDefaultDarkMode, modules, creator)

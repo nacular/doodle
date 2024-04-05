@@ -42,30 +42,45 @@ public interface MultiDataConverter<T> : AnimationDataConverter<T, Array<Double>
 
 // region ================ Converters ========================
 
+/**
+ * Animation converter for [Int].
+ */
 public val Int.Companion.animationConverter: SingleDataConverter<Int> get() = object: SingleDataConverter<Int> {
     override val zero                       = 0
     override fun serialize  (value: Int   ) = value.toDouble()
     override fun deserialize(value: Double) = value.roundToInt()
 }
 
+/**
+ * Animation converter for [Float].
+ */
 public val Float.Companion.animationConverter: SingleDataConverter<Float> get() = object: SingleDataConverter<Float> {
     override val zero                       = 0f
     override fun serialize  (value: Float ) = value.toDouble()
     override fun deserialize(value: Double) = value.toFloat()
 }
 
+/**
+ * Animation converter for [Double].
+ */
 public val Double.Companion.animationConverter: SingleDataConverter<Double> get() = object: SingleDataConverter<Double> {
     override val zero                       = 0.0
     override fun serialize  (value: Double) = value
     override fun deserialize(value: Double) = value
 }
 
+/**
+ * Animation converter for a [Measure].
+ */
 public val <T: Units> T.animationConverter: SingleDataConverter<Measure<T>> get() = object: SingleDataConverter<Measure<T>> {
     override val zero                           = 0 * this@animationConverter
     override fun serialize  (value: Measure<T>) = value `in` this@animationConverter
     override fun deserialize(value: Double    ) = value * this@animationConverter
 }
 
+/**
+ * Animation converter for [Point] that allows `x` and `y` to animate.
+ */
 public val Point.Companion.animationConverter: MultiDataConverter<Point> get() = object: MultiDataConverter<Point> {
     override val size get()                        = 2
     override val zero                              = Origin
@@ -73,6 +88,9 @@ public val Point.Companion.animationConverter: MultiDataConverter<Point> get() =
     override fun deserialize(value: Array<Double>) = Point(value[0], value[1])
 }
 
+/**
+ * Animation converter for [Size] that allows `width` and `height` to animate.
+ */
 public val Size.Companion.animationConverter: MultiDataConverter<Size> get() = object: MultiDataConverter<Size> {
     override val size get()                        = 2
     override val zero                              = Empty
@@ -80,6 +98,9 @@ public val Size.Companion.animationConverter: MultiDataConverter<Size> get() = o
     override fun deserialize(value: Array<Double>) = Size(max(0.0, value[0]), max(0.0, value[1]))
 }
 
+/**
+ * Animation converter for [Rectangle] that allows `x`, `y`, `width` and `height` to animate.
+ */
 public val Rectangle.Companion.animationConverter: MultiDataConverter<Rectangle> get() = object: MultiDataConverter<Rectangle> {
     override val size get()                        = 4
     override val zero                              = Empty
@@ -87,6 +108,9 @@ public val Rectangle.Companion.animationConverter: MultiDataConverter<Rectangle>
     override fun deserialize(value: Array<Double>) = Rectangle(value[0], value[1], max(0.0, value[2]), max(0.0, value[3]))
 }
 
+/**
+ * Animation converter for [Color] that allows its red, blue and green components to animate.
+ */
 public val Color.Companion.animationConverter: MultiDataConverter<Color> get() = object: MultiDataConverter<Color> {
     override val size get()                        = 4
     override val zero                              = Black opacity 0f

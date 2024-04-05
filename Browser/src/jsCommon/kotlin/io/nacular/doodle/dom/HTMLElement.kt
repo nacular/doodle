@@ -77,11 +77,9 @@ internal actual abstract external class CanvasRenderingContext2D: JsAny {
     actual fun measureText(string: String): TextMetrics
 }
 
-internal actual var CanvasRenderingContext2D.wordSpacing  : String? get() = null; set(value) {}
-internal actual var CanvasRenderingContext2D.letterSpacing: String? get() = null; set(value) {}
+internal actual var CanvasRenderingContext2D.wordSpacing  : String? by OptionalDynamicProperty("wordSpacing"  ) { null }
+internal actual var CanvasRenderingContext2D.letterSpacing: String? by OptionalDynamicProperty("letterSpacing") { null }
 
-//internal actual var CanvasRenderingContext2D.wordSpacing  : String? by DynamicProperty("wordSpacing"  ) { null }
-//internal actual var CanvasRenderingContext2D.letterSpacing: String? by DynamicProperty("letterSpacing") { null }
 internal actual fun CanvasRenderingContext2D.measureText_(string: String): Size = this.measureText(string).run {
     Size(width, 0.0)
 }

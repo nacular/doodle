@@ -1,5 +1,6 @@
 package io.nacular.doodle.focus
 
+import io.nacular.doodle.core.Internal
 import io.nacular.doodle.focus.impl.FocusManagerImpl
 import io.nacular.doodle.utils.observable
 
@@ -9,7 +10,9 @@ import io.nacular.doodle.utils.observable
  * focus. The use case is for embedded or nested apps where focus in the
  * Browser must be explicitly managed.
  */
-public interface NativeFocusManager {
+/** @suppress */
+@Internal
+public sealed interface NativeFocusManager {
     public var hasFocusOwner: Boolean
 }
 

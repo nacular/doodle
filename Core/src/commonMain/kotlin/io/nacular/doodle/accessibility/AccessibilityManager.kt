@@ -11,17 +11,17 @@ import kotlin.properties.ReadWriteProperty
  * @suppress
  */
 public interface AccessibilityManager {
-    @Internal public fun syncLabel        (view: View)
-    @Internal public fun syncEnabled      (view: View)
-    @Internal public fun syncVisibility   (view: View)
-    @Internal public fun syncDescription  (view: View)
-    @Internal public fun syncNextReadOrder(view: View)
-    @Internal public fun roleAdopted      (view: View)
-    @Internal public fun roleUpdated      (view: View)
-    @Internal public fun roleAbandoned    (view: View)
+    /** @suppress */ @Internal public fun syncLabel        (view: View)
+    /** @suppress */ @Internal public fun syncEnabled      (view: View)
+    /** @suppress */ @Internal public fun syncVisibility   (view: View)
+    /** @suppress */ @Internal public fun syncDescription  (view: View)
+    /** @suppress */ @Internal public fun syncNextReadOrder(view: View)
+    /** @suppress */ @Internal public fun roleAdopted      (view: View)
+    /** @suppress */ @Internal public fun roleUpdated      (view: View)
+    /** @suppress */ @Internal public fun roleAbandoned    (view: View)
 
-    @Internal public fun addOwnership   (owner: View, owned: View)
-    @Internal public fun removeOwnership(owner: View, owned: View)
+    /** @suppress */ @Internal public fun addOwnership   (owner: View, owned: View)
+    /** @suppress */ @Internal public fun removeOwnership(owner: View, owned: View)
 }
 
 /**
@@ -30,9 +30,9 @@ public interface AccessibilityManager {
  * @suppress
  */
 public sealed class AccessibilityRole {
-    @Internal public      var manager: AccessibilityManager? = null
-    @Internal public      var view   : View?                 = null
-    @Internal public open val name   : String?               = when {
+    /** @suppress */ @Internal public      var manager: AccessibilityManager? = null
+    /** @suppress */ @Internal public      var view   : View?                 = null
+    /** @suppress */ @Internal public open val name   : String?               = when {
         this::class.simpleName?.lowercase()?.endsWith("role") == true -> this::class.simpleName?.lowercase()?.dropLast(4)
         else                                                          -> this::class.simpleName?.lowercase()
     }
@@ -153,7 +153,7 @@ public class TabRole: AccessibilityRole() {
 
 /** View that holds the [TabRole]s for a tabbed-panel. */
 public class TabListRole: AccessibilityRole() {
-    @Internal public val tabToPanelMap: MutableMap<View, View> = mutableMapOf()
+    /** @suppress */@Internal public val tabToPanelMap: MutableMap<View, View> = mutableMapOf()
 
     /** Creates a relationship between a tab's View and the panel it controls */
     public operator fun set(tab: View, tabPanel: View) {
