@@ -20,7 +20,7 @@ internal class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val b
     private val loadedImages   = mutableMapOf<String, Image>()
     private val dataImageRegex = Regex("^\\s*data:(?<mediaType>(?<mimeType>[a-z\\-+/]+/[a-z\\-+]+)(?<params>(;[a-z\\-]+=[a-z\\-]+)*))?;(?<encoding>[^,]*)?,(?<data>[a-zA-Z\\d!$&',()*+;=\\-._~:@/?%\\s]*\\s*)")
 
-    override suspend fun load(source: String): Image? {
+    override suspend fun load(source: String, description: String): Image? {
         loadedImages[source]?.let { return it }
 
         try {
@@ -37,21 +37,21 @@ internal class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val b
 
                         return when (mimeType) {
                             "image/svg+xml" -> {
-                                SvgImage(SVGDOM(Data.makeFromBytes(urlDecoder.decode(data, encoding).toByteArray())))
+                                SvgImage(SVGDOM(Data.makeFromBytes(urlDecoder.decode(data, encoding).toByteArray())), description)
                             }
-                            else -> ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(data)), source)
+                            else -> ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(data)), source, description)
                         }
                     } ?:
 
-                    ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(source)), source)
+                    ImageImpl(SkiaImage.makeFromEncoded(base64Decoder.decode(source)), source, description)
                 }
                 else -> {
                     val bytes = file.readBytes()
 
                     runCatching {
-                        ImageImpl(SkiaImage.makeFromEncoded(bytes), source)
+                        ImageImpl(SkiaImage.makeFromEncoded(bytes), source, description)
                     }.getOrElse {
-                        SvgImage(SVGDOM(Data.makeFromBytes(bytes)))
+                        SvgImage(SVGDOM(Data.makeFromBytes(bytes)), description)
                     }
                 }
             }
@@ -60,9 +60,9 @@ internal class ImageLoaderImpl(private val urlDecoder: UrlDecoder, private val b
         return loadedImages[source]
     }
 
-    override suspend fun load(file: LocalFile): Image? = file.read()?.let { data ->
+    override suspend fun load(file: LocalFile, description: String): Image? = file.read()?.let { data ->
         try {
-            ImageImpl(SkiaImage.makeFromEncoded(data), file.name)
+            ImageImpl(SkiaImage.makeFromEncoded(data), file.name, description)
         } catch (ignored: Throwable) {
             ignored.printStackTrace()
             null

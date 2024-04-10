@@ -254,6 +254,7 @@ internal actual abstract external class CharacterData: Node
 internal actual external          class Text: CharacterData
 internal actual abstract external class HTMLImageElement : HTMLElement {
     actual var src     : String
+    actual var alt     : String
     actual val complete: Boolean
     actual val width   : Int
     actual val height  : Int

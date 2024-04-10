@@ -310,6 +310,7 @@ internal actual abstract class CharacterData   : Node()
 internal actual          class Text            : CharacterData()
 internal actual abstract class HTMLImageElement: HTMLElement() {
     actual var src     : String = ""
+    actual var alt     : String = ""
     actual val complete: Boolean = false
     actual val width   : Int = 0
     actual val height  : Int = 0

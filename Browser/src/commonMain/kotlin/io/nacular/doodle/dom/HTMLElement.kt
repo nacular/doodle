@@ -299,6 +299,7 @@ internal expect external class Text: CharacterData
 
 internal expect abstract external class HTMLImageElement: HTMLElement {
     var src     : String
+    var alt     : String
     val complete: Boolean
     val width   : Int
     val height  : Int
