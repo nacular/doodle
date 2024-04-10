@@ -193,7 +193,7 @@ public fun star(circle     : Circle,
 
 /**
  * Creates a rounded shape from a [Polygon]. The resulting shape is essentially a polygon with
- * the vertices rounded using a semi-circular curve.
+ * the vertices rounded using a semicircular curve.
  *
  * @see Polygon.rounded with config for control over radius at each point
  * @param radius for each point
@@ -209,7 +209,7 @@ public fun Polygon.rounded(radius: Double, filter: (index: Int, Point) -> Boolea
 
 /**
  * Creates a rounded shape from a [Polygon]. The resulting shape is essentially a polygon with
- * the vertices rounded using a semi-circular curve.
+ * the vertices rounded using a semicircular curve.
  *
  * @param config determining the radius for each point in the polygon (with the given index)
  * @return a [Path] for the new shape

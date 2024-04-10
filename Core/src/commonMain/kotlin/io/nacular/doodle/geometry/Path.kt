@@ -240,7 +240,7 @@ public fun ringSection(
     val outerEnd   = center + Point(outerRadius * cosEnd,   outerRadius * sinEnd  )
     val innerStart = outerStart - thickness * Point(cosStart, sinStart)
     val innerEnd   = outerEnd   - thickness * Point(cosEnd,   sinEnd  )
-    val largeArch  = ((end - start).normalize() `in` degrees) > 180 //(abs(end - start) `in` degrees) % 360.0 > 180.0
+    val largeArch  = ((end - start).normalize() `in` degrees) > 180
 
     return path(outerStart).
         arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
@@ -251,6 +251,28 @@ public fun ringSection(
         }.
         close()
 }
+
+/**
+ * Creates a path for a semicircle. The direction of sweep is controlled by the sign of [end] - [start].
+ *
+ * @param center of the circle
+ * @param radius of the circle
+ * @param start angle
+ * @param end angle
+ * @return path representing the semicircle
+ */
+public fun semicircle(
+    center: Point,
+    radius: Double,
+    start : Measure<Angle>,
+    end   : Measure<Angle>,
+): Path = path(center + Point(radius * cos(start), radius * sin(start))).arcTo(
+    point     = center + Point(radius * cos(end  ), radius * sin(end  )),
+    xRadius   = radius,
+    yRadius   = radius,
+    largeArch = ((end - start).normalize() `in` degrees) > 180,
+    sweep     = (end - start).sign > 0
+).finish()
 
 private class PathBuilderImpl(start: Point): PathBuilder {
     private var data = "M${start.x},${start.y}"
