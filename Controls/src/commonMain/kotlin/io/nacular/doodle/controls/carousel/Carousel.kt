@@ -422,6 +422,8 @@ public open class Carousel<T, M: ListModel<T>>(
      */
     @Suppress("MemberVisibilityCanBePrivate")
     public fun startManualMove() {
+        if (model.isEmpty) return
+
         manuallyMoving = true
     }
 
@@ -631,6 +633,8 @@ public open class Carousel<T, M: ListModel<T>>(
     }
 
     internal fun update() {
+        if (model.isEmpty) return
+
         ignoreChildBoundsChanges = true
 
         continuousIndex(
