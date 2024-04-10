@@ -1140,6 +1140,7 @@ internal open class VectorRendererSvg constructor(
                     setId(nextId())
                 }
 
+                element.setFill(null)
                 appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
             }
 
