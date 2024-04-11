@@ -8,7 +8,6 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.CommonCanvas
-import io.nacular.doodle.drawing.SweepGradientPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
@@ -24,6 +23,7 @@ import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Stroke.LineCap
 import io.nacular.doodle.drawing.Stroke.LineJoint
+import io.nacular.doodle.drawing.SweepGradientPaint
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Circle
@@ -283,15 +283,11 @@ internal class CanvasImpl(
     }
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
-        paragraph(text, font, fill = fill, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).apply {
-            drawOuterShadows {
-                updateForegroundPaint(0, text.length - 1, it)
-                paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-                updateForegroundPaint(0, text.length - 1, fill.skia())
-            }
-
-            paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        drawOuterShadows {
+            paragraph(text, font, paint = it, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
+
+        paragraph(text, font, fill = fill, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
@@ -313,15 +309,11 @@ internal class CanvasImpl(
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing).apply {
-            drawOuterShadows {
-                updateForegroundPaint(0, text.length - 1, it)
-                paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-                updateForegroundPaint(0, text.length - 1, fill.skia())
-            }
-
-            paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        drawOuterShadows {
+            paragraph(text, font, indent, width, it, alignment, lineSpacing, textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
+
+        paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
     }
 
     override fun wrapped(
