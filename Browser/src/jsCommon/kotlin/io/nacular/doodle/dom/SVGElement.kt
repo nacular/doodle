@@ -6,6 +6,7 @@ internal actual abstract external class SVGElement actual constructor(): Element
 internal actual abstract external class SVGRectElement          : SVGGeometryElement
 internal actual abstract external class SVGPathElement          : SVGGeometryElement
 internal actual abstract external class SVGTextElement          : SVGTextPositioningElement
+internal actual abstract external class SVGTSpanElement         : SVGTextPositioningElement
 internal actual abstract external class SVGCircleElement        : SVGGeometryElement
 internal actual abstract external class SVGEllipseElement       : SVGGeometryElement
 internal actual abstract external class SVGPolygonElement       : SVGGeometryElement

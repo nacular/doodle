@@ -15,6 +15,7 @@ internal expect abstract external class SVGElement(): Element, ElementCSSInlineS
 internal expect abstract external class SVGRectElement          : SVGGeometryElement
 internal expect abstract external class SVGPathElement          : SVGGeometryElement
 internal expect abstract external class SVGTextElement          : SVGTextPositioningElement
+internal expect abstract external class SVGTSpanElement         : SVGTextPositioningElement
 internal expect abstract external class SVGCircleElement        : SVGGeometryElement
 internal expect abstract external class SVGEllipseElement       : SVGGeometryElement
 internal expect abstract external class SVGPolygonElement       : SVGGeometryElement

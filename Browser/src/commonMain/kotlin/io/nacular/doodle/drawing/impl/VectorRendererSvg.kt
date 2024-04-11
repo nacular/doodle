@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.dom.BoundingBoxOptions
 import io.nacular.doodle.dom.DominantBaseline.TextBeforeEdge
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
@@ -7,12 +8,14 @@ import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.SVGCircleElement
 import io.nacular.doodle.dom.SVGElement
 import io.nacular.doodle.dom.SVGEllipseElement
+import io.nacular.doodle.dom.SVGGraphicsElement
 import io.nacular.doodle.dom.SVGLinearGradientElement
 import io.nacular.doodle.dom.SVGPathElement
 import io.nacular.doodle.dom.SVGPatternElement
 import io.nacular.doodle.dom.SVGPolygonElement
 import io.nacular.doodle.dom.SVGRadialGradientElement
 import io.nacular.doodle.dom.SVGRectElement
+import io.nacular.doodle.dom.SVGTSpanElement
 import io.nacular.doodle.dom.SVGTextElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.add
@@ -21,6 +24,7 @@ import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.clipPath
 import io.nacular.doodle.dom.get
+import io.nacular.doodle.dom.getBBox
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
@@ -113,7 +117,7 @@ import io.nacular.measured.units.times
 import kotlin.math.abs
 import kotlin.math.min
 
-internal open class VectorRendererSvg constructor(
+internal open class VectorRendererSvg(
         protected var context       : CanvasContext,
         private   val svgFactory    : SvgFactory,
         private   val htmlFactory   : HtmlFactory,
@@ -344,7 +348,19 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
+    private var internalFlush = false
+
+    private fun internalFlush() {
+        internalFlush = true
+        flush()
+        internalFlush = false
+    }
+
     override fun flush() {
+        if (!internalFlush) {
+            finalizeShadows()
+        }
+
         var element = renderPosition
 
         while (element != null) {
@@ -394,7 +410,7 @@ internal open class VectorRendererSvg constructor(
 
     protected fun popClip() {
         // Clear any remaining items that were previously rendered within the sub-region that won't be rendered anymore
-        flush()
+        internalFlush()
 
         renderPosition = svgElement?.nextSibling
 
@@ -470,7 +486,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGElement>("text").apply {
+    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement>("text").apply {
         if (textContent != text) {
             textContent = text
         }
@@ -509,7 +525,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGElement>("tspan").apply {
+    private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
         if (textContent != text) {
             textContent = text
         }
@@ -642,7 +658,7 @@ internal open class VectorRendererSvg constructor(
         makePath(data).also { it.setFillRule(fillRule) }
     }
 
-    private fun present(stroke: Stroke?, fill: Paint?, block: () -> SVGElement?) {
+    private fun present(stroke: Stroke?, fill: Paint?, block: () -> SVGGraphicsElement?) {
         syncShadows()
 
         if (visible(stroke, fill)) {
@@ -782,7 +798,7 @@ internal open class VectorRendererSvg constructor(
         setPathData(pathData)
     }
 
-    private fun outlineElement(element: SVGElement, stroke: Stroke, clearFill: Boolean = true) {
+    private fun outlineElement(element: SVGGraphicsElement, stroke: Stroke, clearFill: Boolean = true) {
         if (!stroke.visible) {
             return
         }
@@ -794,7 +810,7 @@ internal open class VectorRendererSvg constructor(
         strokeElement(element, stroke)
     }
 
-    private fun fillElement(element: SVGElement, fill: Paint, clearOutline: Boolean = true) {
+    private fun fillElement(element: SVGGraphicsElement, fill: Paint, clearOutline: Boolean = true) {
         when (fill) {
             is ColorPaint          -> SolidFillHandler.fill         (this, element, fill)
             is PatternPaint        -> canvasFillHandler.fill        (this, element, fill)
@@ -809,7 +825,7 @@ internal open class VectorRendererSvg constructor(
         }
     }
 
-    private fun strokeElement(element: SVGElement, stroke: Stroke) {
+    private fun strokeElement(element: SVGGraphicsElement, stroke: Stroke) {
         when (val fill = stroke.fill) {
             is ColorPaint          -> SolidFillHandler.stroke         (this, element, fill, stroke)
             is PatternPaint        -> canvasFillHandler.stroke        (this, element, fill, stroke)
@@ -848,8 +864,15 @@ internal open class VectorRendererSvg constructor(
 
         renderPosition = renderPosition?.nextSibling
 
-        flush()
+        internalFlush()
         renderPosition = if (parentNode != null) this else oldRenderPosition
+    }
+
+    private val shadowFinalizers = mutableListOf<() -> Unit>()
+
+    private fun finalizeShadows() {
+        shadowFinalizers.forEach { it() }
+        shadowFinalizers.clear()
     }
 
     private fun outerShadow(shadow: OuterShadow) = createOrUse<SVGElement>("filter").apply {
@@ -857,29 +880,67 @@ internal open class VectorRendererSvg constructor(
 
         setAttribute("filterUnits", "userSpaceOnUse")
 
-        val oldRenderPosition = renderPosition
+        // this needs to happen after svgElement has a chance to expand in size
+        // so, it is done during flush()
+        shadowFinalizers += {
+            with(shadow) {
+                val factor  = 2.6
+                val svgSize = svgElement?.getBoundingClientRect()?.run { Size(width, height) } ?: this@VectorRendererSvg.context.size
 
-        with(shadow) {
-            val factor = 2.6
-            setX     (-blurRadius * factor + min(0.0, horizontal)                                           )
-            setY     (-blurRadius * factor + min(0.0, vertical  )                                           )
-            setWidth (this@VectorRendererSvg.context.size.width  + 2 * blurRadius * factor + abs(horizontal))
-            setHeight(this@VectorRendererSvg.context.size.height + 2 * blurRadius * factor + abs(vertical  ))
+                setX     (-blurRadius * factor + min(0.0, horizontal)               )
+                setY     (-blurRadius * factor + min(0.0, vertical  )               )
+                setWidth (svgSize.width  + 2 * blurRadius * factor + abs(horizontal))
+                setHeight(svgSize.height + 2 * blurRadius * factor + abs(vertical  ))
+            }
         }
 
-        renderPosition = firstChild
+        val oldRenderPosition = renderPosition
 
-        addIfNotPresent(createOrUse<SVGElement>("feDropShadow").apply {
-            setAttribute("dx",            "${shadow.horizontal    }"  )
-            setAttribute("dy",            "${shadow.vertical      }"  )
-            setAttribute("stdDeviation",  "${shadow.blurRadius - 1}"  )
-            setFloodColor(shadow.color)
-            setAttribute("flood-opacity", "${shadow.color.opacity}"   )
-        }, 0)
+        renderPosition = firstChild
+        var index      = 0
+
+        addIfNotPresent(createOrUse<SVGElement>("feOffset").apply {
+            setAttribute("dx", "${shadow.horizontal}")
+            setAttribute("dy", "${shadow.vertical  }")
+        }, index++)
 
         renderPosition = renderPosition?.nextSibling
 
-        flush()
+        addIfNotPresent(createOrUse<SVGElement>("feGaussianBlur").apply {
+            setAttribute("stdDeviation", "${shadow.blurRadius - 1}")
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
+
+        with(shadow.color) {
+            addIfNotPresent(createOrUse<SVGElement>("feColorMatrix").apply {
+                setAttribute("type",   "matrix")
+                setAttribute("values", "0 0 0 0 ${red.toDouble() / 255}, 0 0 0 0 ${green.toDouble() / 255}, 0 0 0 0 ${blue.toDouble() / 255}, 0 0 0 $opacity 0")
+                setAttribute("result", "shadow")
+            }, index++)
+        }
+
+        renderPosition = renderPosition?.nextSibling
+
+        addIfNotPresent(createOrUse<SVGElement>("feMerge").apply {
+            var innerIndex = 0
+
+            renderPosition = firstChild
+
+            addIfNotPresent(createOrUse<SVGElement>("feMergeNode").apply {
+                setAttribute("in", "shadow")
+            }, innerIndex++)
+
+            renderPosition = renderPosition?.nextSibling
+
+            addIfNotPresent(createOrUse<SVGElement>("feMergeNode").apply {
+                setAttribute("in", "SourceGraphic")
+            }, innerIndex)
+        }, index++)
+
+        renderPosition = renderPosition?.nextSibling
+
+        internalFlush()
         renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
@@ -950,7 +1011,7 @@ internal open class VectorRendererSvg constructor(
 
         renderPosition = renderPosition?.nextSibling
 
-        flush()
+        internalFlush()
         renderPosition = if (parentNode != null) this else oldRenderPosition
     }
 
@@ -973,20 +1034,21 @@ internal open class VectorRendererSvg constructor(
     private class SVGPath: Path("M", "L", "Z")
 
     private interface FillHandler<B: Paint> {
-        fun fill  (renderer: VectorRendererSvg, element: SVGElement, paint: B)
-        fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: B, stroke: Stroke)
+        fun fill  (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B)
+        fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke)
     }
 
     private object SolidFillHandler: FillHandler<ColorPaint> {
-        override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint) {
+        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint) {
             element.setFill(paint.color)
         }
 
-        override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ColorPaint, stroke: Stroke) {
+        override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint, stroke: Stroke) {
             element.setStrokeColor(paint.color)
         }
     }
 
+    // TODO: Explore using a filter for this instead: https://www.smashingmagazine.com/2015/05/why-the-svg-filter-is-awesome/#image-fill
     private val canvasFillHandler: FillHandler<PatternPaint> by lazy {
         object: FillHandler<PatternPaint> {
             private fun makeFill(renderer: VectorRendererSvg, paint: PatternPaint): SVGElement {
@@ -1018,11 +1080,11 @@ internal open class VectorRendererSvg constructor(
                 return pattern
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint) {
                 element.setFillPattern(makeFill(renderer, paint), paint.opacity)
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: PatternPaint, stroke: Stroke) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint), paint.opacity)
             }
         }
@@ -1050,11 +1112,11 @@ internal open class VectorRendererSvg constructor(
                 return pattern
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: ImagePaint, stroke: Stroke) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
         }
@@ -1080,11 +1142,11 @@ internal open class VectorRendererSvg constructor(
                 return gradient
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: LinearGradientPaint, stroke: Stroke) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
         }
@@ -1107,11 +1169,11 @@ internal open class VectorRendererSvg constructor(
                 return gradient
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: RadialGradientPaint, stroke: Stroke) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
         }
@@ -1120,9 +1182,7 @@ internal open class VectorRendererSvg constructor(
     private val sweepGradientFillHandler by lazy {
         object: FillHandler<SweepGradientPaint> {
             private fun makeForeign(mask: SVGElement, paint: SweepGradientPaint) = createOrUse<SVGElement>("foreignObject").apply {
-                setAttribute("width",  "100%"            )
-                setAttribute("height", "100%"            )
-                setAttribute("mask",   "url(#${mask.id})")
+                setAttribute("mask", "url(#${mask.id})")
 
                 appendChild(htmlFactory.create<HTMLElement>().apply {
                     val colors = paint.colors.joinToString(",") {
@@ -1135,7 +1195,7 @@ internal open class VectorRendererSvg constructor(
                 })
             }
 
-            private fun makeMask(element: SVGElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
+            private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
                 if (id.isBlank()) {
                     setId(nextId())
                 }
@@ -1144,17 +1204,22 @@ internal open class VectorRendererSvg constructor(
                 appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
             }
 
-            private fun makeFill(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGElement) {
+            private fun makeFill(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGGraphicsElement) {
                 val mask = makeMask(element) {
                     setFill  (White)
                     setStroke(null )
                 }
 
                 renderer.completeOperation(mask)
-                renderer.completeOperation(makeForeign(mask, paint))
+                renderer.completeOperation(makeForeign(mask, paint).apply {
+                    val bbox = element.getBBox(BoundingBoxOptions())
+
+                    setAttribute("width",  "${bbox.x + bbox.width }")
+                    setAttribute("height", "${bbox.y + bbox.height}")
+                })
             }
 
-            private fun makeStroke(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGElement, stroke: Stroke) {
+            private fun makeStroke(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGGraphicsElement, stroke: Stroke) {
                 val mask = makeMask(element) {
                     setFill  (null  )
                     setStroke(Stroke(
@@ -1171,11 +1236,11 @@ internal open class VectorRendererSvg constructor(
                 renderer.completeOperation(makeForeign(mask, paint))
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGElement, paint: SweepGradientPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint) {
                 makeFill(renderer, paint, element)
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGElement, paint: SweepGradientPaint, stroke: Stroke) {
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint, stroke: Stroke) {
                 makeStroke(renderer, paint, element, stroke)
             }
         }
@@ -1217,6 +1282,6 @@ internal open class VectorRendererSvg constructor(
     }
 
     private companion object {
-        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient")
+        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient", "feMerge")
     }
 }
