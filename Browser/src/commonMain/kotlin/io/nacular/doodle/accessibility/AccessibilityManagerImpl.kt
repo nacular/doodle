@@ -1,19 +1,19 @@
 package io.nacular.doodle.accessibility
 
-import io.nacular.doodle.dom.HTMLButtonElement
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.EventTarget
+import io.nacular.doodle.dom.HTMLButtonElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.role
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
 import io.nacular.doodle.drawing.impl.NativeEventListener
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.dom.role
 import io.nacular.doodle.system.KeyInputService.KeyResponse
 import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
@@ -220,6 +220,8 @@ internal class AccessibilityManagerImpl(
     internal fun linkNativeElement(source: View, root: HTMLElement) {
         // FIXME: Handle case where IdRelationship already exists
         nativeElementLinks[source] = root
+
+        syncLabel(source, root)
     }
 
     internal fun unlinkNativeElement(source: View, root: HTMLElement) {
