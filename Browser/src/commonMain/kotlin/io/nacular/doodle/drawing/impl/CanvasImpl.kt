@@ -142,7 +142,7 @@ internal open class CanvasImpl(
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at, textSpacing)) }
+            isSimpleText(fill)              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at, textSpacing)) }
             else                            -> vectorRenderer.text(text, font, at, fill, textSpacing)
         }
     }
@@ -150,7 +150,7 @@ internal open class CanvasImpl(
     override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         when {
             text.isEmpty() || !fill.visible -> return
-            fill is ColorPaint              -> {
+            isSimpleText(fill)              -> {
                 updateRenderPosition()
                 completeOperation(
                     createWrappedTextGlyph(
@@ -320,6 +320,16 @@ internal open class CanvasImpl(
         else                                        -> false
     }
 
+
+    @OptIn(ExperimentalContracts::class)
+    private fun isSimpleText(fill: Paint): Boolean {
+        contract {
+            returns(true) implies (fill is ColorPaint)
+        }
+
+        return fill is ColorPaint && innerShadowCount <= 0
+    }
+
     private fun isSimple(text: StyledText): Boolean {
         text.forEach { (_, style) ->
             val simpleForeground = style.foreground?.let { isSimple(it) } ?: true
@@ -448,7 +458,7 @@ internal open class CanvasImpl(
             }}${it.horizontal}px ${it.vertical}px ${it.blurRadius - if (it is InnerShadow) 1 else 0}px ${it.color.rgbaString}"
 
             when (element.firstChild) {
-                is Text -> element.style.textShadow += shadow
+                is Text -> element.style.textShadow += shadow // FIXME: inset not supported, so using SVG for now
                 else    -> {
                     element.style.filter += "drop-shadow($shadow)"
                     if (useShadowHack) {
