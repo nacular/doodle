@@ -62,7 +62,10 @@ import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Measure
 import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.FilterBlurMode.NORMAL
+import org.jetbrains.skia.BlendMode
+import org.jetbrains.skia.BlendMode.SRC_OUT
+import org.jetbrains.skia.ColorFilter
+import org.jetbrains.skia.FilterBlurMode.OUTER
 import org.jetbrains.skia.FilterTileMode.DECAL
 import org.jetbrains.skia.FilterTileMode.REPEAT
 import org.jetbrains.skia.GradientStyle
@@ -113,6 +116,7 @@ internal class PatternCanvasWrapper(private val canvas: Canvas): PatternCanvas, 
 
     override fun shadow(shadow: Shadow, block: PatternCanvas.() -> Unit) = canvas.shadow(shadow) { block(this@PatternCanvasWrapper) }
 }
+
 /**
  * Created by Nicholas Eddy on 5/19/21.
  */
@@ -223,13 +227,13 @@ internal class CanvasImpl(
     }
 
     override fun rect(rectangle: Rectangle, fill: Paint) {
-        withShadows({ rectangle.toPath() }) {
+        withShadows(path = { rectangle.toPath() }) {
             skiaCanvas.drawRect(rectangle.skia(), fill.skia())
         }
     }
 
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) {
-        withShadows({ rectangle.toPath() }) {
+        withShadows(path = { rectangle.toPath() }) {
             if (fill != null) {
                 skiaCanvas.drawRect(rectangle.skia(), fill.skia())
             }
@@ -238,13 +242,13 @@ internal class CanvasImpl(
     }
 
     override fun rect(rectangle: Rectangle, radius: Double, fill: Paint) {
-        withShadows({ rectangle.toPath(radius) }) {
+        withShadows(path = { rectangle.toPath(radius) }) {
             skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skia())
         }
     }
 
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) {
-        withShadows({ rectangle.toPath(radius) }) {
+        withShadows(path = { rectangle.toPath(radius) }) {
             if (fill != null) {
                 skiaCanvas.drawRRect(rectangle.rrect(radius.toFloat()), fill.skia())
             }
@@ -253,13 +257,13 @@ internal class CanvasImpl(
     }
 
     override fun circle(circle: Circle, fill: Paint) {
-        withShadows({ circle.toPath() }) {
+        withShadows(path = { circle.toPath() }) {
             skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skia())
         }
     }
 
     override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) {
-        withShadows({ circle.toPath() }) {
+        withShadows(path = { circle.toPath() }) {
             if (fill != null) {
                 skiaCanvas.drawCircle(circle.center.x.toFloat(), circle.center.y.toFloat(), circle.radius.toFloat(), fill.skia())
             }
@@ -268,13 +272,13 @@ internal class CanvasImpl(
     }
 
     override fun ellipse(ellipse: Ellipse, fill: Paint) {
-        withShadows({ ellipse.toPath() }) {
+        withShadows(path = { ellipse.toPath() }) {
             skiaCanvas.drawOval(ellipse.boundingRectangle.skia(), fill.skia())
         }
     }
 
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) {
-        withShadows({ ellipse.toPath() }) {
+        withShadows(path = { ellipse.toPath() }) {
             if (fill != null) {
                 skiaCanvas.drawOval(ellipse.boundingRectangle.skia(), fill.skia())
             }
@@ -283,19 +287,39 @@ internal class CanvasImpl(
     }
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
-        drawOuterShadows {
-            paragraph(text, font, paint = it, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        val shadowParagraph by lazy {
+            paragraph(
+                text,
+                font,
+                fill        = fill,
+                alignment   = Start,
+                lineHeight  = 1f,
+                textSpacing = textSpacing
+            )
         }
 
-        paragraph(text, font, fill = fill, alignment = Start, lineHeight = 1f, textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        withShadows(operation = {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            paragraph(
+                text,
+                font,
+                fill        = fill,
+                alignment   = Start,
+                lineHeight  = 1f,
+                textSpacing = textSpacing
+            ).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
-        drawOuterShadows {
-            text.paragraph(paint = it, textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-        }
+        val shadowParagraph by lazy { text.paragraph(textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat()) }
 
-        text.paragraph(textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        withShadows(operation =  {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            text.paragraph(textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }
     }
 
     override fun wrapped(
@@ -309,11 +333,17 @@ internal class CanvasImpl(
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        drawOuterShadows {
-            paragraph(text, font, indent, width, it, alignment, lineSpacing, textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-        }
+        val shadowParagraph by lazy { paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing) }
 
-        paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        this.withShadows(operation = {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            paragraph(text, font, indent, width, fill, alignment, lineSpacing, textSpacing).paint(
+                skiaCanvas,
+                at.x.toFloat(),
+                at.y.toFloat()
+            )
+        }
     }
 
     override fun wrapped(
@@ -325,22 +355,24 @@ internal class CanvasImpl(
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        drawOuterShadows {
-            text.paragraph(paint = it, alignment = alignment, lineSpacing, textSpacing, indent = indent).apply {
+        val shadowParagraph by lazy {
+            text.paragraph(alignment = alignment, lineHeight = lineSpacing, textSpacing = textSpacing, indent = indent).apply {
                 layout(max(minIntrinsicWidth + 1, width.toFloat()))
-                paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
             }
         }
 
-        text.paragraph(alignment = alignment, lineHeight = lineSpacing, textSpacing = textSpacing, indent = indent).apply {
-            layout(max(minIntrinsicWidth + 1, width.toFloat()))
-            paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        withShadows(operation = {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            text.paragraph(alignment = alignment, lineHeight = lineSpacing, textSpacing = textSpacing, indent = indent).apply {
+                layout(max(minIntrinsicWidth + 1, width.toFloat()))
+            }.paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
         }
     }
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {
         if (image is ImageImpl) {
-            withShadows({ destination.toPath() }) {
+            withShadows(path = { destination.toPath() }) {
                 skiaCanvas.save()
                 if (radius > 0.0) {
                     skiaCanvas.clipRRect(destination.rrect(radius.toFloat()))
@@ -364,7 +396,7 @@ internal class CanvasImpl(
     }
 
     override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) {
-        withShadows({ path }) {
+        withShadows(path = { path }) {
             val skiaPath = path.skia()
 
             if (fillRule != null) {
@@ -382,7 +414,7 @@ internal class CanvasImpl(
     }
 
     override fun path(path: Path, stroke: Stroke) {
-        withShadows({ path }) {
+        withShadows(path = { path }) {
             skiaCanvas.drawPath(path.skia(), stroke.skia())
         }
     }
@@ -394,7 +426,7 @@ internal class CanvasImpl(
     }
 
     override fun path(path: Path, stroke: Stroke, fill: Paint, fillRule: Renderer.FillRule?) {
-        withShadows({ path }) {
+        withShadows(path = { path }) {
             val skiaPath = path.skia()
 
             if (fillRule != null) {
@@ -409,7 +441,7 @@ internal class CanvasImpl(
     override fun poly(polygon: Polygon, fill: Paint) {
         val path by lazy { polygon.toPath() }
 
-        withShadows({ path }) {
+        this.withShadows(path = { path }) {
             skiaCanvas.drawPath(path.skia(), fill.skia())
         }
     }
@@ -417,7 +449,7 @@ internal class CanvasImpl(
     override fun poly(polygon: Polygon, stroke: Stroke, fill: Paint?) {
         val path by lazy { polygon.toPath() }
 
-        withShadows({ path }) {
+        this.withShadows(path = { path }) {
             if (fill != null) {
                 skiaCanvas.drawPath(path.skia(), fill.skia())
             }
@@ -491,49 +523,52 @@ internal class CanvasImpl(
         else        -> defaultFont.textStyle()
     }
 
-    private fun drawOuterShadows(operation: SkiaCanvas.(SkiaPaint) -> Unit) {
+    private fun drawOuterShadows(operation: (SkiaPaint) -> Unit) {
         shadows.filterIsInstance<OuterShadow>().forEach {
             val blur = SkiaPaint().apply {
-                color       = it.color.skia()
+                color       = it.color.forShadow().skia()
                 isAntiAlias = true
                 if (it.blurRadius > 0f) {
-                    maskFilter = MaskFilter.makeBlur(NORMAL, it.blurRadius.toFloat())
+                    maskFilter = MaskFilter.makeBlur(OUTER, it.blurRadius.toFloat())
                 }
             }
 
             skiaCanvas.save     ()
             skiaCanvas.translate(it.horizontal.toFloat(), it.vertical.toFloat())
-            operation(skiaCanvas, blur)
+            operation(blur)
             skiaCanvas.restore  ()
         }
     }
 
-    private fun drawInnerShadows(pathProvider: () -> Path) {
-        val path: Path by lazy { pathProvider() }
-
+    private fun drawInnerShadows(operation: (SkiaPaint) -> Unit) {
         shadows.filterIsInstance<InnerShadow>().forEach {
             val blur = SkiaPaint().apply {
-                color       = it.color.opacity(it.color.opacity * 0.4f).skia()
-                isAntiAlias = true
-                strokeWidth = it.blurRadius.toFloat()
-                setStroke(true)
                 if (it.blurRadius > 0f) {
-                    maskFilter = MaskFilter.makeBlur(NORMAL, it.blurRadius.toFloat() / 2)
+                    imageFilter = innerShadow(it.color.forShadow(), it.horizontal, it.vertical, it.blurRadius)
                 }
             }
 
             skiaCanvas.save     ()
-            skiaCanvas.clipPath (path.skia())
             skiaCanvas.translate(it.horizontal.toFloat(), it.vertical.toFloat())
-            skiaCanvas.drawPath (path.skia(), blur)
+            operation(blur)
             skiaCanvas.restore  ()
         }
     }
 
+    private fun Color.forShadow() = this opacity opacity * 0.8f
+
     private fun withShadows(path: () -> Path, block: () -> Unit) {
-        drawOuterShadows { drawPath(path().skia(), it) }
+        val thePath = path().skia()
+
+        drawOuterShadows { skiaCanvas.drawPath(thePath, it) }
         block()
-        drawInnerShadows(path)
+        drawInnerShadows { skiaCanvas.drawPath(thePath, it) }
+    }
+
+    private fun withShadows(operation: (SkiaPaint) -> Unit, block: () -> Unit) {
+        drawOuterShadows(operation)
+        block()
+        drawInnerShadows(operation)
     }
 
     private fun paragraph(
@@ -545,7 +580,16 @@ internal class CanvasImpl(
         alignment  : TextAlignment,
         lineHeight : Float  = 1f,
         textSpacing: TextSpacing
-    ) = paragraph(text, font, indent, width, fill.skia(), alignment, lineHeight, textSpacing)
+    ) = paragraph(
+        text        = text,
+        font        = font,
+        indent      = indent,
+        width       = width,
+        paint       = fill.skia(),
+        alignment   = alignment,
+        lineHeight  = lineHeight,
+        textSpacing = textSpacing
+    )
 
     private fun paragraph(
         text       : String,
@@ -590,6 +634,17 @@ internal class CanvasImpl(
         Center  -> Alignment.CENTER
         End     -> Alignment.RIGHT
         Justify -> Alignment.JUSTIFY
+    }
+
+    /**
+     * Adapted from: https://github.com/flutter/flutter/issues/18636#issuecomment-1066475971
+     */
+    private fun innerShadow(color: Color, offsetX: Double, offsetY: Double, blur: Double): ImageFilter {
+        val f1 = ImageFilter.makeColorFilter(ColorFilter.makeBlend(color.skia(), SRC_OUT), input = null, crop = null)
+        val f2 = ImageFilter.makeOffset(offsetX.toFloat(), offsetY.toFloat(), f1, crop = null)
+        val f3 = ImageFilter.makeBlur(blur.toFloat(), blur.toFloat(), DECAL, f2)
+
+        return ImageFilter.makeBlend(BlendMode.SRC_IN, bg = null, f3, crop = null)
     }
 
     private fun StyledText.paragraph(
