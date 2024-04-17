@@ -1,7 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.dom.BoundingBoxOptions
-import io.nacular.doodle.dom.DominantBaseline.TextBeforeEdge
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Node
@@ -34,7 +33,6 @@ import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setCircle
 import io.nacular.doodle.dom.setClipPath
 import io.nacular.doodle.dom.setDefaultFill
-import io.nacular.doodle.dom.setDominantBaseline
 import io.nacular.doodle.dom.setEllipse
 import io.nacular.doodle.dom.setEnd
 import io.nacular.doodle.dom.setFill
@@ -281,9 +279,19 @@ internal open class VectorRendererSvg(
             text.count > 0 -> {
                 syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
-                completeOperation(makeStyledText(text, at, textSpacing))
+                val textElement = makeStyledText(text, at, textSpacing)
+                completeOperation(textElement)
+                adjustTextAfterDisplay(textElement)
             }
         }
+    }
+
+    private fun adjustTextAfterDisplay(textElement: SVGTextElement) {
+        // shift text down since no other way to get baseline alignment to work
+        textElement.setY(
+            (textElement.getAttribute("y")?.toDouble() ?: 0.0) +
+            textElement.getBBox(BoundingBoxOptions()).run { height }
+        )
     }
 
     override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
@@ -491,8 +499,8 @@ internal open class VectorRendererSvg(
             textContent = text
         }
 
-        setPosition         (at            )
-        setDominantBaseline(TextBeforeEdge)
+        setPosition(at)
+//        setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
@@ -532,7 +540,7 @@ internal open class VectorRendererSvg(
 
         setFill            (null          )
         setStroke          (null          )
-        setDominantBaseline(TextBeforeEdge)
+//        setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
@@ -675,6 +683,10 @@ internal open class VectorRendererSvg(
                 }
                 if (stroke != null) {
                     outlineElement(it, stroke, fill == null || !fill.visible)
+                }
+
+                if (it is SVGTextElement) {
+                    adjustTextAfterDisplay(it)
                 }
             }
         }

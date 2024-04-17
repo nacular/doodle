@@ -4,6 +4,7 @@ import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Inline
 import io.nacular.doodle.dom.Static
+import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.clear
@@ -14,6 +15,7 @@ import io.nacular.doodle.dom.setDisplay
 import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setLineHeight
+import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent
@@ -45,6 +47,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             element.style.setTextDecoration(null)
             element.style.whiteSpace = ""
             element.style.textIndent = ""
+            element.style.filter     = ""
         }
 
         return element
@@ -62,8 +65,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         val element = htmlFactory.createOrUse("B", possible)
 
         element.clear()
-        element.style.width = ""
+        element.style.width  = ""
+        element.style.filter = ""
         element.style.setBackgroundColor(null)
+        element.style.setOverflow(Visible())
 
         text.forEach { (text, style) ->
             element.add(create(text, style.font, textSpacing).also { element ->
