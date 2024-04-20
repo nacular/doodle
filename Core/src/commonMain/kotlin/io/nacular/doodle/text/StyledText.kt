@@ -108,7 +108,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
 
     public fun copy(): StyledText = StyledText(MutableList(data.size) { MutablePair(data[it].first, data[it].second.copy()) })
 
-    public fun isBlank   (): Boolean = data.size == 1 && data.first().first.isBlank() || data.isEmpty()
+    public fun isBlank   (): Boolean = data.all { it.first.isBlank() }
     public fun isNotBlank(): Boolean = !isBlank()
 
     public override fun toString(): String = data.toString()
