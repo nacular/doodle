@@ -1,14 +1,14 @@
 package io.nacular.doodle.dom.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.ElementRuler
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.height
 import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.width
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.dom.willChange
+import io.nacular.doodle.geometry.Size
 
 internal class ElementRulerImpl(htmlFactory: HtmlFactory): ElementRuler {
 
@@ -18,7 +18,7 @@ internal class ElementRulerImpl(htmlFactory: HtmlFactory): ElementRuler {
 
     private val ruler = htmlFactory.root
 
-    private fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
+    fun <T> measure(element: HTMLElement, block: HTMLElement.() -> T): T {
         val old = element.style.willChange
 
         element.style.willChange = "transform"

@@ -22,6 +22,7 @@ import io.nacular.doodle.dom.addIfNotPresent
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.clipPath
+import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.getBBox
 import io.nacular.doodle.dom.parent
@@ -116,21 +117,22 @@ import kotlin.math.abs
 import kotlin.math.min
 
 internal open class VectorRendererSvg(
-        protected var context       : CanvasContext,
-        private   val svgFactory    : SvgFactory,
-        private   val htmlFactory   : HtmlFactory,
-        private   val textMetrics   : TextMetrics,
-        private   val idGenerator   : IdGenerator,
-                      rootSvgElement: SVGElement? = null): VectorRenderer {
+    protected var context       : CanvasContext,
+    private   val svgFactory    : SvgFactory,
+    private   val htmlFactory   : HtmlFactory,
+    private   val aligner       : TextVerticalAligner,
+    private   val textMetrics   : TextMetrics,
+    private   val idGenerator   : IdGenerator,
+                  rootSvgElement: SVGElement? = null): VectorRenderer {
 
     private inner class PatternCanvas(
         context       : CanvasContext,
         svgFactory    : SvgFactory,
         htmlFactory   : HtmlFactory,
-        textMetrics   : TextMetrics,
+        aligner       : TextVerticalAligner,
         idGenerator   : IdGenerator,
         patternElement: SVGElement
-    ): VectorRendererSvg(context, svgFactory, htmlFactory, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
+    ): VectorRendererSvg(context, svgFactory, htmlFactory, aligner, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
         private val contextWrapper = ContextWrapper(context)
 
         init {
@@ -263,34 +265,42 @@ internal open class VectorRendererSvg(
     override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = drawEllipse(ellipse, null,   fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = drawEllipse(ellipse, stroke, fill)
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) = present(stroke = null, fill = fill) {
-        when {
-            text.isNotBlank() -> makeText(text, font, at, fill, textSpacing)
-            else              -> null
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
+        var textElement: SVGTextElement? = null
+
+        present(stroke = null, fill = fill) {
+            when {
+                text.isNotBlank() -> makeText(text, font, at, fill, textSpacing).also { textElement = it }
+                else              -> null
+            }
         }
+
+        textElement?.let { adjustTextAfterDisplay(it, aligner.verticalOffset(text, font)) }
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
-        textInternal(text, at, textSpacing)
+        textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont))
     }
 
-    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing) {
+    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double) {
         when {
             text.count > 0 -> {
                 syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
                 val textElement = makeStyledText(text, at, textSpacing)
                 completeOperation(textElement)
-                adjustTextAfterDisplay(textElement)
+                adjustTextAfterDisplay(textElement, yOffset)
             }
         }
     }
 
-    private fun adjustTextAfterDisplay(textElement: SVGTextElement) {
+    private val StyledText.maxFont    : Font? get() = filter { it.first.isNotBlank() }.mapNotNull  { it.second.font }.maxByOrNull { it.size }
+    private val StyledText.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
+
+    private fun adjustTextAfterDisplay(textElement: SVGTextElement, yOffset: Double) {
         // shift text down since no other way to get baseline alignment to work
         textElement.setY(
-            (textElement.getAttribute("y")?.toDouble() ?: 0.0) +
-            textElement.getBBox(BoundingBoxOptions()).run { height }
+            (textElement.getAttribute("y")?.toDouble() ?: 0.0) + yOffset
         )
     }
 
@@ -500,7 +510,6 @@ internal open class VectorRendererSvg(
         }
 
         setPosition(at)
-//        setDominantBaseline(TextBeforeEdge)
 
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
@@ -538,9 +547,8 @@ internal open class VectorRendererSvg(
             textContent = text
         }
 
-        setFill            (null          )
-        setStroke          (null          )
-//        setDominantBaseline(TextBeforeEdge)
+        setFill  (null)
+        setStroke(null)
 
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
@@ -592,34 +600,46 @@ internal open class VectorRendererSvg(
             } to wordSpacing
         }
 
-        var offsetY = 0.0
+        var offsetY     = 0.0
+        var maxFontSize = 0
 
         val handleWord = { delimiter: StyledText, word: StyledText ->
             lineTest      = line.copy() + delimiter.copy() + word.copy()
-            val lineSize  = textMetrics.size(lineTest, textSpacing)
-            val lineWidth = lineSize.width
+            val lineWidth = textMetrics.width(lineTest, textSpacing)
 
             endX = currentPoint.x + lineWidth
 
             if (endX > at.x + width) {
-                val (startX, wordSpacing) = calcStartX(false)
+                // ignore whitespace beyond the line break
+                if (word.isNotBlank()) {
+                    val (startX, wordSpacing) = calcStartX(false)
 
-                lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
+                    lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
+                    line   = word.copy()
 
-//                val fontLeading  = 1.2 // FIXME: Get real value from font
-                line             = word.copy()
+                    if (numWords > 0) {
+                        maxFontSize = line.maxFontSize
+                        offsetY += lineSpacing * maxFontSize
+                    }
 
-                if (numWords > 0) {
-                    offsetY += lineSpacing * /*fontLeading **/ lineSize.height
+                    currentPoint = Point(at.x, at.y + offsetY)
+                    endX = startX + currentLineWidth
+                    numWords = 1
                 }
-
-                currentPoint = Point(at.x, at.y + offsetY)
-                endX         = startX + currentLineWidth
-                numWords     = 1
             } else {
                 ++numWords
                 line              = lineTest
                 currentLineWidth  = lineWidth
+
+                val newMaxFontSize = word.maxFontSize
+
+                // account for case where font grows as line progresses
+                if (maxFontSize in 1..<newMaxFontSize) {
+                    val delta = Point(y = lineSpacing * (newMaxFontSize - maxFontSize))
+
+                    offsetY      += delta.y
+                    currentPoint += delta
+                }
             }
 
             oldLineWidth = lineWidth
@@ -648,8 +668,20 @@ internal open class VectorRendererSvg(
             lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
         }
 
+        val verticalOffset = lines.firstOrNull { it.text.isNotBlank() }?.text?.let { l ->
+            aligner.verticalOffset(l.text, l.maxFont, lineSpacing)
+        } ?: 0.0
+
         lines.filter { it.text.isNotBlank() }.forEach { (text, at, wordSpacing) ->
-            textInternal(text, at, TextSpacing(letterSpacing = textSpacing.letterSpacing, wordSpacing = wordSpacing + textSpacing.wordSpacing))
+            textInternal(
+                text,
+                at,
+                TextSpacing(
+                    letterSpacing = textSpacing.letterSpacing,
+                    wordSpacing = wordSpacing + textSpacing.wordSpacing
+                ),
+                verticalOffset
+            )
         }
 
         return Point(endX, currentPoint.y)
@@ -683,10 +715,6 @@ internal open class VectorRendererSvg(
                 }
                 if (stroke != null) {
                     outlineElement(it, stroke, fill == null || !fill.visible)
-                }
-
-                if (it is SVGTextElement) {
-                    adjustTextAfterDisplay(it)
                 }
             }
         }
@@ -1087,7 +1115,7 @@ internal open class VectorRendererSvg(
                     override val shadows get()         = context.shadows
                     override fun markDirty()           = context.markDirty()
                     override val isRawData get()       = context.isRawData
-                }, svgFactory, htmlFactory, textMetrics, idGenerator, pattern))
+                }, svgFactory, htmlFactory, aligner, idGenerator, pattern))
 
                 return pattern
             }

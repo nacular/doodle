@@ -62,25 +62,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             }
         }
 
-        val element = htmlFactory.createOrUse("B", possible)
-
-        element.clear()
-        element.style.width  = ""
-        element.style.filter = ""
-        element.style.setBackgroundColor(null)
-        element.style.setOverflow(Visible())
-
-        text.forEach { (text, style) ->
-            element.add(create(text, style.font, textSpacing).also { element ->
-                element.style.setDisplay    (Inline()   )
-                element.style.setDomPosition(Static()   )
-                element.style.setTextSpacing(textSpacing)
-
-                applyStyle(element, style)
-            })
-        }
-
-        return element
+        return createBoxed(text, textSpacing, possible)
     }
 
     override fun wrapped(
@@ -143,9 +125,31 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
     }
 
+    fun createBoxed(text: StyledText, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
+        val element = htmlFactory.createOrUse("B", possible)
+
+        element.clear()
+        element.style.width  = ""
+        element.style.filter = ""
+        element.style.setBackgroundColor(null)
+        element.style.setOverflow(Visible())
+
+        text.forEach { (text, style) ->
+            element.add(create(text, style.font, textSpacing).also { element ->
+                element.style.setDisplay    (Inline()   )
+                element.style.setDomPosition(Static()   )
+                element.style.setTextSpacing(textSpacing)
+
+                applyStyle(element, style)
+            })
+        }
+
+        return element
+    }
+
     private fun applyWrap(element: HTMLElement, indent: Double) {
         with(element.style) {
-            whiteSpace = "pre-line"
+            whiteSpace = "pre-wrap"
             setTextIndent(indent)
         }
     }
