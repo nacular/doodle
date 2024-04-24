@@ -1,12 +1,12 @@
 package io.nacular.doodle.controls
 
+import JsName
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
-import JsName
 import kotlin.test.Test
 
 /**
@@ -16,8 +16,9 @@ class PhotoTests {
     @Test @JsName("rendersCorrectly")
     fun `renders correctly`() {
         val image = object: Image {
-            override val size   = Size(34)
-            override val source = "foo"
+            override val size        = Size(34)
+            override val source      = "foo"
+            override val description = "foo"
         }
 
         val canvas = mockk<Canvas>(relaxed = true)

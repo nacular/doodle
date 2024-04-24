@@ -688,8 +688,8 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 outline         : Stroke?           = null,
                 startAngle      : Measure<Angle>    = -90 * degrees,
                 direction       : RotationDirection = Clockwise,
-                startCap        : SegmentBuilder    = { _,it -> lineTo(it) },
-                endCap          : SegmentBuilder    = { _,_  ->            }): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
+                startCap        : SegmentBuilder    = { _,_  ->            },
+                endCap          : SegmentBuilder    = { _,it -> lineTo(it) }): Module = basicThemeModule(name = "BasicCircularProgressBarBehavior") {
             bindBehavior<ProgressIndicator>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularProgressIndicatorBehavior(
@@ -753,6 +753,15 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        /**
+         * Creates a basic behavior for rendering [CircularRangeSlider]s.
+         *
+         * @param barFill       for the slider's background
+         * @param startKnobFill for the knob at the start of the slider's range
+         * @param endKnobFill   for the knob at the end of the slider's range
+         * @param rangeFill     for the slider's range region
+         * @param thickness     of the slider
+         */
         public fun basicCircularRangeSliderBehavior(
             barFill       : Paint? = null,
             startKnobFill : Paint? = null,
@@ -776,6 +785,14 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        /**
+         * Creates a basic behavior for rendering [CircularRangeSlider]s.
+         *
+         * @param barFill   for the slider's background
+         * @param knobFill  for the knob at the start of the slider's range
+         * @param rangeFill for the slider's range region
+         * @param thickness of the slider
+         */
         public fun basicCircularRangeSliderBehavior(
             barFill  : Paint? = null,
             knobFill : Paint? = null,

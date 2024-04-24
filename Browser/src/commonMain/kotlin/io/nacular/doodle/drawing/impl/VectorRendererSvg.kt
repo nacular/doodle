@@ -25,6 +25,7 @@ import io.nacular.doodle.dom.clipPath
 import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.getBBox
+import io.nacular.doodle.dom.getBBox_
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
@@ -924,13 +925,13 @@ internal open class VectorRendererSvg(
         // so, it is done during flush()
         shadowFinalizers += {
             with(shadow) {
-                val factor  = 2.6
-                val svgSize = svgElement?.getBoundingClientRect()?.run { Size(width, height) } ?: this@VectorRendererSvg.context.size
+                val factor    = 2.6
+                val svgBounds = svgElement?.getBBox_(BoundingBoxOptions())?.run { Rectangle(x, y, width, height) } ?: Rectangle(this@VectorRendererSvg.context.size)
 
-                setX     (-blurRadius * factor + min(0.0, horizontal)               )
-                setY     (-blurRadius * factor + min(0.0, vertical  )               )
-                setWidth (svgSize.width  + 2 * blurRadius * factor + abs(horizontal))
-                setHeight(svgSize.height + 2 * blurRadius * factor + abs(vertical  ))
+                setX     (svgBounds.x - blurRadius * factor + min(0.0, horizontal)    )
+                setY     (svgBounds.y - blurRadius * factor + min(0.0, vertical  )    )
+                setWidth (svgBounds.width  + 2 * blurRadius * factor + abs(horizontal))
+                setHeight(svgBounds.height + 2 * blurRadius * factor + abs(vertical  ))
             }
         }
 

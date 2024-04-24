@@ -4,12 +4,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
+import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Element
 import io.nacular.doodle.dom.HTMLCollection
 import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.Node
-import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.index
@@ -393,6 +393,6 @@ class RealGraphicsSurfaceTests {
     private fun createSurface(htmlFactory: HtmlFactory = mockk(), parent: RealGraphicsSurface? = null, canvasFactory: CanvasFactory = mockk()): RealGraphicsSurface {
         val view = mockk< View>()
 
-        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = parent, view)
+        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = parent, view, rootElementOffset = { 0 })
     }
 }

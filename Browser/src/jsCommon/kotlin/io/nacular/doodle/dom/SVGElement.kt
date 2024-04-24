@@ -25,8 +25,8 @@ internal actual abstract external class SVGTextContentElement    : SVGGraphicsEl
 internal actual abstract external class SVGTextPositioningElement: SVGTextContentElement
 
 internal actual external interface SVGBoundingBoxOptions: JsAny {
-    actual var fill: Boolean?
-    actual var stroke: Boolean?
+    actual var fill   : Boolean?
+    actual var stroke : Boolean?
     actual var markers: Boolean?
     actual var clipped: Boolean?
 }

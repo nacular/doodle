@@ -1,5 +1,8 @@
 package io.nacular.doodle.controls.icons
 
+import JsName
+import io.mockk.mockk
+import io.mockk.verify
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -8,9 +11,6 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.image.Image
-import io.mockk.mockk
-import io.mockk.verify
-import JsName
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -21,8 +21,9 @@ class ImageIconTests {
     @Test @JsName("rendersCorrectly")
     fun `renders correctly`() {
         val image = object: Image {
-            override val size   = Size(34)
-            override val source = "foo"
+            override val size        = Size(34)
+            override val source      = "foo"
+            override val description = "foo"
         }
 
         val canvas = mockk<Canvas>(relaxed = true)
@@ -48,8 +49,9 @@ class ImageIconTests {
                 Empty
         ).forEach {
             ImageIcon<View>(object: Image {
-                override val size   = it
-                override val source = "foo"
+                override val size        = it
+                override val source      = "foo"
+                override val description = "foo"
             }).apply {
                 expect(it) { size(mockk()) }
             }

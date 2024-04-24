@@ -568,9 +568,10 @@ class VectorRendererSvgTests {
     }
 
     private fun renderer(
-            context     : CanvasContext = mockk(),
-            svgFactory  : SvgFactory = mockk(),
-            htmleFactory: HtmlFactory = mockk(),
-            textMetrics : TextMetrics = mockk(),
-            idGenerator : IdGenerator = mockk()) = VectorRendererSvg(context, svgFactory, htmleFactory, textMetrics, idGenerator)
+        context     : CanvasContext = mockk(),
+        svgFactory  : SvgFactory = mockk(),
+        htmlFactory : HtmlFactory = mockk(),
+        aligner     : TextVerticalAligner = mockk(),
+        textMetrics : TextMetrics = mockk(),
+        idGenerator : IdGenerator = mockk()) = VectorRendererSvg(context, svgFactory, htmlFactory, aligner, textMetrics, idGenerator)
 }

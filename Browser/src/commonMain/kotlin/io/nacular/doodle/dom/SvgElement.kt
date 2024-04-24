@@ -33,7 +33,9 @@ internal class BoundingBoxOptions(
 
 internal expect abstract external class SVGGraphicsElement: SVGElement
 
-internal expect fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect
+internal expect fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect
+
+internal fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = this.getBBox_(options)
 
 internal expect abstract external class SVGGeometryElement: SVGGraphicsElement {
     fun getTotalLength(): Float

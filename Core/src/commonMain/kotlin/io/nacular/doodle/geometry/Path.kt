@@ -227,8 +227,8 @@ public fun ringSection(
         outerRadius: Double,
         start      : Measure<Angle>,
         end        : Measure<Angle>,
-        startCap   : SegmentBuilder = { _,it -> lineTo(it) },
-        endCap     : SegmentBuilder = { _,_  ->            },
+        startCap   : SegmentBuilder = { _,_  ->            },
+        endCap     : SegmentBuilder = { _,it -> lineTo(it) },
 ): Path {
     val sweep      = (end - start).sign > 0
     val thickness  = outerRadius - innerRadius
@@ -244,10 +244,10 @@ public fun ringSection(
 
     return path(outerStart).
         arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
-            startCap(this, outerEnd, innerEnd)
+            endCap(this, outerEnd, innerEnd)
         }.
         arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
-            endCap(this, innerStart, outerStart)
+            startCap(this, innerStart, outerStart)
         }.
         close()
 }

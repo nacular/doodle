@@ -10,7 +10,6 @@ import io.nacular.doodle.dom.SVGPathElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.dom.getBBox
 import kotlin.test.Test
 import kotlin.test.expect
 
