@@ -301,7 +301,13 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
         windows.forEach { it.start() }
     }
 
-    fun owner(of: View): WindowImpl? = windows.find { it.display.ancestorOf(of) }
+    fun owner(of: View): WindowImpl? {
+        val rootAncestor by lazy { of.mostRecentAncestor { it.parent == null } }
+
+        return windows.find {
+            it.display.ancestorOf(of) || rootAncestor in (it.display as DisplayImpl).popups
+        }
+    }
 
     fun shutdown() {
         while (windows.isNotEmpty()) {
