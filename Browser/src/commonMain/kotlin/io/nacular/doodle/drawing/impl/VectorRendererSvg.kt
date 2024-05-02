@@ -24,7 +24,6 @@ import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.clipPath
 import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.get
-import io.nacular.doodle.dom.getBBox
 import io.nacular.doodle.dom.getBBox_
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
@@ -911,7 +910,7 @@ internal open class VectorRendererSvg(
 
     private val shadowFinalizers = mutableListOf<() -> Unit>()
 
-    private fun finalizeShadows() {
+    internal fun finalizeShadows() {
         shadowFinalizers.forEach { it() }
         shadowFinalizers.clear()
     }
@@ -1109,14 +1108,20 @@ internal open class VectorRendererSvg(
 
                 renderer.completeOperation(pattern)
 
-                paint.paint(PatternCanvas(object: CanvasContext {
+                val canvas = PatternCanvas(object: CanvasContext {
                     override var size get()            = paint.bounds.size; set(@Suppress("UNUSED_PARAMETER") value) {}
                     override val renderRegion          = pattern
                     override var renderPosition: Node? = pattern
                     override val shadows get()         = context.shadows
                     override fun markDirty()           = context.markDirty()
                     override val isRawData get()       = context.isRawData
-                }, svgFactory, htmlFactory, aligner, idGenerator, pattern))
+                }, svgFactory, htmlFactory, aligner, idGenerator, pattern)
+
+                paint.paint(canvas)
+
+                shadowFinalizers += {
+                    canvas.finalizeShadows()
+                }
 
                 return pattern
             }
@@ -1253,7 +1258,7 @@ internal open class VectorRendererSvg(
 
                 renderer.completeOperation(mask)
                 renderer.completeOperation(makeForeign(mask, paint).apply {
-                    val bbox = element.getBBox(BoundingBoxOptions())
+                    val bbox = element.getBBox_(BoundingBoxOptions())
 
                     setAttribute("width",  "${bbox.x + bbox.width }")
                     setAttribute("height", "${bbox.y + bbox.height}")
