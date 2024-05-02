@@ -8,6 +8,15 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.system.Cursor.Companion.EResize
+import io.nacular.doodle.system.Cursor.Companion.Grabbing
+import io.nacular.doodle.system.Cursor.Companion.NResize
+import io.nacular.doodle.system.Cursor.Companion.NeResize
+import io.nacular.doodle.system.Cursor.Companion.NwResize
+import io.nacular.doodle.system.Cursor.Companion.SResize
+import io.nacular.doodle.system.Cursor.Companion.SeResize
+import io.nacular.doodle.system.Cursor.Companion.SwResize
+import io.nacular.doodle.system.Cursor.Companion.WResize
 import io.nacular.doodle.system.SystemPointerEvent
 import io.nacular.doodle.system.SystemPointerEvent.Button.Button1
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
@@ -20,7 +29,22 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 4/19/21.
  */
 class ResizerTests {
-    @Test fun `move works`() {
+    @Test fun move() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point( 6,  6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6,  6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6,  6)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 10)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(10, 10)))))
+
+        expect(Cursor.Grab) { view.cursor }
+        expect(Rectangle(14, 14, 100, 100)) { view.bounds }
+    }
+
+    @Test fun `move multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -33,11 +57,31 @@ class ResizerTests {
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 10)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(10, 10)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor }
+        expect(Grabbing) { view.cursor }
         expect(Rectangle(14, 14, 100, 100)) { view.bounds }
     }
 
-    @Test fun `n-resize works`() {
+    @Test fun `n-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point( 6,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6,  0)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 10)))))
+
+        expect(NResize) { view.cursor }
+        expect(Rectangle(10, 20, 100, 90)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, -20)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(10,   0)))))
+
+        expect(NResize) { view.cursor }
+        expect(Rectangle(10, 0, 100, 110)) { view.bounds }
+    }
+
+    @Test fun `n-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -49,17 +93,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point( 6,  0)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 10)), secondInteraction)))
 
-        expect(Cursor.NResize) { view.cursor }
+        expect(NResize) { view.cursor }
         expect(Rectangle(10, 20, 100, 90)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, -20)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(10,   0)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(10, 0, 100, 110)) { view.bounds }
     }
 
-    @Test fun `ne-resize works`() {
+    @Test fun `ne-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point(100,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100,  0)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(110, 10)))))
+
+        expect(NeResize) { view.cursor }
+        expect(Rectangle(10, 20, 110, 90)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point( 90, -20)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point( 90,   0)))))
+
+        expect(NeResize) { view.cursor }
+        expect(Rectangle(10, 0, 90, 110)) { view.bounds }
+    }
+
+    @Test fun `ne-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -71,17 +135,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point(100,  0)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(110, 10)), secondInteraction)))
 
-        expect(Cursor.NeResize) { view.cursor }
+        expect(NeResize) { view.cursor }
         expect(Rectangle(10, 20, 110, 90)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point( 90, -20)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point( 90,   0)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(10, 0, 90, 110)) { view.bounds }
     }
 
-    @Test fun `e-resize works`() {
+    @Test fun `e-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point(100,  6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100,  6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100,  6)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(110, 90)))))
+
+        expect(EResize) { view.cursor }
+        expect(Rectangle(10, 10, 110, 100)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point( 90,  6)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point( 90,  6)))))
+
+        expect(EResize) { view.cursor }
+        expect(Rectangle(10, 10, 90, 100)) { view.bounds }
+    }
+
+    @Test fun `e-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -93,17 +177,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point(100,  6)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(110, 90)), secondInteraction)))
 
-        expect(Cursor.EResize) { view.cursor }
+        expect(EResize) { view.cursor }
         expect(Rectangle(10, 10, 110, 100)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point( 90,  6)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point( 90,  6)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(10, 10, 90, 100)) { view.bounds }
     }
 
-    @Test fun `se-resize works`() {
+    @Test fun `se-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point(100, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(100, 100)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(110, 110)))))
+
+        expect(SeResize) { view.cursor }
+        expect(Rectangle(10, 10, 110, 110)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point( 90,  90)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point( 90,  90)))))
+
+        expect(SeResize) { view.cursor }
+        expect(Rectangle(10, 10, 90, 90)) { view.bounds }
+    }
+
+    @Test fun `se-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -115,17 +219,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point(100, 100)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(110, 110)), secondInteraction)))
 
-        expect(Cursor.SeResize) { view.cursor }
+        expect(SeResize) { view.cursor }
         expect(Rectangle(10, 10, 110, 110)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point( 90,  90)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point( 90,  90)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(10, 10, 90, 90)) { view.bounds }
     }
 
-    @Test fun `s-resize works`() {
+    @Test fun `s-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point( 6, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 6, 100)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10,  90)))))
+
+        expect(SResize) { view.cursor }
+        expect(Rectangle(10, 10, 100, 90)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 110)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(10, 110)))))
+
+        expect(SResize) { view.cursor }
+        expect(Rectangle(10, 10, 100, 110)) { view.bounds }
+    }
+
+    @Test fun `s-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -137,17 +261,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point( 6, 100)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10,  90)), secondInteraction)))
 
-        expect(Cursor.SResize) { view.cursor }
+        expect(SResize) { view.cursor }
         expect(Rectangle(10, 10, 100, 90)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 110)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(10, 110)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(10, 10, 100, 110)) { view.bounds }
     }
 
-    @Test fun `sw-resize works`() {
+    @Test fun `sw-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point( 0, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 0, 100)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 0, 100)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 110)))))
+
+        expect(SwResize) { view.cursor }
+        expect(Rectangle(20, 10, 90, 110)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(-20, 90)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(-20, 90)))))
+
+        expect(SwResize) { view.cursor }
+        expect(Rectangle(0, 10, 110, 90)) { view.bounds }
+    }
+
+    @Test fun `sw-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -159,17 +303,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point( 0, 100)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 110)), secondInteraction)))
 
-        expect(Cursor.SwResize) { view.cursor }
+        expect(SwResize) { view.cursor }
         expect(Rectangle(20, 10, 90, 110)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(-20, 90)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(-20, 90)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(0, 10, 110, 90)) { view.bounds }
     }
 
-    @Test fun `w-resize works`() {
+    @Test fun `w-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point(0,   6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(0,   6)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point(0,   6)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 90)))))
+
+        expect(WResize) { view.cursor }
+        expect(Rectangle(20, 10, 90, 100)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(-20,  6)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(-20,  6)))))
+
+        expect(WResize) { view.cursor }
+        expect(Rectangle(0, 10, 110, 100)) { view.bounds }
+    }
+
+    @Test fun `w-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -181,17 +345,37 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point(0,   6)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 90)), secondInteraction)))
 
-        expect(Cursor.WResize) { view.cursor }
+        expect(WResize) { view.cursor }
         expect(Rectangle(20, 10, 90, 100)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(-20,  6)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(-20,  6)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(0, 10, 110, 100)) { view.bounds }
     }
 
-    @Test fun `nw-resize works`() {
+    @Test fun `nw-resize`() {
+        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val resizer = Resizer(view)
+        val pointer = Pointer(0)
+
+        resizer.entered (event(view, setOf(interaction(pointer, view, Down, Point( 0,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 0,  0)))))
+        resizer.pressed (event(view, setOf(interaction(pointer, view, Down, Point( 0,  0)))))
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(10, 10)))))
+
+        expect(NwResize) { view.cursor }
+        expect(Rectangle(20, 20, 90, 90)) { view.bounds }
+
+        resizer.dragged (event(view, setOf(interaction(pointer, view, Move, Point(-20, -20)))))
+        resizer.released(event(view, setOf(interaction(pointer, view, Up,   Point(-20, -20)))))
+
+        expect(NwResize) { view.cursor }
+        expect(Rectangle(0, 0, 110, 110)) { view.bounds }
+    }
+
+    @Test fun `nw-resize multi-touch`() {
         val view              = view { bounds = Rectangle(10, 10, 100, 100) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
@@ -203,13 +387,13 @@ class ResizerTests {
         resizer.pressed (event(view, setOf(interaction(pointer1, view, Down, Point( 0,  0)), secondInteraction)))
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(10, 10)), secondInteraction)))
 
-        expect(Cursor.NwResize) { view.cursor }
+        expect(NwResize) { view.cursor }
         expect(Rectangle(20, 20, 90, 90)) { view.bounds }
 
         resizer.dragged (event(view, setOf(interaction(pointer1, view, Move, Point(-20, -20)), secondInteraction)))
         resizer.released(event(view, setOf(interaction(pointer1, view, Up,   Point(-20, -20)), secondInteraction)))
 
-        expect(Cursor.Grabbing) { view.cursor } //  since second interaction is now ready for move
+        expect(Grabbing) { view.cursor } //  since second interaction is now ready for move
         expect(Rectangle(0, 0, 110, 110)) { view.bounds }
     }
 

@@ -89,7 +89,9 @@ public class Resizer(
     private var ignorePropertyChange = false
 
     override fun released(event: PointerEvent) {
-        if (activePointerChanged(event) && activeInteraction(event)?.state == Up) {
+        val interaction = activeInteraction(event)
+
+        if (activePointerChanged(event) && interaction?.state == Up) {
             captureInitialState(event)
             if (consumedDrag) {
                 event.consume()
@@ -193,13 +195,13 @@ public class Resizer(
             initialSize     = view.size
 
             when {
-                initialPosition.y <= hotspotSize               -> dragMode.plusAssign(North)
-                initialPosition.y >= view.height - hotspotSize -> dragMode.plusAssign(South)
+                initialPosition.y <= hotspotSize               -> dragMode += North
+                initialPosition.y >= view.height - hotspotSize -> dragMode += South
             }
 
             when {
-                initialPosition.x >= view.width - hotspotSize -> dragMode.plusAssign(East)
-                initialPosition.x <= hotspotSize              -> dragMode.plusAssign(West)
+                initialPosition.x >= view.width - hotspotSize -> dragMode += East
+                initialPosition.x <= hotspotSize              -> dragMode += West
             }
 
             if (dragMode.isNotEmpty() || movable) {
@@ -208,7 +210,10 @@ public class Resizer(
 
             updateCursor(interaction, event)
         } else {
-            view.cursor = oldCursor
+            when (val upInteraction = event.targetInteractions.firstOrNull { it.state == Up }) {
+                null -> view.cursor = oldCursor
+                else -> updateCursor(upInteraction, event)
+            }
         }
     }
 
