@@ -212,11 +212,11 @@ internal class RealGraphicsSurface private constructor(
             if (!clipCanvasToBounds) {
                 when {
                     old.empty && !new.empty -> {
-                        rootElement.style.setOverflow(Visible())
+                        rootElement.style.setOverflow  (Visible())
                         canvasElement.style.setOverflow(Visible())
                     }
                     !old.empty && new.empty -> {
-                        rootElement.style.setOverflow(null)
+                        rootElement.style.setOverflow  (null)
                         canvasElement.style.setOverflow(null)
                     }
                 }
