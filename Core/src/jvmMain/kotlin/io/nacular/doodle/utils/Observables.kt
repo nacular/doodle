@@ -5,6 +5,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 /**
  * Created by Nicholas Eddy on 7/22/21.
  */
+/** @suppress */
 public actual open class SetPool<T> actual constructor(private val delegate: MutableSet<T>): Pool<T>, Set<T> by delegate {
     public actual constructor(): this(CopyOnWriteArraySet())
 
@@ -12,6 +13,7 @@ public actual open class SetPool<T> actual constructor(private val delegate: Mut
     override fun minusAssign(item: T) { delegate -= item }
 }
 
+/** @suppress */
 public actual open class ObservableSetPool<T> actual constructor(private val delegate: SetPool<T>): ObservablePool<T>, Set<T> by delegate {
     override val changed: Pool<PoolObserver<T>> by lazy { SetPool() }
 

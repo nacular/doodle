@@ -4,6 +4,7 @@ package io.nacular.doodle.utils
  * Created by Nicholas Eddy on 4/11/18.
  */
 
+/** @suppress */
 public actual open class TreeSet<E> actual constructor(comparator: Comparator<E>, elements: Collection<E>): Set<E> {
     public actual constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 
@@ -23,6 +24,7 @@ public actual open class TreeSet<E> actual constructor(comparator: Comparator<E>
     }
 }
 
+/** @suppress */
 public actual class MutableTreeSet<E> actual constructor(comparator: Comparator<E>, elements: Collection<E>): TreeSet<E>(comparator, elements), MutableSet<E> {
     public actual constructor(comparator: Comparator<E>): this(comparator, emptyList<E>())
 

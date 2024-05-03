@@ -23,11 +23,19 @@ buildscript {
     }
 }
 
+fun DokkaBaseConfiguration.configDokka() {
+    homepageLink                          = "https://github.com/nacular/doodle"
+    customAssets                          = listOf(file("logo-icon.svg"))
+    footerMessage                         = "(c) 2024 Nacular"
+    separateInheritedMembers              = true
+    mergeImplicitExpectActualDeclarations = true
+
+}
+
+
 tasks.withType<DokkaMultiModuleTask>().configureEach {
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-        footerMessage = "(c) 2024 Nacular"
-        homepageLink  = "https://github.com/nacular/doodle"
-        customAssets  = listOf(file("logo-icon.svg"))
+        configDokka()
     }
 }
 
@@ -56,15 +64,7 @@ subprojects {
 
     tasks.withType<DokkaTaskPartial>().configureEach {
         pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-            homepageLink                          = "https://github.com/nacular/doodle"
-            footerMessage                         = "(c) 2024 Nacular"
-            separateInheritedMembers              = false
-            mergeImplicitExpectActualDeclarations = false
-
-            customAssets               = listOf(file("logo-icon.svg"))
-//            customAssets             = listOf(file("doodle_repo_image_shorter.png"))
-//            customStyleSheets        = listOf(file("my-styles.css"))
-//            templatesDir = file("dokka/templates")
+            configDokka()
         }
 
         outputDirectory.set(layout.buildDirectory.dir("javadoc"))
