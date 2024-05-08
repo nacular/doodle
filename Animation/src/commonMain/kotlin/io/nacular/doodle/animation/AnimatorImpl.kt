@@ -111,7 +111,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         }
     }
 
-    private inner class GroupAnimation(private val animations: Set<AnimationData<*>>): Animation<Any>, CompletableImpl() {
+    private inner class GroupAnimation(private val animations: ObservableSet<Animation<*>>): Animation<Any>, CompletableImpl() {
         private var numCompleted = 0
         private var numCanceled  = 0
         private var canceling    = false
@@ -126,23 +126,10 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         override val resumed: Pool<(source: Pausable) -> Unit> = SetPool()
 
         init {
-            animations.forEach {
-                it.completed += {
-                    if (++numCompleted + numCanceled == animations.size) {
-                        completed()
-                    }
-                }
-                it.canceled += {
-                    if (!canceling && ++numCanceled + numCompleted == animations.size) {
-                        cancel()
-                    }
-                }
-                it.paused += {
-                    numPaused = max(animations.size, numPaused + 1)
-                }
-                it.resumed += {
-                    numPaused = max(0, numPaused - 1)
-                }
+            registerSubAnimations(animations)
+
+            animations.changed += { _, removed, added ->
+                registerSubAnimations(added)
             }
         }
 
@@ -162,6 +149,27 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
             super.cancel()
             canceling = false
+        }
+
+        private fun registerSubAnimations(set: Set<Animation<*>>) {
+            set.forEach {
+                it.completed += {
+                    if (++numCompleted + numCanceled == animations.size) {
+                        completed()
+                    }
+                }
+                it.canceled += {
+                    if (!canceling && ++numCanceled + numCompleted == animations.size) {
+                        cancel()
+                    }
+                }
+                it.paused += {
+                    numPaused = max(animations.size, numPaused + 1)
+                }
+                it.resumed += {
+                    numPaused = max(0, numPaused - 1)
+                }
+            }
         }
     }
 
@@ -184,8 +192,27 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         addAnimation(it)
     }
 
-    private class AnimationBlockImpl(private val animator: AnimatorImpl): AnimationBlock {
+    private class AnimationBlockImpl(private val animator: AnimatorImpl, private val childAnimations: MutableSet<Animation<*>>): AnimationBlock {
         private data class NumericAnimationInfoImpl<T, V>(val animationPlan: NumericAnimationPlan<T, V>, val block: (T) -> Unit): NumericAnimationInfo<T, V>()
+
+        private inner class WrapperAnimation(private val goAfter: Animation<*>, private val then: AnimationBlock.() -> Unit): Animation<Any>, CompletableImpl() {
+            override val paused : Pool<(source: Pausable) -> Unit> by goAfter::paused
+            override val resumed: Pool<(source: Pausable) -> Unit> by goAfter::resumed
+
+            init {
+                goAfter.completed += {
+                    childAnimations += animator(then).also { animation ->
+                        animation.completed += {
+                            completed()
+                        }
+                    }
+                }
+            }
+
+            override fun pause () { goAfter.pause () }
+            override fun resume() { goAfter.resume() }
+            override fun cancel() { goAfter.cancel() }
+        }
 
         override operator fun <T, V> NumericAnimationPlan<T, V>.invoke(onChange: (T) -> Unit) = NumericAnimationInfoImpl(this, onChange)
 
@@ -196,20 +223,34 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         override fun <T> start(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation<T> {
             return animator(animation, onChanged)
         }
+
+        override fun <T> Animation<T>.then(block: AnimationBlock.() -> Unit) = WrapperAnimation(this, block)
     }
 
     override fun invoke(definitions: AnimationBlock.() -> Unit): Animation<Any> {
-        val newAnimations = mutableSetOf<AnimationData<*>>()
+        val newAnimations = ObservableSet<Animation<*>>()
 
         val listener: (ObservableSet<AnimationData<*>>, Set<AnimationData<*>>, Set<AnimationData<*>>) -> Unit = { _,_,new ->
             newAnimations += new
         }
 
-        val animationBlock = AnimationBlockImpl(this)
+        val animationBlock = AnimationBlockImpl(this, newAnimations)
 
         animations.changed += listener
 
+        val concurrentNull = concurrentlyModifiedAnimations == null
+
+        concurrentlyModifiedAnimations?.let { it.changed += listener }
+
         definitions(animationBlock)
+
+        concurrentlyModifiedAnimations?.let {
+            if (concurrentNull) {
+                newAnimations.addAll(it)
+            }
+
+            it.changed -= listener
+        }
 
         animations.changed -= listener
 
@@ -268,7 +309,6 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
         if (completed.isNotEmpty()) {
             (listeners as? SetPool)?.forEach { it.completed(this, completed) }
-//            completed.clear()
         }
     }
 
@@ -276,7 +316,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         when {
             inAnimation -> {
                 if (concurrentlyModifiedAnimations == null) {
-                    concurrentlyModifiedAnimations = ObservableSet(animations)
+                    concurrentlyModifiedAnimations = ObservableSet()
                 }
                 concurrentlyModifiedAnimations?.apply { this += animation }
             }

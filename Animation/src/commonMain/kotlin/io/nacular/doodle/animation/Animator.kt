@@ -88,8 +88,18 @@ public sealed interface Animator {
          *
          * @param animation to start
          * @param onChanged notified of changes to the animating value
+         * @return a new animation
          */
         public fun <T> start(animation: AnimationPlan<T>, onChanged: (T) -> Unit): Animation<T>
+
+        /**
+         * Starts a new animation block after `this` animation completes. This animation is linked
+         * to the current one and will be canceled if the current one is.
+         *
+         * @param block to execute upon completion of this animation
+         * @return a new animation
+         */
+        public infix fun <T> Animation<T>.then(block: AnimationBlock.() -> Unit): Animation<Any>
     }
 
     /**
