@@ -4,9 +4,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.animation.Animation
-import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.Animator.Listener
 import io.nacular.doodle.animation.AnimatorImpl
+import io.nacular.doodle.animation.after
 import io.nacular.doodle.animation.invoke
 import io.nacular.doodle.animation.loop
 import io.nacular.doodle.animation.repeat
@@ -274,14 +274,11 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        var animation1 = null as Animation<Float>?
-        var animation2 = null as Animation<Float>?
-
         val topLevel = animate {
-            animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
+            0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
 
             animate {
-                animation2 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
+                0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
             }
         }
 
@@ -536,7 +533,33 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        animate(0f to 1f, repeat(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+        animate(0f to 1f, after(3 * milliseconds, repeat(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+    }
+
+    @Test fun `delay on nested repeat`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate {
+            0f to 1f using (after(3 * milliseconds, repeat(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
+        }
 
         animationScheduler.runOutstandingTasks()
         animationScheduler.runOutstandingTasks()
@@ -560,7 +583,7 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        animate(0f to 1f, loop(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+        animate(0f to 1f, after(3 * milliseconds, loop(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
 
         animationScheduler.runOutstandingTasks()
         animationScheduler.runOutstandingTasks()
@@ -574,9 +597,29 @@ class AnimatorImplTests {
         expect(listOf(0f, 1f/3)) { outputs }
     }
 
-    private fun <T> Animation<T>.onCompleted(animate: Animator, outputs: MutableSet<Animation<*>>, block: Animator.AnimationBlock.() -> Unit): Animation<T> = this.apply {
-        completed += {
-            outputs += animate.invoke(block)
+    @Test fun `delay on nested loop`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate {
+            0f to 1f using (after(3 * milliseconds, loop(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
         }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
     }
 }

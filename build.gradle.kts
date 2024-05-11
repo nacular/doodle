@@ -29,7 +29,6 @@ fun DokkaBaseConfiguration.configDokka() {
     footerMessage                         = "(c) 2024 Nacular"
     separateInheritedMembers              = true
     mergeImplicitExpectActualDeclarations = true
-
 }
 
 
