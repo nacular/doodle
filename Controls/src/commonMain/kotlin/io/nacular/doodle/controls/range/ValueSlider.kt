@@ -1,29 +1,46 @@
 package io.nacular.doodle.controls.range
 
 import io.nacular.doodle.accessibility.SliderRole
-import io.nacular.doodle.controls.BasicConfinedValueModel
 import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.controls.bind
 import io.nacular.doodle.controls.binding
+import io.nacular.doodle.controls.numberTypeConverter
+import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
+import io.nacular.doodle.event.KeyEvent
+import io.nacular.doodle.event.KeyText.Companion.ArrowDown
+import io.nacular.doodle.event.KeyText.Companion.ArrowLeft
+import io.nacular.doodle.event.KeyText.Companion.ArrowRight
+import io.nacular.doodle.event.KeyText.Companion.ArrowUp
+import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.round
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 import kotlin.reflect.KClass
 
+/**
+ * Base class for controls that represent sliders. These controls have a single [value] that is bound between a [range]
+ * defined by [model]. ValueSliders can be conceptualized as mapping between two domains as follows:
+ *
+ * @param model used to represent the slider's value and limits
+ * @param interpolator used in mapping between [T] and the slider's domain: [0-1]
+ * @param function used to map between the slider's input and output.
+ */
 public abstract class ValueSlider<T> internal constructor(
-                     model: ConfinedValueModel<T>,
-        protected val role: SliderRole = SliderRole(),
-        private val type: KClass<T>): View(role) where T: Number, T: Comparable<T> {
+                  model       : ConfinedValueModel<T>,
+    private   val interpolator: Interpolator<T>,
+    private   val function    : InvertibleFunction = LinearFunction,
+    protected val role        : SliderRole         = SliderRole()
+): View(role) where T: Comparable<T> {
 
-    protected constructor(model: ConfinedValueModel<T>, type: KClass<T>): this(model, role = SliderRole(), type)
+    @Deprecated("This can only be used with Number types. Use version that takes converter instead")
+    protected constructor(model: ConfinedValueModel<T>, type: KClass<T>, function: InvertibleFunction = LinearFunction): this(model, numberTypeConverter(type), function)
 
-    public constructor(range: ClosedRange<T>, value: T = range.start, type: KClass<T>): this(BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, type)
-
-    private var roleBinding by binding(role.bind(model))
-
+    /**
+     * Indicates whether the slider should only take on values at the specify tick interval.
+     *
+     * @see ticks
+     */
     public var snapToTicks: Boolean by observable(false) { _,new ->
         if (new) {
             value = value // update value to ensure snapped to the closest tick
@@ -32,66 +49,76 @@ public abstract class ValueSlider<T> internal constructor(
         ticksChanged()
     }
 
-    public var ticks: Int = 0
-        set(new) {
-            field = max(0, new)
+    /**
+     * Number of ticks the slider should have.
+     */
+    public var ticks: Int = 0; set(new) {
+        field = max(0, new)
 
-            snapSize = if (field > 1) range.size.toDouble() / (field - 1) else null
-        }
-
-    public var snapSize: Double? = null
-        private set(new) {
-            if (new == field) return
-
-            field = new
-
-            if (snapToTicks) {
-                value = value // update value to ensure snapped to the closest tick
-            }
-
-            ticksChanged()
-        }
-
-    public var model: ConfinedValueModel<T> = model
-        set(new) {
-            field.valueChanged -= modelChanged
-
-            field = new.also {
-                it.valueChanged += modelChanged
-                roleBinding = role.bind(it)
-            }
-        }
-
-    public var value: T
-        get(   ) = model.value
-        set(new) {
-            val snapSize_ = snapSize
-
-            model.value = when {
-                snapToTicks && snapSize_ != null -> cast((range.start.toDouble() + round((new.toDouble() - range.start.toDouble()) / snapSize_) * snapSize_))
-                else                             -> new
-            }
-        }
-
-    public var range: ClosedRange<T>
-        get(   ) = model.limits
-        set(new) { model.limits = new }
-
-    internal fun set(to: Double) {
-        value = cast(to)
+        snapSize = if (field > 1) 1.0 / (field - 1) else null
     }
 
-    internal fun adjust(by: Double) {
-        value = cast(value.toDouble() + by)
+    // FIXME: Make private
+    public var snapSize: Double? = null; private set(new) {
+        if (new == field) return
+
+        field = new
+
+        if (snapToTicks) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+
+        ticksChanged()
     }
 
-    internal fun set(range: ClosedRange<Double>) {
-        model.limits = cast(range.start) .. cast(range.endInclusive)
+    /**
+     * Model that represents the slider's [value] and [range].
+     */
+    public var model: ConfinedValueModel<T> = model; set(new) {
+        field.valueChanged -= modelChanged
+
+        field = new.also {
+            it.valueChanged += modelChanged
+            roleBinding = role.bind(it, interpolator, valueAccessibilityLabeler)
+        }
     }
 
-    protected abstract fun changed      (old: T,              new: T             )
+    /**
+     * Slider's current value.
+     */
+    public var value: T get() = model.value; set(new) {
+        fraction = valueToFraction(new)
+    }
+
+    /**
+     * Slider's current range: start - end.
+     */
+    public var range: ClosedRange<T> get() = model.limits; set(new) { model.limits = new }
+
+    /** Human-understandable text to represent the current value if the number is insufficient. */
+    public var valueAccessibilityLabeler: ((T) -> String)? by observable(null) { _,new ->
+        roleBinding = role.bind(model, interpolator, new)
+    }
+
+    internal var fraction: Float get() = valueToFraction(value); set(new) {
+        val frac = when (val s = snapSize?.toFloat()) {
+            null -> new
+            else -> round(new / s) * s
+        }.coerceIn(0f..1f)
+
+        model.value = interpolator.lerp(range.start, range.endInclusive, function(frac))
+    }
+
+    private var roleBinding by binding(role.bind(model, interpolator, valueAccessibilityLabeler))
+
+    /** Notifies of changes to [value] */
+    protected abstract fun changed(old: T, new: T)
+
+    /** Notifies of changes to [range] */
     protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
-    protected abstract fun ticksChanged ()
+
+    /** Notifies of changes to [ticks] */
+    protected abstract fun ticksChanged()
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
         changed(old, new)
@@ -101,25 +128,22 @@ public abstract class ValueSlider<T> internal constructor(
         limitsChanged(old, new)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun cast(value: Double): T {
-        return when (type) {
-            Int::class    -> value.roundToInt           () as T
-            Float::class  -> value.toFloat              () as T
-            Double::class -> value                         as T
-            Long::class   -> value.roundToLong          () as T
-            Char::class   -> value.roundToInt().toChar  () as T
-            Short::class  -> value.roundToInt().toShort () as T
-            Byte::class   -> value.roundToInt().toByte  () as T
-            else          -> value                         as T
-        }
-    }
-
     init {
         model.valueChanged  += modelChanged
         model.limitsChanged += limitsChanged
     }
-}
 
-@Suppress("UNCHECKED_CAST")
-internal val <T> ClosedRange<T>.size: T where T: Number, T: Comparable<T> get() = (endInclusive.toDouble() - start.toDouble()) as T
+    internal fun handleKeyPress(event: KeyEvent) {
+        val (incrementKey, decrementKey) = when (contentDirection) {
+            LeftRight -> ArrowRight to ArrowLeft
+            else      -> ArrowLeft  to ArrowRight
+        }
+
+        when (event.key) {
+            ArrowUp,   incrementKey -> fraction += 0.1f
+            ArrowDown, decrementKey -> fraction -= 0.1f
+        }
+    }
+
+    private fun valueToFraction(value: T) = function.inverse(interpolator.progress(range.start, range.endInclusive, value))
+}

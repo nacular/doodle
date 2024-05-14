@@ -1,30 +1,35 @@
 package io.nacular.doodle.drawing.impl
 
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setMargin
+import io.nacular.doodle.dom.setOrientation
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.dom.setOrientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
  */
+internal interface SliderValueAdapter<T> where T: Comparable<T> {
+    operator fun get(slider: Slider<T>              ): Float
+    operator fun set(slider: Slider<T>, value: Float)
+}
+
 internal interface NativeSliderFactory {
-    operator fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit): NativeSlider<T> where T: Number, T: Comparable<T>
+    operator fun <T> invoke(slider: Slider<T>, adapter: SliderValueAdapter<T>): NativeSlider<T> where T: Comparable<T>
 }
 
 internal class NativeSliderFactoryImpl internal constructor(
@@ -55,33 +60,33 @@ internal class NativeSliderFactoryImpl internal constructor(
         })
     }
 
-    override fun <T> invoke(slider: Slider<T>, valueSetter: (Slider<T>, Double) -> Unit) where T: Number, T: Comparable<T> = NativeSlider(
+    override fun <T> invoke(slider: Slider<T>, adapter: SliderValueAdapter<T>) where T: Comparable<T> = NativeSlider(
             htmlFactory,
             nativeEventHandlerFactory,
             focusManager,
             defaultSize,
             sizeDifference,
             slider,
-            valueSetter
+            adapter
     )
 }
 
 internal class NativeSlider<T> internal constructor(
-    htmlFactory   : HtmlFactory,
-    handlerFactory: NativeEventHandlerFactory,
+                htmlFactory   : HtmlFactory,
+                handlerFactory: NativeEventHandlerFactory,
     private val focusManager  : FocusManager?,
     private val defaultSize   : Size,
     private val marginSize    : Size,
     private val slider        : Slider<T>,
-    private val valueSetter   : (Slider<T>, Double) -> Unit
-): NativeEventListener where T: Number, T: Comparable<T> {
+    private val adapter       : SliderValueAdapter<T>
+): NativeEventListener where T: Comparable<T> {
 
     private val oldSliderHeight = slider.height
 
     private val nativeEventHandler: NativeEventHandler
 
     private val changed: (Slider<T>, T, T) -> Unit = { it,_,_ ->
-        sliderElement.value = "${(it.value.toDouble() - it.range.start.toDouble()) / it.range.size * 100}"
+        sliderElement.value = "${adapter[it] * 100}"
     }
 
     private val styleChanged: (View) -> Unit = {
@@ -194,7 +199,7 @@ internal class NativeSlider<T> internal constructor(
 
     override fun onInput(event: Event): Boolean {
         sliderElement.value.toDoubleOrNull()?.let {
-            valueSetter(slider, slider.range.start.toDouble() + (it / 100 * slider.range.size))
+            adapter[slider] = (it / 100).toFloat()
         }
 
         return true

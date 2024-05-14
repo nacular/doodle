@@ -23,7 +23,7 @@ public class BasicSliderBehavior<T>(
                     grooveThicknessRatio: Float                   = 0.6f,
         private val showTicks           : TickPresentation?       = null,
                     focusManager        : FocusManager?           = null
-): AbstractSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
+): AbstractSliderBehavior<T>(focusManager) where T: Comparable<T> {
     public constructor(
             barFill             : Paint             = Lightgray.paint,
             knobFill            : Paint             = Blue.paint,

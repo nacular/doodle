@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.theme.range
 
 import io.nacular.doodle.controls.range.CircularSlider
-import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
@@ -19,24 +18,36 @@ import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlin.math.abs
 
-public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T: Number, T: Comparable<T> {
-    public fun CircularSlider<T>.set(to: Double) {
-        this.set(to)
+public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T: Comparable<T> {
+    public var CircularSlider<T>.fraction: Float get() = fraction; set(new) { fraction = new }
+
+    @Deprecated("Use fraction instead")
+    public fun <A> CircularSlider<A>.set(to: Double) where A : Comparable<A>, A: Number {
+        fraction = ((to - range.start.toDouble()) / (range.endInclusive.toDouble() - range.start.toDouble())).toFloat()
     }
 
-    public fun CircularSlider<T>.adjust(by: Double) {
-        this.adjust(by)
+    @Deprecated("Use fraction instead")
+    public fun <A> CircularSlider<A>.adjust(by: Double) where A : Comparable<A>, A: Number {
+        set(value.toDouble() + by)
     }
 
-    public fun CircularSlider<T>.set(range: ClosedRange<Double>) {
-        this.set(range)
+    @Deprecated("Will be removed soon")
+    public fun <T> CircularSlider<T>.set(range: ClosedRange<Double>) where T: Number, T: Comparable<T> {
+        when (model.limits.start) {
+            is Int    -> model.limits = (range.start.toInt() .. range.endInclusive.toInt()                    ) as ClosedRange<T>
+            is Float  -> model.limits = (range.start.toFloat() .. range.endInclusive.toFloat()                ) as ClosedRange<T>
+            is Double -> model.limits = (range.start .. range.endInclusive                                    ) as ClosedRange<T>
+            is Long   -> model.limits = (range.start.toLong() .. range.endInclusive.toLong()                  ) as ClosedRange<T>
+            is Short  -> model.limits = (range.start.toInt().toShort() .. range.endInclusive.toInt().toShort()) as ClosedRange<T>
+            is Byte   -> model.limits = (range.start.toInt().toByte() .. range.endInclusive.toInt().toByte()  ) as ClosedRange<T>
+        }
     }
 }
 
 public abstract class AbstractCircularSliderBehavior<T>(
         private   val focusManager: FocusManager?,
         protected val startAngle  : Measure<Angle> = _270
-): CircularSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
+): CircularSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
     private lateinit var lastStart : T
     private val changed       : (CircularSlider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
@@ -71,7 +82,7 @@ public abstract class AbstractCircularSliderBehavior<T>(
         val handleAngle = handleAngle(slider)
 
         if (offset < handleAngle || offset > handleAngle) {
-            slider.set((offset - startAngle).normalize() / _360 * slider.range.size.toDouble())
+            slider.fraction = fraction(offset)
         }
 
         lastPointerPosition = offset
@@ -86,7 +97,7 @@ public abstract class AbstractCircularSliderBehavior<T>(
         @Suppress("UNCHECKED_CAST")
         (event.source as? CircularSlider<T>)?.let {
             lastStart = it.value
-            handleKeyPress(it, event)
+            it.handleKeyPress(event)
         }
     }
 
@@ -95,15 +106,17 @@ public abstract class AbstractCircularSliderBehavior<T>(
         val slider = event.source as CircularSlider<T>
         val offset = pointerAngle(event)
 
-        slider.set((offset - startAngle).normalize() / _360 * slider.range.size.toDouble())
+        slider.fraction = fraction(offset)
 
         event.consume()
     }
 
     protected fun handleAngle(slider: CircularSlider<T>): Measure<Angle> = when {
         slider.range.isEmpty() -> startAngle
-        else                   -> startAngle + ((slider.value.toDouble() - slider.range.start.toDouble()) / slider.range.size.toDouble()) * _360
+        else                   -> startAngle + slider.fraction * _360
     }.normalize()
+
+    private fun fraction(offset: Measure<Angle>) = ((offset - startAngle).normalize() / _360).toFloat()
 
     private fun pointerAngle(event: PointerEvent): Measure<Angle> {
         @Suppress("UNCHECKED_CAST")

@@ -4,13 +4,19 @@ package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.BasicConfinedRangeModel
 import io.nacular.doodle.controls.BasicConfinedValueModel
+import io.nacular.doodle.controls.ByteTypeConverter
 import io.nacular.doodle.controls.ConfinedRangeModel
 import io.nacular.doodle.controls.ConfinedValueModel
+import io.nacular.doodle.controls.DoubleTypeConverter
+import io.nacular.doodle.controls.FloatTypeConverter
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.IntProgressionModel
+import io.nacular.doodle.controls.IntTypeConverter
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.LongTypeConverter
 import io.nacular.doodle.controls.MultiSelectionModel
+import io.nacular.doodle.controls.ShortTypeConverter
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.StringVisualizer
@@ -26,9 +32,12 @@ import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.controls.range.InvertibleFunction
+import io.nacular.doodle.controls.range.LinearFunction
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.spinner.ListSpinnerModel
@@ -59,6 +68,7 @@ import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.doodle.utils.CharInterpolator
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
@@ -66,7 +76,12 @@ import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PassThroughEncoder
+import io.nacular.doodle.utils.Interpolator
+import io.nacular.doodle.utils.interpolator
 import io.nacular.doodle.utils.observable
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Units
+import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.reflect.KClass
 
@@ -268,21 +283,9 @@ public fun switch(text: String): FieldVisualizer<Boolean> = switch(Label(text))
  *
  * @property slider within the control
  */
-public class SliderConfig<T> internal constructor(public val slider: Slider<T>) where T: Number, T: Comparable<T>
+public class SliderConfig<T> internal constructor(public val slider: Slider<T>) where T: Comparable<T>
 
-/**
- * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
- * value within a range.
- *
- * @param model for the Slider
- * @param orientation of the Slider
- * @param config for the Slider
- */
-public inline fun <reified T> slider(
-             model      : ConfinedValueModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : SliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(model, orientation, config, T::class)
+// region Number
 
 /**
  * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
@@ -292,26 +295,276 @@ public inline fun <reified T> slider(
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> slider(
-             range      : ClosedRange<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : SliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(
-    model       = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
-    orientation = orientation,
-    config      = config
+public fun slider(
+    range      : ClosedRange<Int>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<Int> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+public fun slider(
+    model      : ConfinedValueModel<Int>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<Int> = slider(model, orientation, IntTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderFloat")
+public fun slider(
+    range      : ClosedRange<Float>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<Float> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderFloat")
+public fun slider(
+    model      : ConfinedValueModel<Float>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<Float> = slider(model, orientation, FloatTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderDouble")
+public fun slider(
+    range      : ClosedRange<Double>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<Double> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderDouble")
+public fun slider(
+    model      : ConfinedValueModel<Double>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<Double> = slider(model, orientation, DoubleTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderLong")
+public fun slider(
+    range      : ClosedRange<Long>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<Long> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderLong")
+public fun slider(
+    model      : ConfinedValueModel<Long>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<Long> = slider(model, orientation, LongTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderShort")
+public fun slider(
+    range      : ClosedRange<Short>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<Short> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderShort")
+public fun slider(
+    model      : ConfinedValueModel<Short>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<Short> = slider(model, orientation, ShortTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderByte")
+public fun slider(
+    range      : ClosedRange<Byte>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<Byte> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderByte")
+public fun slider(
+    model      : ConfinedValueModel<Byte>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<Byte> = slider(model, orientation, ByteTypeConverter, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderChar")
+public fun slider(
+    range      : ClosedRange<Char>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<Char> = slider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
+    orientation      = orientation,
+    converter = CharInterpolator,
+    config           = config
 )
 
 /**
- * @see slider
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
  */
+@JvmName("sliderChar")
+public fun slider(
+    model      : ConfinedValueModel<Char>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<Char> = slider(model, orientation, CharInterpolator, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderMeasure")
+public fun <T: Units> slider(
+    range      : ClosedRange<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<Measure<T>> = slider(
+    model      = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
+    orientation= orientation,
+    config     = config
+)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderMeasure")
+public fun <T: Units> slider(
+    model      : ConfinedValueModel<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<Measure<T>> = slider(model, orientation, model.value.units.interpolator, config)
+
+// endregion
+
+// region T
+
+public fun <T> slider(
+    range           : ClosedRange<T>,
+    orientation     : Orientation = Horizontal,
+    numberTypeConverter: Interpolator<T>,
+    config          : SliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = slider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+    orientation      = orientation,
+    converter = numberTypeConverter,
+    config           = config
+)
+
 public fun <T> slider(
     model      : ConfinedValueModel<T>,
     orientation: Orientation = Horizontal,
+    converter  : Interpolator<T>,
     config     : SliderConfig<T>.() -> Unit = {},
-    type       : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = field {
-    Slider(model, orientation, type).apply {
+): FieldVisualizer<T> where T: Comparable<T> = field {
+    Slider(model, converter, orientation).apply {
         config(SliderConfig(this))
 
         initial.ifValid { value = it }
@@ -330,6 +583,20 @@ public fun <T> slider(
 
 // endregion
 
+/**
+ * @see slider
+ */
+@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Use version without type.")
+public inline fun <reified T> slider(
+             model      : ConfinedValueModel<T>,
+             orientation: Orientation = Horizontal,
+    noinline config     : SliderConfig<T>.() -> Unit = {},
+             type       : KClass<T>
+): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(model, orientation, numberTypeConverter(), config)
+
+// endregion
+
 // region CircularSlider
 
 /**
@@ -337,7 +604,9 @@ public fun <T> slider(
  *
  * @property slider within the control
  */
-public class CircularSliderConfig<T> internal constructor(public val slider: CircularSlider<T>) where T: Number, T: Comparable<T>
+public class CircularSliderConfig<T> internal constructor(public val slider: CircularSlider<T>) where T: Comparable<T>
+
+// region Number
 
 /**
  * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
@@ -346,10 +615,156 @@ public class CircularSliderConfig<T> internal constructor(public val slider: Cir
  * @param model for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularSlider(
-             model : ConfinedValueModel<T>,
-    noinline config: CircularSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(model, config, T::class)
+public fun circularSlider(
+    model : ConfinedValueModel<Int>,
+    config: CircularSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<Int> = circularSlider(model, IntTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+public fun circularSlider(
+    range : ClosedRange<Int>,
+    config: CircularSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<Int> = circularSlider(BasicConfinedValueModel(range) as ConfinedValueModel<Int>, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderFloat")
+public fun circularSlider(
+    model : ConfinedValueModel<Float>,
+    config: CircularSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<Float> = circularSlider(model, FloatTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderFloat")
+public fun circularSlider(
+    range : ClosedRange<Float>,
+    config: CircularSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<Float> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderDouble")
+public fun circularSlider(
+    model : ConfinedValueModel<Double>,
+    config: CircularSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<Double> = circularSlider(model, DoubleTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderDouble")
+public fun circularSlider(
+    range : ClosedRange<Double>,
+    config: CircularSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<Double> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderLong")
+public fun circularSlider(
+    model : ConfinedValueModel<Long>,
+    config: CircularSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<Long> = circularSlider(model, LongTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderLong")
+public fun circularSlider(
+    range : ClosedRange<Long>,
+    config: CircularSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<Long> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderShort")
+public fun circularSlider(
+    model : ConfinedValueModel<Short>,
+    config: CircularSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<Short> = circularSlider(model, ShortTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderShort")
+public fun circularSlider(
+    range : ClosedRange<Short>,
+    config: CircularSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<Short> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderByte")
+public fun circularSlider(
+    model : ConfinedValueModel<Byte>,
+    config: CircularSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<Byte> = circularSlider(model, ByteTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderByte")
+public fun circularSlider(
+    range : ClosedRange<Byte>,
+    config: CircularSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<Byte> = circularSlider(BasicConfinedValueModel(range) as ConfinedValueModel<Byte>, config)
+
+// endregion
+
+// region Char
 
 /**
  * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
@@ -358,23 +773,88 @@ public inline fun <reified T> circularSlider(
  * @param range for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularSlider(
-             range : ClosedRange<T>,
-    noinline config: CircularSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(
-    model  = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+@JvmName("circularSliderChar")
+public fun circularSlider(
+    range : ClosedRange<Char>,
+    config: CircularSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<Char> = circularSlider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
+    config           = config,
+    numberTypeConverter = CharInterpolator
+)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderChar")
+public fun circularSlider(
+    model : ConfinedValueModel<Char>,
+    config: CircularSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<Char> = circularSlider(model, CharInterpolator, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderMeasure")
+public fun <T: Units> circularSlider(
+    range : ClosedRange<Measure<T>>,
+    config: CircularSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<Measure<T>> = circularSlider(
+    model  = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
     config = config
+)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderMeasure")
+public fun <T: Units> circularSlider(
+    model : ConfinedValueModel<Measure<T>>,
+    config: CircularSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<Measure<T>> = circularSlider(model, model.value.units.interpolator, config)
+
+// endregion
+
+// region T
+
+/**
+ * @see circularSlider
+ */
+public fun <T> circularSlider(
+    range           : ClosedRange<T>,
+    numberTypeConverter: Interpolator<T>,
+    config          : CircularSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = circularSlider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+    numberTypeConverter = numberTypeConverter,
+    config           = config
 )
 
 /**
  * @see circularSlider
  */
 public fun <T> circularSlider(
-    model : ConfinedValueModel<T>,
-    config: CircularSliderConfig<T>.() -> Unit = {},
-    type  : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = field {
-    CircularSlider(model, type).apply {
+    model           : ConfinedValueModel<T>,
+    numberTypeConverter: Interpolator<T>,
+    config          : CircularSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = field {
+    CircularSlider(model, numberTypeConverter).apply {
         config(CircularSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -393,6 +873,19 @@ public fun <T> circularSlider(
 
 // endregion
 
+/**
+ * @see circularSlider
+ */
+@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
+@Deprecated("User version without type")
+public inline fun <reified T> circularSlider(
+             model : ConfinedValueModel<T>,
+    noinline config: CircularSliderConfig<T>.() -> Unit = {},
+             type  : KClass<T>
+): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(model, numberTypeConverter(), config)
+
+// endregion
+
 // endregion
 
 // region ClosedRange<Number>
@@ -404,7 +897,9 @@ public fun <T> circularSlider(
  *
  * @property slider within the control
  */
-public class RangeSliderConfig<T> internal constructor(public val slider: RangeSlider<T>) where T: Number, T: Comparable<T>
+public class RangeSliderConfig<T> internal constructor(public val slider: RangeSlider<T>) where T: Comparable<T>
+
+// region Number
 
 /**
  * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -414,11 +909,12 @@ public class RangeSliderConfig<T> internal constructor(public val slider: RangeS
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> rangeSlider(
-             model      : ConfinedRangeModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : RangeSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(model, orientation, config, T::class)
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Int>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Int>> = rangeSlider(model, IntTypeConverter, orientation, function, config)
 
 /**
  * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -428,14 +924,277 @@ public inline fun <reified T> rangeSlider(
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> rangeSlider(
-             range      : ClosedRange<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : RangeSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(
+public fun rangeSlider(
+    range      : ClosedRange<Int>,
+    orientation: Orientation                       = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Int>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Int>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderFloat")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Float>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Float>> = rangeSlider(model, FloatTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderFloat")
+public fun rangeSlider(
+    range      : ClosedRange<Float>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Float>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Float>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderDouble")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Double>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Double>> = rangeSlider(model, DoubleTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderDouble")
+public fun rangeSlider(
+    range      : ClosedRange<Double>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Double>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Double>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderLong")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Long>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Long>> = rangeSlider(model, LongTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderLong")
+public fun rangeSlider(
+    range      : ClosedRange<Long>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Long>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Long>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderShort")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Short>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Short>> = rangeSlider(model, ShortTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderShort")
+public fun rangeSlider(
+    range      : ClosedRange<Short>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Short>> = rangeSlider(BasicConfinedRangeModel(range), orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderByte")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Byte>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Byte>> = rangeSlider(model, ByteTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderByte")
+public fun rangeSlider(
+    range      : ClosedRange<Byte>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Byte>> = rangeSlider(BasicConfinedRangeModel(range), orientation, function, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderChar")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Char>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Char>> = rangeSlider(model, CharInterpolator, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderChar")
+public fun rangeSlider(
+    range      : ClosedRange<Char>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Char>> = rangeSlider(
+    model       = BasicConfinedRangeModel(range),
+    orientation = orientation,
+    converter   = CharInterpolator,
+    config      = config,
+    function    = function
+)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderMeasure")
+public fun <T: Units> rangeSlider(
+    model      : ConfinedRangeModel<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Measure<T>>> = rangeSlider(model, model.range.start.units.interpolator, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderMeasure")
+public fun <T: Units> rangeSlider(
+    range      : ClosedRange<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Measure<T>>> = rangeSlider(
+    model       = BasicConfinedRangeModel(range),
+    orientation = orientation,
+    converter   = range.start.units.interpolator,
+    config      = config,
+    function    = function
+)
+
+// endregion
+
+// region T
+
+
+/**
+ * @see rangeSlider
+ */
+public fun <T> rangeSlider(
+    range      : ClosedRange<T>,
+    converter  : Interpolator<T>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = rangeSlider(
     model       = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
     orientation = orientation,
-    config      = config
+    converter   = converter,
+    config      = config,
+    function    = function
 )
 
 /**
@@ -443,11 +1202,12 @@ public inline fun <reified T> rangeSlider(
  */
 public fun <T> rangeSlider(
     model      : ConfinedRangeModel<T>,
+    converter  : Interpolator<T>,
     orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
     config     : RangeSliderConfig<T>.() -> Unit = {},
-    type       : KClass<T>
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = field {
-    RangeSlider(model, orientation, type).apply {
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = field {
+    RangeSlider(model, converter, orientation, function).apply {
         config(RangeSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -465,6 +1225,20 @@ public fun <T> rangeSlider(
 }
 
 // endregion
+/**
+ * @see rangeSlider
+ */
+@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
+@Deprecated("Use version without type.")
+public inline fun <reified T> rangeSlider(
+             model      : ConfinedRangeModel<T>,
+             orientation: Orientation = Horizontal,
+    noinline config     : RangeSliderConfig<T>.() -> Unit = {},
+             type       : KClass<T>,
+             function   : InvertibleFunction = LinearFunction
+): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(model, numberTypeConverter(), orientation, function, config)
+
+// endregion
 
 // region CircularSlider
 
@@ -473,19 +1247,9 @@ public fun <T> rangeSlider(
  *
  * @property slider within the control
  */
-public class CircularRangeSliderConfig<T> internal constructor(public val slider: CircularRangeSlider<T>) where T: Number, T: Comparable<T>
+public class CircularRangeSliderConfig<T> internal constructor(public val slider: CircularRangeSlider<T>) where T: Comparable<T>
 
-/**
- * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
- * value within a range.
- *
- * @param model for the Slider
- * @param config for the Slider
- */
-public inline fun <reified T> circularRangeSlider(
-             model : ConfinedRangeModel<T>,
-    noinline config: CircularRangeSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(model, config, T::class)
+// region Number
 
 /**
  * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -494,23 +1258,266 @@ public inline fun <reified T> circularRangeSlider(
  * @param range for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularRangeSlider(
-             range : ClosedRange<T>,
-    noinline config: CircularRangeSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(
-    model  = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
-    config = config
+public fun circularRangeSlider(
+    range : ClosedRange<Int>,
+    function: InvertibleFunction = LinearFunction,
+    config: CircularRangeSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Int>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Int>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Int>> = circularRangeSlider(model, IntTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderFloat")
+public fun circularRangeSlider(
+    range   : ClosedRange<Float>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Float>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderFloat")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Float>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Float>> = circularRangeSlider(model, FloatTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderDouble")
+public fun circularRangeSlider(
+    range   : ClosedRange<Double>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Double>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderDouble")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Double>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Double>> = circularRangeSlider(model, DoubleTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderLong")
+public fun circularRangeSlider(
+    range   : ClosedRange<Long>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Long>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderLong")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Long>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Long>> = circularRangeSlider(model, LongTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderShort")
+public fun circularRangeSlider(
+    range   : ClosedRange<Short>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Short>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderShort")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Short>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Short>> = circularRangeSlider(model, ShortTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderByte")
+public fun circularRangeSlider(
+    range   : ClosedRange<Byte>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Byte>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderByte")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Byte>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Byte>> = circularRangeSlider(model, ByteTypeConverter, function, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderChar")
+public fun circularRangeSlider(
+    range   : ClosedRange<Char>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Char>> = circularRangeSlider(
+    model    = BasicConfinedRangeModel(range) as ConfinedRangeModel<Char>,
+    config   = config,
+    function = function
+)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderChar")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Char>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Char>> = circularRangeSlider(model, CharInterpolator, function, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderMeasure")
+public fun <T: Units> circularRangeSlider(
+    range   : ClosedRange<Measure<T>>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Measure<T>>> = circularRangeSlider(
+    model    = BasicConfinedRangeModel(range) as ConfinedRangeModel<Measure<T>>,
+    config   = config,
+    function = function
+)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderMeasure")
+public fun <T: Units> circularRangeSlider(
+    model   : ConfinedRangeModel<Measure<T>>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Measure<T>>> = circularRangeSlider(model, model.range.start.units.interpolator, function, config)
+
+// endregion
+
+// region T
+
+/**
+ * @see circularRangeSlider
+ */
+public fun <T> circularRangeSlider(
+    range    : ClosedRange<T>,
+    converter: Interpolator<T>,
+    function : InvertibleFunction = LinearFunction,
+    config   : CircularRangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = circularRangeSlider(
+    model     = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
+    config    = config,
+    converter = converter,
+    function  = function
 )
 
 /**
  * @see circularRangeSlider
  */
 public fun <T> circularRangeSlider(
-    model : ConfinedRangeModel<T>,
-    config: CircularRangeSliderConfig<T>.() -> Unit = {},
-    type  : KClass<T>
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = field {
-    CircularRangeSlider(model, type).apply {
+    model    : ConfinedRangeModel<T>,
+    converter: Interpolator<T>,
+    function : InvertibleFunction = LinearFunction,
+    config   : CircularRangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = field {
+    CircularRangeSlider(model, converter, function).apply {
         config(CircularRangeSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -526,6 +1533,20 @@ public fun <T> circularRangeSlider(
         }
     }
 }
+
+// endregion
+
+/**
+ * @see circularRangeSlider
+ */
+@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Use version without type")
+public inline fun <reified T> circularRangeSlider(
+             model   : ConfinedRangeModel<T>,
+    noinline config  : CircularRangeSliderConfig<T>.() -> Unit = {},
+             type    : KClass<T>,
+             function: InvertibleFunction = LinearFunction,
+): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(model, numberTypeConverter(), function, config)
 
 // endregion
 
@@ -592,7 +1613,7 @@ public class OptionListConfig<T> internal constructor() {
     public var insets: Insets = Insets.None
 
     /**
-     * Provides a label for each item in the list. This is short-hand for using [visualizer].
+     * Provides a label for each item in the list. This is shorthand for using [visualizer].
      */
     public var label: (T) -> String by observable({ "$it" }) { _,new ->
         visualizer = { Label(new(it)) }
@@ -1062,7 +2083,7 @@ public fun <T> spinner(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param T is the type of the items in the bounded field
  * @param model for the list
@@ -1111,7 +2132,7 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param T is the type of the items in the bounded field
  * @param first item in the list
@@ -1135,7 +2156,7 @@ public fun <T> optionalSingleChoiceList(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
@@ -1155,7 +2176,7 @@ public fun optionalSingleChoiceList(
 
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
- * lets a user select a single option from a list. This is behaves like [radioList].
+ * lets a user select a single option from a list. This behaves like [radioList].
  *
  * @param T is the type of the items in the bounded field
  * @param first item in the list
@@ -1333,6 +2354,7 @@ public fun <T> checkList(
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
+@Suppress("LocalVariableName")
 public fun <T> switchList(
            first : T,
     vararg rest  : T,
@@ -2048,6 +3070,7 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
     }
 }
 
+@Suppress("LocalVariableName")
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
     button_.top    eq 0
     button_.width  eq parent.width
