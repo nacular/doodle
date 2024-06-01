@@ -110,7 +110,7 @@ internal class NativeSliderBehavior<T>(
         override fun get(slider: Slider<T>) = slider.fraction
 
         override fun set(slider: Slider<T>, value: Float) {
-            slider.fraction = value
+            slider.setFraction(value)
         }
     }
 

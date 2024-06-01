@@ -18,7 +18,7 @@ import io.nacular.doodle.utils.lerp
  * Created by Nicholas Eddy on 2/13/18.
  */
 public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Comparable<T> {
-    public var Slider<T>.fraction: Float get() = fraction; set(new) { fraction = new }
+    public fun Slider<T>.setFraction(value: Float) { fraction = value }
 
     @Deprecated("Use fraction instead")
     public fun <A> Slider<A>.set(to: Double) where A : Comparable<A>, A: Number {

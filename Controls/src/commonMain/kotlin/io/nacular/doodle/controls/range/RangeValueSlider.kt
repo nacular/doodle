@@ -90,20 +90,34 @@ public abstract class RangeValueSlider<T> internal constructor(
      */
     public var range: ClosedRange<T> get() = model.limits; set(new) { model.limits = new }
 
-    internal var fraction: ClosedRange<Float> get() = valueToFraction(value.start)..valueToFraction(value.endInclusive); set(new) {
-        val start = when (val s = snapSize?.toFloat()){
-            null -> new.start
-            else -> round(new.start / s) * s
+    /**
+     * Value of the slider as a fraction range between [0-1].
+     */
+    public var fraction: ClosedRange<Float> get() = valueToFraction(value.start)..valueToFraction(value.endInclusive); internal set(new) {
+        val s = snapSize?.toFloat()
+
+        val start = when {
+            s == null || !snapToTicks -> new.start
+            else                      -> round(new.start / s) * s
         }.coerceIn(0f..1f)
 
-        val end = when (val s = snapSize?.toFloat()){
-            null -> new.endInclusive
-            else -> round(new.endInclusive / s) * s
+        val end = when {
+            s == null || !snapToTicks -> new.endInclusive
+            else                      -> round(new.endInclusive / s) * s
         }.coerceIn(0f..1f)
 
         model.range = interpolator.lerp(range.start, range.endInclusive, function(start)) ..
                 interpolator.lerp(range.start, range.endInclusive, function(end))
     }
+
+    public fun increment(percent: Float = 0.1f) { fraction = fraction.start + percent .. fraction.endInclusive + percent }
+    public fun decrement(percent: Float = 0.1f) { fraction = fraction.start - percent .. fraction.endInclusive - percent }
+
+    public fun incrementStart(percent: Float = 0.1f) { fraction = fraction.start + percent .. fraction.endInclusive }
+    public fun incrementEnd  (percent: Float = 0.1f) { fraction = fraction.start .. fraction.endInclusive + percent }
+
+    public fun decrementStart(percent: Float = 0.1f) { fraction = fraction.start - percent .. fraction.endInclusive }
+    public fun decrementEnd  (percent: Float = 0.1f) { fraction = fraction.start .. fraction.endInclusive - percent }
 
     /** Notifies of changes to [value] */
     protected abstract fun changed(old: ClosedRange<T>, new: ClosedRange<T>)
@@ -134,8 +148,8 @@ public abstract class RangeValueSlider<T> internal constructor(
         }
 
         when (event.key) {
-            ArrowUp,   incrementKey -> fraction = fraction.start + 0.1f .. fraction.endInclusive + 0.1f
-            ArrowDown, decrementKey -> fraction = fraction.start - 0.1f .. fraction.endInclusive - 0.1f
+            ArrowUp,   incrementKey -> increment()
+            ArrowDown, decrementKey -> decrement()
         }
     }
 

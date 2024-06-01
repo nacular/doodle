@@ -100,16 +100,23 @@ public abstract class ValueSlider<T> internal constructor(
         roleBinding = role.bind(model, interpolator, new)
     }
 
-    internal var fraction: Float get() = valueToFraction(value); set(new) {
-        val frac = when (val s = snapSize?.toFloat()) {
-            null -> new
-            else -> round(new / s) * s
+    /**
+     * Value of the slider as a fraction between [0-1].
+     */
+    public var fraction: Float get() = valueToFraction(value); internal set(new) {
+        val s = snapSize?.toFloat()
+        val frac = when {
+            s == null || !snapToTicks -> new
+            else                      -> round(new / s) * s
         }.coerceIn(0f..1f)
 
         model.value = interpolator.lerp(range.start, range.endInclusive, function(frac))
     }
 
     private var roleBinding by binding(role.bind(model, interpolator, valueAccessibilityLabeler))
+
+    public fun increment(percent: Float = 0.1f) { fraction += percent }
+    public fun decrement(percent: Float = 0.1f) { fraction -= percent }
 
     /** Notifies of changes to [value] */
     protected abstract fun changed(old: T, new: T)
@@ -140,8 +147,8 @@ public abstract class ValueSlider<T> internal constructor(
         }
 
         when (event.key) {
-            ArrowUp,   incrementKey -> fraction += 0.1f
-            ArrowDown, decrementKey -> fraction -= 0.1f
+            ArrowUp,   incrementKey -> increment()
+            ArrowDown, decrementKey -> decrement()
         }
     }
 
