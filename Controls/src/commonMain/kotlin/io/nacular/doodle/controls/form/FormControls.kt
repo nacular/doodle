@@ -40,9 +40,9 @@ import io.nacular.doodle.controls.range.InvertibleFunction
 import io.nacular.doodle.controls.range.LinearFunction
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.ListSpinnerModel
-import io.nacular.doodle.controls.spinner.Spinner
-import io.nacular.doodle.controls.spinner.SpinnerModel
+import io.nacular.doodle.controls.spinner.ListSpinButtonModel
+import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinner.SpinButtonModel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.toString
@@ -73,10 +73,10 @@ import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
+import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PassThroughEncoder
-import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.interpolator
 import io.nacular.doodle.utils.observable
 import io.nacular.measured.units.Measure
@@ -483,10 +483,10 @@ public fun slider(
     orientation: Orientation = Horizontal,
     config     : SliderConfig<Char>.() -> Unit = {}
 ): FieldVisualizer<Char> = slider(
-    model            = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
-    orientation      = orientation,
-    converter = CharInterpolator,
-    config           = config
+    model        = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
+    orientation  = orientation,
+    interpolator = CharInterpolator,
+    config       = config
 )
 
 /**
@@ -522,9 +522,9 @@ public fun <T: Units> slider(
     orientation: Orientation = Horizontal,
     config     : SliderConfig<Measure<T>>.() -> Unit = {}
 ): FieldVisualizer<Measure<T>> = slider(
-    model      = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
-    orientation= orientation,
-    config     = config
+    model       = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
+    orientation = orientation,
+    config      = config
 )
 
 /**
@@ -547,24 +547,24 @@ public fun <T: Units> slider(
 // region T
 
 public fun <T> slider(
-    range           : ClosedRange<T>,
-    orientation     : Orientation = Horizontal,
-    numberTypeConverter: Interpolator<T>,
-    config          : SliderConfig<T>.() -> Unit = {},
+    range       : ClosedRange<T>,
+    orientation : Orientation = Horizontal,
+    interpolator: Interpolator<T>,
+    config      : SliderConfig<T>.() -> Unit = {},
 ): FieldVisualizer<T> where T: Comparable<T> = slider(
-    model            = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
-    orientation      = orientation,
-    converter = numberTypeConverter,
-    config           = config
+    model        = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+    orientation  = orientation,
+    interpolator = interpolator,
+    config       = config
 )
 
 public fun <T> slider(
-    model      : ConfinedValueModel<T>,
-    orientation: Orientation = Horizontal,
-    converter  : Interpolator<T>,
-    config     : SliderConfig<T>.() -> Unit = {},
+    model       : ConfinedValueModel<T>,
+    orientation : Orientation = Horizontal,
+    interpolator: Interpolator<T>,
+    config      : SliderConfig<T>.() -> Unit = {},
 ): FieldVisualizer<T> where T: Comparable<T> = field {
-    Slider(model, converter, orientation).apply {
+    Slider(model, interpolator, orientation).apply {
         config(SliderConfig(this))
 
         initial.ifValid { value = it }
@@ -1995,9 +1995,17 @@ public fun <T: Any> optionalDropDown(
 
 // endregion
 
-// region Spinner
+// region SpinButton
+
+@Deprecated("Use spinButton", ReplaceWith("spinButton(model,itemVisualizer,config)"))
+public fun <T, M: SpinButtonModel<T>> spinner(
+    model         : M,
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
+    config        : (SpinButton<T, M>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(model, itemVisualizer, config)
+
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -2008,33 +2016,42 @@ public fun <T: Any> optionalDropDown(
  * @param itemVisualizer used to render the drop-down's box item
  * @param config used to control the resulting component
  */
-public fun <T, M: SpinnerModel<T>> spinner(
+public fun <T, M: SpinButtonModel<T>> spinButton(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, Spinner<T, M>> = toString(StringVisualizer()),
-    config        : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
-    Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
-        spinner.changed += {
-            state = spinner.value.fold(
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
+    config        : (SpinButton<T, M>) -> Unit = {}
+): FieldVisualizer<T> = field {
+    SpinButton(model, itemVisualizer = itemVisualizer).also { spinButton ->
+        spinButton.changed += {
+            state = spinButton.value.fold(
                 onSuccess = { Valid(it) },
                 onFailure = { Invalid() }
             )
         }
 
-        state = spinner.value.fold(
+        state = spinButton.value.fold(
             onSuccess = { Valid(it) },
             onFailure = { Invalid() }
         )
 
-        spinner.focusChanged += { _,_,focused ->
+        spinButton.focusChanged += { _,_,focused ->
             if (focused) {
-                spinner.parent?.scrollTo(spinner.bounds)
+                spinButton.parent?.scrollTo(spinButton.bounds)
             }
         }
     }.also(config)
 }
 
+@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)"))
+public fun <T> spinner(
+           first         : T,
+    vararg rest          : T,
+           itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+           config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)
+
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -2046,18 +2063,27 @@ public fun <T, M: SpinnerModel<T>> spinner(
  * @param itemVisualizer used to render the drop-down's box item
  * @param config used to control the resulting component
  */
-public fun <T> spinner(
+public fun <T> spinButton(
            first         : T,
     vararg rest          : T,
-           itemVisualizer: ItemVisualizer<T, Spinner<T, *>>,
-           config        : (Spinner<T, *>) -> Unit = {}): FieldVisualizer<T> = spinner(
-    ListSpinnerModel(listOf(first) + rest),
+           itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+           config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(
+    ListSpinButtonModel(listOf(first) + rest),
     itemVisualizer,
     config
 )
 
+@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, label = label, config = config)"))
+public fun <T> spinner(
+           first : T,
+    vararg rest  : T,
+           label : (T) -> String = { "$it" },
+           config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, label = label, config = config)
+
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -2069,12 +2095,12 @@ public fun <T> spinner(
  * @param label used to render the drop-down's box and list items
  * @param config used to control the resulting component
  */
-public fun <T> spinner(
+public fun <T> spinButton(
            first : T,
     vararg rest  : T,
            label : (T) -> String = { "$it" },
-           config: (Spinner<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
+           config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
 
 // endregion
 

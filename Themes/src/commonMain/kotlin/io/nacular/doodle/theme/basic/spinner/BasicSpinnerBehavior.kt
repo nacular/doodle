@@ -3,9 +3,9 @@ package io.nacular.doodle.theme.basic.spinner
 import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.spinner.Spinner
-import io.nacular.doodle.controls.spinner.SpinnerBehavior
-import io.nacular.doodle.controls.spinner.SpinnerModel
+import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinner.SpinButtonBehavior
+import io.nacular.doodle.controls.spinner.SpinButtonModel
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
@@ -42,7 +42,10 @@ import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 
-public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
+@Deprecated("Use BasicSpinButtonBehavior", replaceWith = ReplaceWith("BasicSpinButtonBehavior<T, M>"))
+public typealias BasicSpinnerBehavior<T, M> = BasicSpinButtonBehavior<T, M>
+
+public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     private val textMetrics        : TextMetrics,
     private val backgroundColor    : Color,
     private val darkBackgroundColor: Color,
@@ -52,7 +55,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
     private val focusManager       : FocusManager? = null,
     private val incrementA11yLabel : String?       = null,
     private val decrementA11yLabel : String?       = null,
-): SpinnerBehavior<T, M>(), KeyListener, PointerListener {
+): SpinButtonBehavior<T, M>(), KeyListener, PointerListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
@@ -89,7 +92,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
             darkBackgroundColor = darkBackgroundColor
     ) {
         init {
-            hoverColorMapper    = this@BasicSpinnerBehavior.hoverColorMapper
+            hoverColorMapper    = this@BasicSpinButtonBehavior.hoverColorMapper
             disabledColorMapper = { it }
         }
 
@@ -117,14 +120,14 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
 
     private val itemVisualizer by lazy { toString<T, Any>(StringVisualizer()) }
 
-    override fun changed(spinner: Spinner<T, M>) {}
+    override fun changed(spinner: SpinButton<T, M>) {}
 
-    override fun render(view: Spinner<T, M>, canvas: Canvas) {
+    override fun render(view: SpinButton<T, M>, canvas: Canvas) {
         canvas.rect(view.bounds.atOrigin, cornerRadius, ColorPaint(backgroundColor))
     }
 
     @Suppress("LocalVariableName")
-    override fun install(view: Spinner<T, M>) {
+    override fun install(view: SpinButton<T, M>) {
         super.install(view)
 
         val center = Container().apply { focusable = false }
@@ -188,7 +191,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         view.pointerChanged += this
     }
 
-    override fun uninstall(view: Spinner<T, M>) {
+    override fun uninstall(view: SpinButton<T, M>) {
         super.uninstall(view)
 
         view.children.clear()
@@ -197,7 +200,7 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
     }
 
     override fun pressed(event: KeyEvent) {
-        (event.source as? Spinner<*,*>)?.apply {
+        (event.source as? SpinButton<*,*>)?.apply {
             when (event.key) {
                 ArrowUp   -> { next    (); event.consume() }
                 ArrowDown -> { previous(); event.consume() }
@@ -209,9 +212,9 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         focusManager?.requestFocus(event.source)
     }
 
-    internal val centerChanged: Pool<(Spinner<T, M>, View?, View) -> Unit> = SetPool()
+    internal val centerChanged: Pool<(SpinButton<T, M>, View?, View) -> Unit> = SetPool()
 
-    internal fun updateCenter(spinner: Spinner<T, M>, oldCenter: View? = visualizedValue(spinner), newCenter: View = centerView(spinner, oldCenter)) {
+    internal fun updateCenter(spinner: SpinButton<T, M>, oldCenter: View? = visualizedValue(spinner), newCenter: View = centerView(spinner, oldCenter)) {
         if (newCenter != oldCenter) {
             viewContainer(spinner)?.let { centerView ->
                 centerView.children.clear()
@@ -225,12 +228,12 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         }
     }
 
-    private fun centerView(spinner: Spinner<T, M>, oldCenter: View?) = spinner.value.fold(
+    private fun centerView(spinner: SpinButton<T, M>, oldCenter: View?) = spinner.value.fold(
         onSuccess = { (spinner.itemVisualizer ?: itemVisualizer)(it, oldCenter, spinner) },
         onFailure = { object: View() {} }
     )
 
-    private fun updateAlignment(spinner: Spinner<T, M>, centerView: Container) {
+    private fun updateAlignment(spinner: SpinButton<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = {
             (spinner.cellAlignment ?: center)(it)
         }
@@ -243,8 +246,8 @@ public class BasicSpinnerBehavior<T, M: SpinnerModel<T>>(
         }
     }
 
-    private  fun viewContainer  (spinner: Spinner<T, M>): Container? = spinner.children.firstOrNull { it !is PushButton } as? Container
-    internal fun visualizedValue(spinner: Spinner<T, M>): View?      = viewContainer(spinner)?.firstOrNull()
+    private  fun viewContainer  (spinner: SpinButton<T, M>): Container? = spinner.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(spinner: SpinButton<T, M>): View?      = viewContainer(spinner)?.firstOrNull()
 
     public companion object {
         private const val INSET = 4.0

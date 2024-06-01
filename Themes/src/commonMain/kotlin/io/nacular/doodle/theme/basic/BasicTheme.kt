@@ -31,10 +31,10 @@ import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.MutableSpinner
-import io.nacular.doodle.controls.spinner.MutableSpinnerModel
-import io.nacular.doodle.controls.spinner.Spinner
-import io.nacular.doodle.controls.spinner.SpinnerModel
+import io.nacular.doodle.controls.spinner.MutableSpinButton
+import io.nacular.doodle.controls.spinner.MutableSpinButtonModel
+import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinner.SpinButtonModel
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TreeTable
@@ -87,8 +87,8 @@ import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
 import io.nacular.doodle.theme.basic.range.TickPresentation
-import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinnerBehavior
-import io.nacular.doodle.theme.basic.spinner.BasicSpinnerBehavior
+import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinButtonBehavior
+import io.nacular.doodle.theme.basic.spinner.BasicSpinButtonBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.SimpleTabContainer
@@ -509,6 +509,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             showTicks            = showTicks
         )
 
+        @Deprecated("Use basicSpinButtonBehavior", ReplaceWith("basicSpinButtonBehavior()"))
         public fun basicSpinnerBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -517,10 +518,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             incrementA11yLabel : String? = null,
             decrementA11yLabel : String? = null,
-        ): Module = basicThemeModule(name = "BasicSpinnerBehavior") {
-            bindBehavior<Spinner<Any, SpinnerModel<Any>>>(BTheme::class) {
+        ): Module = basicSpinButtonBehavior(
+            backgroundColor     = backgroundColor,
+            darkBackgroundColor = darkBackgroundColor,
+            foregroundColor     = foregroundColor,
+            cornerRadius        = cornerRadius,
+            buttonWidth         = buttonWidth,
+            incrementA11yLabel  = incrementA11yLabel,
+            decrementA11yLabel  = decrementA11yLabel
+        )
+
+        public fun basicSpinButtonBehavior(
+            backgroundColor    : Color?  = null,
+            darkBackgroundColor: Color?  = null,
+            foregroundColor    : Color?  = null,
+            cornerRadius       : Double? = null,
+            buttonWidth        : Double? = null,
+            incrementA11yLabel : String? = null,
+            decrementA11yLabel : String? = null,
+        ): Module = basicThemeModule(name = "BasicSpinButtonBehavior") {
+            bindBehavior<SpinButton<Any, SpinButtonModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicSpinnerBehavior<Any, SpinnerModel<Any>>(
+                    BasicSpinButtonBehavior<Any, SpinButtonModel<Any>>(
                         instance(),
                         buttonWidth         = buttonWidth         ?: 20.0,
                         focusManager        = instanceOrNull(),
@@ -538,6 +557,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        @Deprecated("Use basicMutableSpinButtonBehavior", ReplaceWith("basicMutableSpinButtonBehavior()"))
         public fun basicMutableSpinnerBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -546,10 +566,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             incrementA11yLabel : String? = null,
             decrementA11yLabel : String? = null,
-        ): Module = basicThemeModule(name = "BasicMutableSpinnerBehavior") {
-            bindBehavior<MutableSpinner<Any, MutableSpinnerModel<Any>>>(BTheme::class) {
+        ): Module = basicMutableSpinButtonBehavior(
+            backgroundColor     = backgroundColor,
+            darkBackgroundColor = darkBackgroundColor,
+            foregroundColor     = foregroundColor,
+            cornerRadius        = cornerRadius,
+            buttonWidth         = buttonWidth,
+            incrementA11yLabel  = incrementA11yLabel,
+            decrementA11yLabel  = decrementA11yLabel
+        )
+
+        public fun basicMutableSpinButtonBehavior(
+            backgroundColor    : Color?  = null,
+            darkBackgroundColor: Color?  = null,
+            foregroundColor    : Color?  = null,
+            cornerRadius       : Double? = null,
+            buttonWidth        : Double? = null,
+            incrementA11yLabel : String? = null,
+            decrementA11yLabel : String? = null,
+        ): Module = basicThemeModule(name = "BasicMutableSpinButtonBehavior") {
+            bindBehavior<MutableSpinButton<Any, MutableSpinButtonModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicMutableSpinnerBehavior<Any, MutableSpinnerModel<Any>>(
+                    BasicMutableSpinButtonBehavior<Any, MutableSpinButtonModel<Any>>(
                         instance(),
                         buttonWidth         = buttonWidth         ?: 20.0,
                         cornerRadius        = cornerRadius        ?: this.cornerRadius,
@@ -957,7 +995,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicRangeSliderBehavior(),
             basicCircularSliderBehavior(),
             basicCircularRangeSliderBehavior(),
-            basicSpinnerBehavior(),
+            basicSpinButtonBehavior(),
             basicCheckBoxBehavior(),
             basicDropdownBehavior(),
             basicSplitPanelBehavior(),
@@ -968,7 +1006,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicTreeColumnsBehavior(),
             basicTabbedPanelBehavior(),
             basicMutableTableBehavior(),
-            basicMutableSpinnerBehavior(),
+            basicMutableSpinButtonBehavior(),
             basicMutableDropdownBehavior(),
             basicMonthPanelBehavior(),
             basicDaysOfTheWeekPanelBehavior(),

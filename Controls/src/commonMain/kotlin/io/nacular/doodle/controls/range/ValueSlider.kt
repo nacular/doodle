@@ -59,6 +59,7 @@ public abstract class ValueSlider<T> internal constructor(
     }
 
     // FIXME: Make private
+    /** @suppress */
     public var snapSize: Double? = null; private set(new) {
         if (new == field) return
 
@@ -115,7 +116,10 @@ public abstract class ValueSlider<T> internal constructor(
 
     private var roleBinding by binding(role.bind(model, interpolator, valueAccessibilityLabeler))
 
+    /** Increases the slider's [fraction] by [percent]. */
     public fun increment(percent: Float = 0.1f) { fraction += percent }
+
+    /** Decreases the slider's [fraction] by [percent]. */
     public fun decrement(percent: Float = 0.1f) { fraction -= percent }
 
     /** Notifies of changes to [value] */
