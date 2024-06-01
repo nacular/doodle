@@ -15,6 +15,11 @@ public class ThemePicker(themeManager: ThemeManager): View() {
     private val model   = MutableListSpinButtonModel<Theme?>()
     private val spinner = SpinButton(model)
 
+    /** Human-understandable text to represent the current value if the number is insufficient. */
+    public var valueAccessibilityLabeler: ((Result<Theme?>) -> String)? get() = spinner.valueAccessibilityLabeler; set(new) {
+        spinner.valueAccessibilityLabeler = new
+    }
+
     init {
         focusable = false
 
