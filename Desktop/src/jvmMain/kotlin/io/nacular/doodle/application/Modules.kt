@@ -1,5 +1,8 @@
 package io.nacular.doodle.application
 
+import io.nacular.doodle.accessibility.AccessibilityManager
+import io.nacular.doodle.accessibility.AccessibilityManagerImpl
+import io.nacular.doodle.accessibility.AccessibilityManagerSkiko
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.modal.ModalManager
@@ -165,6 +168,21 @@ public class Modules private constructor() {
             bindFactory<Window, MenuFactory> {
                 MenuFactoryImpl(factory<Window, PopupManager>()(it), instance(), instanceOrNull())
             }
+        }
+
+        /** Enables accessibility features. */
+        public val AccessibilityModule: Module = Module(allowSilentOverride = true, name = "Accessibility") {
+            importOnce(KeyboardModule)
+
+            // TODO: Can this be handled better?
+            bindSingleton { instance<KeyInputService>() as KeyInputServiceImpl }
+
+            bindSingleton<AccessibilityManager> {
+                AccessibilityManagerImpl(instance(), instance())
+            }
+
+            // TODO: Can this be handled better?
+            bindSingleton { instance<AccessibilityManager>() as AccessibilityManagerSkiko }
         }
     }
 }

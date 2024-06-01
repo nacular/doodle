@@ -18,14 +18,12 @@ public class ViewFinderImpl: ViewFinder {
     override fun find(within: Display, at: Point): View? = findDescendant(within.child(at)?.takeIf { it.enabled }, at)
 
     override fun find(within: Display, at: Point, starting: View?, predicate: (View) -> Boolean): View? {
-        val combinedFilter = { it: View -> it.enabled && predicate(it) }
-
         var parent = starting
         var view   : View?
         var point  = at
 
         do {
-            view = findDescendant(parent, point, combinedFilter).takeIf { it != parent }
+            view = findDescendant(parent, point, predicate).takeIf { it != parent }
 
             if (view != null) {
                 break
@@ -37,7 +35,7 @@ public class ViewFinderImpl: ViewFinder {
             } ?: break
         } while (true)
 
-        return view ?: find(within, at, combinedFilter)
+        return view ?: find(within, at, predicate)
     }
 
     private fun find(within: Display, at: Point, predicate: (View) -> Boolean): View? = findDescendant(within.child(at, predicate)?.takeIf { it.enabled }, at, predicate)
@@ -48,7 +46,7 @@ public class ViewFinderImpl: ViewFinder {
 
         while(view != null) {
             newPoint = view.toLocal(newPoint, view.parent)
-            view     = view.child_(at = newPoint, predicate)?.takeIf { it.enabled } ?: break
+            view     = view.child_(at = newPoint, predicate) ?: break
         }
 
         return view
