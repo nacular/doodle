@@ -104,7 +104,7 @@ internal class AccessibilityManagerImpl(private val focusManager: FocusManager, 
         }
 
         override fun getAccessibleAt(p: AwtPoint?) = p?.toDoodle()?.let { point ->
-            viewFinder.find(within = display, at = point)
+            viewFinder.find(within = display, at = point) { true }
         }?.let {
             getAccessible(of = it)
         }
@@ -200,11 +200,14 @@ internal class AccessibilityManagerImpl(private val focusManager: FocusManager, 
             TODO("Not yet implemented")
         }
 
-        private fun getAccessible(of: View) = when {
+        private fun getAccessible(of: View): Accessible? = when {
             of.accessibilityRole != null || of is Label -> Accessible {
                 AccessibleViewContext(display, of)
             }
-            else -> null
+            else -> when (val p = of.parent) {
+                null -> null
+                else -> getAccessible(p)
+            }
         }
     }
 
@@ -484,7 +487,7 @@ internal class AccessibilityManagerImpl(private val focusManager: FocusManager, 
         }
 
         override fun getAccessibleAt(p: AwtPoint?) = p?.toDoodle()?.let { point ->
-            viewFinder.find(within = display, starting = view, at = point) { true }
+            viewFinder.find(within = view, at = point)
         }?.let {
             getAccessible(of = it)
         }
@@ -523,11 +526,14 @@ internal class AccessibilityManagerImpl(private val focusManager: FocusManager, 
             TODO("Not yet implemented")
         }
 
-        private fun getAccessible(of: View) = when {
+        private fun getAccessible(of: View): Accessible? = when {
             of.accessibilityRole != null || of is Label -> Accessible {
                 AccessibleViewContext(display, of)
             }
-            else -> null
+            else -> when (val p = of.parent) {
+                null -> null
+                else -> getAccessible(p)
+            }
         }
     }
 }

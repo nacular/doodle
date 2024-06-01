@@ -76,8 +76,8 @@ public class Modules private constructor() {
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
             bindInstance { NativePointerPreprocessor() }
 
-            bindSingleton<ViewFinder>          { ViewFinderImpl            (                                        ) }
-            bindSingleton<PointerInputService> { PointerInputServiceImpl   (instance(), instance(), instanceOrNull()) }
+            bindInstance<ViewFinder>           { ViewFinderImpl                                                        }
+            bindSingleton<PointerInputService> { PointerInputServiceImpl    (instance(), instance(), instanceOrNull()) }
             bindSingleton                      { DesktopPointerInputManagers(instance(), instance(), instance(), instance<NativePointerPreprocessor>())  }
         }
 

@@ -4,18 +4,20 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
+import kotlin.jvm.JvmName
 
 /** @suppress */
 @Internal
-public interface ViewFinder {
-    public fun find(within: Display, at: Point): View?
+public sealed interface ViewFinder {
+    public fun find(within: Display, at: Point, predicate: (View) -> Boolean = { it.enabled }): View?
     public fun find(within: Display, at: Point, starting: View?, predicate: (View) -> Boolean): View?
+    public fun find(within: View, at: Point): View
 }
 
 /** @suppress */
 @Internal
-public class ViewFinderImpl: ViewFinder {
-    override fun find(within: Display, at: Point): View? = findDescendant(within.child(at)?.takeIf { it.enabled }, at)
+public data object ViewFinderImpl: ViewFinder {
+    override fun find(within: Display, at: Point, predicate: (View) -> Boolean): View? = findDescendant(within.child(at)?.takeIf(predicate), at)
 
     override fun find(within: Display, at: Point, starting: View?, predicate: (View) -> Boolean): View? {
         var parent = starting
@@ -35,20 +37,26 @@ public class ViewFinderImpl: ViewFinder {
             } ?: break
         } while (true)
 
-        return view ?: find(within, at, predicate)
+        return view ?: findDescendant(within.child(at, predicate)?.takeIf { it.enabled }, at, predicate)
     }
 
-    private fun find(within: Display, at: Point, predicate: (View) -> Boolean): View? = findDescendant(within.child(at, predicate)?.takeIf { it.enabled }, at, predicate)
+    override fun find(within: View, at: Point): View = findDescendant(within, at)
 
-    private fun findDescendant(of: View?, at: Point, predicate: (View) -> Boolean = { true }): View? {
+    private fun findDescendant(of: View, at: Point, predicate: (View) -> Boolean = { true }): View {
         var view     = of
         var newPoint = at
 
-        while(view != null) {
+        while (true) {
             newPoint = view.toLocal(newPoint, view.parent)
-            view     = view.child_(at = newPoint, predicate) ?: break
+            view = view.child_(at = newPoint, predicate) ?: break
         }
 
         return view
+    }
+
+    @JvmName("findDescendantNullable")
+    private fun findDescendant(of: View?, at: Point, predicate: (View) -> Boolean = { true }): View? = when (of) {
+        null -> null
+        else -> findDescendant(of, at, predicate)
     }
 }

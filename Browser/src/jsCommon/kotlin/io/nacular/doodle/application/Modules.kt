@@ -63,6 +63,7 @@ import io.nacular.doodle.user.impl.UserPreferencesImpl
 import io.nacular.doodle.utils.RelativePositionMonitor
 import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import org.kodein.di.DI.Module
+import org.kodein.di.bindInstance
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -80,7 +81,7 @@ public class Modules private constructor() {
 
         /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bindSingleton<ViewFinder>                  { ViewFinderImpl                   (                                  ) }
+            bindInstance<ViewFinder>                   { ViewFinderImpl                                                        }
             bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (document,   instance()            ) }
             bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                        ) }
             bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()) }
