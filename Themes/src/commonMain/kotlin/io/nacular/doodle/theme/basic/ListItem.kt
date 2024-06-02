@@ -141,11 +141,12 @@ public open class ListItem<T>(
 
         role.index    = index
         role.listSize = list.numItems
+        role.selected = list.selected(index)
 
         val offset    = Point(insetLeft, insetTop)
         val oldChild  = children.firstOrNull()
 
-        children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, list.selected(index))).also { visualizer ->
+        children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, role.selected)).also { visualizer ->
             if (visualizer != oldChild) {
                 oldChild?.let { it.position -= offset }
                 visualizer.position += offset

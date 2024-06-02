@@ -1,9 +1,11 @@
 package io.nacular.doodle.accessibility
 
+import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Orientation
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.observable
 import kotlin.properties.ReadWriteProperty
 
@@ -24,8 +26,9 @@ public abstract class AccessibilityManager @Internal constructor() {
     /** @suppress */ @Internal public abstract fun addOwnership   (owner: View, owned: View)
     /** @suppress */ @Internal public abstract fun removeOwnership(owner: View, owned: View)
 
-    /** @suppress */ @Internal protected val View.indexInParent: Int get() = parent?.children_?.indexOf(this) ?: display?.indexOf(this) ?: -1
-    /** @suppress */ @Internal protected val View.numChildren  : Int get() = children_.size
+    /** @suppress */ @Internal protected val View.indexInParent  : Int get() = parent?.children_?.indexOf(this) ?: display?.indexOf(this) ?: -1
+    /** @suppress */ @Internal protected val View.numChildren    : Int get() = children_.size
+    /** @suppress */ @Internal protected val View.childrenChanged: Pool<ChildObserver<View>> get() = childrenChanged_
     /** @suppress */ @Internal protected fun View.child(index: Int): View? = children_.getOrNull(index)
     /** @suppress */ @Internal protected fun View.child(at: Point): View? = child_(at)
 }
@@ -125,6 +128,11 @@ public class ListItemRole: AccessibilityRole() {
 
     /** The size of the list this item belongs to. */
     public var listSize: Int? by roleProperty(null)
+
+    /**
+     * Selected state of this item
+     */
+    public var selected: Boolean by roleProperty(false)
 }
 
 /** A container with a hierarchy of nested [TreeItemRole]. */

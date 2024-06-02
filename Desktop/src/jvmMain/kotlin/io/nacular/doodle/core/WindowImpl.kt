@@ -38,7 +38,6 @@ import java.awt.Graphics2D
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.accessibility.Accessible
-import javax.accessibility.AccessibleContext
 import javax.swing.JFrame
 import javax.swing.JMenu
 import javax.swing.JMenuBar
@@ -166,15 +165,13 @@ internal class WindowImpl(
 
     internal lateinit var renderManager: RenderManager
 
-    private val accessibilityContext: AccessibleContext? by lazy { accessibilityManager()?.accessibilityContext(display) }
-
-    val skiaLayer = SkiaLayer(
-        externalAccessibleFactory = {
-            Accessible {
-                accessibilityContext
-            }
+    private val accessible by lazy {
+        Accessible {
+            accessibilityManager()?.accessibilityContext(display)
         }
-    ).apply {
+    }
+
+    val skiaLayer = SkiaLayer(externalAccessibleFactory = { accessible }).apply {
         addView(CustomSkikoView())
     }
 
