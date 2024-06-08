@@ -122,6 +122,14 @@ internal open class PointerInputServiceStrategyWebkit(
         eventHandler?.invoke(createPointerEvent(event, Enter, 0))
     }
 
+    private fun pointerExit(event: PointerEvent) {
+        eventHandler?.invoke(createPointerEvent(
+            event,
+            if (event.target == htmlFactory.root) Exit else Move,
+            0
+        ))
+    }
+
     private fun pointerCancel(event: PointerEvent) {
         preventScroll -= event.pointerId
 
@@ -218,6 +226,7 @@ internal open class PointerInputServiceStrategyWebkit(
     private fun registerCallbacks(element: HTMLElement) = element.run {
         // TODO: Figure out fallback in case PointerEvent not present
         ondblclick      = { doubleClick  (it)                            }
+        onpointerout    = { pointerExit  (it)                            }
         onpointerdown   = { pointerDown  (it); followPointer(this); true }
         onpointerover   = { pointerEnter (it)                            }
         onpointercancel = { pointerCancel(it)                            }

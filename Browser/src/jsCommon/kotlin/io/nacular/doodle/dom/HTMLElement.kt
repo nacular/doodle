@@ -154,7 +154,7 @@ internal actual abstract external class HTMLElement: Element, ElementCSSInlineSt
     actual var onwheel        : ((WheelEvent  ) -> Boolean)?
     actual var ondblclick     : ((MouseEvent  ) -> Boolean)?
     actual var onpointerup    : ((PointerEvent) -> Boolean)?
-    actual var onpointerout   : ((PointerEvent) -> Boolean)?
+    actual var onpointerout   : ((PointerEvent) -> Unit   )?
     actual var onpointerdown  : ((PointerEvent) -> Boolean)?
     actual var onpointermove  : ((PointerEvent) -> Boolean)?
     actual var onpointerover  : ((PointerEvent) -> Unit   )?
