@@ -11,10 +11,16 @@ internal actual class Navigator {
     actual val userAgent: String = ""
 }
 
+internal actual class VisualViewport {
+    actual val offsetTop  = 0.0
+    actual val offsetLeft = 0.0
+}
+
 internal actual abstract class Window {
     actual open val location: Location = object: Location() {}
     actual val performance: Performance? = null
     actual val navigator: Navigator = Navigator()
+    actual val visualViewport: VisualViewport? = VisualViewport()
 
     actual fun matchMedia           (query: String): MediaQueryList = object: MediaQueryList() {}
     actual fun cancelAnimationFrame (handle: Int): Unit = Unit

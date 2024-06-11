@@ -8,7 +8,9 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MouseEvent
 import io.nacular.doodle.dom.PointerEvent
 import io.nacular.doodle.dom.TouchEvent
+import io.nacular.doodle.dom.Window
 import io.nacular.doodle.dom.addActiveEventListener
+import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.removeActiveEventListener
 import io.nacular.doodle.dom.setCursor
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -37,29 +39,91 @@ import io.nacular.doodle.system.impl.PointerInputServiceStrategy.EventHandler
 import io.nacular.doodle.utils.ifFalse
 import io.nacular.doodle.utils.ifTrue
 
-internal class PointerLocationResolverImpl(private val document: Document, private val htmlFactory: HtmlFactory): PointerLocationResolver {
+/**
+ * Used to detect whether we need to apply the viewport hack in [PointerLocationResolverImpl]
+ */
+internal interface ViewPortHackDetector {
+    /** @return `true` if the hack is needed */
+    fun needsHack(visualViewPortOffset: Point): Boolean
+}
+
+/**
+ * Instance used for non-Safari browsers.
+ */
+internal object NoOpViewPortHackDetector: ViewPortHackDetector {
+    override fun needsHack(visualViewPortOffset: Point) = false
+}
+
+/**
+ * Detects whether Safari needs to use the viewport hack.
+ */
+internal class SafariViewPortHackDetector(private val document: Document, private val htmlFactory: HtmlFactory): ViewPortHackDetector {
+    private var measured  = false
+    private var needsHack = false
+
+    /**
+     * Measure this by checking whether a tester element's client offset is anything other than
+     */
+    override fun needsHack(visualViewPortOffset: Point): Boolean = when {
+        measured                       -> needsHack
+        visualViewPortOffset == Origin -> false
+        else                           -> htmlFactory.create<HTMLElement>().let { tester ->
+            tester.style.position = "absolute"
+
+            val parent = document.body ?: htmlFactory.root
+
+            parent.insert(tester, 0)
+
+            needsHack = tester.getBoundingClientRect().run { Point(x, y) } != Origin
+
+            parent.removeChild(tester)
+
+            measured = true
+
+            needsHack
+        }
+    }
+}
+
+internal class PointerLocationResolverImpl(
+    private val window              : Window,
+    private val document            : Document,
+    private val htmlFactory         : HtmlFactory,
+    private val viewPortHackDetector: ViewPortHackDetector,
+): PointerLocationResolver {
     var owner: View? = null
 
-    override fun invoke(event: MouseEvent): Point = when {
-        htmlFactory.root != document.body -> {
-            owner?.let { o ->
+    private val visualViewPortOffset get() = window.visualViewport?.run { Point(offsetLeft, offsetTop) } ?: Origin
+
+    override fun invoke(event: MouseEvent): Point {
+        val viewportOffset = visualViewPortOffset
+        val inputPoint     = applyViewPortHack(Point(event.clientX, event.clientY), viewportOffset)
+
+        return when {
+            htmlFactory.root != document.body -> {
                 val boundingBox = htmlFactory.root.getBoundingClientRect().run { Rectangle(x, y, width, height) }
-                val inverse     = o.transform.inverse ?: Identity
 
-                val topLeft = when {
-                    o.transform.isIdentity -> boundingBox.position
-                    else                   -> getTopLeft(boundingBox, o.size)
+                owner?.let { o ->
+                    val inverse = o.transform.inverse ?: Identity
+                    val topLeft = when {
+                        o.transform.isIdentity -> boundingBox.position
+                        else                   -> getTopLeft(boundingBox, o.size)
+                    }.let {
+                        applyViewPortHack(it, viewportOffset)
+                    }
+
+                    inverse(inputPoint - if (o.transform.isIdentity) topLeft else Origin).as2d()
+                } ?: run {
+                    applyViewPortHack(inputPoint - boundingBox.position, -viewportOffset)
                 }
-
-                val location = inverse(Point(event.clientX, event.clientY) - if(o.transform.isIdentity) topLeft else Origin)
-
-                location.as2d()
-            } ?: run {
-                val rectPos = htmlFactory.root.getBoundingClientRect().run { Point(x, y) }
-                Point(event.clientX - rectPos.x, event.clientY - rectPos.y)
             }
+            else -> inputPoint
         }
-        else -> Point(event.clientX, event.clientY)
+    }
+
+    private fun applyViewPortHack(point: Point, viewportOffset: Point) = when {
+        viewPortHackDetector.needsHack(viewportOffset) -> point + viewportOffset
+        else                                           -> point
     }
 
     private fun getTopLeft(boundingBox: Rectangle, ownerSize: Size): Point {
@@ -125,7 +189,7 @@ internal open class PointerInputServiceStrategyWebkit(
     private fun pointerExit(event: PointerEvent) {
         eventHandler?.invoke(createPointerEvent(
             event,
-            if (event.target == htmlFactory.root) Exit else Move,
+            Move, //if (event.target == htmlFactory.root) Exit else Move,
             0
         ))
     }
