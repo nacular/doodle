@@ -1,7 +1,7 @@
 <div style="text-align:center"><img src="docs/img/doodle.svg" alt="doodle" style="height:100px;margin-bottom:50px"></div>
 <div style="text-align:center"><h1>A pure Kotlin, UI framework</h1></div>
 
-[![Kotlin 1.9.22](https://img.shields.io/badge/Kotlin_1.9.22-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
+[![Kotlin 1.9.23](https://img.shields.io/badge/Kotlin_1.9.23-blue.svg?style=for-the-badge&logo=kotlin&logoColor=white)](http://kotlinlang.org)
 [![JS Wasm, JVM](https://img.shields.io/badge/JS%2C_Wasm%2C_JVM-purple?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org/docs/js-overview.html)
 [![Chat: on slack](https://img.shields.io/badge/doodle-gray.svg?style=for-the-badge&logo=slack)](https://kotlinlang.slack.com/messages/doodle)
 [![API](https://img.shields.io/badge/API-orange?style=for-the-badge)](https://nacular.github.io/doodle/)
@@ -53,4 +53,4 @@ You can also join the discussion on the [#doodle](https://kotlinlang.slack.com/m
 
 ## Leave a star
 
-Let us know what you think by leaving a comment or a star.
+Let us know what you think by leaving a comment or a star ⭐️.

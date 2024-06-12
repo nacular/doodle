@@ -18,6 +18,7 @@ import io.nacular.doodle.system.Cursor.Companion.Move
 import io.nacular.doodle.system.Cursor.Companion.NResize
 import io.nacular.doodle.system.Cursor.Companion.NeResize
 import io.nacular.doodle.system.Cursor.Companion.NwResize
+import io.nacular.doodle.system.Cursor.Companion.Progress
 import io.nacular.doodle.system.Cursor.Companion.SResize
 import io.nacular.doodle.system.Cursor.Companion.SeResize
 import io.nacular.doodle.system.Cursor.Companion.SwResize
@@ -42,7 +43,6 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
-import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkikoGestureEvent
 import org.jetbrains.skiko.SkikoInputModifiers.Companion.ALT
 import org.jetbrains.skiko.SkikoInputModifiers.Companion.CONTROL
@@ -57,7 +57,6 @@ import org.jetbrains.skiko.SkikoPointerEventKind.ENTER
 import org.jetbrains.skiko.SkikoPointerEventKind.EXIT
 import org.jetbrains.skiko.SkikoPointerEventKind.MOVE
 import org.jetbrains.skiko.SkikoPointerEventKind.UP
-import java.awt.Component
 import java.awt.Cursor.CROSSHAIR_CURSOR
 import java.awt.Cursor.DEFAULT_CURSOR
 import java.awt.Cursor.E_RESIZE_CURSOR
@@ -121,7 +120,7 @@ internal class PointerInputServiceImpl(
         WResize   -> AwtCursor(W_RESIZE_CURSOR)
 //        EWResize  ->
 //        Grabbing  ->
-//        Progress  ->
+        Progress  -> AwtCursor(WAIT_CURSOR     )
         NeResize  -> AwtCursor(NE_RESIZE_CURSOR)
         NwResize  -> AwtCursor(NW_RESIZE_CURSOR)
         SeResize  -> AwtCursor(SE_RESIZE_CURSOR)
@@ -143,7 +142,7 @@ internal class PointerInputServiceImpl(
 
     // FIXME: This doesn't seem to work
     override fun setToolTipText(display: Display, text: String) {
-//        (display as? DisplayImpl)?.skiaLayer?.toolTipText = text
+        (display as? DisplayImpl)?.skiaLayer?.toolTipText = text
     }
 
     override fun addListener   (display: Display, listener: Listener) { listeners.getOrPut(display) { mutableSetOf() }.plusAssign (listener); if (listeners.size == 1) startUp() }
@@ -233,16 +232,6 @@ internal class PointerInputServiceImpl(
                 target = target.parent
             }
         }
-    }
-
-    private fun MouseWheelEvent.skiaLayer(): SkiaLayer? {
-        var result: Component? = component
-
-        while (result != null && result !is SkiaLayer) {
-            result = result.parent
-        }
-
-        return result as? SkiaLayer
     }
 }
 
