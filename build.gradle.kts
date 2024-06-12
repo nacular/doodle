@@ -104,3 +104,9 @@ subprojects {
         }
     }
 }
+
+dependencies {
+    subprojects.forEach {
+        kover(project(":${it.name}"))
+    }
+}

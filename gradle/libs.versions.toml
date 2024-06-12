@@ -6,7 +6,7 @@ dokkaVersion      = { strictly = "1.9.0"  }
 jupiterVersion    = { strictly = "5.10.0" }
 kodeinVersion     = { strictly = "7.21.1" }
 kotlinVersion     = { strictly = "1.9.23" }
-koverVersion      = { strictly = "0.7.3"  }
+koverVersion      = { strictly = "0.8.1"  }
 logbackVersion    = { strictly = "1.4.11" }
 measuredVersion   = { strictly = "0.4.1"  }
 mockkVersion      = { strictly = "1.13.9" }
