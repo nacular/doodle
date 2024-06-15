@@ -9,8 +9,6 @@ internal actual abstract external class DataTransferItem {
 
 internal actual abstract external class DataTransferItemList {
     actual val length: Int
-
-    actual operator fun get(index: Int): DataTransferItem?
 }
 
 internal actual abstract external class DataTransfer {

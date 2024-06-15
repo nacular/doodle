@@ -37,3 +37,7 @@ internal actual fun <T: JsAny> jsArrayOf(vararg values: T): JsArray<T> = JsArray
         push(it)
     }
 }
+
+internal actual operator fun DataTransferItemList.get(index: Int): DataTransferItem? = jsGet(this, index)
+
+private fun jsGet(list: DataTransferItemList, index: Int): DataTransferItem? = js("list[index]") as? DataTransferItem?
