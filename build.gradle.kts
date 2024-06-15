@@ -19,7 +19,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:1.9.20")
+        classpath("org.jetbrains.dokka:dokka-base:${libs.versions.dokkaVersion.get()}")
     }
 }
 
@@ -30,7 +30,6 @@ fun DokkaBaseConfiguration.configDokka() {
     separateInheritedMembers              = true
     mergeImplicitExpectActualDeclarations = true
 }
-
 
 tasks.withType<DokkaMultiModuleTask>().configureEach {
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
