@@ -40,6 +40,7 @@ import io.nacular.doodle.controls.range.InvertibleFunction
 import io.nacular.doodle.controls.range.LinearFunction
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.spinner.IntSpinButtonModel
 import io.nacular.doodle.controls.spinner.ListSpinButtonModel
 import io.nacular.doodle.controls.spinner.SpinButton
 import io.nacular.doodle.controls.spinner.SpinButtonModel
@@ -2013,7 +2014,7 @@ public fun <T, M: SpinButtonModel<T>> spinner(
  *
  * @param T is the type of the bounded field
  * @param model for the dropdown
- * @param itemVisualizer used to render the drop-down's box item
+ * @param itemVisualizer used to render the spin-button's box item
  * @param config used to control the resulting component
  */
 public fun <T, M: SpinButtonModel<T>> spinButton(
@@ -2060,7 +2061,7 @@ public fun <T> spinner(
  * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
- * @param itemVisualizer used to render the drop-down's box item
+ * @param itemVisualizer used to render the spin-button's box item
  * @param config used to control the resulting component
  */
 public fun <T> spinButton(
@@ -2070,6 +2071,28 @@ public fun <T> spinButton(
            config        : (SpinButton<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinButton(
     ListSpinButtonModel(listOf(first) + rest),
+    itemVisualizer,
+    config
+)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param values in the spin-button
+ * @param itemVisualizer used to render the spin-button's box item
+ * @param config used to control the resulting component
+ */
+public fun <T> spinButton(
+    values         : List<T>,
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+    config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(
+    ListSpinButtonModel(values),
     itemVisualizer,
     config
 )
@@ -2092,7 +2115,7 @@ public fun <T> spinner(
  * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
- * @param label used to render the drop-down's box and list items
+ * @param label used to render the spin-button's box and list items
  * @param config used to control the resulting component
  */
 public fun <T> spinButton(
@@ -2101,6 +2124,59 @@ public fun <T> spinButton(
            label : (T) -> String = { "$it" },
            config: (SpinButton<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
+
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param values in the spin-button
+ * @param label used to render the spin-button's box and list items
+ * @param config used to control the resulting component
+ */
+public fun <T> spinButton(
+    values: List<T>,
+    label : (T) -> String = { "$it" },
+    config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(values, toString(StringVisualizer(), label), config)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param progression to use for the underlying model
+ * @param itemVisualizer used to render the spin-button's box item
+ * @param config used to control the resulting component
+ */
+public fun spinButton(
+    progression   : IntProgression,
+    itemVisualizer: ItemVisualizer<Int, SpinButton<Int, *>>,
+    config        : (SpinButton<Int, *>) -> Unit = {}
+): FieldVisualizer<Int> = spinButton(IntSpinButtonModel(progression), itemVisualizer, config)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param progression to use for the underlying model
+ * @param label used to render the spin-button's box and list items
+ * @param config used to control the resulting component
+ */
+public fun spinButton(
+    progression   : IntProgression,
+    label         : (Int) -> String = { "$it" },
+    config        : (SpinButton<Int, *>) -> Unit = {}
+): FieldVisualizer<Int> = spinButton(progression, toString(StringVisualizer(), label), config)
 
 // endregion
 
