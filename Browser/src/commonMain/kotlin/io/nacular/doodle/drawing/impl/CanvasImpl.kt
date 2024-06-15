@@ -443,6 +443,7 @@ internal open class CanvasImpl(
     private fun updateRenderPosition() {
         if (vectorRenderDirty) {
             renderPosition = renderPosition?.nextSibling
+            vectorRenderer.flush()
 
             vectorRenderDirty = false
         }
