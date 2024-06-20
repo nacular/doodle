@@ -13,8 +13,8 @@ import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.date.DaysOfTheWeekPanel
 import io.nacular.doodle.controls.date.MonthPanel
-import io.nacular.doodle.controls.dropdown.Dropdown
-import io.nacular.doodle.controls.dropdown.MutableDropdown
+import io.nacular.doodle.controls.dropdown.MutableSelectBox
+import io.nacular.doodle.controls.dropdown.SelectBox
 import io.nacular.doodle.controls.list.HorizontalDynamicList
 import io.nacular.doodle.controls.list.HorizontalList
 import io.nacular.doodle.controls.list.HorizontalMutableList
@@ -76,8 +76,8 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
 import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
-import io.nacular.doodle.theme.basic.dropdown.BasicDropdownBehavior
-import io.nacular.doodle.theme.basic.dropdown.BasicMutableDropdownBehavior
+import io.nacular.doodle.theme.basic.dropdown.BasicMutableSelectBoxBehavior
+import io.nacular.doodle.theme.basic.dropdown.BasicSelectBoxBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalListBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalMutableListBehavior
 import io.nacular.doodle.theme.basic.list.basicVerticalListBehavior
@@ -865,6 +865,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        @Deprecated("Use basicSelectBoxBehavior", ReplaceWith("basicSelectBoxBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, buttonA11yLabel, inset)"))
         public fun basicDropdownBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -873,10 +874,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             buttonA11yLabel    : String? = null,
             inset              : Double? = null,
-        ): Module = basicThemeModule(name = "BasicDropdownBehavior") {
-            bindBehavior<Dropdown<Any, ListModel<Any>>>(BTheme::class) {
+        ): Module = basicSelectBoxBehavior(
+            backgroundColor     = backgroundColor,
+            darkBackgroundColor = darkBackgroundColor,
+            foregroundColor     = foregroundColor,
+            cornerRadius        = cornerRadius,
+            buttonWidth         = buttonWidth,
+            buttonA11yLabel     = buttonA11yLabel,
+            inset               = inset
+        )
+
+        public fun basicSelectBoxBehavior(
+            backgroundColor    : Color?  = null,
+            darkBackgroundColor: Color?  = null,
+            foregroundColor    : Color?  = null,
+            cornerRadius       : Double? = null,
+            buttonWidth        : Double? = null,
+            buttonA11yLabel    : String? = null,
+            inset              : Double? = null,
+        ): Module = basicThemeModule(name = "BasicSelectBoxBehavior") {
+            bindBehavior<SelectBox<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicDropdownBehavior<Any, ListModel<Any>>(
+                    BasicSelectBoxBehavior<Any, ListModel<Any>>(
                         display             = instance(),
                         textMetrics         = instance(),
                         buttonWidth         = buttonWidth         ?: 20.0,
@@ -896,6 +915,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        @Deprecated("Use basicMutableSelectBoxBehavior", ReplaceWith("basicMutableSelectBoxBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, buttonA11yLabel, inset)"))
         public fun basicMutableDropdownBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -904,10 +924,28 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             buttonA11yLabel    : String? = null,
             inset              : Double? = null,
-        ): Module = basicThemeModule(name = "BasicMutableDropdownBehavior") {
-            bindBehavior<MutableDropdown<Any, MutableListModel<Any>>>(BTheme::class) {
+        ): Module = basicMutableSelectBoxBehavior(
+            backgroundColor     = backgroundColor,
+            darkBackgroundColor = darkBackgroundColor,
+            foregroundColor     = foregroundColor,
+            cornerRadius        = cornerRadius,
+            buttonWidth         = buttonWidth,
+            buttonA11yLabel     = buttonA11yLabel,
+            inset               = inset
+        )
+
+        public fun basicMutableSelectBoxBehavior(
+            backgroundColor    : Color?  = null,
+            darkBackgroundColor: Color?  = null,
+            foregroundColor    : Color?  = null,
+            cornerRadius       : Double? = null,
+            buttonWidth        : Double? = null,
+            buttonA11yLabel    : String? = null,
+            inset              : Double? = null,
+        ): Module = basicThemeModule(name = "BasicMutableSelectBoxBehavior") {
+            bindBehavior<MutableSelectBox<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicMutableDropdownBehavior<Any, MutableListModel<Any>>(
+                    BasicMutableSelectBoxBehavior<Any, MutableListModel<Any>>(
                         display             = instance(),
                         textMetrics         = instance(),
                         buttonWidth         = buttonWidth         ?: 20.0,
@@ -997,7 +1035,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicCircularRangeSliderBehavior(),
             basicSpinButtonBehavior(),
             basicCheckBoxBehavior(),
-            basicDropdownBehavior(),
+            basicSelectBoxBehavior(),
             basicSplitPanelBehavior(),
             basicRadioButtonBehavior(),
             basicMutableListBehavior(),
@@ -1007,7 +1045,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicTabbedPanelBehavior(),
             basicMutableTableBehavior(),
             basicMutableSpinButtonBehavior(),
-            basicMutableDropdownBehavior(),
+            basicMutableSelectBoxBehavior(),
             basicMonthPanelBehavior(),
             basicDaysOfTheWeekPanelBehavior(),
             basicGridPanelBehavior(),

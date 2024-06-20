@@ -20,40 +20,40 @@ import io.nacular.doodle.utils.ObservableList
 import kotlin.properties.Delegates
 
 /**
- * Provides presentation and behavior customization for [Dropdown].
+ * Provides presentation and behavior customization for [SelectBox].
  */
-public interface DropdownBehavior<T, M: ListModel<T>>: Behavior<Dropdown<T, M>> {
-    public val Dropdown<T, M>.model   : M                    get() = _model
-    public var Dropdown<T, M>.list    : List<T, M>?          get() = list;    set(new) { list = new }
-    public val Dropdown<T, M>.children: ObservableList<View> get() = _children
-    public var Dropdown<T, M>.insets  : Insets               get() = _insets; set(new) { _insets = new }
-    public var Dropdown<T, M>.layout  : Layout?              get() = _layout; set(new) { _layout = new }
+public interface SelectBoxBehavior<T, M: ListModel<T>>: Behavior<SelectBox<T, M>> {
+    public val SelectBox<T, M>.model   : M                    get() = _model
+    public var SelectBox<T, M>.list    : List<T, M>?          get() = list;    set(new) { list = new }
+    public val SelectBox<T, M>.children: ObservableList<View> get() = _children
+    public var SelectBox<T, M>.insets  : Insets               get() = _insets; set(new) { _insets = new }
+    public var SelectBox<T, M>.layout  : Layout?              get() = _layout; set(new) { _layout = new }
 
     /**
-     * Called whenever the Dropdown's value or selection changes. This is an explicit API to ensure that
-     * behaviors receive the notification before listeners to [Dropdown.changed].
+     * Called whenever the SelectBox's value or selection changes. This is an explicit API to ensure that
+     * behaviors receive the notification before listeners to [SelectBox.changed].
      *
      * @param dropdown with change
      */
-    public fun changed(dropdown: Dropdown<T, M>) {}
+    public fun changed(dropdown: SelectBox<T, M>) {}
 
     /**
-     * Called whenever [Dropdown.boxCellAlignment] or [Dropdown.listCellAlignment] change.
+     * Called whenever [SelectBox.boxCellAlignment] or [SelectBox.listCellAlignment] change.
      *
      * @param dropdown with change
      */
-    public fun alignmentChanged(dropdown: Dropdown<T, M>) {}
+    public fun alignmentChanged(dropdown: SelectBox<T, M>) {}
 }
 
 /**
  * Control used to select an item within a hidden list.
  *
  * @property model used to represent the underlying choices
- * @property boxItemVisualizer to render the selected item within the drop-down box
+ * @property boxItemVisualizer to render the selected item within the select box
  * @property listItemVisualizer to render each item within the list of choices
  */
 @Suppress("PropertyName")
-public open class Dropdown<T, M: ListModel<T>>(
+public open class SelectBox<T, M: ListModel<T>>(
         protected open val model             : M,
         public         val boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
         public         val listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer,
@@ -106,12 +106,12 @@ public open class Dropdown<T, M: ListModel<T>>(
     private val changed_ by lazy { ChangeObserversImpl(this) }
 
     /**
-     * Broadcasts changes Dropdown
+     * Broadcasts changes SelectBox
      */
-    public val changed: ChangeObservers<Dropdown<T, M>> = changed_
+    public val changed: ChangeObservers<SelectBox<T, M>> = changed_
 
-    /** Controls the Dropdown's look and behavior. */
-    public var behavior: DropdownBehavior<T, M>? by behavior()
+    /** Controls the SelectBox's look and behavior. */
+    public var behavior: SelectBoxBehavior<T, M>? by behavior()
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
@@ -122,12 +122,12 @@ public open class Dropdown<T, M: ListModel<T>>(
                 progression       : IntProgression,
                 boxItemVisualizer : ItemVisualizer<Int, IndexedItem>? = null,
                 listItemVisualizer: ItemVisualizer<Int, IndexedItem>? = boxItemVisualizer
-        ): Dropdown<Int, ListModel<Int>> = Dropdown(IntProgressionModel(progression), boxItemVisualizer, listItemVisualizer)
+        ): SelectBox<Int, ListModel<Int>> = SelectBox(IntProgressionModel(progression), boxItemVisualizer, listItemVisualizer)
 
         public operator fun <T> invoke(
                 values            : kotlin.collections.List<T>,
                 boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
                 listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer
-        ): Dropdown<T, ListModel<T>> = Dropdown(SimpleListModel(values), boxItemVisualizer, listItemVisualizer)
+        ): SelectBox<T, ListModel<T>> = SelectBox(SimpleListModel(values), boxItemVisualizer, listItemVisualizer)
     }
 }
