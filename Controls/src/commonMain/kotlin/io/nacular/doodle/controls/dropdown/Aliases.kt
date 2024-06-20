@@ -1,5 +1,8 @@
 package io.nacular.doodle.controls.dropdown
 
+import io.nacular.doodle.controls.EditOperation
+import io.nacular.doodle.core.View
+
 @Deprecated("Use SelectBox instead", ReplaceWith("SelectBox<T, M>"))
 public typealias Dropdown<T, M> = SelectBox<T, M>
 
@@ -14,3 +17,6 @@ public typealias DropdownEditor<T> = SelectBoxEditor<T>
 
 @Deprecated("Use MutableSelectBoxBehavior instead", ReplaceWith("MutableSelectBoxBehavior<T, M>"))
 public typealias MutableDropdownBehavior<T, M> = MutableSelectBoxBehavior<T, M>
+
+@Deprecated("Use new selectBoxEditor method", replaceWith = ReplaceWith("selectBoxEditor(block)"))
+public inline fun <T> dropdownEditor(crossinline block: (dropdown: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = selectBoxEditor(block)

@@ -8,17 +8,32 @@ import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Editable
 
+/**
+ * Defines the [EditOperation] for a [MutableSelectBox].
+ */
 public interface SelectBoxEditor<T> {
+    /**
+     * @param dropdown being edited
+     * @param value within [dropdown] that is being edited
+     * @param current View used to represent that value
+     * @return an edit operation to manage changing [value]
+     */
     public fun edit(dropdown: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T>
 }
 
-@Deprecated("Use new selectBoxEditor method", replaceWith = ReplaceWith("selectBoxEditor(block)"))
-public inline fun <T> dropdownEditor(crossinline block: (dropdown: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = selectBoxEditor(block)
-
+/**
+ * Creates a [SelectBoxEditor] from the given lambda [block].
+ *
+ * @param block to execute to create the [EditOperation]
+ * @return an edit operation
+ */
 public inline fun <T> selectBoxEditor(crossinline block: (dropdown: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = object: SelectBoxEditor<T> {
-    override fun edit(dropdown: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T> = block(dropdown, value, current)
+    override fun edit(selectBox: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T> = block(selectBox, value, current)
 }
 
+/**
+ * Provides presentation and behavior customization for [MutableSelectBox].
+ */
 public abstract class MutableSelectBoxBehavior<T, M: MutableListModel<T>>: SelectBoxBehavior<T, M> {
     /**
      * Called whenever editing begins for the MutableDropdown. This lets the behavior reconfigure

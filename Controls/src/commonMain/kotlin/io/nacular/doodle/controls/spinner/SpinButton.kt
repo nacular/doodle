@@ -74,7 +74,7 @@ public abstract class SpinButtonBehavior<T, M: SpinButtonModel<T>>: Behavior<Spi
 /**
  * Controls used to flip through items (one at a time) within a sequential collection.
  *
- * @property model that holds the current value of the spin-button.
+ * @property model that holds the current value of the spin-button
  */
 @Suppress("PropertyName")
 public open class SpinButton<T, M: SpinButtonModel<T>> internal constructor(

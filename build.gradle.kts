@@ -98,7 +98,7 @@ subprojects {
 
             externalDocumentationLink {
                 url.set(URL("https://nacular.github.io/measured-api"))
-                packageListUrl.set(URL("https://nacular.github.io/measured-api/measured/package-list"))
+                packageListUrl.set(URL("https://nacular.github.io/measured-api/package-list"))
             }
         }
     }

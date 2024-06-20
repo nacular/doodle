@@ -9,14 +9,32 @@ public interface MutableSpinButtonModel<T>: SpinButtonModel<T> {
     public override var value: T
 }
 
+/**
+ * Defines the [EditOperation] for a [MutableSpinButton].
+ */
 public interface SpinButtonEditor<T> {
+    /**
+     * @param spinner being edited
+     * @param value within [spinner] that is being edited
+     * @param current View used to represent that value
+     * @return an edit operation to manage changing [value]
+     */
     public fun edit(spinner: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T>
 }
 
+/**
+ * Creates a [SpinButtonEditor] from the given lambda [block].
+ *
+ * @param block to execute to create the [EditOperation]
+ * @return an edit operation
+ */
 public inline fun <T> spinButtonEditor(crossinline block: (spinner: MutableSpinButton<T, *>, value: T, current: View) -> EditOperation<T>): SpinButtonEditor<T> = object: SpinButtonEditor<T> {
-    override fun edit(spinner: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T> = block(spinner, value, current)
+    override fun edit(spinButton: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T> = block(spinButton, value, current)
 }
 
+/**
+ * Provides presentation and behavior customization for [MutableSpinButton].
+ */
 public abstract class MutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>: SpinButtonBehavior<T, M>() {
     /**
      * Called whenever editing begins for the [MutableSpinButton]. This lets the behavior reconfigure
@@ -37,6 +55,13 @@ public abstract class MutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>
     public abstract fun editingEnded(spinner: MutableSpinButton<T, M>)
 }
 
+/**
+ * A spin button control that can be edited.
+ * @see [SpinButton]
+ *
+ * @param model that holds the current value of the spin-button
+ * @param itemVisualizer to visualize the values
+ */
 public class MutableSpinButton<T, M: MutableSpinButtonModel<T>>(model: M, itemVisualizer: ItemVisualizer<T, SpinButton<T, M>>? = null): SpinButton<T, M>(model, itemVisualizer), Editable {
     public fun set(value: T) {
         model.value = value
