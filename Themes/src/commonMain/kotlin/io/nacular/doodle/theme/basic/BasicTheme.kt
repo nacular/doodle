@@ -509,7 +509,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             showTicks            = showTicks
         )
 
-        @Deprecated("Use basicSpinButtonBehavior", ReplaceWith("basicSpinButtonBehavior()"))
+        @Deprecated("Use basicSpinButtonBehavior", ReplaceWith("basicSpinButtonBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, incrementA11yLabel, decrementA11yLabel)"))
         public fun basicSpinnerBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -557,7 +557,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        @Deprecated("Use basicMutableSpinButtonBehavior", ReplaceWith("basicMutableSpinButtonBehavior()"))
+        @Deprecated("Use basicMutableSpinButtonBehavior", ReplaceWith("basicMutableSpinButtonBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, incrementA11yLabel, decrementA11yLabel)"))
         public fun basicMutableSpinnerBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,

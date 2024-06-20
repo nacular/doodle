@@ -147,7 +147,7 @@ public fun <T> tween(
  * @param delay to apply before the animation begins
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(converter, easing, duration))"))
 public fun <T> tween(
     converter: SingleDataConverter<T>,
     easing   : EasingFunction,
@@ -165,7 +165,7 @@ public fun tweenInt(
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenInt(easing, duration))"))
 public fun tweenInt(
     easing   : EasingFunction,
     duration : Measure<Time>,
@@ -182,7 +182,7 @@ public fun tweenFloat(
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenFloat(easing, duration))"))
 public fun tweenFloat(
     easing   : EasingFunction,
     duration : Measure<Time>,
@@ -199,7 +199,7 @@ public fun tweenDouble(
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenDouble(easing, duration))"))
 public fun tweenDouble(
     easing   : EasingFunction,
     duration : Measure<Time>,
@@ -217,7 +217,7 @@ public fun <T: Units> tween(
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(units, easing, duration))"))
 public fun <T: Units> tween(
     units    : T,
     easing   : EasingFunction,
@@ -254,7 +254,7 @@ public fun <T> tween(
  * @param delay to apply before the animation begins
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(converter, easings, duration))"))
 public fun <T> tween(
     converter: MultiDataConverter<T>,
     easings  : (dimension: Int) -> Easing,
@@ -265,13 +265,13 @@ public fun <T> tween(
 public fun tweenPoint(
     easing  : EasingFunction,
     duration: Measure<Time>,
-): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, { Easing(easing, duration) })
+): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter) { Easing(easing, duration) }
 
 /**
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenPoint(easing, duration))"))
 public fun tweenPoint(
     easing  : EasingFunction,
     duration: Measure<Time>,
@@ -288,7 +288,7 @@ public fun tweenPoint(
  * @see after
  */
 @JvmName("tweenPointDeprecated")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenPoint(easings))"))
 public fun tweenPoint(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time>
@@ -298,13 +298,13 @@ public fun tweenPoint(
 public fun tweenSize(
     easing  : EasingFunction,
     duration: Measure<Time>,
-): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, { Easing(easing, duration) })
+): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter) { Easing(easing, duration) }
 
 /**
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenSize(easing, duration))"))
 public fun tweenSize(
     easing  : EasingFunction,
     duration: Measure<Time>,
@@ -321,7 +321,7 @@ public fun tweenSize(
  * @see after
  */
 @JvmName("tweenSizeDeprecated")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenSize(easings))"))
 public fun tweenSize(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time>
@@ -331,13 +331,13 @@ public fun tweenSize(
 public fun tweenRect(
     easing  : EasingFunction,
     duration: Measure<Time>,
-): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, { Easing(easing, duration) })
+): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter) { Easing(easing, duration) }
 
 /**
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenRect(easing, duration))"))
 public fun tweenRect(
     easing  : EasingFunction,
     duration: Measure<Time>,
@@ -354,7 +354,7 @@ public fun tweenRect(
  * @see after
  */
 @JvmName("tweenRectDeprecated")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenRect(easings))"))
 public fun tweenRect(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time>
@@ -364,13 +364,13 @@ public fun tweenRect(
 public fun tweenColor(
     easing  : EasingFunction,
     duration: Measure<Time>,
-): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, { Easing(easing, duration) })
+): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter) { Easing(easing, duration) }
 
 /**
  * @see tween
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenColor(easing, duration))"))
 public fun tweenColor(
     easing  : EasingFunction,
     duration: Measure<Time>,
@@ -387,7 +387,7 @@ public fun tweenColor(
  * @see after
  */
 @JvmName("tweenColorDeprecated")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenColor(easings))"))
 public fun tweenColor(
     easings: (dimension: Int) -> Easing,
     delay  : Measure<Time>
@@ -470,7 +470,7 @@ public fun <T> keyFrames(
  * @see after
  */
 @JvmName("keyFramesSingle")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFrames(converter, duration, frames))"))
 public fun <T> keyFrames(
     converter: SingleDataConverter<T>,
     duration : Measure<Time>,
@@ -488,7 +488,7 @@ public fun keyFramesInt(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesInt(duration, frames))"))
 public fun keyFramesInt(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -505,7 +505,7 @@ public fun keyFramesFloat(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesFloat(duration, frames))"))
 public fun keyFramesFloat(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -522,7 +522,7 @@ public fun keyFramesDouble(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesDouble(duration, frames))"))
 public fun keyFramesDouble(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -557,7 +557,7 @@ public fun <T> keyFrames(
  * @see after
  */
 @JvmName("keyFramesMulti")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFrames(converter, duration, frames))"))
 public fun <T> keyFrames(
     converter: MultiDataConverter<T>,
     duration : Measure<Time>,
@@ -575,7 +575,7 @@ public fun keyFramesPoint(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesPoint(duration, frames))"))
 public fun keyFramesPoint(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -592,7 +592,7 @@ public fun keyFramesSize(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesSize(duration, frames))"))
 public fun keyFramesSize(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -609,7 +609,7 @@ public fun keyFramesRect(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesRect(duration, frames))"))
 public fun keyFramesRect(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -626,7 +626,7 @@ public fun keyFramesColor(
  * @see keyFrames
  * @see after
  */
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesColor(duration, frames))"))
 public fun keyFramesColor(
     duration : Measure<Time>,
     delay    : Measure<Time>,
@@ -682,7 +682,7 @@ public fun <T> repeat(
  * @see after
  */
 @JvmName("repeatSingle")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, repeat(animationPlan, times, type))"))
 public fun <T> repeat(
     animationPlan: FiniteNumericAnimationPlan<T, Double>,
     times        : Int = 1,
@@ -720,7 +720,7 @@ public fun <T> repeat(
  * @see after
  */
 @JvmName("repeatMulti")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, repeat(animationPlan, times, type))"))
 public fun <T> repeat(
     animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
     times        : Int            = 1,
@@ -751,7 +751,7 @@ public fun <T> loop(
  * @see after
  */
 @JvmName("loopSingle")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, loop(animationPlan, type))"))
 public fun <T> loop(
     animationPlan: FiniteNumericAnimationPlan<T, Double>,
     type         : RepetitionType = Restart,
@@ -781,7 +781,7 @@ public fun <T> loop(
  * @see after
  */
 @JvmName("loopMulti")
-@Deprecated("use after method instead to add delays")
+@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, loop(animationPlan, type))"))
 public fun <T> loop(
     animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
     type         : RepetitionType = Restart,
