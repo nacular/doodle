@@ -2,7 +2,7 @@ package io.nacular.doodle.controls.spinner
 
 import io.nacular.doodle.utils.ObservableList
 
-public open class ListSpinButtonModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
+public open class ListSpinButtonModel<T, out L: List<T>>(protected open val values: L): CommonSpinButtonModelModel<T>() {
     protected var index: Int = 0
         private set(new) {
             if (new == field) { return }

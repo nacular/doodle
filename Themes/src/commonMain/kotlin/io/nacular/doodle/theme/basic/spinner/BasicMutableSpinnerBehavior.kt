@@ -20,6 +20,9 @@ import io.nacular.doodle.utils.Encoder
 @Deprecated("Use BasicMutableSpinButtonBehavior", replaceWith = ReplaceWith("BasicMutableSpinButtonBehavior<T, M>"))
 public typealias BasicMutableSpinnerBehavior<T, M> = BasicMutableSpinButtonBehavior<T, M>
 
+@Deprecated("Use SpinButtonTextEditOperation", replaceWith = ReplaceWith("SpinButtonTextEditOperation<T>"))
+public typealias SpinnerTextEditOperation<T> = SpinButtonTextEditOperation<T>
+
 public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
     textMetrics        : TextMetrics,
     backgroundColor    : Color,
@@ -92,7 +95,7 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
     }
 }
 
-public open class SpinnerTextEditOperation<T>(
+public open class SpinButtonTextEditOperation<T>(
                 focusManager: FocusManager?,
                 mapper      : Encoder<T, String>,
     private val spinner     : MutableSpinButton<T, *>,

@@ -12,12 +12,12 @@ import io.nacular.doodle.layout.constraints.constrain
  * @param themeManager to manage
  */
 public class ThemePicker(themeManager: ThemeManager): View() {
-    private val model   = MutableListSpinButtonModel<Theme?>()
-    private val spinner = SpinButton(model)
+    private val model      = MutableListSpinButtonModel<Theme?>()
+    private val spinButton = SpinButton(model)
 
     /** Human-understandable text to represent the current value if the number is insufficient. */
-    public var valueAccessibilityLabeler: ((Result<Theme?>) -> String)? get() = spinner.valueAccessibilityLabeler; set(new) {
-        spinner.valueAccessibilityLabeler = new
+    public var valueAccessibilityLabeler: ((Result<Theme?>) -> String)? get() = spinButton.valueAccessibilityLabeler; set(new) {
+        spinButton.valueAccessibilityLabeler = new
     }
 
     init {
@@ -35,16 +35,16 @@ public class ThemePicker(themeManager: ThemeManager): View() {
             updateAvailableThemes(removed, added)
         }
 
-        children += spinner
+        children += spinButton
 
-        layout = constrain(spinner) {
+        layout = constrain(spinButton) {
             it.top    eq 0
             it.left   eq 0
             it.right  eq parent.right
             it.bottom eq parent.bottom
         }
 
-        spinner.changed += {
+        spinButton.changed += {
             it.value.onSuccess {
                 themeManager.selected = it
             }
@@ -52,7 +52,7 @@ public class ThemePicker(themeManager: ThemeManager): View() {
     }
 
     private fun updateSelected(theme: Theme?) {
-        spinner.apply {
+        spinButton.apply {
             while (value.getOrNull() != theme && hasNext) {
                 next()
             }

@@ -84,7 +84,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         }
     }
 
-    private inner class SpinnerButtonBehavior(private val isTop: Boolean): BasicButtonBehavior(
+    private inner class SpinButtonButtonBehavior(private val isTop: Boolean): BasicButtonBehavior(
             textMetrics         = textMetrics,
             cornerRadius        = cornerRadius,
             backgroundColor     = backgroundColor,
@@ -133,7 +133,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         val center = Container().apply { focusable = false }
         val next = PushButton().apply {
             enabled            = view.hasNext
-            behavior           = SpinnerButtonBehavior(true)
+            behavior           = SpinButtonButtonBehavior(true)
             focusable          = false
             iconAnchor         = Leading
             acceptsThemes      = false
@@ -142,7 +142,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
 
         val previous = PushButton().apply {
             enabled            = view.hasPrevious
-            behavior           = SpinnerButtonBehavior(false)
+            behavior           = SpinButtonButtonBehavior(false)
             focusable          = false
             iconAnchor         = Leading
             acceptsThemes      = false
@@ -214,28 +214,28 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
 
     internal val centerChanged: Pool<(SpinButton<T, M>, View?, View) -> Unit> = SetPool()
 
-    internal fun updateCenter(spinner: SpinButton<T, M>, oldCenter: View? = visualizedValue(spinner), newCenter: View = centerView(spinner, oldCenter)) {
+    internal fun updateCenter(spinButton: SpinButton<T, M>, oldCenter: View? = visualizedValue(spinButton), newCenter: View = centerView(spinButton, oldCenter)) {
         if (newCenter != oldCenter) {
-            viewContainer(spinner)?.let { centerView ->
+            viewContainer(spinButton)?.let { centerView ->
                 centerView.children.clear()
 
                 centerView += newCenter
 
-                updateAlignment(spinner, centerView)
+                updateAlignment(spinButton, centerView)
             }
 
-            (centerChanged as SetPool).forEach { it(spinner, oldCenter, newCenter) }
+            (centerChanged as SetPool).forEach { it(spinButton, oldCenter, newCenter) }
         }
     }
 
-    private fun centerView(spinner: SpinButton<T, M>, oldCenter: View?) = spinner.value.fold(
-        onSuccess = { (spinner.itemVisualizer ?: itemVisualizer)(it, oldCenter, spinner) },
+    private fun centerView(spinButton: SpinButton<T, M>, oldCenter: View?) = spinButton.value.fold(
+        onSuccess = { (spinButton.itemVisualizer ?: itemVisualizer)(it, oldCenter, spinButton) },
         onFailure = { object: View() {} }
     )
 
-    private fun updateAlignment(spinner: SpinButton<T, M>, centerView: Container) {
+    private fun updateAlignment(spinButton: SpinButton<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = {
-            (spinner.cellAlignment ?: center)(it)
+            (spinButton.cellAlignment ?: center)(it)
         }
 
         centerView.firstOrNull()?.let { child ->
@@ -246,8 +246,8 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         }
     }
 
-    private  fun viewContainer  (spinner: SpinButton<T, M>): Container? = spinner.children.firstOrNull { it !is PushButton } as? Container
-    internal fun visualizedValue(spinner: SpinButton<T, M>): View?      = viewContainer(spinner)?.firstOrNull()
+    private  fun viewContainer  (spinButton: SpinButton<T, M>): Container? = spinButton.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(spinButton: SpinButton<T, M>): View?      = viewContainer(spinButton)?.firstOrNull()
 
     public companion object {
         private const val INSET = 4.0
