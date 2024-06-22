@@ -31,10 +31,10 @@ import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.MutableSpinButton
-import io.nacular.doodle.controls.spinner.MutableSpinButtonModel
-import io.nacular.doodle.controls.spinner.SpinButton
-import io.nacular.doodle.controls.spinner.SpinButtonModel
+import io.nacular.doodle.controls.spinbutton.MutableSpinButton
+import io.nacular.doodle.controls.spinbutton.MutableSpinButtonModel
+import io.nacular.doodle.controls.spinbutton.SpinButton
+import io.nacular.doodle.controls.spinbutton.SpinButtonModel
 import io.nacular.doodle.controls.table.MutableTable
 import io.nacular.doodle.controls.table.Table
 import io.nacular.doodle.controls.table.TreeTable
@@ -87,8 +87,8 @@ import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
 import io.nacular.doodle.theme.basic.range.TickPresentation
-import io.nacular.doodle.theme.basic.spinner.BasicMutableSpinButtonBehavior
-import io.nacular.doodle.theme.basic.spinner.BasicSpinButtonBehavior
+import io.nacular.doodle.theme.basic.spinbutton.BasicMutableSpinButtonBehavior
+import io.nacular.doodle.theme.basic.spinbutton.BasicSpinButtonBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabbedPanelBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.SimpleTabContainer

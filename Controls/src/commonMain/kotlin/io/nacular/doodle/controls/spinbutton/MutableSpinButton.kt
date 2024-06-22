@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.spinner
+package io.nacular.doodle.controls.spinbutton
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.ItemVisualizer
@@ -14,12 +14,12 @@ public interface MutableSpinButtonModel<T>: SpinButtonModel<T> {
  */
 public interface SpinButtonEditor<T> {
     /**
-     * @param spinner being edited
-     * @param value within [spinner] that is being edited
+     * @param spinButton being edited
+     * @param value within [spinButton] that is being edited
      * @param current View used to represent that value
      * @return an edit operation to manage changing [value]
      */
-    public fun edit(spinner: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T>
+    public fun edit(spinButton: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T>
 }
 
 /**
@@ -28,7 +28,7 @@ public interface SpinButtonEditor<T> {
  * @param block to execute to create the [EditOperation]
  * @return an edit operation
  */
-public inline fun <T> spinButtonEditor(crossinline block: (spinner: MutableSpinButton<T, *>, value: T, current: View) -> EditOperation<T>): SpinButtonEditor<T> = object: SpinButtonEditor<T> {
+public inline fun <T> spinButtonEditor(crossinline block: (spinButton: MutableSpinButton<T, *>, value: T, current: View) -> EditOperation<T>): SpinButtonEditor<T> = object: SpinButtonEditor<T> {
     override fun edit(spinButton: MutableSpinButton<T, *>, value: T, current: View): EditOperation<T> = block(spinButton, value, current)
 }
 
@@ -40,19 +40,19 @@ public abstract class MutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>
      * Called whenever editing begins for the [MutableSpinButton]. This lets the behavior reconfigure
      * the SpinButton accordingly.
      *
-     * @param spinner being edited
+     * @param spinButton being edited
      * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(spinner: MutableSpinButton<T, M>, value: T): EditOperation<T>?
+    public abstract fun editingStarted(spinButton: MutableSpinButton<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the [MutableSpinButton]. This lets the behavior reconfigure
      * the SpinButton accordingly.
      *
-     * @param spinner that was being edited
+     * @param spinButton that was being edited
      */
-    public abstract fun editingEnded(spinner: MutableSpinButton<T, M>)
+    public abstract fun editingEnded(spinButton: MutableSpinButton<T, M>)
 }
 
 /**

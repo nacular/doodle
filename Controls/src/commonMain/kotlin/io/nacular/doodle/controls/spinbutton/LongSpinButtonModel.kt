@@ -1,6 +1,6 @@
-package io.nacular.doodle.controls.spinner
+package io.nacular.doodle.controls.spinbutton
 
-public open class LongSpinButtonModel(private val progression: LongProgression, start: Long = progression.first): CommonSpinnerModel<Long>() {
+public open class LongSpinButtonModel(private val progression: LongProgression, start: Long = progression.first): CommonSpinButtonModel<Long>() {
 
     override val hasNext    : Boolean get() = value + progression.step <= progression.last
     override val hasPrevious: Boolean get() = value - progression.step >= progression.first

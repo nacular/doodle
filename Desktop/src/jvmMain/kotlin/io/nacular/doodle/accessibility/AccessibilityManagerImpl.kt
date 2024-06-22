@@ -10,7 +10,7 @@ import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.range.RangeValueSlider
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.range.ValueSlider
-import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.tree.Tree

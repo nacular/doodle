@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Color

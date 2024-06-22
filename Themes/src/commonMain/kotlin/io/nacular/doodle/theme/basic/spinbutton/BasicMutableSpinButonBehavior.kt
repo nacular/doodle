@@ -1,10 +1,10 @@
-package io.nacular.doodle.theme.basic.spinner
+package io.nacular.doodle.theme.basic.spinbutton
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.MutableSpinButton
-import io.nacular.doodle.controls.spinner.MutableSpinButtonBehavior
-import io.nacular.doodle.controls.spinner.MutableSpinButtonModel
-import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinbutton.MutableSpinButton
+import io.nacular.doodle.controls.spinbutton.MutableSpinButtonBehavior
+import io.nacular.doodle.controls.spinbutton.MutableSpinButtonModel
+import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -40,9 +40,9 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
         incrementLabel,
         decrementLabel,
     ).apply {
-        centerChanged += { spinner, old, new ->
-            (spinner as? MutableSpinButton<T, M>)?.let {
-                spinner.cancelEditing()
+        centerChanged += { spinButton, old, new ->
+            (spinButton as? MutableSpinButton<T, M>)?.let {
+                spinButton.cancelEditing()
                 setupEditingTriggers(old, new)
             }
         }
@@ -60,24 +60,24 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
 
     override fun render(view: SpinButton<T, M>, canvas: Canvas) { delegate.render(view, canvas) }
 
-    override fun editingStarted(spinner: MutableSpinButton<T, M>, value: T): EditOperation<T>? {
-        val center = delegate.visualizedValue(spinner)
+    override fun editingStarted(spinButton: MutableSpinButton<T, M>, value: T): EditOperation<T>? {
+        val center = delegate.visualizedValue(spinButton)
 
-        return spinner.editor?.edit(spinner, value, center!!)?.also { operation ->
-            operation()?.let { newCenter -> delegate.updateCenter(spinner, oldCenter = center, newCenter) }
+        return spinButton.editor?.edit(spinButton, value, center!!)?.also { operation ->
+            operation()?.let { newCenter -> delegate.updateCenter(spinButton, oldCenter = center, newCenter) }
         }
     }
 
-    override fun editingEnded(spinner: MutableSpinButton<T, M>) {
-        delegate.updateCenter(spinner)
+    override fun editingEnded(spinButton: MutableSpinButton<T, M>) {
+        delegate.updateCenter(spinButton)
     }
 
-    override fun changed(spinner: SpinButton<T, M>): Unit = delegate.changed(spinner)
+    override fun changed(spinButton: SpinButton<T, M>): Unit = delegate.changed(spinButton)
 
     override fun pressed(event: PointerEvent) {
-        event.source.let { spinner ->
-            if (event.clickCount >= 2 && spinner is MutableSpinButton<*,*>) {
-                spinner.startEditing()
+        event.source.let { spinButton ->
+            if (event.clickCount >= 2 && spinButton is MutableSpinButton<*,*>) {
+                spinButton.startEditing()
                 event.consume()
             }
         }
@@ -89,23 +89,23 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
     }
 }
 
-public open class SpinnerTextEditOperation<T>(
+public open class SpinButtonTextEditOperation<T>(
                 focusManager: FocusManager?,
                 mapper      : Encoder<T, String>,
-    private val spinner     : MutableSpinButton<T, *>,
+    private val spinButton  : MutableSpinButton<T, *>,
                 value       : T,
                 current     : View
-): GenericTextEditOperation<T, MutableSpinButton<T, *>>(focusManager, mapper, spinner, value, current) {
+): GenericTextEditOperation<T, MutableSpinButton<T, *>>(focusManager, mapper, spinButton, value, current) {
 
     private val changed = { _: SpinButton<T, *> ->
-        spinner.cancelEditing()
+        spinButton.cancelEditing()
     }
 
     init {
-        spinner.changed += changed
+        spinButton.changed += changed
     }
 
     override fun cancel() {
-        spinner.changed -= changed
+        spinButton.changed -= changed
     }
 }

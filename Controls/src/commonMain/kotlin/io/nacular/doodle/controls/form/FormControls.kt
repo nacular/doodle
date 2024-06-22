@@ -39,10 +39,10 @@ import io.nacular.doodle.controls.range.InvertibleFunction
 import io.nacular.doodle.controls.range.LinearFunction
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.IntSpinButtonModel
-import io.nacular.doodle.controls.spinner.ListSpinButtonModel
-import io.nacular.doodle.controls.spinner.SpinButton
-import io.nacular.doodle.controls.spinner.SpinButtonModel
+import io.nacular.doodle.controls.spinbutton.IntSpinButtonModel
+import io.nacular.doodle.controls.spinbutton.ListSpinButtonModel
+import io.nacular.doodle.controls.spinbutton.SpinButton
+import io.nacular.doodle.controls.spinbutton.SpinButtonModel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.toString

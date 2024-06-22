@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.spinner
+package io.nacular.doodle.controls.spinbutton
 
 import io.nacular.doodle.accessibility.SpinButtonRole
 import io.nacular.doodle.controls.ItemVisualizer
@@ -58,17 +58,17 @@ public abstract class SpinButtonBehavior<T, M: SpinButtonModel<T>>: Behavior<Spi
      * Called whenever the [SpinButton]'s selection changes. This is an explicit API to ensure that
      * behaviors receive the notification before listeners to [SpinButton.changed].
      *
-     * @param spinner that changed
+     * @param spinButton that changed
      */
-    public abstract fun changed(spinner: SpinButton<T, M>)
+    public abstract fun changed(spinButton: SpinButton<T, M>)
 
     /**
      * Called whenever [SpinButton.cellAlignment] changes.
      *
-     * @param spinner that changed
+     * @param spinButton that changed
      */
     @Suppress("UNUSED_PARAMETER")
-    public fun alignmentChanged(spinner: SpinButton<T, M>) {}
+    public fun alignmentChanged(spinButton: SpinButton<T, M>) {}
 }
 
 /**
