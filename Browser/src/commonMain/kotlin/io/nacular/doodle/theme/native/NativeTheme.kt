@@ -176,6 +176,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
                         instanceOrNull(),
                         instance(),
                         instanceOrNull(),
+                        instance(),
                         spellCheck,
                         autoComplete
                     )

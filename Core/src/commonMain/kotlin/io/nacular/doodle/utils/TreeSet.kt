@@ -1,8 +1,12 @@
 package io.nacular.doodle.utils
 
+import io.nacular.doodle.core.Internal
+
 /**
  * Created by Nicholas Eddy on 4/11/18.
  */
+/** @suppress */
+@Internal
 public expect class TreeSet<E>: Set<E> {
     public constructor(comparator: Comparator<E>                         )
     public constructor(comparator: Comparator<E>, elements: Collection<E>)
@@ -20,6 +24,8 @@ public expect class TreeSet<E>: Set<E> {
     }
 }
 
+/** @suppress */
+@Internal
 public expect class MutableTreeSet<E>: MutableSet<E> {
     public constructor(comparator: Comparator<E>                         )
     public constructor(comparator: Comparator<E>, elements: Collection<E>)

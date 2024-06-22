@@ -24,7 +24,7 @@ internal class TextMetricsImpl(
     private val htmlFactory   : HtmlFactory,
     private val elementRuler  : ElementRuler,
     private val fontSerializer: FontSerializer,
-    cacheLength   : Int
+                cacheLength   : Int
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
     private data class StyledTextInfo  (val text: StyledText,                    val textSpacing: TextSpacing = default)
@@ -73,11 +73,9 @@ internal class TextMetricsImpl(
         elementRuler.width(box)
     }
 
-    // Special check for blank added to avoid font black-holing if first text checked is empty string
-    override fun height(text: String, font: Font?) = if (text.isBlank()) 0.0 else fontHeights.getOrPut(font) {
-        elementRuler.size(textFactory.create(text, font, textSpacing = default)).also {
-            widths[TextInfo(text, font)] = it.width
-        }.height
+    // Special check for empty added to avoid font black-holing if first text checked is empty string
+    override fun height(text: String, font: Font?) = if (text.isEmpty()) 0.0 else fontHeights.getOrPut(font) {
+        elementRuler.height(textFactory.create(text, font, textSpacing = default))
     }
 
     override fun height(text: StyledText, textSpacing: TextSpacing): Double  {
@@ -91,21 +89,21 @@ internal class TextMetricsImpl(
     }
 
     override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
-        text          = text,
-        font          = font,
-        width         = width,
-        indent        = indent,
-        alignment     = Start,
-        lineSpacing   = lineSpacing,
+        text        = text,
+        font        = font,
+        width       = width,
+        indent      = indent,
+        alignment   = Start,
+        lineSpacing = lineSpacing,
         textSpacing = textSpacing,
     ))
 
     override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
-        text          = text,
-        width         = width,
-        indent        = indent,
-        alignment     = Start,
-        lineSpacing   = lineSpacing,
+        text        = text,
+        width       = width,
+        indent      = indent,
+        alignment   = Start,
+        lineSpacing = lineSpacing,
         textSpacing = textSpacing,
     ))
 
@@ -115,10 +113,10 @@ internal class TextMetricsImpl(
 
         return when {
             notSupported -> elementRuler.size(textFactory.create(text, font, textSpacing)).width
-            else                                           -> {
+            else         -> {
                 renderingContext.font          = fontSerializer(font)
-                renderingContext.wordSpacing   = if (textSpacing.wordSpacing   > 0.0) "${textSpacing.wordSpacing}px"   else ""
-                renderingContext.letterSpacing = if (textSpacing.letterSpacing > 0.0) "${textSpacing.letterSpacing}px" else ""
+                renderingContext.wordSpacing   = "${max(0.0, textSpacing.wordSpacing  )}px"
+                renderingContext.letterSpacing = "${max(0.0, textSpacing.letterSpacing)}px"
 
                 renderingContext.measureText(text).width
             }

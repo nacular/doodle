@@ -711,7 +711,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                                 require(it !== this@View) { "cannot add to self" }
                                 require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
 
+                                val oldFont = it.font
                                 it.parent = this@View
+
+                                if (it.font != oldFont) {
+                                    // Special case where a child's font changes b/c of its new parent
+                                    it.styleChanged { it.actualFont == null }
+                                }
                             }
                         }
                         else      -> {}

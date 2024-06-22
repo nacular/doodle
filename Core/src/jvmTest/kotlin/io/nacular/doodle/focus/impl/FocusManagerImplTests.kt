@@ -2,6 +2,8 @@ package io.nacular.doodle.focus.impl
 
 import io.mockk.Runs
 import io.mockk.every
+import io.mockk.impl.JvmMockKGateway
+import io.mockk.impl.instantiation.JvmAnyValueGenerator
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
@@ -16,6 +18,8 @@ import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
 import io.nacular.doodle.utils.PropertyObserver
+import org.junit.jupiter.api.BeforeAll
+import kotlin.reflect.KClass
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.expect
@@ -61,8 +65,6 @@ class FocusManagerImplTests {
                 val listener = mockk<(FocusManager, View?, View?) -> Unit>()
 
                 focusChanged += listener
-
-                every { view.parent } returns null
 
                 requestFocus(view)
 
@@ -443,5 +445,21 @@ class FocusManagerImplTests {
         verify(exactly = 1) { focusedView.focusLost(newFocusOwner) }
 
         newFocusOwner?.let { verify(exactly = 1) { it.focusGained(focusedView) } }
+    }
+
+    private companion object {
+        private class NullableValueGenerator(voidInstance: Any): JvmAnyValueGenerator(voidInstance) {
+            override fun anyValue(cls: KClass<*>, isNullable: Boolean, orInstantiateVia: () -> Any?): Any? {
+                if (isNullable) return null
+
+                return super.anyValue(cls, isNullable, orInstantiateVia)
+            }
+        }
+
+        @JvmStatic @BeforeAll fun setupGateway() {
+            JvmMockKGateway.anyValueGeneratorFactory = { voidInstance ->
+                NullableValueGenerator(voidInstance)
+            }
+        }
     }
 }

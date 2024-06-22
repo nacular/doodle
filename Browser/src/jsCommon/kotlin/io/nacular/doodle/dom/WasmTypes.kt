@@ -16,7 +16,7 @@ package io.nacular.doodle.dom
 //    public actual val length: Int
 //}
 
-internal actual fun JsArray<out JsString>.contains(value: JsString): Boolean {
+internal actual operator fun JsArray<out JsString>.contains(value: JsString): Boolean {
     (0..this.length).forEach {
         if (this[it] == value) return true
     }

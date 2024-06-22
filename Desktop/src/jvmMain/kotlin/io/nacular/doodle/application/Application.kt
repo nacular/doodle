@@ -4,6 +4,8 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.WindowGroup
 import io.nacular.doodle.core.WindowGroupImpl
 import io.nacular.doodle.core.WindowImpl
+import io.nacular.doodle.core.impl.DisplayFactory
+import io.nacular.doodle.core.impl.DisplayFactoryImpl
 import io.nacular.doodle.datatransport.dragdrop.DragManager
 import io.nacular.doodle.deviceinput.KeyboardFocusManager
 import io.nacular.doodle.drawing.TextMetrics
@@ -131,23 +133,26 @@ private open class ApplicationHolderImpl protected constructor(
         bind<Strand>            () with singleton { StrandImpl            (instance(), instance()            ) }
         bind<Scheduler>         () with singleton { SchedulerImpl         (instance(), instance()            ) }
         bind<TextMetrics>       () with singleton { TextMetricsImpl       (instance(), instance()            ) }
+        bind<DisplayFactory>    () with singleton { DisplayFactoryImpl() }
         bind<AnimationScheduler>() with singleton { AnimationSchedulerImpl(instance(), instance(), instance()) }
 
         bind<WindowGroup>() with singleton {
             WindowGroupImpl { undecorated ->
                 WindowImpl(
-                    appScope       = instance(),
-                    defaultFont    = instance(),
-                    uiDispatcher   = instance(),
-                    fontCollection = instance(),
-                    graphicsDevices = { layer ->
+                    appScope             = instance(),
+                    defaultFont          = instance(),
+                    uiDispatcher         = instance(),
+                    fontCollection       = instance(),
+                    graphicsDevices      = { layer ->
                         RealGraphicsDevice(RealGraphicsSurfaceFactory(layer, instance(), instance()))
                     },
-                    renderManagers = { display ->
+                    renderManagers       = { display ->
                         DesktopRenderManagerImpl(display, instance(), instanceOrNull(), instanceOrNull())
                     },
-                    undecorated = undecorated,
-                    size = Toolkit.getDefaultToolkit().screenSize.run { Size(width, height) }
+                    undecorated          = undecorated,
+                    size                 = Toolkit.getDefaultToolkit().screenSize.run { Size(width, height) },
+                    accessibilityManager = { instanceOrNull() },
+                    displays             = instance(),
                 )
             }
         }

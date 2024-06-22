@@ -18,6 +18,8 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.event.PointerListener
+import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -26,6 +28,7 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
@@ -127,10 +130,18 @@ public open class Table<T, M: ListModel<T>>(
             override fun iterator() = model.map(extractor).iterator()
         }
 
-        override val view: io.nacular.doodle.controls.list.List<R, *> = io.nacular.doodle.controls.list.List(FieldModel(model, extractor), object: ItemVisualizer<R, Any> {
-            override fun invoke(item: R, previous: View?, context: Any) = object: View() {}
-        }, selectionModel, scrollCache = scrollCache, fitContent = emptySet()).apply {
-            acceptsThemes = false
+        override val view: io.nacular.doodle.controls.list.List<R, *> by lazy {
+            io.nacular.doodle.controls.list.List(
+                FieldModel(model, extractor),
+                object: ItemVisualizer<R, Any> {
+                    override fun invoke(item: R, previous: View?, context: Any) = object : View() {}
+                },
+                selectionModel,
+                scrollCache = scrollCache,
+                fitContent = emptySet()
+            ).apply {
+                acceptsThemes = false
+            }
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
@@ -306,6 +317,13 @@ public open class Table<T, M: ListModel<T>>(
     internal val headerDirty: (         ) -> Unit = { header.rerender        () }
     internal val footerDirty: (         ) -> Unit = { footer.rerender        () }
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
+
+    internal val bodyPointerFilter        : Pool<PointerListener>       get() = (panel.content ?: panel).pointerFilter
+    internal val headerPointerFilter      : Pool<PointerListener>       get() = header.pointerFilter
+    internal val footerPointerFilter      : Pool<PointerListener>       get() = footer.pointerFilter
+    internal val bodyPointerMotionFilter  : Pool<PointerMotionListener> get() = (panel.content ?: panel).pointerMotionFilter
+    internal val headerPointerMotionFilter: Pool<PointerMotionListener> get() = header.pointerMotionFilter
+    internal val footerPointerMotionFilter: Pool<PointerMotionListener> get() = footer.pointerMotionFilter
 
     init {
         parentChange += { _,_,new ->

@@ -15,6 +15,7 @@ internal expect abstract external class SVGElement(): Element, ElementCSSInlineS
 internal expect abstract external class SVGRectElement          : SVGGeometryElement
 internal expect abstract external class SVGPathElement          : SVGGeometryElement
 internal expect abstract external class SVGTextElement          : SVGTextPositioningElement
+internal expect abstract external class SVGTSpanElement         : SVGTextPositioningElement
 internal expect abstract external class SVGCircleElement        : SVGGeometryElement
 internal expect abstract external class SVGEllipseElement       : SVGGeometryElement
 internal expect abstract external class SVGPolygonElement       : SVGGeometryElement
@@ -32,7 +33,9 @@ internal class BoundingBoxOptions(
 
 internal expect abstract external class SVGGraphicsElement: SVGElement
 
-internal expect fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect
+internal expect fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect
+
+internal fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = this.getBBox_(options)
 
 internal expect abstract external class SVGGeometryElement: SVGGraphicsElement {
     fun getTotalLength(): Float

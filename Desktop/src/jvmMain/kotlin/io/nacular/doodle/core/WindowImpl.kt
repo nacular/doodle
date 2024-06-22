@@ -1,12 +1,15 @@
 package io.nacular.doodle.core
 
+import io.nacular.doodle.accessibility.AccessibilityManagerSkiko
 import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuCreationContext
 import io.nacular.doodle.controls.popupmenu.MenuItem
 import io.nacular.doodle.core.MenuBar.CreationContext
 import io.nacular.doodle.core.MenuBar.Menu
+import io.nacular.doodle.core.impl.DisplayFactory
 import io.nacular.doodle.core.impl.DisplayImpl
+import io.nacular.doodle.core.impl.DisplaySkiko
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
@@ -34,6 +37,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import javax.accessibility.Accessible
 import javax.swing.JFrame
 import javax.swing.JMenu
 import javax.swing.JMenuBar
@@ -43,14 +47,16 @@ import kotlin.system.exitProcess
 import javax.swing.Icon as SwingIcon
 
 internal class WindowImpl(
-                appScope       : CoroutineScope,
-    private val defaultFont    : Font,
-                uiDispatcher   : CoroutineDispatcher,
-                fontCollection : FontCollection,
-                graphicsDevices: (SkiaLayer  ) -> RealGraphicsDevice<RealGraphicsSurface>,
-    private val renderManagers : (DisplayImpl) -> RenderManager,
-                size           : Size,
-                undecorated    : Boolean = false
+                appScope            : CoroutineScope,
+    private val defaultFont         : Font,
+                uiDispatcher        : CoroutineDispatcher,
+                fontCollection      : FontCollection,
+                accessibilityManager: () -> AccessibilityManagerSkiko?,
+                graphicsDevices     : (SkiaLayer  ) -> RealGraphicsDevice<RealGraphicsSurface>,
+    private val renderManagers      : (DisplayImpl) -> RenderManager,
+                displays            : DisplayFactory,
+                size                : Size,
+                undecorated         : Boolean = false
 ): Window {
     private inner class MenuBarImpl: MenuBar {
         override fun invoke(block: CreationContext.() -> Unit) {
@@ -159,7 +165,13 @@ internal class WindowImpl(
 
     internal lateinit var renderManager: RenderManager
 
-    val skiaLayer = SkiaLayer().apply {
+    private val accessible by lazy {
+        Accessible {
+            accessibilityManager()?.accessibilityContext(display)
+        }
+    }
+
+    val skiaLayer = SkiaLayer(externalAccessibleFactory = { accessible }).apply {
         addView(CustomSkikoView())
     }
 
@@ -182,7 +194,7 @@ internal class WindowImpl(
     override var focusable            get() = skiaWindow.focusableWindowState; set(new) { skiaWindow.focusableWindowState = new }
     override var triesToAlwaysBeOnTop get() = skiaWindow.isAlwaysOnTop;        set(new) { skiaWindow.isAlwaysOnTop        = new }
 
-    override val display: Display
+    override val display: DisplaySkiko
     override val menuBar: MenuBar by lazy { MenuBarImpl() }
 
     init {
@@ -192,7 +204,7 @@ internal class WindowImpl(
         skiaWindow.pack()
         skiaWindow.isVisible = true
 
-        display = DisplayImpl(
+        display = displays(
             appScope,
             uiDispatcher,
             skiaLayer,
@@ -301,7 +313,13 @@ internal class WindowGroupImpl(private val windowFactory: (Boolean) -> WindowImp
         windows.forEach { it.start() }
     }
 
-    fun owner(of: View): WindowImpl? = windows.find { it.display.ancestorOf(of) }
+    fun owner(of: View): WindowImpl? {
+        val rootAncestor by lazy { of.mostRecentAncestor { it.parent == null } }
+
+        return windows.find {
+            it.display.ancestorOf(of) || rootAncestor in (it.display as DisplayImpl).popups
+        }
+    }
 
     fun shutdown() {
         while (windows.isNotEmpty()) {

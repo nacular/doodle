@@ -23,6 +23,7 @@ import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStylerImpl
+import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.document
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.impl.ElementRulerImpl
@@ -47,6 +48,8 @@ import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.drawing.impl.TextFactoryImpl
 import io.nacular.doodle.drawing.impl.TextMetricsImpl
+import io.nacular.doodle.drawing.impl.TextVerticalAligner
+import io.nacular.doodle.drawing.impl.TextVerticalAlignerImpl
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.focus.impl.FocusManagerImpl
@@ -183,15 +186,19 @@ private open class ApplicationHolderImpl protected constructor(
 
     private val onblur = { event: Event ->
         when {
-            // FIXME: For some reason the event coming back in WASM is an Event
-            event is FocusEvent && targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = false
+            // For some reason an Event is given for this when registered to document.body,
+            // so treat that case a window focus loss by default.
+            event is FocusEvent -> if (targetOutsideApp(event.relatedTarget)) (focusManager as? FocusManagerImpl)?.enabled = false
+            else                ->  (focusManager as? FocusManagerImpl)?.enabled = false
         }
     }
 
     private val onfocus = { event: Event ->
         when {
-            // FIXME: For some reason the event coming back in WASM is an Event
-            event is FocusEvent && targetOutsideApp(event.relatedTarget) -> (focusManager as? FocusManagerImpl)?.enabled = true
+            // For some reason an Event is given for this when registered to document.body,
+            // so treat that case a window focus gain by default.
+            event is FocusEvent -> if (targetOutsideApp(event.relatedTarget)) (focusManager as? FocusManagerImpl)?.enabled = true
+            else                -> (focusManager as? FocusManagerImpl)?.enabled = true
         }
     }
 
@@ -208,31 +215,31 @@ private open class ApplicationHolderImpl protected constructor(
             else          -> root.id.takeIf { it.isNotBlank() } ?: "${Random.nextInt()}"
         }
 
-        val userAgent = window.navigator.userAgent
-        val isSafari  = "Safari" in userAgent && "Chrome" !in userAgent
-
-        bind<Timer>                                      () with singleton { PerformanceTimer          (window.performance                                                    ) }
-        bind<Scene>                                      () with singleton { SingleDisplayScene        (instance()                                                            ) }
-        bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                ) }
-        bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                          ) }
-        bind<Scheduler>                                  () with singleton { SchedulerImpl             (window, instance()                                                    ) }
-        bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                        ) }
-        bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                              ) }
-        bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                        ) }
-        bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                            ) }
-        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000    ) }
-        bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                            ) }
-        bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode      ) }
-        bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), isSafari  ) }
-        bind<RenderManager>                              () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()) }
-        bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                            ) }
-        bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (window                                                                ) } // FIXME: Provide fallback in case not supported
-        bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                            ) }
-        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance(), instance()                                    ) }
+        bind<Timer>                                      () with singleton { PerformanceTimer          (window.performance                                                                       ) }
+        bind<Scene>                                      () with singleton { SingleDisplayScene        (instance()                                                                               ) }
+        bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                                   ) }
+        bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                                             ) }
+        bind<Scheduler>                                  () with singleton { SchedulerImpl             (window, instance()                                                                       ) }
+        bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                                           ) }
+        bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                                                 ) }
+        bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                                           ) }
+        bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                                               ) }
+        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000                       ) }
+        bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                                               ) }
+        bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode                         ) }
+        bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), instance(), isSafari(window) ) }
+        bind<RenderManager>                              () with singleton { RenderManagerImpl         (instance(), instance(), instanceOrNull(), instanceOrNull(), instance()                   ) }
+        bind<FontSerializer>                             () with singleton { FontSerializerImpl        (instance()                                                                               ) }
+        bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (window                                                                                   ) } // FIXME: Provide fallback in case not supported
+        bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                                               ) }
+        bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance(), instance()                                                       ) }
+        bind<TextVerticalAligner>                        () with singleton { TextVerticalAlignerImpl   (defaultFontSize, instance(), instance(), cacheLength = 100                               ) }
 
         // TODO: Can this be handled better?
-        bind<DisplayImpl>    () with singleton { instance<Display>     () as DisplayImpl }
-        bind<InternalDisplay>() with singleton { instance<DisplayImpl> ()                }
+        bind<DisplayImpl>     () with singleton { instance<Display>     () as DisplayImpl      }
+        bind<InternalDisplay> () with singleton { instance<DisplayImpl> ()                     }
+        bind<TextFactoryImpl> () with singleton { instance<TextFactory> () as TextFactoryImpl  }
+        bind<ElementRulerImpl>() with singleton { instance<ElementRuler>() as ElementRulerImpl }
 
         importAll(modules, allowOverride = true)
     }

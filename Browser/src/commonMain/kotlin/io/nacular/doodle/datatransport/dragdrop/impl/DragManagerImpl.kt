@@ -24,6 +24,7 @@ import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HTMLInputElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.contains
+import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.toJsString
 import io.nacular.doodle.drawing.Canvas
@@ -71,7 +72,7 @@ internal class DragManagerImpl(
     }
 
     private fun contains(dataTransfer: DataTransfer, mimeType: Files): Boolean {
-        if (dataTransfer.types.contains("Files".toJsString())) {
+        if ("Files".toJsString() !in dataTransfer.types) {
             return false
         }
 

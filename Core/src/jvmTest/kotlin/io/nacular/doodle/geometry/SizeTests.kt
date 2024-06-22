@@ -1,7 +1,6 @@
 package io.nacular.doodle.geometry
 
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
 /**
@@ -12,9 +11,9 @@ class SizeTests {
     fun `default == empty`() = expect(Size.Empty) { Size(0, 0) }
 
     @Test
-    fun `negative side fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Size(width = -20.0, height = 1.0) }
-        assertFailsWith(IllegalArgumentException::class) { Size(width = 1.0, height = -20.0) }
+    fun `negative side goes to 0`() {
+        expect(Size(0, 1)) { Size(width = -20.0, height =   1.0) }
+        expect(Size(1, 0)) { Size(width =   1.0, height = -20.0) }
     }
 
     @Test

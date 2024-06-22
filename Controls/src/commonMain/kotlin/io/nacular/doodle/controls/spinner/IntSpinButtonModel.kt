@@ -1,6 +1,6 @@
 package io.nacular.doodle.controls.spinner
 
-public open class IntSpinnerModel(private val progression: IntProgression, start: Int = progression.first): CommonSpinnerModel<Int>() {
+public open class IntSpinButtonModel(private val progression: IntProgression, start: Int = progression.first): CommonSpinnerModel<Int>() {
 
     override val hasNext    : Boolean get() = value + progression.step <= progression.last
     override val hasPrevious: Boolean get() = value - progression.step >= progression.first
@@ -18,6 +18,6 @@ public open class IntSpinnerModel(private val progression: IntProgression, start
         }
 }
 
-public class MutableIntSpinnerModel(progression: IntProgression, start: Int = progression.first): IntSpinnerModel(progression, start), MutableSpinnerModel<Int> {
+public class MutableIntSpinButtonModel(progression: IntProgression, start: Int = progression.first): IntSpinButtonModel(progression, start), MutableSpinButtonModel<Int> {
     override var value: Int get() = super.value; set(new) { super.value = new }
 }

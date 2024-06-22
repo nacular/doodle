@@ -2,7 +2,6 @@ package io.nacular.doodle.skia
 
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.impl.FontImpl
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
@@ -53,9 +52,11 @@ internal fun AffineTransform.skia44() = Matrix44(
 )
 
 internal fun FontImpl.textStyle() = TextStyle().apply {
-        fontSize     = textStyle.fontSize
-        typeface     = textStyle.typeface
-        fontStyle    = textStyle.fontStyle
-        fontFamilies = textStyle.fontFamilies
-        baselineMode = textStyle.baselineMode
+        fontSize      = textStyle.fontSize
+        typeface      = textStyle.typeface
+        fontStyle     = textStyle.fontStyle
+        wordSpacing   = textStyle.wordSpacing
+        fontFamilies  = textStyle.fontFamilies
+        baselineMode  = textStyle.baselineMode
+        letterSpacing = textStyle.letterSpacing
 }

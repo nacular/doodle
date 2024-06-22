@@ -17,7 +17,7 @@ import io.nacular.doodle.utils.observable
  */
 public interface Theme {
     /**
-     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s and [Display]s.
+     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s and [Display]s within a [Scene].
      *
      * @param scene to apply the Theme to
      */
@@ -31,6 +31,25 @@ public interface Theme {
     public fun install(view: View)
 
     // FIXME: Add uninstall once there's a clean way to support that given ad hoc behavior registration
+}
+
+/**
+ * A collection of [Display]s and the [View]s they hold. Each app has a [Scene] that represents the content it holds.
+ */
+public abstract class Scene @Internal public constructor() {
+    /**
+     * Visit all Views in the scene.
+     *
+     * @param block called for each View
+     */
+    public abstract fun forEachView(block: (View   ) -> Unit)
+
+    /**
+     * Visit all Displays in the scene.
+     *
+     * @param block called for each Display
+     */
+    public abstract fun forEachDisplay(block: (Display) -> Unit)
 }
 
 /**
@@ -60,13 +79,6 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 
 /** @suppress */
 @Internal
-public interface Scene {
-    public fun forEachView   (block: (View   ) -> Unit)
-    public fun forEachDisplay(block: (Display) -> Unit)
-}
-
-/** @suppress */
-@Internal
 public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() {
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
@@ -90,7 +102,7 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
 
 /** @suppress */
 @Internal
-public class SingleDisplayScene(private val display: InternalDisplay): Scene {
+public class SingleDisplayScene(private val display: InternalDisplay): Scene() {
 
     private class DummyRoot(children: List<View>): Node<View> {
         override val value    = object: View() {}

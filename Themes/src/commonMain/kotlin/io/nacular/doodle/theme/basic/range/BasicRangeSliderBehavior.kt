@@ -24,7 +24,7 @@ public class BasicRangeSliderBehavior<T>(
                     grooveThicknessRatio: Float                     = 0.6f,
         private val showTicks           : TickPresentation?         = null,
                     focusManager        : FocusManager?             = null
-): AbstractRangeSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
+): AbstractRangeSliderBehavior<T>(focusManager) where T: Comparable<T> {
     public constructor(
             barFill             : Paint             = Lightgray.paint,
             startKnobFill       : Paint             = Blue.paint,
@@ -46,8 +46,8 @@ public class BasicRangeSliderBehavior<T>(
 
         val handleSize          = handleSize(view)
         val offset              = handleSize / 2
-        val startHandlePosition = endHandlePosition(view)
-        val endHandlePosition   = startHandlePosition  (view)
+        val startHandlePosition = startHandlePosition(view)
+        val endHandlePosition   = endHandlePosition  (view)
 
         val grooveInset = (1 - grooveThicknessRatio) * when (view.orientation) {
             Horizontal -> view.height
@@ -89,7 +89,7 @@ public class BasicRangeSliderBehavior<T>(
     private fun adjust(view: RangeSlider<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)
 
     public companion object {
-        public inline operator fun <T> invoke(
+        public operator fun <T> invoke(
             barFill             : Paint         = Lightgray.paint,
             knobFill            : Paint         = Blue.paint,
             rangeFill           : Paint         = knobFill,

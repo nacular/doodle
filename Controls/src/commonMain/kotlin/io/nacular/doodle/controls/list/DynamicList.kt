@@ -115,11 +115,16 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         }
 
         if (removed.size > added.size && oldVisibleRange.size != (firstVisibleItem..lastVisibleItem).size) {
+            var numRemoved  = 0
             val numToRemove = oldVisibleRange.size - (firstVisibleItem..lastVisibleItem).size
+
             children.batch {
-                for (it in 0 until numToRemove) {
-                    if (size > 0) {
-                        removeAt(size - 1)
+                val it = iterator()
+
+                while (it.hasNext() && numRemoved < numToRemove) {
+                    if (it.next().bounds intersects bounds.atOrigin) {
+                        it.remove()
+                        ++numRemoved
                     }
                 }
             }

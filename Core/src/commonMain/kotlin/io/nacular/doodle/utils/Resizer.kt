@@ -19,6 +19,7 @@ import io.nacular.doodle.system.Cursor.Companion.SResize
 import io.nacular.doodle.system.Cursor.Companion.SeResize
 import io.nacular.doodle.system.Cursor.Companion.SwResize
 import io.nacular.doodle.system.Cursor.Companion.WResize
+import io.nacular.doodle.system.SystemPointerEvent.Button.Button2
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Drag
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
@@ -26,32 +27,71 @@ import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.North
 import io.nacular.doodle.utils.Direction.South
 import io.nacular.doodle.utils.Direction.West
+import io.nacular.doodle.utils.Resizer.Phase
+import io.nacular.doodle.utils.Resizer.Phase.EventBubbling
+import io.nacular.doodle.utils.Resizer.Phase.EventSinking
 import kotlin.math.max
 
+/**
+ * Utility for resizing/moving a View. It supports compass direction resizing and dragging.
+ *
+ * @param view         to be resized/moved
+ * @param manageCursor indicates whether the cursor should be updated by the Resizer
+ * @param movable      indicates whether the Resizer will handle drag events to move [view]
+ * @param during       [Phase] during which the Resizer is triggered. [EventSinking] allows the Resizer to get events **before** the View and its children
+ */
 public class Resizer(
     private val view        : View,
     private val manageCursor: Boolean = true,
-    public  var movable     : Boolean = true
+    public  var movable     : Boolean = true,
+                during      : Phase   = EventBubbling,
 ): PointerListener, PointerMotionListener {
 
+    /**
+     * Event phase when a Resizer will trigger
+     */
+    public enum class Phase { EventBubbling, EventSinking }
+
     init {
-        view.pointerChanged       += this
-        view.pointerMotionChanged += this
+        when (during) {
+            EventBubbling -> {
+                view.pointerChanged       += this
+                view.pointerMotionChanged += this
+            }
+            EventSinking -> {
+                view.pointerFilter        += this
+                view.pointerMotionFilter  += this
+            }
+        }
     }
 
-    public var directions : Set<Direction> = setOf(North, East, South, West)
-    public var hotspotSize: Double         = 5.0
+    /**
+     * Set of directions the Resizer will resize its View in.
+     */
+    public var directions: Set<Direction> = setOf(North, East, South, West)
+
+    /**
+     * Size of the resize zone when adjusting the View's width/height.
+     */
+    public var hotspotSize: Double = 5.0
+
+    /**
+     * Determines whether pointer release events are consumed when the Resizer has done a drag.
+     */
+    public var suppressReleaseEvent: Boolean = true
 
     private var dragMode             = mutableSetOf<Direction>()
     private var oldCursor            = view.cursor
     private var initialSize          = Empty
+    private var consumedDrag         = false
+    private var activePointer        = null as Pointer?
     private var initialPosition      = Origin
     private var ignorePropertyChange = false
-    private var activePointer        = null as Pointer?
-    private var consumedDrag         = false
 
     override fun released(event: PointerEvent) {
-        if (activePointerChanged(event) && activeInteraction(event)?.state == Up) {
+        val interaction = activeInteraction(event)
+
+        if (activePointerChanged(event) && interaction?.state == Up) {
             captureInitialState(event)
             if (consumedDrag) {
                 event.consume()
@@ -86,7 +126,6 @@ public class Resizer(
 
     override fun dragged(event: PointerEvent) {
         event.changedInteractions.find { it.pointer == activePointer }?.let { activeInteraction ->
-            val delta         = view.toLocal(activeInteraction.location, event.target) - initialPosition
             val deltaInParent = view.toParent(view.toLocal(activeInteraction.location, event.target)) - view.toParent(initialPosition)
 
             if (dragMode.isEmpty() && movable) {
@@ -103,6 +142,7 @@ public class Resizer(
                 val minWidth  = view.minimumSize.width
                 val minHeight = view.minimumSize.height
                 var consume   = false
+                val delta     = view.toLocal(activeInteraction.location, event.target) - initialPosition
 
                 when {
                     West in dragMode && West in directions -> {
@@ -147,7 +187,7 @@ public class Resizer(
 
         dragMode.clear()
 
-        val interaction = event.targetInteractions.firstOrNull { it.state == Down || it.state == Drag }
+        val interaction = if (Button2 in event.buttons) null else  event.targetInteractions.firstOrNull { it.state == Down || it.state == Drag }
 
         if (interaction != null) {
             activePointer   = interaction.pointer
@@ -155,13 +195,13 @@ public class Resizer(
             initialSize     = view.size
 
             when {
-                initialPosition.y <= hotspotSize               -> dragMode.plusAssign(North)
-                initialPosition.y >= view.height - hotspotSize -> dragMode.plusAssign(South)
+                initialPosition.y <= hotspotSize               -> dragMode += North
+                initialPosition.y >= view.height - hotspotSize -> dragMode += South
             }
 
             when {
-                initialPosition.x >= view.width - hotspotSize -> dragMode.plusAssign(East)
-                initialPosition.x <= hotspotSize              -> dragMode.plusAssign(West)
+                initialPosition.x >= view.width - hotspotSize -> dragMode += East
+                initialPosition.x <= hotspotSize              -> dragMode += West
             }
 
             if (dragMode.isNotEmpty() || movable) {
@@ -170,7 +210,10 @@ public class Resizer(
 
             updateCursor(interaction, event)
         } else {
-            view.cursor = oldCursor
+            when (val upInteraction = event.targetInteractions.firstOrNull { it.state == Up }) {
+                null -> view.cursor = oldCursor
+                else -> updateCursor(upInteraction, event)
+            }
         }
     }
 

@@ -24,7 +24,13 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Created by Nicholas Eddy on 10/3/18.
+ * A [Behavior]<[Button]> that handles most of the commonly expected behavior of buttons with text. This makes it a good base for
+ * more complex behaviors.
+ *
+ * @param textMetrics used for measuring the button's text
+ * @param defaultFont used for buttons without a Font
+ * @param insets that determine padding around text.
+ * @param focusManager used to request focus
  */
 public abstract class CommonTextButtonBehavior<in T: Button>(
         private val textMetrics : TextMetrics,
@@ -137,12 +143,27 @@ public abstract class CommonTextButtonBehavior<in T: Button>(
     public fun font(button: Button): Font? = button.font ?: defaultFont
 }
 
+/**
+ * Creates a [CommonTextButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param textMetrics used by the backing behavior
+ * @param render called when updating the button
+ * @return a new [CommonTextButtonBehavior]
+ */
 public inline fun <T: Button> simpleTextButtonRenderer(
     textMetrics : TextMetrics,
     crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = null) {
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }
 
+/**
+ * Creates a [CommonTextButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param textMetrics used by the backing behavior
+ * @param focusManager used by the backing behavior
+ * @param render called when updating the button
+ * @return a new [CommonTextButtonBehavior]
+ */
 public inline fun <T: Button> simpleTextButtonRenderer(
     textMetrics : TextMetrics,
     focusManager: FocusManager?,
@@ -150,10 +171,39 @@ public inline fun <T: Button> simpleTextButtonRenderer(
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
 }
 
+/**
+ * Creates a [CommonTextButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param textMetrics used by the backing behavior
+ * @param focusManager used by the backing behavior
+ * @param insets used by the backing behavior
+ * @param render called when updating the button
+ * @return a new [CommonTextButtonBehavior]
+ */
 public inline fun <T: Button> simpleTextButtonRenderer(
     textMetrics : TextMetrics,
     focusManager: FocusManager? = null,
     insets      : Insets        = None,
     crossinline render: CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager, insets = insets) {
     override fun render(view: T, canvas: Canvas) = render(this, view, canvas)
+}
+
+/**
+ * Creates a [CommonTextButtonBehavior]<[Button]> that uses [render] to draw a button's contents.
+ *
+ * @param textMetrics used by the backing behavior
+ * @param focusManager used by the backing behavior
+ * @param insets used by the backing behavior
+ * @param contains determines whether a [Point] is within the button
+ * @param render called when updating the button
+ * @return a new [CommonTextButtonBehavior]
+ */
+public inline fun <T: Button> simpleTextButtonRenderer(
+    textMetrics         : TextMetrics,
+    focusManager        : FocusManager? = null,
+    insets              : Insets        = None,
+    crossinline contains: (T, Point) -> Boolean,
+    crossinline render  : CommonTextButtonBehavior<T>.(button: T, canvas: Canvas) -> Unit): Behavior<T> = object: CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager, insets = insets) {
+    override fun render  (view: T, canvas: Canvas) = render  (this, view, canvas)
+    override fun contains(view: T, point : Point ) = contains(view, point       )
 }

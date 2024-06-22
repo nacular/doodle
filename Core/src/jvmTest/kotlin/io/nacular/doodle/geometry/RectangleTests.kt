@@ -3,7 +3,6 @@ package io.nacular.doodle.geometry
 import io.nacular.doodle.layout.Insets
 import org.junit.jupiter.api.Test
 import kotlin.math.max
-import kotlin.test.assertFailsWith
 import kotlin.test.expect
 
 /**
@@ -37,8 +36,8 @@ class RectangleTests {
 
     @Test
     fun `negative side fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Rectangle(width = -20.0, height = 1.0) }
-        assertFailsWith(IllegalArgumentException::class) { Rectangle(width = 1.0, height = -20.0) }
+        expect(Rectangle(0,1)) { Rectangle(width = -20.0, height =   1.0) }
+        expect(Rectangle(1,0)) { Rectangle(width =   1.0, height = -20.0) }
     }
 
     @Test

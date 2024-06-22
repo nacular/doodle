@@ -12,7 +12,10 @@ public interface Image {
 
     /** The source of the image */
     public val source: String
+
+    /** Description of the image */
+    public val description: String
 }
 
-public inline val Image.width: Double get () = size.width
+public inline val Image.width : Double get () = size.width
 public inline val Image.height: Double get() = size.height

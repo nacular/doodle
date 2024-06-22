@@ -5,7 +5,6 @@ import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.Display
-import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
@@ -29,6 +28,7 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.skia.skia33
 import io.nacular.doodle.skia.skia44
 import io.nacular.doodle.system.Cursor
+import io.nacular.doodle.theme.native.toDoodle
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaLayer
+import java.awt.Component
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import kotlin.coroutines.CoroutineContext
@@ -64,7 +65,7 @@ internal class DisplayImpl(
     private  val defaultFont   : Font,
     private  val fontCollection: FontCollection,
     internal val device        : GraphicsDevice<RealGraphicsSurface>,
-): InternalDisplay {
+): DisplaySkiko {
     override var insets = Insets.None
 
     override var layout: Layout? by Delegates.observable(null) { _, _, _ ->
@@ -113,6 +114,11 @@ internal class DisplayImpl(
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
     override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
         private set
+
+    override val indexInParent: Int
+        get() = skiaLayer.skikoView?.let { skiaLayer.components.indexOf(it as Component) } ?: -1
+
+    override val locationOnScreen get() = skiaLayer.locationOnScreen.toDoodle()
 
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
@@ -278,7 +284,7 @@ internal class DisplayImpl(
         }
     }
 
-    fun shutdown() {
+    override fun shutdown() {
         shutDown = true
 
         children.clear()

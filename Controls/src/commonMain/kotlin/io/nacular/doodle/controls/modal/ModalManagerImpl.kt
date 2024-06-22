@@ -113,26 +113,34 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
     override suspend fun <T> invoke(contents: ModalContext<T>.() -> ModalType): T = suspendCoroutine { coroutine ->
         try {
-            val modal = ModalContextImpl<T> { result ->
-                coroutine.resume(result)
+            var modalClosed = false
+            lateinit var modal: ModalContextImpl<T>
 
-                var previousFocusOwner: View?
+            modal = ModalContextImpl { result ->
+                if (!modalClosed) {
+                    modalClosed = true
 
-                modalStack.removeLast().let {
-                    popupManager.hide(it.modalType.view)
-                    popupManager.hide(it.overlay       )
-                    it.unregisterListeners()
-                    previousFocusOwner = it.focusOwner
-                }
+                    coroutine.resume(result)
 
-                modalStack.forEach {
-                    it.overlay.visible = true
-                    it.updateBackground()
-                }
+                    var previousFocusOwner: View? = null
 
-                modalStack.lastOrNull()?.let { modal ->
-                    modal.registerListeners()
-                    previousFocusOwner?.let { focusManager?.requestFocus(it) }
+                    modalStack.findLast { it == modal }?.let {
+                        popupManager.hide(it.modalType.view)
+                        popupManager.hide(it.overlay)
+                        it.unregisterListeners()
+                        previousFocusOwner = it.focusOwner
+                        modalStack.remove(it)
+                    }
+
+                    modalStack.forEach {
+                        it.overlay.visible = true
+                        it.updateBackground()
+                    }
+
+                    modalStack.lastOrNull()?.let { modal ->
+                        modal.registerListeners()
+                        previousFocusOwner?.let { focusManager?.requestFocus(it) }
+                    }
                 }
             }
 

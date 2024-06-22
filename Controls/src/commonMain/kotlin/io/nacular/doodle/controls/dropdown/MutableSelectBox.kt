@@ -8,15 +8,33 @@ import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.Editable
 
-public interface DropdownEditor<T> {
-    public fun edit(dropdown: MutableDropdown<T, *>, value: T, current: View): EditOperation<T>
+/**
+ * Defines the [EditOperation] for a [MutableSelectBox].
+ */
+public interface SelectBoxEditor<T> {
+    /**
+     * @param dropdown being edited
+     * @param value within [dropdown] that is being edited
+     * @param current View used to represent that value
+     * @return an edit operation to manage changing [value]
+     */
+    public fun edit(dropdown: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T>
 }
 
-public inline fun <T> dropdownEditor(crossinline block: (dropdown: MutableDropdown<T, *>, value: T, current: View) -> EditOperation<T>): DropdownEditor<T> = object: DropdownEditor<T> {
-    override fun edit(dropdown: MutableDropdown<T, *>, value: T, current: View): EditOperation<T> = block(dropdown, value, current)
+/**
+ * Creates a [SelectBoxEditor] from the given lambda [block].
+ *
+ * @param block to execute to create the [EditOperation]
+ * @return an edit operation
+ */
+public inline fun <T> selectBoxEditor(crossinline block: (dropdown: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = object: SelectBoxEditor<T> {
+    override fun edit(selectBox: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T> = block(selectBox, value, current)
 }
 
-public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: DropdownBehavior<T, M> {
+/**
+ * Provides presentation and behavior customization for [MutableSelectBox].
+ */
+public abstract class MutableSelectBoxBehavior<T, M: MutableListModel<T>>: SelectBoxBehavior<T, M> {
     /**
      * Called whenever editing begins for the MutableDropdown. This lets the behavior reconfigure
      * the Dropdown accordingly.
@@ -25,7 +43,7 @@ public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: Dropdo
      * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(dropdown: MutableDropdown<T, M>, value: T): EditOperation<T>?
+    public abstract fun editingStarted(dropdown: MutableSelectBox<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the MutableDropdown. This lets the behavior reconfigure
@@ -33,22 +51,22 @@ public abstract class MutableDropdownBehavior<T, M: MutableListModel<T>>: Dropdo
      *
      * @param dropdown that was being edited
      */
-    public abstract fun editingEnded(dropdown: MutableDropdown<T, M>)
+    public abstract fun editingEnded(dropdown: MutableSelectBox<T, M>)
 }
 
 /**
  * A dropdown control that can be edited.
- * @see [Dropdown]
+ * @see [SelectBox]
  *
  * @param model used to represent the underlying choices
- * @param boxItemVisualizer to render the selected item within the drop-down box
+ * @param boxItemVisualizer to render the selected item within the select box
  * @param listItemVisualizer to render each item within the list of choices
  */
-public class MutableDropdown<T, M: MutableListModel<T>>(
+public class MutableSelectBox<T, M: MutableListModel<T>>(
         model             : M,
         boxItemVisualizer : ItemVisualizer<T, IndexedItem>? = null,
         listItemVisualizer: ItemVisualizer<T, IndexedItem>? = boxItemVisualizer,
-): Dropdown<T, M>(model, boxItemVisualizer, listItemVisualizer), Editable {
+): SelectBox<T, M>(model, boxItemVisualizer, listItemVisualizer), Editable {
     public fun set(value: T) {
         model[selection] = value
     }
@@ -57,7 +75,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
     public val editing: Boolean get() = editOperation != null
 
     /** Controls how editing is done */
-    public var editor: DropdownEditor<T>? = null
+    public var editor: SelectBoxEditor<T>? = null
 
     private var editOperation = null as EditOperation<T>?
 
@@ -80,7 +98,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
 
         value.getOrNull()?.let { value ->
             editor?.let {
-                editOperation = (behavior as? MutableDropdownBehavior<T, M>)?.editingStarted(this, value)
+                editOperation = (behavior as? MutableSelectBoxBehavior<T, M>)?.editingStarted(this, value)
             }
         }
     }
@@ -111,7 +129,7 @@ public class MutableDropdown<T, M: MutableListModel<T>>(
         if (editing) {
             editOperation?.cancel()
             editOperation = null
-            (behavior as? MutableDropdownBehavior<T, M>)?.editingEnded(this)
+            (behavior as? MutableSelectBoxBehavior<T, M>)?.editingEnded(this)
         }
     }
 }

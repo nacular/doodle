@@ -14,17 +14,16 @@ import io.nacular.measured.units.times
 import kotlin.math.min
 
 internal open class NumericAnimationPlanImpl<T>(
-    private  val delay    : Measure<Time> = zeroMillis,
     override val converter: AnimationDataConverter<T, Double>,
     private  val animation: TimedEasing,
 ): FiniteNumericAnimationPlan<T, Double> {
     override fun value(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>) = when {
-        elapsedTime <= delay -> start
-        else                 -> animation.value(start, end, initialVelocity, elapsedTime - delay)
+        elapsedTime <= zeroMillis -> start
+        else                      -> animation.value(start, end, initialVelocity, elapsedTime)
     }
 
     override fun velocity(start: Double, end: Double, initialVelocity: Velocity<Double>, elapsedTime: Measure<Time>) = when {
-        elapsedTime <= delay -> initialVelocity
+        elapsedTime <= zeroMillis -> initialVelocity
         else                 -> {
             val v1 = value(start, end, initialVelocity, elapsedTime - 1 * milliseconds)
             val v2 = value(start, end, initialVelocity, elapsedTime)
@@ -33,26 +32,25 @@ internal open class NumericAnimationPlanImpl<T>(
         }
     }
 
-    override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>) = delay + animation.duration(start, end, initialVelocity)
+    override fun duration(start: Double, end: Double, initialVelocity: Velocity<Double>) = animation.duration(start, end, initialVelocity)
 }
 
 internal open class MultiNumericAnimationPlanImpl<T>(
-    private  val delay    : Measure<Time> = zeroMillis,
     override val converter: MultiDataConverter<T>,
                  easings   : (Int) -> Easing,
 ): FiniteNumericAnimationPlan<T, Array<Double>> {
     private val timedEasings by lazy { (0 .. converter.size).map { easings(it).run { TimedEasing(duration, easing) } } }
 
     override fun value(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>) = when {
-        elapsedTime <= delay -> start
-        else                 -> start.mapIndexed { index, value ->
+        elapsedTime <= zeroMillis -> start
+        else                      -> start.mapIndexed { index, value ->
             timedEasings[index].value(value, end[index], Velocity(initialVelocity.change[index], initialVelocity.over), elapsedTime)
         }.toTypedArray()
     }
 
     override fun velocity(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>): Velocity<Array<Double>> = when {
-        elapsedTime <= delay -> initialVelocity
-        else                 -> {
+        elapsedTime <= zeroMillis -> initialVelocity
+        else                      -> {
             val v1 = value(start, end, initialVelocity, elapsedTime - 1 * milliseconds)
             val v2 = value(start, end, initialVelocity, elapsedTime)
 
@@ -61,7 +59,7 @@ internal open class MultiNumericAnimationPlanImpl<T>(
     }
 
     override fun duration(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>): Measure<Time> {
-        var duration = delay
+        var duration = zeroMillis
         start.forEachIndexed { index, value ->
             duration = maxOf(duration, timedEasings[index].duration(value, end[index], Velocity(initialVelocity.change[index], initialVelocity.over)))
         }
@@ -95,8 +93,7 @@ internal class KeyFrameBlockImpl<T>(private val duration: Measure<Time>): KeyFra
 internal abstract class KeyframeAnimationPlan<T, V>(
     override val converter: AnimationDataConverter<T, V>,
     private  val duration : Measure<Time>,
-    private  val delay    : Measure<Time> = zeroMillis,
-    block    : KeyFrameBlock<T>.() -> Unit
+                 block    : KeyFrameBlock<T>.() -> Unit
 ): FiniteNumericAnimationPlan<T, V> {
     private val keyFrameBlock = KeyFrameBlockImpl<T>(duration)
     private val frames get() = keyFrameBlock.frames
@@ -107,8 +104,8 @@ internal abstract class KeyframeAnimationPlan<T, V>(
 
     override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V {
         when {
-            elapsedTime <= delay            -> return start
-            elapsedTime >= delay + duration -> return end
+            elapsedTime <= zeroMillis -> return start
+            elapsedTime >= duration   -> return end
         }
 
         frames[elapsedTime]?.let {
@@ -142,7 +139,7 @@ internal abstract class KeyframeAnimationPlan<T, V>(
         return velocity(v1, v2, 1 * milliseconds)
     }
 
-    override fun duration(start: V, end: V, initialVelocity: Velocity<V>): Measure<Time> = delay + duration
+    override fun duration(start: V, end: V, initialVelocity: Velocity<V>): Measure<Time> = duration
 
     abstract fun frameValue(start: V, end: V, initialVelocity: Velocity<V>, easing: EasingFunction, duration: Measure<Time>, elapsedTime: Measure<Time>): V
 
@@ -152,9 +149,8 @@ internal abstract class KeyframeAnimationPlan<T, V>(
 internal class SingleKeyframeAnimationPlan<T>(
     converter: AnimationDataConverter<T, Double>,
     duration : Measure<Time>,
-    delay    : Measure<Time> = zeroMillis,
     block    : KeyFrameBlock<T>.() -> Unit
-): KeyframeAnimationPlan<T, Double>(converter, duration, delay, block) {
+): KeyframeAnimationPlan<T, Double>(converter, duration, block) {
     override fun frameValue(start: Double, end: Double, initialVelocity: Velocity<Double>, easing: EasingFunction, duration: Measure<Time>, elapsedTime: Measure<Time>): Double {
         return TimedEasing(duration, easing).value(
             start,
@@ -172,9 +168,8 @@ internal class SingleKeyframeAnimationPlan<T>(
 internal class MultiKeyframeAnimationPlan<T>(
     converter: AnimationDataConverter<T, Array<Double>>,
     duration : Measure<Time>,
-    delay    : Measure<Time> = zeroMillis,
     block    : KeyFrameBlock<T>.() -> Unit
-): KeyframeAnimationPlan<T, Array<Double>>(converter, duration, delay, block) {
+): KeyframeAnimationPlan<T, Array<Double>>(converter, duration, block) {
     override fun frameValue(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, easing: EasingFunction, duration: Measure<Time>, elapsedTime: Measure<Time>): Array<Double> {
         return start.mapIndexed { index, value ->
             TimedEasing(duration, easing).value(
@@ -195,19 +190,15 @@ internal abstract class RepeatingAnimationPlan<T, V>(
     private   val animation: FiniteNumericAnimationPlan<T, V>,
     private   val type     : RepetitionType = Restart,
     protected val times    : Int,
-    private   val delay    : Measure<Time> = zeroMillis
 ): NumericAnimationPlan<T, V> {
     override val converter get() = animation.converter
 
-    override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V = when {
-        elapsedTime <= delay -> start
-        else                 -> animation.value(
-            start,
-            end,
-            velocityForRepeat   (start, end, initialVelocity, elapsedTime - delay),
-            elapsedTimeForRepeat(start, end, initialVelocity, elapsedTime - delay)
-        )
-    }
+    override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V = animation.value(
+        start,
+        end,
+        velocityForRepeat   (start, end, initialVelocity, elapsedTime),
+        elapsedTimeForRepeat(start, end, initialVelocity, elapsedTime)
+    )
 
     override fun velocity(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Velocity<V> = animation.velocity(
         start,
@@ -247,5 +238,26 @@ internal abstract class FiniteRepeatingAnimationPlan<T, V>(
     animation: FiniteNumericAnimationPlan<T, V>,
     type     : RepetitionType = Restart,
     times    : Int,
-    delay    : Measure<Time>,
-): RepeatingAnimationPlan<T, V>(animation, type, times, delay), FiniteNumericAnimationPlan<T, V>
+): RepeatingAnimationPlan<T, V>(animation, type, times), FiniteNumericAnimationPlan<T, V>
+
+internal abstract class DelayingAnimationPlan<T, V>(
+    private val delay        : Measure<Time>,
+    private val animationPlan: NumericAnimationPlan<T, V>
+): NumericAnimationPlan<T, V> {
+    override val converter get() = animationPlan.converter
+
+    override fun value(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): V = when {
+        elapsedTime < delay -> start
+        else                -> animationPlan.value(start, end, initialVelocity, elapsedTime - delay)
+    }
+
+    override fun velocity(start: V, end: V, initialVelocity: Velocity<V>, elapsedTime: Measure<Time>): Velocity<V> = when {
+        elapsedTime < delay -> initialVelocity
+        else                -> animationPlan.velocity(start, end, initialVelocity, elapsedTime - delay)
+    }
+}
+
+internal abstract class FiniteDelayingAnimationPlan<T, V>(
+    delay        : Measure<Time>,
+    animationPlan: FiniteNumericAnimationPlan<T, V>
+): DelayingAnimationPlan<T, V>(delay, animationPlan), FiniteNumericAnimationPlan<T, V>

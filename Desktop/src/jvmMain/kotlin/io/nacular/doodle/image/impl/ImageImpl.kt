@@ -11,11 +11,11 @@ import org.jetbrains.skia.Image as SkiaImage
 /**
  * Created by Nicholas Eddy on 5/20/21.
  */
-internal class ImageImpl(val skiaImage: SkiaImage, override val source: String): Image {
+internal class ImageImpl(val skiaImage: SkiaImage, override val source: String, override val description: String): Image {
     override val size: Size by lazy { Size(skiaImage.imageInfo.width, skiaImage.imageInfo.height) }
 }
 
-internal class SvgImage(private val dom: SVGDOM): Image {
+internal class SvgImage(private val dom: SVGDOM, override val description: String): Image {
     fun render(canvas: Canvas, source: Rect, destination: Rect, radius: Float = 0f) {
         canvas.save()
         canvas.translate(destination.left - source.left, destination.top - source.top)
@@ -33,6 +33,6 @@ internal class SvgImage(private val dom: SVGDOM): Image {
         canvas.restore()
     }
 
-    override val size: Size = dom.root!!.run { Size(width.value, height.value) }
+    override val size: Size   = dom.root!!.run { Size(width.value, height.value) }
     override val source get() = dom.toString()
 }

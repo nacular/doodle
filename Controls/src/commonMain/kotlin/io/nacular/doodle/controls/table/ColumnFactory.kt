@@ -65,7 +65,6 @@ public interface MutableColumnFactory<T> {
         footer       : View? = null,
         builder      : MutableColumnBuilder<T, Unit>.() -> Unit): Column<Unit> = column(header = header, footer = footer, extractor = {}, cellVisualizer = cellGenerator, builder = builder)
 
-
     public fun <R, C: Comparable<C>> column(
         header        : View?,
         extractor     : Extractor<T, R>,

@@ -17,14 +17,35 @@ import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.sin
 
+/**
+ * Creates a basic behavior for rendering [CircularRangeSlider]s. It allows customization of
+ * the bar, range, thickness, and knobs at either end of the slider.
+ *
+ * @param barFill for the slider's background
+ * @param startKnobFill for the knob at the start of the slider's range
+ * @param endKnobFill for the knob at the end of the slider's range
+ * @param rangeFill for the slider's range region
+ * @param thickness of the slider
+ * @param focusManager used to manage focus
+ */
 public class BasicCircularRangeSliderBehavior<T>(
-        private val barFill      :  (CircularRangeSlider<T>) -> Paint,
-        private val startKnobFill:  (CircularRangeSlider<T>) -> Paint,
-        private val endKnobFill  :  (CircularRangeSlider<T>) -> Paint,
-        private val rangeFill    : ((CircularRangeSlider<T>) -> Paint)? = endKnobFill,
-        private val thickness    : Double = 20.0,
-        focusManager: FocusManager? = null
-): AbstractCircularRangeSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
+    private val barFill      :  (CircularRangeSlider<T>) -> Paint,
+    private val startKnobFill:  (CircularRangeSlider<T>) -> Paint,
+    private val endKnobFill  :  (CircularRangeSlider<T>) -> Paint,
+    private val rangeFill    : ((CircularRangeSlider<T>) -> Paint)? = endKnobFill,
+    private val thickness    : Double = 20.0,
+                focusManager : FocusManager? = null
+): AbstractCircularRangeSliderBehavior<T>(focusManager) where T: Comparable<T> {
+    /**
+     * Creates a basic behavior for rendering [CircularRangeSlider]s.
+     *
+     * @param barFill       for the slider's background
+     * @param startKnobFill for the knob at the start of the slider's range
+     * @param endKnobFill   for the knob at the end of the slider's range
+     * @param rangeFill     for the slider's range region
+     * @param thickness     of the slider
+     * @param focusManager  used to manage focus
+     */
     public constructor(
             barFill      : Paint         = Lightgray.paint,
             startKnobFill: Paint         = Blue.paint,
@@ -64,6 +85,15 @@ public class BasicCircularRangeSliderBehavior<T>(
     private fun adjust(view: CircularRangeSlider<T>, fill: Paint) = if (view.enabled) fill else disabledPaintMapper(fill)
 
     public companion object {
+        /**
+         * Creates a basic behavior for rendering [CircularRangeSlider]s.
+         *
+         * @param barFill      for the slider's background
+         * @param knobFill     for the knobs at the start/end of the slider's range
+         * @param rangeFill    for the slider's range region
+         * @param thickness    of the slider
+         * @param focusManager used to manage focus
+         */
         public inline operator fun <T> invoke(
             barFill      : Paint         = Lightgray.paint,
             knobFill     : Paint         = Blue.paint,

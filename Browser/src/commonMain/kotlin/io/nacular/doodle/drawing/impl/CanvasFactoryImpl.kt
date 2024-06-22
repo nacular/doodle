@@ -13,9 +13,10 @@ internal class CanvasFactoryImpl(private val htmlFactory  : HtmlFactory,
                                  private val textFactory  : TextFactory,
                                  private val svgFactory   : SvgFactory,
                                  private val textMetrics  : TextMetrics,
+                                 private val aligner      : TextVerticalAligner,
                                  private val idGenerator  : IdGenerator,
                                  private val useShadowHack: Boolean): CanvasFactory {
     override operator fun invoke(region: HTMLElement) = CanvasImpl(region, htmlFactory, textFactory, textMetrics, useShadowHack) {
-        VectorRendererSvg(it, svgFactory, htmlFactory, textMetrics, idGenerator)
+        VectorRendererSvg(it, svgFactory, htmlFactory, aligner, textMetrics, idGenerator)
     }
 }

@@ -1,6 +1,7 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
+import io.nacular.doodle.utils.isEven
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -8,7 +9,6 @@ import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.abs
-import kotlin.math.acos
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -48,10 +48,22 @@ public abstract class Polygon: Shape {
      * ```
      */
     override val boundingRectangle: Rectangle by lazy {
-        val minX = points.minByOrNull { it.x }!!.x
-        val minY = points.minByOrNull { it.y }!!.y
-        val maxX = points.maxByOrNull { it.x }!!.x
-        val maxY = points.maxByOrNull { it.y }!!.y
+        val first = points.first()
+        var minX  = first.x
+        var minY  = first.y
+        var maxX  = first.x
+        var maxY  = first.y
+
+        points.forEach {
+            when {
+                it.x < minX -> minX = it.x
+                it.x > maxX -> maxX = it.x
+            }
+            when {
+                it.y < minY -> minY = it.y
+                it.y > maxY -> maxY = it.y
+            }
+        }
 
         Rectangle(Point(minX, minY), Size(maxX - minX, maxY - minY))
     }
@@ -85,7 +97,7 @@ public abstract class ConvexPolygon: Polygon() {
 
     /**
      * Uses winding-number approach
-     * http://geomalgorithms.com/a03-_inclusion.html
+     * https://en.wikipedia.org/wiki/Point_in_polygon
      */
     override fun contains(point: Point): Boolean {
         var result = 0 // the winding number counter
@@ -184,7 +196,7 @@ public fun Ellipse.inscribed(sides: Int, rotation: Measure<Angle> = 0 * degrees)
 public fun star(circle     : Circle,
                 points     : Int            = 5,
                 rotation   : Measure<Angle> = 0 * degrees,
-                innerCircle: Circle         = Circle(center = circle.center, radius = circle.radius * 2 / (3 + sqrt(5.0)))
+                innerCircle: Circle
 ): Polygon? = circle.inscribed(points, rotation)?.let { outerPoly ->
     innerCircle.inscribed(points, rotation + 360 / (2 * points) * degrees)?.let { innerPoly ->
         ConvexPolygonImpl(outerPoly.points.zip(innerPoly.points).flatMap { (f, s) -> listOf(f, s) })
@@ -192,8 +204,71 @@ public fun star(circle     : Circle,
 }
 
 /**
+ * Creates a rounded star.
+ *
+ * @see star
+ * @param circle         to inscribe the polygon in
+ * @param points         the star should have
+ * @param rotation       of the star's first point around the circle
+ * @param innerCircle    defining the radius of the inner points
+ * @param pointRoundness defining how rounded the points should be
+ * @return a star shaped path
+ */
+public fun star(circle        : Circle,
+                points        : Int            = 5,
+                rotation      : Measure<Angle> = 0 * degrees,
+                innerCircle   : Circle,
+                pointRoundness: Float
+): Path? = star(circle, points, rotation, innerCircle)?.let {
+    when {
+        pointRoundness > 0f -> it.rounded(
+            io.nacular.doodle.utils.lerp(0.0, it.points[1].distanceFrom(it.points[0]), pointRoundness)
+        ) { index, _ ->
+            index.isEven
+        }
+        else -> it.toPath()
+    }
+}
+
+/**
+ * Creates a [Star](https://math.stackexchange.com/questions/2135982/math-behind-creating-a-perfect-star) with n points
+ * that is described by an outer and inner [Circle], which its concave and convex points respectively.
+ *
+ * @param circle           to inscribe the polygon in
+ * @param points           the star should have
+ * @param rotation         of the star's first point around the circle
+ * @param innerCircleRatio the length of the inner circle's radius (defines inner points) relative to the outer
+ * @return a star shaped polygon
+ */
+public fun star(circle          : Circle,
+                points          : Int            = 5,
+                rotation        : Measure<Angle> = 0 * degrees,
+                innerCircleRatio: Float          = starDefaultInnerCircleRatio
+): Polygon? = star(circle, points, rotation, Circle(circle.center, circle.radius * innerCircleRatio))
+
+/**
+ * Creates a rounded star.
+ *
+ * @see star
+ * @param circle           to inscribe the polygon in
+ * @param points           the star should have
+ * @param rotation         of the star's first point around the circle
+ * @param innerCircleRatio the length of the inner circle's radius (defines inner points) relative to the outer
+ * @param pointRoundness   defining how rounded the points should be
+ * @return a star shaped path
+ */
+public fun star(circle          : Circle,
+                points          : Int            = 5,
+                rotation        : Measure<Angle> = 0 * degrees,
+                innerCircleRatio: Float          = starDefaultInnerCircleRatio,
+                pointRoundness  : Float
+): Path? = star(circle, points, rotation, Circle(circle.center, circle.radius * innerCircleRatio), pointRoundness)
+
+public val starDefaultInnerCircleRatio: Float = 2f / (3 + sqrt(5.0)).toFloat()
+
+/**
  * Creates a rounded shape from a [Polygon]. The resulting shape is essentially a polygon with
- * the vertices rounded using a semi-circular curve.
+ * the vertices rounded using a semicircular curve.
  *
  * @see Polygon.rounded with config for control over radius at each point
  * @param radius for each point
@@ -209,12 +284,29 @@ public fun Polygon.rounded(radius: Double, filter: (index: Int, Point) -> Boolea
 
 /**
  * Creates a rounded shape from a [Polygon]. The resulting shape is essentially a polygon with
- * the vertices rounded using a semi-circular curve.
+ * the vertices rounded using a semicircular curve.
  *
  * @param config determining the radius for each point in the polygon (with the given index)
  * @return a [Path] for the new shape
  */
 public fun Polygon.rounded(config: (index: Int, Point) -> Double): Path {
+    val newPoints = clippedRelationships(config)
+    val builder   = path(newPoints[0].previous)
+
+    newPoints.forEachIndexed { index, it ->
+        if (index > 0) {
+            builder.lineTo(it.previous)
+        }
+
+        val r = it.distance / (2 * cos(it.angle / 2))
+
+        builder.arcTo(it.next, r, r, 0 * degrees, largeArch = false, sweep = it.isRight)
+    }
+
+    return builder.close()
+}
+
+private fun Polygon.clippedRelationships(config: (index: Int, Point) -> Double): List<PointRelationShip> {
     val newPoints = mutableListOf<PointRelationShip>()
     val radii     = mutableListOf<Double>()
 
@@ -233,24 +325,12 @@ public fun Polygon.rounded(config: (index: Int, Point) -> Double): Path {
 
                 val nextIndex = (index + 1) % points.size
 
-                colinearPoint(points[previousIndex], point, points[nextIndex], radii[previousIndex], radius, radii[nextIndex])
+                collinearPoint(points[previousIndex], point, points[nextIndex], radii[previousIndex], radius, radii[nextIndex])
             }
         }
     }
 
-    val builder = path(newPoints[0].previous)
-
-    newPoints.forEachIndexed { index, it ->
-        if (index > 0) {
-            builder.lineTo(it.previous)
-        }
-
-        val r = it.distance / (2 * cos(it.angle / 2))
-
-        builder.arcTo(it.next, r, r, 0 * degrees, largeArch = false, sweep = it.isRight)
-    }
-
-    return builder.close()
+    return newPoints
 }
 
 private class PointRelationShip(
@@ -262,10 +342,9 @@ private class PointRelationShip(
         val isRight : Boolean
 )
 
-internal val Vector2D.magnitude: Double get() =  sqrt(x*x + y*y)
 internal operator fun Vector2D.times(other: Vector2D) = x * other.x + y * other.y
 
-private fun colinearPoint(
+private fun collinearPoint(
         previous        : Point,
         point           : Point,
         next            : Point,
@@ -295,9 +374,7 @@ private fun colinearPoint(
 
     val vector1 = point - previous
     val vector2 = next  - point
-
-    // interior angle := cos(α) = a·b / (|a|·|b|)
-    val angle = 180 * degrees - acos(vector1 * vector2 / (vector1.magnitude * vector2.magnitude)) * Angle.radians
+    val angle   = vector1 interiorAngle vector2
 
     val direction = vector1.x * vector2.y - vector1.y * vector2.x
 
@@ -305,11 +382,11 @@ private fun colinearPoint(
     val newNext     = Identity.scale(around = point, x = scaleNext,     y = scaleNext    ).invoke(next    ).as2d()
 
     return PointRelationShip(
-            previous = newPrevious,
-            point    = point,
-            next     = newNext,
-            distance = newPrevious.distanceFrom(newNext),
-            angle    = angle,
-            isRight  = direction > 0
+        previous = newPrevious,
+        point    = point,
+        next     = newNext,
+        distance = newPrevious.distanceFrom(newNext),
+        angle    = angle,
+        isRight  = direction > 0
     )
 }

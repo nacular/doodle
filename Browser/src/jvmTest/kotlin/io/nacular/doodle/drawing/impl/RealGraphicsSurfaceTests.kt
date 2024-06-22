@@ -393,6 +393,6 @@ class RealGraphicsSurfaceTests {
     private fun createSurface(htmlFactory: HtmlFactory = mockk(), parent: RealGraphicsSurface? = null, canvasFactory: CanvasFactory = mockk()): RealGraphicsSurface {
         val view = mockk< View>()
 
-        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = parent, view) { 0 }
+        return RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent = parent, view, rootElementOffset = { 0 }) { 0 }
     }
 }

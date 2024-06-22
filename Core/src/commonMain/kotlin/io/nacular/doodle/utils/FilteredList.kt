@@ -219,17 +219,17 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
         updateIndexes()
 
         compare(oldIndexes, indexToSource).let { diffs ->
-            changed_.forEach {
-                val changes = mutableListOf<Difference<E>>()
+            val changes = mutableListOf<Difference<E>>()
 
-                diffs.forEach { difference ->
-                    changes += when (difference) {
-                        is Equal  -> Equal (difference.items.map { source[it] })
-                        is Delete -> Delete(difference.items.map { source[it] })
-                        is Insert -> Insert(difference.items.map { source[it] })
-                    }
+            diffs.forEach { difference ->
+                changes += when (difference) {
+                    is Equal  -> Equal (difference.items.map { source[it] })
+                    is Delete -> Delete(difference.items.map { source[it] })
+                    is Insert -> Insert(difference.items.map { source[it] })
                 }
+            }
 
+            changed_.forEach {
                 it(this, Differences(changes))
             }
         }

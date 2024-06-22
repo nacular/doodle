@@ -156,7 +156,7 @@ internal actual abstract external class HTMLElement: Element, ElementCSSInlineSt
     actual var onwheel        : ((WheelEvent  ) -> Boolean)?
     actual var ondblclick     : ((MouseEvent  ) -> Boolean)?
     actual var onpointerup    : ((PointerEvent) -> Boolean)?
-    actual var onpointerout   : ((PointerEvent) -> Boolean)?
+    actual var onpointerout   : ((PointerEvent) -> Unit   )?
     actual var onpointerdown  : ((PointerEvent) -> Boolean)?
     actual var onpointermove  : ((PointerEvent) -> Boolean)?
     actual var onpointerover  : ((PointerEvent) -> Unit   )?
@@ -187,6 +187,7 @@ internal actual abstract external class HTMLElement: Element, ElementCSSInlineSt
     actual fun focus()
     actual fun focus(options: FocusOptions)
     actual fun blur ()
+    actual fun click()
 
     actual fun addEventListener   (to: String, listener: (Event) -> Unit)
     actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
@@ -255,6 +256,7 @@ internal actual abstract external class CharacterData: Node
 internal actual external          class Text: CharacterData
 internal actual abstract external class HTMLImageElement : HTMLElement {
     actual var src     : String
+    actual var alt     : String
     actual val complete: Boolean
     actual val width   : Int
     actual val height  : Int

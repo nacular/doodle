@@ -15,7 +15,7 @@ internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val
     private val loading           = mutableMapOf<String, HTMLImageElement>()
     private val pendingCoroutines = mutableMapOf<String, MutableList<Continuation<Image?>>>()
 
-    override suspend fun load(source: String): Image? = suspendCoroutine { coroutine ->
+    override suspend fun load(source: String, description: String): Image? = suspendCoroutine { coroutine ->
         when (source) {
             in images  -> coroutine.resume(images[source])
             in loading -> pendingCoroutines.getOrPut(source) { mutableListOf() }.plusAssign(coroutine)
@@ -24,6 +24,7 @@ internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val
                     onload = {
                         loading        -= source
                         images[source]  = ImageImpl(this)
+                        description.takeIf { it.isNotBlank() }?.let { this.alt = it }
                         notify(source, coroutine)
                         removeListeners(this)
                     }
@@ -46,7 +47,7 @@ internal class ImageLoaderImpl(private val htmlFactory: HtmlFactory, private val
         pendingCoroutines.remove(source)
     }
 
-    override suspend fun load(file: LocalFile): Image? = file.readBase64()?.let { load("data:*/*;base64,$it")  }
+    override suspend fun load(file: LocalFile, description: String): Image? = file.readBase64()?.let { load("data:*/*;base64,$it", description)  }
 
     override fun unload(image: Image) {
         images.remove(image.source)

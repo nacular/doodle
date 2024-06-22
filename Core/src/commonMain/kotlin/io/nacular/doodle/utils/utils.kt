@@ -3,6 +3,8 @@ package io.nacular.doodle.utils
 import io.nacular.doodle.core.Internal
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.Units
 import io.nacular.measured.units.times
 import kotlin.math.round
 
@@ -180,7 +182,7 @@ public fun <T> Set<T>.firstOrNull(): T? {
 /** @suppress */ @Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
 /** @suppress */ @Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
 
-public val zeroMillis: Measure<Time> by lazy { 0 * Time.milliseconds }
+public val zeroMillis: Measure<Time> by lazy { 0 * milliseconds }
 
 /**
  * Interpolates between two values.
@@ -199,3 +201,12 @@ public fun lerp(first: Double, second: Double, fraction: Float): Double = first 
  * @param fraction of the way between them
  */
 public fun lerp(first: Float, second: Float, fraction: Float): Float = first + (second - first) * fraction
+
+/**
+ * Interpolates between two [Measure].
+ *
+ * @param first  value
+ * @param second value
+ * @param fraction of the way between them
+ */
+public fun <T: Units> lerp(first: Measure<T>, second: Measure<T>, fraction: Float): Measure<T> = first + (second - first) * fraction

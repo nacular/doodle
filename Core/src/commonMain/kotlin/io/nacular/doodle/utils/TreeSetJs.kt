@@ -5,7 +5,7 @@ import io.nacular.doodle.core.Internal
 /** @suppress */
 @Suppress("PrivatePropertyName", "FunctionName")
 @Internal
-public open class TreeSetJs<E> constructor(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
+public open class TreeSetJs<E>(private val comparator: Comparator<E>, elements: Collection<E>): Set<E> {
     private class BstNode<E>(var value: E) {
         var left : BstNode<E>? = null
         var right: BstNode<E>? = null

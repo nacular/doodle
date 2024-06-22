@@ -14,7 +14,7 @@ internal actual abstract class SVGGraphicsElement      : SVGElement()
 internal actual abstract class SVGLinearGradientElement: SVGGradientElement()
 internal actual abstract class SVGRadialGradientElement: SVGGradientElement()
 
-internal actual fun SVGGraphicsElement.getBBox(options: BoundingBoxOptions): DOMRect = getBBox(object: SVGBoundingBoxOptions {
+internal actual fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect = getBBox(object: SVGBoundingBoxOptions {
     override var fill    = options.fill
     override var stroke  = options.stroke
     override var markers = options.markers
@@ -25,5 +25,6 @@ internal actual abstract class SVGGeometryElement: SVGGraphicsElement() {
     actual fun getTotalLength(): Float = 0f
 }
 internal actual abstract class SVGTextElement           : SVGTextPositioningElement()
+internal actual abstract class SVGTSpanElement          : SVGTextPositioningElement()
 internal actual abstract class SVGTextContentElement    : SVGGraphicsElement()
 internal actual abstract class SVGTextPositioningElement: SVGTextContentElement()

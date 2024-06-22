@@ -23,7 +23,7 @@ internal actual operator fun <T: JsAny?> JsArray<T>.get(index: Int): T? = null
 internal actual operator fun <T : JsAny?> JsArray<T>.set(index: Int, value: T) {}
 internal actual fun <T: JsAny?> JsArray<T>.push(value: T) {}
 
-internal actual fun JsArray<out JsString>.contains(value: JsString): Boolean {
+internal actual operator fun JsArray<out JsString>.contains(value: JsString): Boolean {
     (0..this.length).forEach {
         if (this[it] == value) return true
     }

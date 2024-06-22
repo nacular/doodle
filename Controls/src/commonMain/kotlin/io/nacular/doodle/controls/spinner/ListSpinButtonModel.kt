@@ -2,7 +2,7 @@ package io.nacular.doodle.controls.spinner
 
 import io.nacular.doodle.utils.ObservableList
 
-public open class ListSpinnerModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
+public open class ListSpinButtonModel<T, out L: List<T>>(protected open val values: L): CommonSpinnerModel<T>() {
     protected var index: Int = 0
         private set(new) {
             if (new == field) { return }
@@ -21,7 +21,7 @@ public open class ListSpinnerModel<T, out L: List<T>>(protected open val values:
     override val value: T get() = values[index]
 }
 
-public class MutableListSpinnerModel<T>(values: List<T> = emptyList()): ListSpinnerModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableSpinnerModel<T> {
+public class MutableListSpinButtonModel<T>(values: List<T> = emptyList()): ListSpinButtonModel<T, ObservableList<T>>(ObservableList(values.toMutableList())), MutableSpinButtonModel<T> {
     init {
         super.values.changed += { _,_ ->
             changed_()

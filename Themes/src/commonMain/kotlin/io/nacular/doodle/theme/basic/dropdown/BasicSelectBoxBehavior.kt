@@ -9,8 +9,8 @@ import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.dropdown.Dropdown
-import io.nacular.doodle.controls.dropdown.DropdownBehavior
+import io.nacular.doodle.controls.dropdown.SelectBox
+import io.nacular.doodle.controls.dropdown.SelectBoxBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.toString
@@ -66,7 +66,7 @@ import kotlin.math.max
 /**
  * Created by Nicholas Eddy on 9/9/21.
  */
-public class BasicDropdownBehavior<T, M: ListModel<T>>(
+public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
     private val display            : Display,
     private val textMetrics        : TextMetrics,
     private val backgroundColor    : Color,
@@ -78,7 +78,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
     private val popupManager       : PopupManager? = null,
     private val buttonA11yLabel    : String?       = null,
     private val inset              : Double        = 4.0,
-): DropdownBehavior<T, M>, PointerListener, KeyListener {
+): SelectBoxBehavior<T, M>, PointerListener, KeyListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
@@ -128,7 +128,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
             darkBackgroundColor = darkBackgroundColor
     ) {
         init {
-            hoverColorMapper    = this@BasicDropdownBehavior.hoverColorMapper
+            hoverColorMapper    = this@BasicSelectBoxBehavior.hoverColorMapper
             disabledColorMapper = { it }
         }
 
@@ -148,38 +148,38 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 
     private val itemVisualizer by lazy { toString<T, IndexedItem>(StringVisualizer()) }
 
-    private val changeObserver: ChangeObserver<Dropdown<T, M>> = {
+    private val changeObserver: ChangeObserver<SelectBox<T, M>> = {
         it.list?.setSelection(setOf(it.selection))
     }
 
     @Suppress("UNCHECKED_CAST")
     private val enabledChanged: PropertyObserver<View, Boolean> = { dropdown,_,_ ->
         if (!dropdown.enabled) {
-            (dropdown as? Dropdown<T, M>)?.let { hideList(it) }
+            (dropdown as? SelectBox<T, M>)?.let { hideList(it) }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     private val boundsChanged: PropertyObserver<View, Rectangle> = { dropdown, old, new ->
         if (old.height != new.height) {
-            (dropdown as? Dropdown<T, M>)?.apply {
+            (dropdown as? SelectBox<T, M>)?.apply {
                 list?.behavior = listBehavior(dropdown)
             }
         }
     }
 
     private inner class CustomListRow(
-                        dropdown      : Dropdown<T, M>,
-                        list          : List<T, *>,
-                        row           : T,
-                        index         : Int,
-                        itemVisualizer: ItemVisualizer<T, IndexedItem>,
-            private val cornerRadius  : Double,
+        dropdown      : SelectBox<T, M>,
+        list          : List<T, *>,
+        row           : T,
+        index         : Int,
+        itemVisualizer: ItemVisualizer<T, IndexedItem>,
+        private val cornerRadius  : Double,
     ): ListItem<T>(list,
             row,
             index,
             itemVisualizer,
-            backgroundSelectionColor        = hoverColorMapper(this@BasicDropdownBehavior.backgroundColor),
+            backgroundSelectionColor        = hoverColorMapper(this@BasicSelectBoxBehavior.backgroundColor),
             backgroundSelectionBlurredColor = null) {
         init {
             insetTop = 0.0
@@ -202,10 +202,10 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private inner class ItemGenerator(private val dropdown: Dropdown<T, M>): ListBehavior.ItemGenerator<T> {
+    private inner class ItemGenerator(private val dropdown: SelectBox<T, M>): ListBehavior.ItemGenerator<T> {
         @Suppress("UNCHECKED_CAST")
         override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
-            is ListItem<*> -> (current as BasicDropdownBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
+            is ListItem<*> -> (current as BasicSelectBoxBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
             else           -> CustomListRow(
                     dropdown       = dropdown,
                     list           = list,
@@ -219,11 +219,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    override fun render(view: Dropdown<T, M>, canvas: Canvas) {
+    override fun render(view: SelectBox<T, M>, canvas: Canvas) {
         canvas.rect(view.bounds.atOrigin, cornerRadius, backgroundColor.paint)
     }
 
-    private fun showList(view: Dropdown<T, M>) {
+    private fun showList(view: SelectBox<T, M>) {
         view.list?.let {
             it.font  = view.font
             it.width = view.width
@@ -247,7 +247,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun hideList(view: Dropdown<T, M>, focusDropdown: Boolean = false) {
+    private fun hideList(view: SelectBox<T, M>, focusDropdown: Boolean = false) {
         view.list?.let {
             when (popupManager) {
                 null -> display -= it
@@ -260,7 +260,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun listBehavior(dropdown: Dropdown<T, M>) = object: BasicListBehavior<T>(
+    private fun listBehavior(dropdown: SelectBox<T, M>) = object: BasicListBehavior<T>(
         focusManager = focusManager,
         generator    = ItemGenerator(dropdown),
         fill         = null,
@@ -269,11 +269,11 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     ) {
         override fun render(view: List<T, *>, canvas: Canvas) {
-            canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicDropdownBehavior.backgroundColor.paint)
+            canvas.rect(view.bounds.atOrigin, cornerRadius, this@BasicSelectBoxBehavior.backgroundColor.paint)
         }
     }
 
-    override fun install(view: Dropdown<T, M>) {
+    override fun install(view: SelectBox<T, M>) {
         super.install(view)
 
         view.list = List(
@@ -339,7 +339,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         view.enabledChanged += enabledChanged
     }
 
-    override fun uninstall(view: Dropdown<T, M>) {
+    override fun uninstall(view: SelectBox<T, M>) {
         super.uninstall(view)
 
         hideList(view)
@@ -353,17 +353,17 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         view.enabledChanged -= enabledChanged
     }
 
-    override fun changed(dropdown: Dropdown<T, M>) {
+    override fun changed(dropdown: SelectBox<T, M>) {
         updateCenter(dropdown)
     }
 
-    override fun alignmentChanged(dropdown: Dropdown<T, M>) {
+    override fun alignmentChanged(dropdown: SelectBox<T, M>) {
         viewContainer(dropdown)?.let { updateAlignment(dropdown, it) }
     }
 
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        (event.source as? Dropdown<T, M>)?.apply {
+        (event.source as? SelectBox<T, M>)?.apply {
             when (event.key) {
                 ArrowUp   -> { selection -= 1; event.consume() }
                 ArrowDown -> { selection += 1; event.consume() }
@@ -376,9 +376,9 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
 //        focusManager?.requestFocus(event.source)
     }
 
-    internal val centerChanged: Pool<(Dropdown<T, M>, View?, View?) -> Unit> = SetPool()
+    internal val centerChanged: Pool<(SelectBox<T, M>, View?, View?) -> Unit> = SetPool()
 
-    internal fun updateCenter(dropdown: Dropdown<T, M>, newValue: View = centerView(dropdown)) {
+    internal fun updateCenter(dropdown: SelectBox<T, M>, newValue: View = centerView(dropdown)) {
         viewContainer(dropdown)?.let { centerView ->
             centerView.children.clear()
 
@@ -388,15 +388,15 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun centerView(dropdown: Dropdown<T, M>) = dropdown.value.fold(
+    private fun centerView(dropdown: SelectBox<T, M>) = dropdown.value.fold(
         onSuccess = { (dropdown.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(dropdown.selection, true)) },
         onFailure = { object: View() {} }
     )
 
-    private  fun viewContainer  (dropdown: Dropdown<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container
-    internal fun visualizedValue(dropdown: Dropdown<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()
+    private  fun viewContainer  (dropdown: SelectBox<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(dropdown: SelectBox<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()
 
-    private fun updateAlignment(dropdown: Dropdown<T, M>, centerView: Container) {
+    private fun updateAlignment(dropdown: SelectBox<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = {
             withSizeInsets(width = 0.0) {
                 (dropdown.boxCellAlignment ?: center)(it)
@@ -430,7 +430,7 @@ public class BasicDropdownBehavior<T, M: ListModel<T>>(
                 foregroundColor      : Color,
                 cornerRadius         : Double,
                 buttonWidth          : Double        = 20.0,
-                focusManager         : FocusManager? = null): BasicDropdownBehavior<T, M> = BasicDropdownBehavior(
+                focusManager         : FocusManager? = null): BasicSelectBoxBehavior<T, M> = BasicSelectBoxBehavior(
                     display             = display,
                     textMetrics         = textMetrics,
                     backgroundColor     = backgroundColor,

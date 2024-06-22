@@ -35,14 +35,18 @@ internal class NativeSliderBehavior<T>(
         private val swingGraphicsFactory     : SwingGraphicsFactory,
         private val focusManager             : FocusManager?,
         private val nativePointerPreprocessor: NativePointerPreprocessor?
-): SliderBehavior<T> where T: Number, T: Comparable<T> {
+): SliderBehavior<T> where T: Comparable<T> {
+
+    private interface SliderValueAdapter<T> where T: Comparable<T> {
+        operator fun get(slider: Slider<T>              ): Float
+        operator fun set(slider: Slider<T>, value: Float)
+    }
 
     private inner class ModelAdapter<T>(
-            private val delegate: Slider<T>,
-            precision: Int,
-            private val setValue: (Slider<T>, Double) -> Unit,
-            private val setRange: (Slider<T>, ClosedRange<Double>) -> Unit
-    ): BoundedRangeModel where T: Number, T: Comparable<T> {
+            private val delegate : Slider<T>,
+                        precision: Int,
+            private val adapter  : SliderValueAdapter<T>
+    ): BoundedRangeModel where T: Comparable<T> {
         private val listeners      = mutableListOf<ChangeListener>()
         private val multiplier     = 10.0.pow(precision.toDouble())
         private var valueAdjusting = false
@@ -55,22 +59,22 @@ internal class NativeSliderBehavior<T>(
             }
         }
 
-        override fun getMinimum() = (delegate.range.start.toDouble() * multiplier).toInt()
+        override fun getMinimum() = 0
 
         override fun setMinimum(newMinimum: Int) {
-            setRange(delegate, newMinimum / multiplier .. delegate.range.endInclusive.toDouble())
+            // no-op
         }
 
-        override fun getMaximum() = (delegate.range.endInclusive.toDouble() * multiplier).toInt()
+        override fun getMaximum() = multiplier.toInt()
 
         override fun setMaximum(newMaximum: Int) {
-            setRange(delegate, delegate.range.start.toDouble() .. newMaximum / multiplier)
+            // no-op
         }
 
-        override fun getValue() = (delegate.value.toDouble() * multiplier).toInt()
+        override fun getValue() = (adapter[delegate] * multiplier).toInt()
 
         override fun setValue(newValue: Int) {
-            setValue(delegate, newValue / multiplier)
+            adapter[delegate] = (newValue / multiplier).toFloat()
         }
 
         override fun setValueIsAdjusting(b: Boolean) {
@@ -102,13 +106,20 @@ internal class NativeSliderBehavior<T>(
         }
     }
 
-    private open inner class DoubleSlider<T>(
-            slider: Slider<T>,
+    private fun adapter(): SliderValueAdapter<T> = object: SliderValueAdapter<T> {
+        override fun get(slider: Slider<T>) = slider.fraction
+
+        override fun set(slider: Slider<T>, value: Float) {
+            slider.setFraction(value)
+        }
+    }
+
+    private open inner class JSliderAdapter<T>(
+            slider   : Slider<T>,
             precision: Int = 2,
-            setValue: (Slider<T>, Double) -> Unit,
-            setRange: (Slider<T>, ClosedRange<Double>) -> Unit,
-            val model: ModelAdapter<T> = ModelAdapter(slider, precision, setValue, setRange)
-    ): JSlider(model) where T: Number, T: Comparable<T> {
+            adapter: SliderValueAdapter<T>,
+        val model    : ModelAdapter<T> = ModelAdapter(slider, precision, adapter)
+    ): JSlider(model) where T: Comparable<T> {
         init {
             this.orientation = when (slider.orientation) {
                 Orientation.Vertical -> VERTICAL
@@ -121,7 +132,7 @@ internal class NativeSliderBehavior<T>(
         }
     }
 
-    private inner class JSliderPeer(slider: Slider<T>): DoubleSlider<T>(slider, setValue = { s,d -> s.set(d) }, setRange = { s,r -> s.set(r) }) {
+    private inner class JSliderPeer(slider: Slider<T>): JSliderAdapter<T>(slider, adapter = adapter()) {
         private val slider: Slider<T>? = slider
 
         init {

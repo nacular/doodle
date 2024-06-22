@@ -1,19 +1,19 @@
 package io.nacular.doodle.accessibility
 
-import io.nacular.doodle.dom.HTMLButtonElement
-import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.EventTarget
+import io.nacular.doodle.dom.HTMLButtonElement
+import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.role
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
 import io.nacular.doodle.drawing.impl.NativeEventListener
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.event.KeyState
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.dom.role
 import io.nacular.doodle.system.KeyInputService.KeyResponse
 import io.nacular.doodle.system.KeyInputService.KeyResponse.Ignored
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
@@ -30,7 +30,7 @@ internal class AccessibilityManagerImpl(
         private val idGenerator              : IdGenerator,
                     nativeEventHandlerFactory: NativeEventHandlerFactory,
                     htmlFactory              : HtmlFactory
-): AccessibilityManager, RawListener, NativeEventListener {
+): AccessibilityManager(), RawListener, NativeEventListener {
 
     private inner class IdRelationship(private val source: View, private val target: View, private val propertyName: String) {
         private val firstRender: (View) -> Unit = {
@@ -220,6 +220,8 @@ internal class AccessibilityManagerImpl(
     internal fun linkNativeElement(source: View, root: HTMLElement) {
         // FIXME: Handle case where IdRelationship already exists
         nativeElementLinks[source] = root
+
+        syncLabel(source, root)
     }
 
     internal fun unlinkNativeElement(source: View, root: HTMLElement) {
@@ -316,6 +318,7 @@ internal class AccessibilityManagerImpl(
                     updateAttribute(ARIA_VALUE_MAX,  role.max      )
                     updateAttribute(ARIA_VALUE_TEXT, role.valueText)
                 }
+                is SpinButtonRole   -> updateAttribute(ARIA_VALUE_TEXT, role.valueText)
                 is RadioRole        -> updateAttribute(ARIA_CHECKED, role.pressed)
                 is SwitchRole       -> updateAttribute(ARIA_CHECKED, role.pressed)
                 is CheckBoxRole     -> updateAttribute(ARIA_CHECKED, role.pressed)
@@ -339,12 +342,8 @@ internal class AccessibilityManagerImpl(
                 is TabListRole -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
-                else           -> {}
-            }
-
-            when (role) {
                 is SliderRole -> updateAttribute(ARIA_ORIENTATION, role.orientation?.name?.lowercase())
-                else          -> {}
+                else           -> {}
             }
         }
     }

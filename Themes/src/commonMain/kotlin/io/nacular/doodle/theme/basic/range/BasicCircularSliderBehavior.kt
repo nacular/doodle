@@ -25,7 +25,7 @@ public class BasicCircularSliderBehavior<T>(
         private val rangeFill: ((CircularSlider<T>) -> Paint)? = null,
         private val thickness: Double = 20.0,
         focusManager: FocusManager? = null
-): AbstractCircularSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
+): AbstractCircularSliderBehavior<T>(focusManager) where T: Comparable<T> {
     public constructor(
             barFill     : Paint         = Lightgray.paint,
             knobFill    : Paint         = Blue.paint,

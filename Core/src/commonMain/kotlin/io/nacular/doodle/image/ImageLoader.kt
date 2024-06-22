@@ -8,15 +8,17 @@ import io.nacular.doodle.datatransport.LocalFile
 public interface ImageLoader {
     /**
      * @param source to load image from
+     * @param description of the image
      * @return an image, or null if there is a failure
      */
-    public suspend fun load(source: String): Image?
+    public suspend fun load(source: String, description: String = ""): Image?
 
     /**
      * @param file to load image from
+     * @param description of the image
      * @return an image, or null if there is a failure
      */
-    public suspend fun load(file: LocalFile): Image?
+    public suspend fun load(file: LocalFile, description: String = ""): Image?
 
     /**
      * Unloads an image that was previously loaded with [load].

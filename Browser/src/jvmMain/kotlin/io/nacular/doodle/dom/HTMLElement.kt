@@ -222,7 +222,7 @@ internal actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
 
     actual var ondblclick     : ((MouseEvent  ) -> Boolean)? = null
     actual var onpointerup    : ((PointerEvent) -> Boolean)? = null
-    actual var onpointerout   : ((PointerEvent) -> Boolean)? = null
+    actual var onpointerout   : ((PointerEvent) -> Unit   )? = null
     actual var onpointerdown  : ((PointerEvent) -> Boolean)? = null
     actual var onpointermove  : ((PointerEvent) -> Boolean)? = null
     actual var onpointerover  : ((PointerEvent) -> Unit   )? = null
@@ -246,6 +246,7 @@ internal actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
     actual fun focus() {}
     actual fun focus(options: FocusOptions) {}
     actual fun blur () {}
+    actual fun click() {}
 
     actual fun addEventListener   (to: String, listener: (Event) -> Unit) {}
     actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions) {}
@@ -309,6 +310,7 @@ internal actual abstract class CharacterData   : Node()
 internal actual          class Text            : CharacterData()
 internal actual abstract class HTMLImageElement: HTMLElement() {
     actual var src     : String = ""
+    actual var alt     : String = ""
     actual val complete: Boolean = false
     actual val width   : Int = 0
     actual val height  : Int = 0

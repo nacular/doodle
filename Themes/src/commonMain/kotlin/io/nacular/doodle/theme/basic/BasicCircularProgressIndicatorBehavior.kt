@@ -20,39 +20,71 @@ import io.nacular.measured.units.times
 import kotlin.math.min
 
 /**
- * Uses a filling ring to indicate progress.
+ * Basic behavior for circular [ProgressIndicator] that uses a filling ring to indicate progress.
  *
  * @property foreground paint used to fill the progress portion
  * @property background paint used to fill the "groove"
- * @property thickness of the ring (including any [outline])
+ * @property thickness  of the ring (including any [outline])
  * @property startAngle where the progress begins
- * @property direction progress is drawn around the ring
- * @property startCap drawn at the tip of the starting point on the progress ring
- * @property endCap drawn at the tip of the ending point on the progress ring
+ * @property direction  progress is drawn around the ring
+ * @property startCap   drawn at the tip of the starting point on the progress ring
+ * @property endCap     drawn at the tip of the ending point on the progress ring
  *
  * @constructor
  * @param foreground paint used to fill the progress portion
  * @param background paint used to fill the "groove"
- * @param thickness of the ring (including any [outline])
+ * @param thickness  of the ring (including any [outline])
  * @param startAngle where the progress begins
- * @param direction progress is drawn around the ring
- * @param startCap drawn at the tip of the starting point on the progress ring
- * @param endCap drawn at the tip of the ending point on the progress ring
+ * @param direction  progress is drawn around the ring
+ * @param startCap   drawn at the tip of the starting point on the progress ring
+ * @param endCap     drawn at the tip of the ending point on the progress ring
  */
 public class BasicCircularProgressIndicatorBehavior(
-        public var foreground: Paint,
-        public var background: Paint?            = null,
-        public var thickness : Double,
-        public var outline   : Stroke?           = null,
-        public var startAngle: Measure<Angle>    = -90 * degrees,
-        public var direction : RotationDirection = Clockwise,
-        public var startCap  : SegmentBuilder    = { _,it -> lineTo(it) },
-        public var endCap    : SegmentBuilder    = { _,_  ->            }
+    public var foreground: ((ProgressIndicator) -> Paint ),
+    public var background: ((ProgressIndicator) -> Paint )? = null,
+    public var thickness : Double,
+    public var outline   : ((ProgressIndicator) -> Stroke)? = null,
+    public var startAngle: Measure<Angle>    = -90 * degrees,
+    public var direction : RotationDirection = Clockwise,
+    public var startCap  : SegmentBuilder    = { _,_  ->            },
+    public var endCap    : SegmentBuilder    = { _,it -> lineTo(it) }
 ): ProgressIndicatorBehavior<ProgressIndicator>() {
+    /**
+     * @constructor
+     * @param foreground paint used to fill the progress portion
+     * @param background paint used to fill the "groove"
+     * @param thickness  of the ring (including any [outline])
+     * @param startAngle where the progress begins
+     * @param direction  progress is drawn around the ring
+     * @param startCap   drawn at the tip of the starting point on the progress ring
+     * @param endCap     drawn at the tip of the ending point on the progress ring
+     */
+    public constructor(
+        foreground: Paint,
+        background: Paint?            = null,
+        thickness : Double,
+        outline   : Stroke?           = null,
+        startAngle: Measure<Angle>    = -90 * degrees,
+        direction : RotationDirection = Clockwise,
+        startCap  : SegmentBuilder    = { _,_  ->            },
+        endCap    : SegmentBuilder    = { _,it -> lineTo(it) }
+    ): this(
+        foreground = { foreground },
+        background = background?.let { { background } },
+        thickness  = thickness,
+        outline    = outline?.let { { outline } },
+        startAngle = startAngle,
+        direction  = direction,
+        startCap   = startCap,
+        endCap     = endCap,
+    )
+
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
     override fun render(view: ProgressIndicator, canvas: Canvas) {
-        val stroke = outline?.let { if (thickness > 2 * it.thickness) outline else null }
+        val o = outline?.let { it(view) }
+
+        val stroke = o?.let { if (thickness > 2 * it.thickness) o else null }
 
         val center          = (view.size / 2.0).run { Point(width, height) }
         val outerRadius     = min(view.width, view.height) / 2
@@ -60,8 +92,8 @@ public class BasicCircularProgressIndicatorBehavior(
         val outlineOffset   = (stroke?.let { stroke.thickness / 2 } ?: 0.0)
         val ringOuterRadius = outerRadius - outlineOffset
         val ringInnerRadius = innerRadius + outlineOffset
-        val bground         = background?.let { if (view.enabled) it else disabledPaintMapper(it) }
-        val fground         = if (view.enabled) foreground else disabledPaintMapper(foreground)
+        val bground         = background?.let { if (view.enabled) it(view) else disabledPaintMapper(it(view)) }
+        val fground         = if (view.enabled) foreground(view) else disabledPaintMapper(foreground(view))
 
         when {
             stroke  != null && bground != null -> canvas.path(ring(center, ringInnerRadius, ringOuterRadius), stroke, bground)

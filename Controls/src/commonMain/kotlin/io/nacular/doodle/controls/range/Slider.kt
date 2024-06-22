@@ -1,15 +1,28 @@
 package io.nacular.doodle.controls.range
 
 import io.nacular.doodle.controls.BasicConfinedValueModel
+import io.nacular.doodle.controls.ByteTypeConverter
 import io.nacular.doodle.controls.ConfinedValueModel
+import io.nacular.doodle.controls.DoubleTypeConverter
+import io.nacular.doodle.controls.FloatTypeConverter
+import io.nacular.doodle.controls.IntTypeConverter
+import io.nacular.doodle.controls.LongTypeConverter
+import io.nacular.doodle.controls.ShortTypeConverter
+import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.utils.CharInterpolator
+import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.interpolator
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Units
+import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 
 /**
@@ -18,12 +31,15 @@ import kotlin.reflect.KClass
  * @constructor
  * @param model containing range and value
  * @param orientation of the control
- * @param type class type of the slider
+ * @param function used to map between the slider's input and output.
+ * @param interpolator used in mapping between [T] and the slider's domain: [0-1]
  */
 public open class Slider<T>(
-                   model      : ConfinedValueModel<T>,
-        public val orientation: Orientation = Horizontal,
-                   type       : KClass<T>): ValueSlider<T>(model, type) where T: Number, T: Comparable<T>  {
+               model       : ConfinedValueModel<T>,
+    public val orientation : Orientation        = Horizontal,
+               function    : InvertibleFunction = LinearFunction,
+               interpolator: Interpolator<T>
+): ValueSlider<T>(model, interpolator, function) where T: Comparable<T>  {
 
     @Suppress("PrivatePropertyName")
     private val changed_ by lazy { PropertyObserversImpl<Slider<T>, T>(this) }
@@ -31,9 +47,19 @@ public open class Slider<T>(
     @Suppress("PrivatePropertyName")
     private val limitsChanged_ by lazy { PropertyObserversImpl<Slider<T>, ClosedRange<T>>(this) }
 
-    public val changed      : PropertyObservers<Slider<T>, T> = changed_
+    /**
+     * Notifies of changes to [value].
+     */
+    public val changed: PropertyObservers<Slider<T>, T> = changed_
+
+    /**
+     * Notifies of changes to [range].
+     */
     public val limitsChanged: PropertyObservers<Slider<T>, ClosedRange<T>> = limitsChanged_
 
+    /**
+     * Behavior that controls rendering and other interactions.
+     */
     public var behavior: Behavior<Slider<T>>? by behavior()
 
     init {
@@ -59,6 +85,8 @@ public open class Slider<T>(
     }
 
     public companion object {
+        // region ================ Numbers ========================
+
         /**
          * Creates a Slider with a given range and starting value.
          *
@@ -66,10 +94,11 @@ public open class Slider<T>(
          * @param value to start with
          * @param orientation of the control
          */
-        public inline operator fun <reified T> invoke(
-                range      : ClosedRange<T>,
-                value      : T = range.start,
-                orientation: Orientation = Horizontal): Slider<T> where T: Number, T: Comparable<T> = Slider(model = BasicConfinedValueModel(range, value) as ConfinedValueModel<T>, orientation, T::class)
+        public operator fun invoke(
+            range      : ClosedRange<Int>,
+            value      : Int              = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Int> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -77,8 +106,300 @@ public open class Slider<T>(
          * @param model of the bar
          * @param orientation of the control
          */
+        public operator fun invoke(
+            model      : ConfinedValueModel<Int>,
+            orientation: Orientation = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Int> = Slider(
+            model,
+            orientation,
+            function,
+            IntTypeConverter
+        )
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        @JvmName("invokeFloat")
+        public operator fun invoke(
+            range      : ClosedRange<Float>,
+            value      : Float         = range.start,
+            orientation: Orientation = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Float> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeFloat")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Float>,
+            orientation: Orientation = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Float> = Slider(
+            model,
+            orientation,
+            function,
+            FloatTypeConverter
+        )
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        @JvmName("invokeDouble")
+        public operator fun invoke(
+            range      : ClosedRange<Double>,
+            value      : Double           = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Double> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeDouble")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Double>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Double> = Slider(
+            model,
+            orientation,
+            function,
+            DoubleTypeConverter
+        )
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        @JvmName("invokeLong")
+        public operator fun invoke(
+            range      : ClosedRange<Long>,
+            value      : Long             = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Long> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeLong")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Long>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Long> = Slider(
+            model,
+            orientation,
+            function,
+            LongTypeConverter
+        )
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        @JvmName("invokeShort")
+        public operator fun invoke(
+            range      : ClosedRange<Short>,
+            value      : Short            = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Short> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeShort")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Short>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Short> = Slider(
+            model,
+            orientation,
+            function,
+            ShortTypeConverter
+        )
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        @JvmName("invokeByte")
+        public operator fun invoke(
+            range      : ClosedRange<Byte>,
+            value      : Byte             = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Byte> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeByte")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Byte>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Byte> = Slider(
+            model,
+            orientation,
+            function,
+            ByteTypeConverter
+        )
+
+        // endregion
+
+        // region ================ Char ========================
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        public operator fun invoke(
+            range      : CharRange,
+            value      : Char             = range.first,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Char> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeChar")
+        public operator fun invoke(
+            model      : ConfinedValueModel<Char>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Char> = Slider(
+            model,
+            orientation,
+            function,
+            CharInterpolator
+        )
+
+        // endregion
+
+        // region ================ Measure ========================
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        public operator fun <T: Units> invoke(
+            range      : ClosedRange<Measure<T>>,
+            value      : Measure<T>       = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Measure<T>> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        @JvmName("invokeMeasure")
+        public operator fun <T: Units> invoke(
+            model      : ConfinedValueModel<Measure<T>>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<Measure<T>> = Slider(
+            model,
+            orientation,
+            function,
+            model.value.units.interpolator
+        )
+
+        // endregion
+
+        // region ================ T ========================
+
+        /**
+         * Creates a Slider with a given range and starting value.
+         *
+         * @param range of the bar
+         * @param value to start with
+         * @param orientation of the control
+         */
+        public operator fun <T> invoke(
+            range      : ClosedRange<T>,
+            converter  : Interpolator<T>,
+            value      : T                = range.start,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<T> where T: Comparable<T> = Slider(
+            BasicConfinedValueModel(range, value) as ConfinedValueModel<T>,
+            orientation,
+            function,
+            converter
+        )
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         */
+        public operator fun <T> invoke(
+            model      : ConfinedValueModel<T>,
+            converter  : Interpolator<T>,
+            orientation: Orientation      = Horizontal,
+            function   : InvertibleFunction = LinearFunction): Slider<T> where T: Comparable<T> = Slider(
+            model,
+            orientation,
+            function,
+            converter
+        )
+
+        // endregion
+
+        /**
+         * Creates a Slider with the given model.
+         *
+         * @param model of the bar
+         * @param orientation of the control
+         * @param type class type of the slider
+         */
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Use explicit inline versions for numbers instead.")
         public inline operator fun <reified T> invoke(
-                model      : ConfinedValueModel<T>,
-                orientation: Orientation = Horizontal): Slider<T> where T: Number, T: Comparable<T> = Slider(model, orientation, T::class)
+            model      : ConfinedValueModel<T>,
+            orientation: Orientation = Horizontal,
+            type       : KClass<T>,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<T> where T: Number, T: Comparable<T> = Slider(
+            model,
+            orientation,
+            function,
+            numberTypeConverter(),
+        )
     }
 }

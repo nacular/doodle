@@ -16,7 +16,7 @@ internal actual operator fun <T: JsAny?> JsArray<T>.get (index: Int          ): 
 internal actual operator fun <T: JsAny?> JsArray<T>.set (index: Int, value: T): Unit = this.jsSet(index, value)
 internal actual inline   fun <T: JsAny?> JsArray<T>.push(value: T            ): Unit = jsPush(this, value)
 
-internal fun <T: JsAny?> jsPush(array: JsArray<T>, value: T): Unit = js("array.push(value)")
+private fun <T: JsAny?> jsPush(array: JsArray<T>, value: T): Unit = js("array.push(value)")
 
 internal actual fun String.toJsString(): JsString = this.jsToJsString()
 
@@ -26,3 +26,7 @@ internal actual fun <T: JsAny> jsArrayOf(vararg values: T): JsArray<T> = JsArray
         push(it)
     }
 }
+
+internal actual operator fun DataTransferItemList.get(index: Int): DataTransferItem? = jsGet(this, index)
+
+private fun jsGet(list: DataTransferItemList, index: Int): DataTransferItem? = js("list[index]")

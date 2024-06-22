@@ -375,5 +375,6 @@ class FocusTraversalPolicyImplTests {
         every { this@apply.display             } returns display
         every { this@apply.parent              } returns parent
         every { this@apply.children_           } returns ObservableList()
+        every { this@apply.displayed           } returns true
     }
 }

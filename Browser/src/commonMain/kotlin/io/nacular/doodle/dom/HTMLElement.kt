@@ -191,7 +191,7 @@ internal expect abstract external class HTMLElement: Element, ElementCSSInlineSt
     var onwheel        : ((WheelEvent  ) -> Boolean)?
     var ondblclick     : ((MouseEvent  ) -> Boolean)?
     var onpointerup    : ((PointerEvent) -> Boolean)?
-    var onpointerout   : ((PointerEvent) -> Boolean)?
+    var onpointerout   : ((PointerEvent) -> Unit   )?
     var onpointerdown  : ((PointerEvent) -> Boolean)?
     var onpointermove  : ((PointerEvent) -> Boolean)?
     var onpointerover  : ((PointerEvent) -> Unit   )?
@@ -225,6 +225,7 @@ internal expect abstract external class HTMLElement: Element, ElementCSSInlineSt
     fun focus()
     fun focus(options: FocusOptions)
     fun blur ()
+    fun click()
 }
 
 internal expect external interface AddEventListenerOptions: JsAny {
@@ -298,6 +299,7 @@ internal expect external class Text: CharacterData
 
 internal expect abstract external class HTMLImageElement: HTMLElement {
     var src     : String
+    var alt     : String
     val complete: Boolean
     val width   : Int
     val height  : Int

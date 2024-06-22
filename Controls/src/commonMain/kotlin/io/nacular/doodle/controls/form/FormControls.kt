@@ -4,13 +4,19 @@ package io.nacular.doodle.controls.form
 
 import io.nacular.doodle.controls.BasicConfinedRangeModel
 import io.nacular.doodle.controls.BasicConfinedValueModel
+import io.nacular.doodle.controls.ByteTypeConverter
 import io.nacular.doodle.controls.ConfinedRangeModel
 import io.nacular.doodle.controls.ConfinedValueModel
+import io.nacular.doodle.controls.DoubleTypeConverter
+import io.nacular.doodle.controls.FloatTypeConverter
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.IntProgressionModel
+import io.nacular.doodle.controls.IntTypeConverter
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
+import io.nacular.doodle.controls.LongTypeConverter
 import io.nacular.doodle.controls.MultiSelectionModel
+import io.nacular.doodle.controls.ShortTypeConverter
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.StringVisualizer
@@ -19,21 +25,25 @@ import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.buttons.ToggleButton
-import io.nacular.doodle.controls.dropdown.Dropdown
+import io.nacular.doodle.controls.dropdown.SelectBox
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.controls.range.InvertibleFunction
+import io.nacular.doodle.controls.range.LinearFunction
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.spinner.ListSpinnerModel
-import io.nacular.doodle.controls.spinner.Spinner
-import io.nacular.doodle.controls.spinner.SpinnerModel
+import io.nacular.doodle.controls.spinner.IntSpinButtonModel
+import io.nacular.doodle.controls.spinner.ListSpinButtonModel
+import io.nacular.doodle.controls.spinner.SpinButton
+import io.nacular.doodle.controls.spinner.SpinButtonModel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.toString
@@ -46,6 +56,7 @@ import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.core.then
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
@@ -57,14 +68,21 @@ import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.doodle.utils.CharInterpolator
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
+import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PassThroughEncoder
+import io.nacular.doodle.utils.interpolator
 import io.nacular.doodle.utils.observable
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Units
+import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.reflect.KClass
 
@@ -134,8 +152,9 @@ public fun <T> textField(
     TextField().apply {
         textChanged  += { _,_,new      -> validate(field, new) }
         focusChanged += { _,_,hasFocus ->
-            if (!hasFocus) {
-                validate(field, text)
+            when {
+                !hasFocus -> validate(field, text)
+                else      -> parent?.scrollTo(bounds)
             }
         }
 
@@ -180,15 +199,7 @@ public fun textField(
 public fun check(label: View): FieldVisualizer<Boolean> = field {
     container {
         + label
-        + CheckBox().apply {
-            initial.ifValid { selected = it }
-
-            selectedChanged += { _,_,_ ->
-                state = Valid(selected)
-            }
-
-            state = Valid(selected)
-        }
+        + checkBox()
 
         focusable = false
 
@@ -204,15 +215,7 @@ public fun check(label: View): FieldVisualizer<Boolean> = field {
  * @param label used for the checkbox
  */
 public fun check(label: String): FieldVisualizer<Boolean> = field {
-    CheckBox(label).apply {
-        initial.ifValid { selected = it }
-
-        selectedChanged += { _,_,_ ->
-            state = Valid(selected)
-        }
-
-        state = Valid(selected)
-    }
+    checkBox(label)
 }
 
 /**
@@ -230,6 +233,12 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
 
             selectedChanged += { _,_,_ ->
                 state = Valid(selected)
+            }
+
+            focusChanged += { _,_,focused ->
+                if (focused) {
+                    parent?.scrollTo(bounds)
+                }
             }
 
             size  = Size(30, 20)
@@ -275,21 +284,9 @@ public fun switch(text: String): FieldVisualizer<Boolean> = switch(Label(text))
  *
  * @property slider within the control
  */
-public class SliderConfig<T> internal constructor(public val slider: Slider<T>) where T: Number, T: Comparable<T>
+public class SliderConfig<T> internal constructor(public val slider: Slider<T>) where T: Comparable<T>
 
-/**
- * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
- * value within a range.
- *
- * @param model for the Slider
- * @param orientation of the Slider
- * @param config for the Slider
- */
-public inline fun <reified T> slider(
-             model      : ConfinedValueModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : SliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(model, orientation, config, T::class)
+// region Number
 
 /**
  * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
@@ -299,26 +296,276 @@ public inline fun <reified T> slider(
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> slider(
-             range      : ClosedRange<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : SliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(
-    model       = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+public fun slider(
+    range      : ClosedRange<Int>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<Int> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+public fun slider(
+    model      : ConfinedValueModel<Int>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<Int> = slider(model, orientation, IntTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderFloat")
+public fun slider(
+    range      : ClosedRange<Float>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<Float> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderFloat")
+public fun slider(
+    model      : ConfinedValueModel<Float>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<Float> = slider(model, orientation, FloatTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderDouble")
+public fun slider(
+    range      : ClosedRange<Double>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<Double> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderDouble")
+public fun slider(
+    model      : ConfinedValueModel<Double>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<Double> = slider(model, orientation, DoubleTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderLong")
+public fun slider(
+    range      : ClosedRange<Long>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<Long> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderLong")
+public fun slider(
+    model      : ConfinedValueModel<Long>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<Long> = slider(model, orientation, LongTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderShort")
+public fun slider(
+    range      : ClosedRange<Short>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<Short> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderShort")
+public fun slider(
+    model      : ConfinedValueModel<Short>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<Short> = slider(model, orientation, ShortTypeConverter, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderByte")
+public fun slider(
+    range      : ClosedRange<Byte>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<Byte> = slider(BasicConfinedValueModel(range), orientation, config)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderByte")
+public fun slider(
+    model      : ConfinedValueModel<Byte>,
+    orientation: Orientation                  = Horizontal,
+    config     : SliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<Byte> = slider(model, orientation, ByteTypeConverter, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderChar")
+public fun slider(
+    range      : ClosedRange<Char>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<Char> = slider(
+    model        = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
+    orientation  = orientation,
+    interpolator = CharInterpolator,
+    config       = config
+)
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderChar")
+public fun slider(
+    model      : ConfinedValueModel<Char>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<Char> = slider(model, orientation, CharInterpolator, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("sliderMeasure")
+public fun <T: Units> slider(
+    range      : ClosedRange<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    config     : SliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<Measure<T>> = slider(
+    model       = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
     orientation = orientation,
     config      = config
 )
 
 /**
- * @see slider
+ * Creates a [Slider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
  */
-public fun <T> slider(
-    model      : ConfinedValueModel<T>,
+@JvmName("sliderMeasure")
+public fun <T: Units> slider(
+    model      : ConfinedValueModel<Measure<T>>,
     orientation: Orientation = Horizontal,
-    config     : SliderConfig<T>.() -> Unit = {},
-    type       : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = field {
-    Slider(model, orientation, type).apply {
+    config     : SliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<Measure<T>> = slider(model, orientation, model.value.units.interpolator, config)
+
+// endregion
+
+// region T
+
+public fun <T> slider(
+    range       : ClosedRange<T>,
+    orientation : Orientation = Horizontal,
+    interpolator: Interpolator<T>,
+    config      : SliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = slider(
+    model        = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+    orientation  = orientation,
+    interpolator = interpolator,
+    config       = config
+)
+
+public fun <T> slider(
+    model       : ConfinedValueModel<T>,
+    orientation : Orientation = Horizontal,
+    interpolator: Interpolator<T>,
+    config      : SliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = field {
+    Slider(model, interpolator, orientation).apply {
         config(SliderConfig(this))
 
         initial.ifValid { value = it }
@@ -326,8 +573,28 @@ public fun <T> slider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
+
+// endregion
+
+/**
+ * @see slider
+ */
+@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Use version without type.")
+public inline fun <reified T> slider(
+             model      : ConfinedValueModel<T>,
+             orientation: Orientation = Horizontal,
+    noinline config     : SliderConfig<T>.() -> Unit = {},
+             type       : KClass<T>
+): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(model, orientation, numberTypeConverter(), config)
 
 // endregion
 
@@ -338,7 +605,9 @@ public fun <T> slider(
  *
  * @property slider within the control
  */
-public class CircularSliderConfig<T> internal constructor(public val slider: CircularSlider<T>) where T: Number, T: Comparable<T>
+public class CircularSliderConfig<T> internal constructor(public val slider: CircularSlider<T>) where T: Comparable<T>
+
+// region Number
 
 /**
  * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
@@ -347,10 +616,156 @@ public class CircularSliderConfig<T> internal constructor(public val slider: Cir
  * @param model for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularSlider(
-             model : ConfinedValueModel<T>,
-    noinline config: CircularSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(model, config, T::class)
+public fun circularSlider(
+    model : ConfinedValueModel<Int>,
+    config: CircularSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<Int> = circularSlider(model, IntTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+public fun circularSlider(
+    range : ClosedRange<Int>,
+    config: CircularSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<Int> = circularSlider(BasicConfinedValueModel(range) as ConfinedValueModel<Int>, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderFloat")
+public fun circularSlider(
+    model : ConfinedValueModel<Float>,
+    config: CircularSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<Float> = circularSlider(model, FloatTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderFloat")
+public fun circularSlider(
+    range : ClosedRange<Float>,
+    config: CircularSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<Float> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderDouble")
+public fun circularSlider(
+    model : ConfinedValueModel<Double>,
+    config: CircularSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<Double> = circularSlider(model, DoubleTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderDouble")
+public fun circularSlider(
+    range : ClosedRange<Double>,
+    config: CircularSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<Double> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderLong")
+public fun circularSlider(
+    model : ConfinedValueModel<Long>,
+    config: CircularSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<Long> = circularSlider(model, LongTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderLong")
+public fun circularSlider(
+    range : ClosedRange<Long>,
+    config: CircularSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<Long> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderShort")
+public fun circularSlider(
+    model : ConfinedValueModel<Short>,
+    config: CircularSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<Short> = circularSlider(model, ShortTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderShort")
+public fun circularSlider(
+    range : ClosedRange<Short>,
+    config: CircularSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<Short> = circularSlider(BasicConfinedValueModel(range), config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderByte")
+public fun circularSlider(
+    model : ConfinedValueModel<Byte>,
+    config: CircularSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<Byte> = circularSlider(model, ByteTypeConverter, config)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. In this control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderByte")
+public fun circularSlider(
+    range : ClosedRange<Byte>,
+    config: CircularSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<Byte> = circularSlider(BasicConfinedValueModel(range) as ConfinedValueModel<Byte>, config)
+
+// endregion
+
+// region Char
 
 /**
  * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
@@ -359,23 +774,88 @@ public inline fun <reified T> circularSlider(
  * @param range for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularSlider(
-             range : ClosedRange<T>,
-    noinline config: CircularSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(
-    model  = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+@JvmName("circularSliderChar")
+public fun circularSlider(
+    range : ClosedRange<Char>,
+    config: CircularSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<Char> = circularSlider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<Char>,
+    config           = config,
+    numberTypeConverter = CharInterpolator
+)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderChar")
+public fun circularSlider(
+    model : ConfinedValueModel<Char>,
+    config: CircularSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<Char> = circularSlider(model, CharInterpolator, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderMeasure")
+public fun <T: Units> circularSlider(
+    range : ClosedRange<Measure<T>>,
+    config: CircularSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<Measure<T>> = circularSlider(
+    model  = BasicConfinedValueModel(range) as ConfinedValueModel<Measure<T>>,
     config = config
+)
+
+/**
+ * Creates a [CircularSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularSliderMeasure")
+public fun <T: Units> circularSlider(
+    model : ConfinedValueModel<Measure<T>>,
+    config: CircularSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<Measure<T>> = circularSlider(model, model.value.units.interpolator, config)
+
+// endregion
+
+// region T
+
+/**
+ * @see circularSlider
+ */
+public fun <T> circularSlider(
+    range           : ClosedRange<T>,
+    numberTypeConverter: Interpolator<T>,
+    config          : CircularSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = circularSlider(
+    model            = BasicConfinedValueModel(range) as ConfinedValueModel<T>,
+    numberTypeConverter = numberTypeConverter,
+    config           = config
 )
 
 /**
  * @see circularSlider
  */
 public fun <T> circularSlider(
-    model : ConfinedValueModel<T>,
-    config: CircularSliderConfig<T>.() -> Unit = {},
-    type  : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = field {
-    CircularSlider(model, type).apply {
+    model           : ConfinedValueModel<T>,
+    numberTypeConverter: Interpolator<T>,
+    config          : CircularSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<T> where T: Comparable<T> = field {
+    CircularSlider(model, numberTypeConverter).apply {
         config(CircularSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -383,8 +863,27 @@ public fun <T> circularSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
+
+// endregion
+
+/**
+ * @see circularSlider
+ */
+@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
+@Deprecated("User version without type")
+public inline fun <reified T> circularSlider(
+             model : ConfinedValueModel<T>,
+    noinline config: CircularSliderConfig<T>.() -> Unit = {},
+             type  : KClass<T>
+): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(model, numberTypeConverter(), config)
 
 // endregion
 
@@ -399,7 +898,9 @@ public fun <T> circularSlider(
  *
  * @property slider within the control
  */
-public class RangeSliderConfig<T> internal constructor(public val slider: RangeSlider<T>) where T: Number, T: Comparable<T>
+public class RangeSliderConfig<T> internal constructor(public val slider: RangeSlider<T>) where T: Comparable<T>
+
+// region Number
 
 /**
  * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -409,11 +910,12 @@ public class RangeSliderConfig<T> internal constructor(public val slider: RangeS
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> rangeSlider(
-             model      : ConfinedRangeModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : RangeSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(model, orientation, config, T::class)
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Int>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Int>> = rangeSlider(model, IntTypeConverter, orientation, function, config)
 
 /**
  * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -423,14 +925,277 @@ public inline fun <reified T> rangeSlider(
  * @param orientation of the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> rangeSlider(
-             range      : ClosedRange<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : RangeSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(
+public fun rangeSlider(
+    range      : ClosedRange<Int>,
+    orientation: Orientation                       = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Int>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Int>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderFloat")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Float>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Float>> = rangeSlider(model, FloatTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderFloat")
+public fun rangeSlider(
+    range      : ClosedRange<Float>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Float>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Float>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderDouble")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Double>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Double>> = rangeSlider(model, DoubleTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderDouble")
+public fun rangeSlider(
+    range      : ClosedRange<Double>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Double>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Double>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderLong")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Long>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Long>> = rangeSlider(model, LongTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderLong")
+public fun rangeSlider(
+    range      : ClosedRange<Long>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Long>> = rangeSlider(BasicConfinedRangeModel(range) as ConfinedRangeModel<Long>, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderShort")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Short>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Short>> = rangeSlider(model, ShortTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderShort")
+public fun rangeSlider(
+    range      : ClosedRange<Short>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Short>> = rangeSlider(BasicConfinedRangeModel(range), orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderByte")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Byte>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Byte>> = rangeSlider(model, ByteTypeConverter, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderByte")
+public fun rangeSlider(
+    range      : ClosedRange<Byte>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Byte>> = rangeSlider(BasicConfinedRangeModel(range), orientation, function, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderChar")
+public fun rangeSlider(
+    model      : ConfinedRangeModel<Char>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Char>> = rangeSlider(model, CharInterpolator, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderChar")
+public fun rangeSlider(
+    range      : ClosedRange<Char>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Char>> = rangeSlider(
+    model       = BasicConfinedRangeModel(range),
+    orientation = orientation,
+    converter   = CharInterpolator,
+    config      = config,
+    function    = function
+)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderMeasure")
+public fun <T: Units> rangeSlider(
+    model      : ConfinedRangeModel<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Measure<T>>> = rangeSlider(model, model.range.start.units.interpolator, orientation, function, config)
+
+/**
+ * Creates a [RangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param orientation of the Slider
+ * @param config for the Slider
+ */
+@JvmName("rangeSliderMeasure")
+public fun <T: Units> rangeSlider(
+    range      : ClosedRange<Measure<T>>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Measure<T>>> = rangeSlider(
+    model       = BasicConfinedRangeModel(range),
+    orientation = orientation,
+    converter   = range.start.units.interpolator,
+    config      = config,
+    function    = function
+)
+
+// endregion
+
+// region T
+
+
+/**
+ * @see rangeSlider
+ */
+public fun <T> rangeSlider(
+    range      : ClosedRange<T>,
+    converter  : Interpolator<T>,
+    orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
+    config     : RangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = rangeSlider(
     model       = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
     orientation = orientation,
-    config      = config
+    converter   = converter,
+    config      = config,
+    function    = function
 )
 
 /**
@@ -438,11 +1203,12 @@ public inline fun <reified T> rangeSlider(
  */
 public fun <T> rangeSlider(
     model      : ConfinedRangeModel<T>,
+    converter  : Interpolator<T>,
     orientation: Orientation = Horizontal,
+    function   : InvertibleFunction = LinearFunction,
     config     : RangeSliderConfig<T>.() -> Unit = {},
-    type       : KClass<T>
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = field {
-    RangeSlider(model, orientation, type).apply {
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = field {
+    RangeSlider(model, converter, orientation, function).apply {
         config(RangeSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -450,8 +1216,28 @@ public fun <T> rangeSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
+
+// endregion
+/**
+ * @see rangeSlider
+ */
+@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
+@Deprecated("Use version without type.")
+public inline fun <reified T> rangeSlider(
+             model      : ConfinedRangeModel<T>,
+             orientation: Orientation = Horizontal,
+    noinline config     : RangeSliderConfig<T>.() -> Unit = {},
+             type       : KClass<T>,
+             function   : InvertibleFunction = LinearFunction
+): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(model, numberTypeConverter(), orientation, function, config)
 
 // endregion
 
@@ -462,19 +1248,9 @@ public fun <T> rangeSlider(
  *
  * @property slider within the control
  */
-public class CircularRangeSliderConfig<T> internal constructor(public val slider: CircularRangeSlider<T>) where T: Number, T: Comparable<T>
+public class CircularRangeSliderConfig<T> internal constructor(public val slider: CircularRangeSlider<T>) where T: Comparable<T>
 
-/**
- * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
- * value within a range.
- *
- * @param model for the Slider
- * @param config for the Slider
- */
-public inline fun <reified T> circularRangeSlider(
-             model : ConfinedRangeModel<T>,
-    noinline config: CircularRangeSliderConfig<T>.() -> Unit = {},
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(model, config, T::class)
+// region Number
 
 /**
  * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
@@ -483,23 +1259,266 @@ public inline fun <reified T> circularRangeSlider(
  * @param range for the Slider
  * @param config for the Slider
  */
-public inline fun <reified T> circularRangeSlider(
-             range : ClosedRange<T>,
-    noinline config: CircularRangeSliderConfig<T>.() -> Unit = {}
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(
-    model  = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
-    config = config
+public fun circularRangeSlider(
+    range : ClosedRange<Int>,
+    function: InvertibleFunction = LinearFunction,
+    config: CircularRangeSliderConfig<Int>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Int>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Int>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Int>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Int>> = circularRangeSlider(model, IntTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderFloat")
+public fun circularRangeSlider(
+    range   : ClosedRange<Float>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Float>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Float>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderFloat")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Float>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Float>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Float>> = circularRangeSlider(model, FloatTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderDouble")
+public fun circularRangeSlider(
+    range   : ClosedRange<Double>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Double>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Double>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderDouble")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Double>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Double>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Double>> = circularRangeSlider(model, DoubleTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderLong")
+public fun circularRangeSlider(
+    range   : ClosedRange<Long>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Long>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Long>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderLong")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Long>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Long>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Long>> = circularRangeSlider(model, LongTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderShort")
+public fun circularRangeSlider(
+    range   : ClosedRange<Short>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Short>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Short>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderShort")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Short>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Short>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Short>> = circularRangeSlider(model, ShortTypeConverter, function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderByte")
+public fun circularRangeSlider(
+    range   : ClosedRange<Byte>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Byte>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Byte>> = circularRangeSlider(BasicConfinedRangeModel(range), function, config)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderByte")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Byte>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Byte>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Byte>> = circularRangeSlider(model, ByteTypeConverter, function, config)
+
+// endregion
+
+// region Char
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderChar")
+public fun circularRangeSlider(
+    range   : ClosedRange<Char>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Char>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Char>> = circularRangeSlider(
+    model    = BasicConfinedRangeModel(range) as ConfinedRangeModel<Char>,
+    config   = config,
+    function = function
+)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderChar")
+public fun circularRangeSlider(
+    model   : ConfinedRangeModel<Char>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Char>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Char>> = circularRangeSlider(model, CharInterpolator, function, config)
+
+// endregion
+
+// region Measure<T>
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param range for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderMeasure")
+public fun <T: Units> circularRangeSlider(
+    range   : ClosedRange<Measure<T>>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Measure<T>>.() -> Unit = {}
+): FieldVisualizer<ClosedRange<Measure<T>>> = circularRangeSlider(
+    model    = BasicConfinedRangeModel(range) as ConfinedRangeModel<Measure<T>>,
+    config   = config,
+    function = function
+)
+
+/**
+ * Creates a [CircularRangeSlider] control that is bound to a [Field]. This control lets the user select a
+ * value within a range.
+ *
+ * @param model for the Slider
+ * @param config for the Slider
+ */
+@JvmName("circularRangeSliderMeasure")
+public fun <T: Units> circularRangeSlider(
+    model   : ConfinedRangeModel<Measure<T>>,
+    function: InvertibleFunction = LinearFunction,
+    config  : CircularRangeSliderConfig<Measure<T>>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<Measure<T>>> = circularRangeSlider(model, model.range.start.units.interpolator, function, config)
+
+// endregion
+
+// region T
+
+/**
+ * @see circularRangeSlider
+ */
+public fun <T> circularRangeSlider(
+    range    : ClosedRange<T>,
+    converter: Interpolator<T>,
+    function : InvertibleFunction = LinearFunction,
+    config   : CircularRangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = circularRangeSlider(
+    model     = BasicConfinedRangeModel(range) as ConfinedRangeModel<T>,
+    config    = config,
+    converter = converter,
+    function  = function
 )
 
 /**
  * @see circularRangeSlider
  */
 public fun <T> circularRangeSlider(
-    model : ConfinedRangeModel<T>,
-    config: CircularRangeSliderConfig<T>.() -> Unit = {},
-    type  : KClass<T>
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = field {
-    CircularRangeSlider(model, type).apply {
+    model    : ConfinedRangeModel<T>,
+    converter: Interpolator<T>,
+    function : InvertibleFunction = LinearFunction,
+    config   : CircularRangeSliderConfig<T>.() -> Unit = {},
+): FieldVisualizer<ClosedRange<T>> where T: Comparable<T> = field {
+    CircularRangeSlider(model, converter, function).apply {
         config(CircularRangeSliderConfig(this))
 
         initial.ifValid { value = it }
@@ -507,8 +1526,28 @@ public fun <T> circularRangeSlider(
         state = Valid(value)
 
         changed += { _,_,new -> state = Valid(new) }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
+
+// endregion
+
+/**
+ * @see circularRangeSlider
+ */
+@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
+@Deprecated("Use version without type")
+public inline fun <reified T> circularRangeSlider(
+             model   : ConfinedRangeModel<T>,
+    noinline config  : CircularRangeSliderConfig<T>.() -> Unit = {},
+             type    : KClass<T>,
+             function: InvertibleFunction = LinearFunction,
+): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(model, numberTypeConverter(), function, config)
 
 // endregion
 
@@ -526,6 +1565,12 @@ public fun file(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<L
         this.filesLoaded += { _,_,files ->
             files.firstOrNull()?.let { state = Valid(it) }
         }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
     }
 }
 
@@ -538,6 +1583,12 @@ public fun files(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<
     FileSelector(allowMultiple = true, acceptedTypes).apply {
         this.filesLoaded += { _,_,files ->
             state = Valid(files)
+        }
+
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
         }
     }
 }
@@ -563,7 +1614,7 @@ public class OptionListConfig<T> internal constructor() {
     public var insets: Insets = Insets.None
 
     /**
-     * Provides a label for each item in the list. This is short-hand for using [visualizer].
+     * Provides a label for each item in the list. This is shorthand for using [visualizer].
      */
     public var label: (T) -> String by observable({ "$it" }) { _,new ->
         visualizer = { Label(new(it)) }
@@ -651,45 +1702,65 @@ public fun <T: Any> optionalRadioList(
 
 // endregion
 
-// region Dropdown
+// region SelectBox
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
  * This control is useful when a meaningful default exists for an option list.
  *
  * @param T is the type of the bounded field
- * @param model for the dropdown
+ * @param model for the select box
  * @param boxItemVisualizer used to render the drop-down's box item
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param config used to control the resulting component
  */
+@Deprecated("Use selectBox instead", ReplaceWith("selectBox(model, boxItemVisualizer, listItemVisualizer, config)"))
 public fun <T, M: ListModel<T>> dropDown(
     model             : M,
     boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
     listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-    config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
-    Dropdown(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { dropdown ->
+    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(model, boxItemVisualizer, listItemVisualizer, config)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param model for the select box
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T, M: ListModel<T>> selectBox(
+    model             : M,
+    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    SelectBox(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { selectBox ->
         initial.ifValid {
             model.forEachIndexed { index, item ->
                 if (item == it) {
-                    dropdown.selection = index
+                    selectBox.selection = index
                     return@forEachIndexed
                 }
             }
         }
 
-        dropdown.changed += {
-            state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
+        selectBox.changed += {
+            state = selectBox.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
         }
 
-        state = dropdown.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
+        state = selectBox.value.fold(onSuccess = { Valid(it) }, onFailure = { Invalid() })
     }.also(config)
 }
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -702,20 +1773,48 @@ public fun <T, M: ListModel<T>> dropDown(
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param config used to control the resulting component
  */
+@Deprecated("Use selectBox", ReplaceWith("selectBox(first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, config = config)"))
 public fun <T> dropDown(
                first             : T,
         vararg rest              : T,
                boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
                listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-               config            : (Dropdown<T, *>) -> Unit = {}): FieldVisualizer<T> = dropDown(
-        SimpleListModel(listOf(first) + rest),
-        boxItemVisualizer,
-        listItemVisualizer,
-        config
+               config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
+    first,
+    *rest,
+    boxItemVisualizer  = boxItemVisualizer,
+    listItemVisualizer = listItemVisualizer,
+    config             = config
 )
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T> selectBox(
+    first             : T,
+    vararg rest       : T,
+    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
+    SimpleListModel(listOf(first) + rest),
+    boxItemVisualizer,
+    listItemVisualizer,
+    config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -727,15 +1826,36 @@ public fun <T> dropDown(
  * @param label used to render the drop-down's box and list items
  * @param config used to control the resulting component
  */
+@Deprecated("Use selectBox", ReplaceWith("selectBox(first, *rest, label = label, config = config)"))
 public fun <T> dropDown(
            first : T,
     vararg rest  : T,
            label : (T) -> String = { "$it" },
-           config: (Dropdown<T, *>) -> Unit = {}
-): FieldVisualizer<T> = dropDown(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
+           config: (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(first, *rest, label = label, config = config)
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param label used to render the drop-down's box and list items
+ * @param config used to control the resulting component
+ */
+public fun <T> selectBox(
+    first : T,
+    vararg rest  : T,
+    label : (T) -> String = { "$it" },
+    config: (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], in that it
  * DOES NOT set a default value and its field is [Invalid] if no initial value
  * is bound to it. The control actually has an "unselected" state when it is invalid.
@@ -749,6 +1869,7 @@ public fun <T> dropDown(
  * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
  * @param config used to control the resulting component
  */
+@Deprecated("Use selectBox", ReplaceWith("selectBox( first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, unselectedBoxItemVisualizer = unselectedBoxItemVisualizer, unselectedListItemVisualizer = unselectedListItemVisualizer, config = config)"))
 public fun <T: Any> dropDown(
     first                       : T,
     vararg rest                 : T,
@@ -756,10 +1877,42 @@ public fun <T: Any> dropDown(
     listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
     unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
     unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
+    first,
+    *rest,
+    boxItemVisualizer            = boxItemVisualizer,
+    listItemVisualizer           = listItemVisualizer,
+    unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
+    unselectedListItemVisualizer = unselectedListItemVisualizer,
+    config                       = config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], in that it
+ * DOES NOT set a default value and its field is [Invalid] if no initial value
+ * is bound to it. The control actually has an "unselected" state when it is invalid.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
+ * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T: Any> selectBox(
+    first                       : T,
+    vararg rest                 : T,
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
-    buildDropDown(
+    buildSelectBox(
         model                        = model,
         boxItemVisualizer            = boxItemVisualizer,
         listItemVisualizer           = listItemVisualizer,
@@ -793,7 +1946,7 @@ public fun <T: Any> dropDown(
 }
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], in that it
  * DOES NOT set a default value and its field is [Invalid] if no initial value
  * is bound to it. The control actually has an "unselected" state when it is invalid.
@@ -805,40 +1958,98 @@ public fun <T: Any> dropDown(
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
+@Deprecated("Use selectBox", ReplaceWith("selectBox( first, *rest, label = label, unselectedLabel = unselectedLabel, config = config)"))
 public fun <T: Any> dropDown(
            first          : T,
     vararg rest           : T,
            label          : (T) -> String = { "$it" },
            unselectedLabel: String,
-           config         : (Dropdown<T?, *>) -> Unit = {}
-): FieldVisualizer<T> = dropDown(
+           config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(
+    first,
+    *rest,
+    label           = label,
+    unselectedLabel = unselectedLabel,
+    config          = config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], in that it
+ * DOES NOT set a default value and its field is [Invalid] if no initial value
+ * is bound to it. The control actually has an "unselected" state when it is invalid.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param label used to render the drop-down's items
+ * @param unselectedLabel used to render the item that represents the "unselected" state
+ * @param config used to control the resulting component
+ */
+public fun <T: Any> selectBox(
+           first          : T,
+    vararg rest           : T,
+           label          : (T) -> String = { "$it" },
+           unselectedLabel: String,
+           config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(
     first,
     *rest,
     boxItemVisualizer           = toString(StringVisualizer(), label),
     unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
-    config                      = config)
+    config                      = config
+)
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
  * @param T is the type of the bounded field
- * @param model for the dropdown
+ * @param model for the select box
  * @param boxItemVisualizer used to render the drop-down's box item
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
  * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
  * @param config used to control the resulting component
  */
+@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox( model, boxItemVisualizer, listItemVisualizer, unselectedBoxItemVisualizer, unselectedListItemVisualizer, config)"))
 public fun <T: Any, M: ListModel<T>> optionalDropDown(
     model                       : M,
     boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
     listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
     unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
     unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
-    buildDropDown(
+    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSelectBox(
+    model,
+    boxItemVisualizer,
+    listItemVisualizer,
+    unselectedBoxItemVisualizer,
+    unselectedListItemVisualizer,
+    config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
+ * ignore selection entirely and therefore the resulting type is [T]?.
+ *
+ * @param T is the type of the bounded field
+ * @param model for the select box
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
+ * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T: Any, M: ListModel<T>> optionalSelectBox(
+    model                       : M,
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+    buildSelectBox(
         model                        = SimpleListModel(listOf(null) + model.section(0 until model.size)),
         boxItemVisualizer            = boxItemVisualizer,
         listItemVisualizer           = listItemVisualizer,
@@ -862,7 +2073,7 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
 }
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
@@ -875,6 +2086,7 @@ public fun <T: Any, M: ListModel<T>> optionalDropDown(
  * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
  * @param config used to control the resulting component
  */
+@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox(first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, unselectedBoxItemVisualizer = unselectedBoxItemVisualizer, unselectedListItemVisualizer = unselectedListItemVisualizer, config = config)"))
 public fun <T: Any> optionalDropDown(
            first                       : T,
     vararg rest                        : T,
@@ -882,10 +2094,41 @@ public fun <T: Any> optionalDropDown(
            listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
            unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
            unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-           config                      : (Dropdown<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+           config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSelectBox(
+    first,
+    *rest,
+    boxItemVisualizer            = boxItemVisualizer,
+    listItemVisualizer           = listItemVisualizer,
+    unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
+    unselectedListItemVisualizer = unselectedListItemVisualizer,
+    config                       = config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
+ * ignore selection entirely and therefore the resulting type is [T]?.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
+ * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T: Any> optionalSelectBox(
+    first                       : T,
+    vararg rest                        : T,
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
-    buildDropDown(
+    buildSelectBox(
         model                        = model,
         boxItemVisualizer            = boxItemVisualizer,
         listItemVisualizer           = listItemVisualizer,
@@ -919,7 +2162,7 @@ public fun <T: Any> optionalDropDown(
 }
 
 /**
- * Creates a [Dropdown] control that is bound to a [Field]. This control lets a user
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
@@ -930,55 +2173,105 @@ public fun <T: Any> optionalDropDown(
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
+@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox(first, *rest, label = label, unselectedLabel = unselectedLabel, config = config)"))
 public fun <T: Any> optionalDropDown(
            first          : T,
     vararg rest           : T,
            label          : (T) -> String = { "$it" },
            unselectedLabel: String,
-           config         : (Dropdown<T?, *>) -> Unit = {}
-): FieldVisualizer<T?> = optionalDropDown(
+           config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T?> = optionalSelectBox(
+     first,
+    *rest,
+    label           = label,
+    unselectedLabel = unselectedLabel,
+    config          = config
+)
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
+ * ignore selection entirely and therefore the resulting type is [T]?.
+ *
+ * @param T is the type of the bounded field
+ * @param first item in the list
+ * @param rest of the items in the list
+ * @param label used to render the drop-down's items
+ * @param unselectedLabel used to render the item that represents the "unselected" state
+ * @param config used to control the resulting component
+ */
+public fun <T: Any> optionalSelectBox(
+    first          : T,
+    vararg rest           : T,
+    label          : (T) -> String = { "$it" },
+    unselectedLabel: String,
+    config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T?> = optionalSelectBox(
     first,
     *rest,
     boxItemVisualizer           = toString(StringVisualizer(), label),
     unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
-    config                      = config)
-
+    config                      = config
+)
 // endregion
 
-// region Spinner
+// region SpinButton
+
+@Deprecated("Use spinButton", ReplaceWith("spinButton(model,itemVisualizer,config)"))
+public fun <T, M: SpinButtonModel<T>> spinner(
+    model         : M,
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
+    config        : (SpinButton<T, M>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(model, itemVisualizer, config)
+
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
  * This control is useful when a meaningful default exists for an option list.
  *
  * @param T is the type of the bounded field
- * @param model for the dropdown
- * @param itemVisualizer used to render the drop-down's box item
+ * @param model for the select box
+ * @param itemVisualizer used to render the spin-button's box item
  * @param config used to control the resulting component
  */
-public fun <T, M: SpinnerModel<T>> spinner(
+public fun <T, M: SpinButtonModel<T>> spinButton(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, Spinner<T, M>> = toString(StringVisualizer()),
-    config        : (Spinner<T, M>) -> Unit = {}): FieldVisualizer<T> = field {
-    Spinner(model, itemVisualizer = itemVisualizer).also { spinner ->
-        spinner.changed += {
-            state = spinner.value.fold(
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
+    config        : (SpinButton<T, M>) -> Unit = {}
+): FieldVisualizer<T> = field {
+    SpinButton(model, itemVisualizer = itemVisualizer).also { spinButton ->
+        spinButton.changed += {
+            state = spinButton.value.fold(
                 onSuccess = { Valid(it) },
                 onFailure = { Invalid() }
             )
         }
 
-        state = spinner.value.fold(
+        state = spinButton.value.fold(
             onSuccess = { Valid(it) },
             onFailure = { Invalid() }
         )
+
+        spinButton.focusChanged += { _,_,focused ->
+            if (focused) {
+                spinButton.parent?.scrollTo(spinButton.bounds)
+            }
+        }
     }.also(config)
 }
 
+@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)"))
+public fun <T> spinner(
+           first         : T,
+    vararg rest          : T,
+           itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+           config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)
+
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -987,21 +2280,52 @@ public fun <T, M: SpinnerModel<T>> spinner(
  * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
- * @param itemVisualizer used to render the drop-down's box item
+ * @param itemVisualizer used to render the spin-button's box item
  * @param config used to control the resulting component
  */
-public fun <T> spinner(
+public fun <T> spinButton(
            first         : T,
     vararg rest          : T,
-           itemVisualizer: ItemVisualizer<T, Spinner<T, *>>,
-           config        : (Spinner<T, *>) -> Unit = {}): FieldVisualizer<T> = spinner(
-    ListSpinnerModel(listOf(first) + rest),
+           itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+           config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(
+    ListSpinButtonModel(listOf(first) + rest),
     itemVisualizer,
     config
 )
 
 /**
- * Creates a [Spinner] control that is bound to a [Field]. This control lets a user
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param values in the spin-button
+ * @param itemVisualizer used to render the spin-button's box item
+ * @param config used to control the resulting component
+ */
+public fun <T> spinButton(
+    values         : List<T>,
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+    config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(
+    ListSpinButtonModel(values),
+    itemVisualizer,
+    config
+)
+
+@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, label = label, config = config)"))
+public fun <T> spinner(
+           first : T,
+    vararg rest  : T,
+           label : (T) -> String = { "$it" },
+           config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, label = label, config = config)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
  * DOES set a default value and its field is therefore ALWAYS [Valid].
  *
@@ -1010,15 +2334,68 @@ public fun <T> spinner(
  * @param T is the type of the bounded field
  * @param first item in the list
  * @param rest of the items in the list
- * @param label used to render the drop-down's box and list items
+ * @param label used to render the spin-button's box and list items
  * @param config used to control the resulting component
  */
-public fun <T> spinner(
+public fun <T> spinButton(
            first : T,
     vararg rest  : T,
            label : (T) -> String = { "$it" },
-           config: (Spinner<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinner(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
+           config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
+
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param values in the spin-button
+ * @param label used to render the spin-button's box and list items
+ * @param config used to control the resulting component
+ */
+public fun <T> spinButton(
+    values: List<T>,
+    label : (T) -> String = { "$it" },
+    config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> = spinButton(values, toString(StringVisualizer(), label), config)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param progression to use for the underlying model
+ * @param itemVisualizer used to render the spin-button's box item
+ * @param config used to control the resulting component
+ */
+public fun spinButton(
+    progression   : IntProgression,
+    itemVisualizer: ItemVisualizer<Int, SpinButton<Int, *>>,
+    config        : (SpinButton<Int, *>) -> Unit = {}
+): FieldVisualizer<Int> = spinButton(IntSpinButtonModel(progression), itemVisualizer, config)
+
+/**
+ * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param progression to use for the underlying model
+ * @param label used to render the spin-button's box and list items
+ * @param config used to control the resulting component
+ */
+public fun spinButton(
+    progression   : IntProgression,
+    label         : (Int) -> String = { "$it" },
+    config        : (SpinButton<Int, *>) -> Unit = {}
+): FieldVisualizer<Int> = spinButton(progression, toString(StringVisualizer(), label), config)
 
 // endregion
 
@@ -1027,7 +2404,7 @@ public fun <T> spinner(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param T is the type of the items in the bounded field
  * @param model for the list
@@ -1076,7 +2453,7 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param T is the type of the items in the bounded field
  * @param first item in the list
@@ -1100,7 +2477,7 @@ public fun <T> optionalSingleChoiceList(
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
- * which would result in a `null` value. This is behaves like [optionalRadioList].
+ * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
@@ -1120,7 +2497,7 @@ public fun optionalSingleChoiceList(
 
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
- * lets a user select a single option from a list. This is behaves like [radioList].
+ * lets a user select a single option from a list. This behaves like [radioList].
  *
  * @param T is the type of the items in the bounded field
  * @param first item in the list
@@ -1277,7 +2654,16 @@ public fun <T> checkList(
            first : T,
     vararg rest  : T,
            config: OptionListConfig<T>.() -> Unit = {}
-): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) { CheckBox().apply { width = 16.0 } }
+): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) {
+    CheckBox().apply {
+        width = 16.0
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
+    }
+}
 
 /**
  * Creates a list of [Switch][io.nacular.doodle.controls.buttons.Switch]es that is bound to a [Field]. This controls
@@ -1289,6 +2675,7 @@ public fun <T> checkList(
  * @param rest of the items in the list
  * @param config used to control the resulting component
  */
+@Suppress("LocalVariableName")
 public fun <T> switchList(
            first : T,
     vararg rest  : T,
@@ -1309,7 +2696,13 @@ public fun <T> switchList(
             }
         }
 ) {
-    Switch()
+    Switch().apply {
+        focusChanged += { _,_,focused ->
+            if (focused) {
+                parent?.scrollTo(bounds)
+            }
+        }
+    }
 }
 
 /**
@@ -1485,12 +2878,37 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  *
  * @see labeled
  * @param text to append to field name
+ * @param focusTarget to monitor for focus events, or `null` if the [labeled] content is the right target.
  */
-public class WhenInvalidFocusLost(text: StyledText): RequiredIndicatorStyle(text) {
+public class WhenInvalidFocusLost(text: StyledText, internal val focusTarget: View? = null): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
     public constructor(text: String = "*"): this(StyledText(text))
+}
+
+/**
+ * Only appends the indicator if explicitly requested.
+ * and it loses focus.
+ *
+ * @see labeled
+ * @param text to append to field name
+ */
+public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
+
+    internal val indicatorVisibilityChanged: ChangeObserversImpl<WhenManuallySet> by lazy { ChangeObserversImpl(this) }
+
+    /**
+     * @param text to append to field name
+     */
+    public constructor(text: String = "*"): this(StyledText(text))
+
+    /**
+     * Used to explicitly set the required indicator's visibility.
+     *
+     * Defaults to `false`.
+     */
+    public var indicatorVisible: Boolean by observable(false) { _,_ -> indicatorVisibilityChanged() }
 }
 
 /**
@@ -1891,14 +3309,14 @@ private fun <T> buildRadioList(
     layout    = ExpandingVerticalLayout(this, optionListConfig.spacing, optionListConfig.itemHeight)
 }
 
-private fun <T: Any, M: ListModel<T?>> buildDropDown(
+private fun <T: Any, M: ListModel<T?>> buildSelectBox(
     model                       : M,
     boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
     listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
     unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
     unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
     initialValue                : T? = null
-): Dropdown<T?, M> = Dropdown(
+): SelectBox<T?, M> = SelectBox(
         model,
         boxItemVisualizer = itemVisualizer { item, previous, context ->
             when (item) {
@@ -1931,6 +3349,22 @@ private class UninteractiveLabel(text: StyledText): Label(text) {
     override fun contains(point: Point) = false
 }
 
+private fun FieldInfo<Boolean>.checkBox(label: String? = null) = CheckBox(label ?: "").apply {
+    initial.ifValid { selected = it }
+
+    selectedChanged += { _,_,_ ->
+        state = Valid(selected)
+    }
+
+    focusChanged += { _,_,focused ->
+        if (focused) {
+            parent?.scrollTo(bounds)
+        }
+    }
+
+    state = Valid(selected)
+}
+
 private class ExpandingVerticalLayout(private val view: View, spacing: Double, private val itemHeight: Double? = null): Layout {
     private val delegate = ListLayout(spacing = spacing, widthSource = WidthSource.Parent)
 
@@ -1957,6 +3391,7 @@ private class ExpandingVerticalLayout(private val view: View, spacing: Double, p
     }
 }
 
+@Suppress("LocalVariableName")
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
     button_.top    eq 0
     button_.width  eq parent.width
@@ -1975,10 +3410,18 @@ private fun <T> FieldInfo<T>.updateRequiredText(
         label.styledText = name.copy() + showRequired.text
     }
 
-    content.focusChanged += { _,_,focused ->
-        if (!focused && showRequired is WhenInvalidFocusLost && state is Invalid<T> && showRequired.text.isNotBlank()) {
-            label.styledText = name.copy() + showRequired.text
+    when (showRequired) {
+        is WhenInvalidFocusLost -> (showRequired.focusTarget ?: content).focusChanged += { _,_,focused ->
+            if (!focused && state is Invalid<T> && showRequired.text.isNotBlank()) {
+                label.styledText = name.copy() + showRequired.text
+            }
         }
+        is WhenManuallySet -> showRequired.indicatorVisibilityChanged += {
+            if (showRequired.indicatorVisible) {
+                label.styledText = name.copy() + showRequired.text
+            }
+        }
+        else              -> {}
     }
 
     stateChanged += {
@@ -1986,7 +3429,7 @@ private fun <T> FieldInfo<T>.updateRequiredText(
             it.state is Invalid<T> &&
                     showRequired.text.isNotBlank() &&
                     (showRequired !is WhenInvalidFocusLost || !content.hasFocus) -> label.styledText = name.copy() + showRequired.text
-            showRequired !is Always                                              -> label.styledText = name.copy()
+            showRequired !is Always && showRequired !is WhenManuallySet          -> label.styledText = name.copy()
         }
     }
 }

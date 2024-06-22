@@ -1,6 +1,7 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.utils.lerp
+import kotlin.math.max
 
 /**
  * A width and height pair that denote a rectangular area.
@@ -9,20 +10,11 @@ import io.nacular.doodle.utils.lerp
  *
  * @property width Horizontal extent; not negative
  * @property height Vertical extent; not negative
- *
- * @constructor
- * @param width Horizontal extent; cannot be negative
- * @param height Vertical extent; cannot be negative
  */
-public class Size(public val width: Double = 0.0, public val height: Double = width) {
+public class Size private constructor(public val width: Double = 0.0, public val height: Double = width) {
 
     public constructor(width: Int   = 0,  height: Int   = width): this(width.toDouble(), height.toDouble())
     public constructor(width: Float = 0f, height: Float = width): this(width.toDouble(), height.toDouble())
-
-    init {
-        require(width  >= 0) { "Width [$width] cannot be negative"  }
-        require(height >= 0) { "Height [$height] cannot be negative" }
-    }
 
     /** The area represented: [width] * [height] */
     public val area: Double by lazy { width * height }
@@ -47,6 +39,15 @@ public class Size(public val width: Double = 0.0, public val height: Double = wi
     internal fun fastEquals(other: Size): Boolean = this === other || (width == other.width && height == other.height)
 
     public companion object {
+        /**
+         * Creates a [Size].
+         *
+         * @param width Horizontal extent; cannot be negative
+         * @param height Vertical extent; cannot be negative
+         * @return a new Size
+         */
+        public operator fun invoke(width: Double = 0.0, height: Double = width): Size = Size(max(0.0, width), max(0.0, height))
+
         /** The size with [width] and [height] equal to `0` */
         public val Empty: Size = Size(0.0)
     }

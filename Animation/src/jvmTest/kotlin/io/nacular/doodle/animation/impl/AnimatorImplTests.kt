@@ -2,10 +2,11 @@ package io.nacular.doodle.animation.impl
 
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import io.nacular.doodle.animation.Animation
-import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.Animator.Listener
 import io.nacular.doodle.animation.AnimatorImpl
+import io.nacular.doodle.animation.after
 import io.nacular.doodle.animation.invoke
 import io.nacular.doodle.animation.loop
 import io.nacular.doodle.animation.repeat
@@ -105,9 +106,7 @@ class AnimatorImplTests {
 
         val animation = animate.invoke(0f to 1f, tweenFloat(linear, 3 * milliseconds)) {
             outputs += it
-        }.apply {
-            completed += onCompleted
-        }
+        }.apply(onCompleted)
 
         animationScheduler.runToCompletion()
 
@@ -275,14 +274,11 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        var animation1 = null as Animation<Float>?
-        var animation2 = null as Animation<Float>?
-
         val topLevel = animate {
-            animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
+            0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
 
             animate {
-                animation2 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
+                0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
             }
         }
 
@@ -330,24 +326,173 @@ class AnimatorImplTests {
         var animation2 = null as Animation<Float>?
 
         val topLevel = animate {
-            animation1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs1 += it }
+            animation1 = 0f to 1f using (tweenFloat(linear, 3 * milliseconds)) { outputs1 += it }
 
             animate {
-                animation2 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke { outputs2 += it }
+                animation2 = 0f to 1f using (tweenFloat(linear, 3 * milliseconds)) { outputs2 += it }
             }
         }
 
         topLevel.cancel()
 
         animationScheduler.runOutstandingTasks()
-        animationScheduler.runOutstandingTasks()
 
         expect(true) { outputs1.isEmpty() }
         expect(true) { outputs2.isEmpty() }
 
-        verify(exactly = 0) { listener.changed  (animate, any  (                          )) }
-        verify(exactly = 0) { listener.completed(animate, any  (                          )) }
-        verify(exactly = 1) { listener.canceled (animate, setOf(animation1!!, animation2!!)) }
+        verify(exactly = 0) { listener.changed  (animate, any()) }
+        verify(exactly = 0) { listener.completed(animate, any()) }
+        verify(exactly = 1) { listener.canceled (animate, match { it.toSet() == setOf(animation1!!, animation2!!) }) }
+    }
+
+    @Test fun `animation block runs then`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        lateinit var sub1: Animation<*>
+        lateinit var sub2: Animation<*>
+        lateinit var sub3: Animation<*>
+        lateinit var sub4: Animation<*>
+
+        val animation = animate {
+            sub1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke {
+                outputs += it
+            }
+
+            sub1 then {
+                sub2 = 1f to 2f using tweenFloat(linear, 3 * milliseconds).invoke {
+                    outputs += it
+                }
+
+                sub2 then {
+                    sub3 = 2f to 3f using tweenFloat(linear, 3 * milliseconds).invoke {
+                        outputs += it
+                    }
+                }
+            } then {
+                sub4 = 3f to 4f using tweenFloat(linear, 3 * milliseconds).invoke {
+                    outputs += it
+                }
+            }
+        }.apply {
+            completed += onCompleted
+        }
+
+        animationScheduler.runToCompletion()
+
+        expect(listOf(
+            0f,         // sub1
+            2 / 3f,     // sub1
+            1f,         // sub1
+            1f,         // sub2
+            1 + 2 / 3f, // sub2
+            2f,         // sub2
+            2f,         // sub3
+            2 + 2 / 3f, // sub3
+            3f,         // sub3
+            3f,         // sub4
+            3 + 2 / 3f, // sub4
+            4f          // sub4
+        )) { outputs }
+
+        verifyOrder {
+            listener.changed  (animate, setOf(sub1))
+            listener.changed  (animate, setOf(sub1))
+            listener.completed(animate, setOf(sub1))
+
+            listener.changed  (animate, setOf(sub2))
+            listener.changed  (animate, setOf(sub2))
+            listener.completed(animate, setOf(sub2))
+
+            listener.changed  (animate, setOf(sub3))
+            listener.changed  (animate, setOf(sub3))
+            listener.completed(animate, setOf(sub3))
+
+            listener.changed  (animate, setOf(sub4))
+            listener.changed  (animate, setOf(sub4))
+            listener.completed(animate, setOf(sub4))
+        }
+
+        verify(exactly = 1) { onCompleted(animation) }
+    }
+
+    @Test fun `animation block cancels nested thens`() {
+        val timer              = MonotonicTimer()
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+        val onCompleted        = mockk<(Completable) -> Unit>()
+        val onCanceled         = mockk<(Completable) -> Unit>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        lateinit var sub1: Animation<*>
+        lateinit var sub2: Animation<*>
+                 var sub3: Animation<*>? = null
+                 var sub4: Animation<*>? = null
+
+        val animation = animate {
+            sub1 = 0f to 1f using tweenFloat(linear, 3 * milliseconds).invoke {
+                outputs += it
+            }
+
+            sub1 then {
+                sub2 = 1f to 2f using tweenFloat(linear, 3 * milliseconds).invoke {
+                    outputs += it
+                }
+
+                sub2 then {
+                    sub3 = 2f to 3f using tweenFloat(linear, 3 * milliseconds).invoke {
+                        outputs += it
+                    }
+                }
+            } then {
+                sub4 = 3f to 4f using tweenFloat(linear, 3 * milliseconds).invoke {
+                    outputs += it
+                }
+            }
+        }.apply {
+            completed += onCompleted
+            canceled  += onCanceled
+        }
+
+        repeat(4) {
+            animationScheduler.runOutstandingTasks()
+        }
+
+        expect(listOf(
+            0f,         // sub1
+            2 / 3f,     // sub1
+            1f,         // sub1
+            1f,         // sub2
+            1 + 2 / 3f, // sub2
+        )) { outputs }
+
+        animation.cancel()
+
+        verifyOrder {
+            listener.changed  (animate, setOf(sub1))
+            listener.changed  (animate, setOf(sub1))
+            listener.completed(animate, setOf(sub1))
+
+            listener.changed  (animate, setOf(sub2))
+            listener.canceled (animate, setOf(sub2))
+        }
+
+        expect(null) { sub3 }
+        expect(null) { sub4 }
+
+        verify(exactly = 0) { onCompleted(animation) }
+        verify(exactly = 1) { onCanceled (animation) }
     }
 
     @Test fun `cancels number animation group`() {
@@ -388,7 +533,33 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        animate(0f to 1f, repeat(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+        animate(0f to 1f, after(3 * milliseconds, repeat(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
+    }
+
+    @Test fun `delay on nested repeat`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate {
+            0f to 1f using (after(3 * milliseconds, repeat(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
+        }
 
         animationScheduler.runOutstandingTasks()
         animationScheduler.runOutstandingTasks()
@@ -412,7 +583,7 @@ class AnimatorImplTests {
 
         animate.listeners += listener
 
-        animate(0f to 1f, loop(tweenFloat(linear, 3 * milliseconds), delay = 3 * milliseconds)) { outputs += it }
+        animate(0f to 1f, after(3 * milliseconds, loop(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
 
         animationScheduler.runOutstandingTasks()
         animationScheduler.runOutstandingTasks()
@@ -426,9 +597,29 @@ class AnimatorImplTests {
         expect(listOf(0f, 1f/3)) { outputs }
     }
 
-    private fun <T> Animation<T>.onCompleted(animate: Animator, outputs: MutableSet<Animation<*>>, block: Animator.AnimationBlock.() -> Unit): Animation<T> = this.apply {
-        completed += {
-            outputs += animate.invoke(block)
+    @Test fun `delay on nested loop`() {
+        val timer              = MonotonicTimer(increment = 1 * milliseconds)
+        val animationScheduler = ManualAnimationScheduler()
+        val animate            = AnimatorImpl(timer, animationScheduler)
+        val listener           = mockk<Listener>()
+
+        val outputs = mutableListOf<Float>()
+
+        animate.listeners += listener
+
+        animate {
+            0f to 1f using (after(3 * milliseconds, loop(tweenFloat(linear, 3 * milliseconds)))) { outputs += it }
         }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f)) { outputs }
+
+        animationScheduler.runOutstandingTasks()
+        animationScheduler.runOutstandingTasks()
+
+        expect(listOf(0f, 1f/3)) { outputs }
     }
 }

@@ -92,6 +92,24 @@ public sealed interface PathBuilder {
 }
 
 /**
+ * Moves from the current point to this one.
+ *
+ * @see PathBuilder.moveTo
+ * @param x position move to
+ * @param y position move to
+ */
+public fun PathBuilder.moveTo(x: Double, y: Double): PathBuilder = this.moveTo(Point(x, y))
+
+/**
+ * Draws a line from the current point to this one.
+ *
+ * @see PathBuilder.lineTo
+ * @param x position end at
+ * @param y position end at
+ */
+public fun PathBuilder.lineTo(x: Double, y: Double): PathBuilder = this.lineTo(Point(x, y))
+
+/**
  * Creates a Path from the path data string.
  *
  * @param data conforming to https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
@@ -106,6 +124,16 @@ public fun path(data: String): Path? = if (data.isNotBlank()) Path(data) else nu
  * @return a builder to continue defining the path
  */
 public fun path(from: Point): PathBuilder = PathBuilderImpl(from)
+
+/**
+ * Creates a Path at the given x,y and a builder to further define it.
+ *
+ * @see path
+ * @param x the starting x of the path
+ * @param y the starting y of the path
+ * @return a builder to continue defining the path
+ */
+public fun path(x: Double, y: Double): PathBuilder = path(Point(x, y))
 
 /**
  * Converts a [Polygon] to a [Path].
@@ -227,8 +255,8 @@ public fun ringSection(
         outerRadius: Double,
         start      : Measure<Angle>,
         end        : Measure<Angle>,
-        startCap   : SegmentBuilder = { _,it -> lineTo(it) },
-        endCap     : SegmentBuilder = { _,_  ->            },
+        startCap   : SegmentBuilder = { _,_  ->            },
+        endCap     : SegmentBuilder = { _,it -> lineTo(it) },
 ): Path {
     val sweep      = (end - start).sign > 0
     val thickness  = outerRadius - innerRadius
@@ -240,17 +268,39 @@ public fun ringSection(
     val outerEnd   = center + Point(outerRadius * cosEnd,   outerRadius * sinEnd  )
     val innerStart = outerStart - thickness * Point(cosStart, sinStart)
     val innerEnd   = outerEnd   - thickness * Point(cosEnd,   sinEnd  )
-    val largeArch  = ((end - start).normalize() `in` degrees) > 180 //(abs(end - start) `in` degrees) % 360.0 > 180.0
+    val largeArch  = ((end - start).normalize() `in` degrees) > 180
 
     return path(outerStart).
         arcTo(outerEnd, outerRadius, outerRadius, largeArch = largeArch, sweep = sweep).apply {
-            startCap(this, outerEnd, innerEnd)
+            endCap(this, outerEnd, innerEnd)
         }.
         arcTo(innerStart, innerRadius, innerRadius, largeArch = largeArch, sweep = !sweep).apply {
-            endCap(this, innerStart, outerStart)
+            startCap(this, innerStart, outerStart)
         }.
         close()
 }
+
+/**
+ * Creates a path for a semicircle. The direction of sweep is controlled by the sign of [end] - [start].
+ *
+ * @param center of the circle
+ * @param radius of the circle
+ * @param start angle
+ * @param end angle
+ * @return path representing the semicircle
+ */
+public fun semicircle(
+    center: Point,
+    radius: Double,
+    start : Measure<Angle>,
+    end   : Measure<Angle>,
+): Path = path(center + Point(radius * cos(start), radius * sin(start))).arcTo(
+    point     = center + Point(radius * cos(end  ), radius * sin(end  )),
+    xRadius   = radius,
+    yRadius   = radius,
+    largeArch = ((end - start).normalize() `in` degrees) > 180,
+    sweep     = (end - start).sign > 0
+).finish()
 
 private class PathBuilderImpl(start: Point): PathBuilder {
     private var data = "M${start.x},${start.y}"

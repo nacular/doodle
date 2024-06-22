@@ -310,7 +310,7 @@ public open class RenderManagerImpl(
                             pendingBoundsChange.remove(item)
                         }
                         // remove zero sized items that have never rendered since they won't be cleaned up otherwise
-                        item.size.empty -> pendingBoundsChange.remove(item)
+                        item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange.remove(item)
                     }
                 }
             } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
@@ -368,7 +368,9 @@ public open class RenderManagerImpl(
         val graphicsSurface    = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
-            if (recursivelyVisible && !view.size.empty && view in neverRendered) {
+            val visibleAndNotEmpty = recursivelyVisible && !view.size.empty
+
+            if (visibleAndNotEmpty && view in neverRendered) {
                 graphicsSurface.transform = view.transform
                 graphicsSurface.camera    = view.camera
                 graphicsSurface.opacity   = view.opacity
@@ -393,7 +395,7 @@ public open class RenderManagerImpl(
                 this.visibilityChanged -= view
             }
 
-            if (recursivelyVisible && !view.size.empty) {
+            if (visibleAndNotEmpty) {
                 val viewList = pendingCleanup[view]
 
                 viewList?.forEach {
@@ -599,10 +601,12 @@ public open class RenderManagerImpl(
 
             visibilityChanged += view
             pendingRender     += view
+            dirtyViews        += view
 
             render(parent)
         } else if (view in display || view in popups) {
             if (new) {
+                pendingLayout       += view // Ensure children are laid out. It has no parent to lay out, unlike above.
                 visibilityChanged   += view
                 pendingBoundsChange += view // See above
 
@@ -610,8 +614,8 @@ public open class RenderManagerImpl(
                     render(view)
                 }
             } else {
-                graphicsDevice[view].visible = false
-                pendingBoundsChange -= view
+                graphicsDevice[view].visible  = false
+                pendingBoundsChange          -= view
             }
         }
 

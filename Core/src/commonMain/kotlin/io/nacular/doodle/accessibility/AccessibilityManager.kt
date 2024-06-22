@@ -1,8 +1,11 @@
 package io.nacular.doodle.accessibility
 
+import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.View
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Orientation
+import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.observable
 import kotlin.properties.ReadWriteProperty
 
@@ -10,18 +13,24 @@ import kotlin.properties.ReadWriteProperty
  * Manages all accessibility interactions within an application.
  * @suppress
  */
-public interface AccessibilityManager {
-    /** @suppress */ @Internal public fun syncLabel        (view: View)
-    /** @suppress */ @Internal public fun syncEnabled      (view: View)
-    /** @suppress */ @Internal public fun syncVisibility   (view: View)
-    /** @suppress */ @Internal public fun syncDescription  (view: View)
-    /** @suppress */ @Internal public fun syncNextReadOrder(view: View)
-    /** @suppress */ @Internal public fun roleAdopted      (view: View)
-    /** @suppress */ @Internal public fun roleUpdated      (view: View)
-    /** @suppress */ @Internal public fun roleAbandoned    (view: View)
+public abstract class AccessibilityManager @Internal constructor() {
+    /** @suppress */ @Internal public abstract fun syncLabel        (view: View)
+    /** @suppress */ @Internal public abstract fun syncEnabled      (view: View)
+    /** @suppress */ @Internal public abstract fun syncVisibility   (view: View)
+    /** @suppress */ @Internal public abstract fun syncDescription  (view: View)
+    /** @suppress */ @Internal public abstract fun syncNextReadOrder(view: View)
+    /** @suppress */ @Internal public abstract fun roleAdopted      (view: View)
+    /** @suppress */ @Internal public abstract fun roleUpdated      (view: View)
+    /** @suppress */ @Internal public abstract fun roleAbandoned    (view: View)
 
-    /** @suppress */ @Internal public fun addOwnership   (owner: View, owned: View)
-    /** @suppress */ @Internal public fun removeOwnership(owner: View, owned: View)
+    /** @suppress */ @Internal public abstract fun addOwnership   (owner: View, owned: View)
+    /** @suppress */ @Internal public abstract fun removeOwnership(owner: View, owned: View)
+
+    /** @suppress */ @Internal protected val View.indexInParent  : Int get() = parent?.children_?.indexOf(this) ?: display?.indexOf(this) ?: -1
+    /** @suppress */ @Internal protected val View.numChildren    : Int get() = children_.size
+    /** @suppress */ @Internal protected val View.childrenChanged: Pool<ChildObserver<View>> get() = childrenChanged_
+    /** @suppress */ @Internal protected fun View.child(index: Int): View? = children_.getOrNull(index)
+    /** @suppress */ @Internal protected fun View.child(at: Point): View? = child_(at)
 }
 
 /**
@@ -65,13 +74,17 @@ public class SliderRole: RangeRole() {
     public var orientation: Orientation? by roleProperty(null)
 }
 
+public class SpinButtonRole: AccessibilityRole() {
+    public var valueText: String? by roleProperty(null)
+}
+
 public class ImageRole: AccessibilityRole() {
     override val name: String = "img"
 }
 
 /** Indicates a View that a user can click to take an action. */
 public open class ButtonRole internal constructor(): AccessibilityRole() {
-    override val name: String? = "button"
+    override val name: String = "button"
 
     public companion object {
         public operator fun invoke(): ButtonRole = ButtonRole()
@@ -115,6 +128,11 @@ public class ListItemRole: AccessibilityRole() {
 
     /** The size of the list this item belongs to. */
     public var listSize: Int? by roleProperty(null)
+
+    /**
+     * Selected state of this item
+     */
+    public var selected: Boolean by roleProperty(false)
 }
 
 /** A container with a hierarchy of nested [TreeItemRole]. */
@@ -178,7 +196,6 @@ public class TabListRole: AccessibilityRole() {
 /** Displayed item associated with a [TabRole] */
 public class TabPanelRole: AccessibilityRole()
 
-internal class spinbutton: RangeRole()
 internal class alert: AccessibilityRole()
 internal class alertdialog: AccessibilityRole()
 internal class dialog: AccessibilityRole()
@@ -230,7 +247,10 @@ internal class main: AccessibilityRole()
 internal class navigation: AccessibilityRole()
 internal class search: AccessibilityRole()
 
-private inline fun <reified R: AccessibilityRole, T> roleProperty(initial: T, noinline onChange: R.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<R, T> = observable(initial) { old, new ->
+private inline fun <reified R: AccessibilityRole, T> roleProperty(
+    initial: T,
+    noinline onChange: R.(old: T, new: T) -> Unit = { _, _ -> }
+): ReadWriteProperty<R, T> = observable(initial) { old, new ->
     view?.let { manager?.roleUpdated(it) }
 
     onChange(old, new)

@@ -1,7 +1,9 @@
+
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
 import org.jetbrains.dokka.base.DokkaBase
 import org.jetbrains.dokka.base.DokkaBaseConfiguration
+import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URL
 
@@ -17,7 +19,21 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:1.9.10")
+        classpath("org.jetbrains.dokka:dokka-base:${libs.versions.dokkaVersion.get()}")
+    }
+}
+
+fun DokkaBaseConfiguration.configDokka() {
+    homepageLink                          = "https://github.com/nacular/doodle"
+    customAssets                          = listOf(file("logo-icon.svg"))
+    footerMessage                         = "(c) 2024 Nacular"
+    separateInheritedMembers              = true
+    mergeImplicitExpectActualDeclarations = true
+}
+
+tasks.withType<DokkaMultiModuleTask>().configureEach {
+    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+        configDokka()
     }
 }
 
@@ -44,23 +60,12 @@ subprojects {
 
     setupSigning()
 
-    tasks.dokkaHtml.configure {
-        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-            customAssets             = listOf(file("doodle_repo_image_shorter.png"))
-//            customStyleSheets        = listOf(file("my-styles.css"))
-            footerMessage            = "(c) 2024 Nacular"
-            separateInheritedMembers = false
-//            templatesDir = file("dokka/templates")
-            mergeImplicitExpectActualDeclarations = false
-        }
-//        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-//            customAssets = listOf(file("custom-assets/modelgoblin-logo.svg"))
-//            customStyleSheets = listOf(file("custom-assets/logo-styles.css"))
-//        }
-    }
-
     tasks.withType<DokkaTaskPartial>().configureEach {
-        outputDirectory.set(buildDir.resolve("javadoc"))
+        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+            configDokka()
+        }
+
+        outputDirectory.set(layout.buildDirectory.dir("javadoc"))
 
         dokkaSourceSets.configureEach {
             // Do not output deprecated members. Applies globally, can be overridden by packageOptions
@@ -93,9 +98,15 @@ subprojects {
 
             externalDocumentationLink {
                 url.set(URL("https://nacular.github.io/measured-api"))
-                packageListUrl.set(URL("https://nacular.github.io/measured-api/measured/package-list"))
+                packageListUrl.set(URL("https://nacular.github.io/measured-api/package-list"))
             }
         }
+    }
+}
+
+dependencies {
+    subprojects.forEach {
+        kover(project(":${it.name}"))
     }
 }
 
