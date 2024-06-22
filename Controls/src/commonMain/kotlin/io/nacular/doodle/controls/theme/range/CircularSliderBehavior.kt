@@ -18,31 +18,7 @@ import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlin.math.abs
 
-public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T: Comparable<T> {
-    public var CircularSlider<T>.fraction: Float get() = fraction; set(new) { fraction = new }
-
-    @Deprecated("Use fraction instead")
-    public fun <A> CircularSlider<A>.set(to: Double) where A : Comparable<A>, A: Number {
-        fraction = ((to - range.start.toDouble()) / (range.endInclusive.toDouble() - range.start.toDouble())).toFloat()
-    }
-
-    @Deprecated("Use fraction instead")
-    public fun <A> CircularSlider<A>.adjust(by: Double) where A : Comparable<A>, A: Number {
-        set(value.toDouble() + by)
-    }
-
-    @Deprecated("Will be removed soon")
-    public fun <T> CircularSlider<T>.set(range: ClosedRange<Double>) where T: Number, T: Comparable<T> {
-        when (model.limits.start) {
-            is Int    -> model.limits = (range.start.toInt() .. range.endInclusive.toInt()                    ) as ClosedRange<T>
-            is Float  -> model.limits = (range.start.toFloat() .. range.endInclusive.toFloat()                ) as ClosedRange<T>
-            is Double -> model.limits = (range.start .. range.endInclusive                                    ) as ClosedRange<T>
-            is Long   -> model.limits = (range.start.toLong() .. range.endInclusive.toLong()                  ) as ClosedRange<T>
-            is Short  -> model.limits = (range.start.toInt().toShort() .. range.endInclusive.toInt().toShort()) as ClosedRange<T>
-            is Byte   -> model.limits = (range.start.toInt().toByte() .. range.endInclusive.toInt().toByte()  ) as ClosedRange<T>
-        }
-    }
-}
+public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T: Comparable<T>
 
 public abstract class AbstractCircularSliderBehavior<T>(
         private   val focusManager: FocusManager?,

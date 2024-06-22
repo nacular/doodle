@@ -102,12 +102,6 @@ public class BasicConfinedValueModel<T: Comparable<T>>(limit: ClosedRange<T>, va
 /**
  * Creates a binding between the role and model, keeping the role synchronized with the given model
  */
-@Deprecated("Use version w/ TypeConverter")
-public inline fun <reified T> RangeRole.bind(model: ConfinedValueModel<T>, noinline labeler: ((T) -> String)? = null): Binding where T: Number, T: Comparable<T> = bind(model, numberTypeConverter(), labeler)
-
-/**
- * Creates a binding between the role and model, keeping the role synchronized with the given model
- */
 public fun <T> RangeRole.bind(model: ConfinedValueModel<T>, interpolator: Interpolator<T>, labeler: ((T) -> String)? = null): Binding where T: Comparable<T> {
     val convert = { value: T ->
         interpolator.accessibleNumericValue(model.limits.start, model.limits.endInclusive, value)
@@ -173,21 +167,6 @@ internal object ShortTypeConverter: NumberTypeConverter<Short>() {
 internal object ByteTypeConverter: NumberTypeConverter<Byte>() {
     override fun lerp    (start: Byte, end: Byte, progress: Float) = io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt().toByte()
     override fun progress(start: Byte, end: Byte, value   : Byte ) = ((value - start).toDouble() / (end - start)).toFloat()
-}
-
-@Deprecated("Will be removed soon")
-public inline fun <reified T: Number> numberTypeConverter(): Interpolator<T> = object: Interpolator<T> {
-    override fun lerp(start: T, end: T, progress: Float): T = when (T::class) {
-        Int::class    -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt()            as T
-        Float::class  -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress)                         as T
-        Double::class -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress)                         as T
-        Long::class   -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToLong()           as T
-        Short::class  -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt ().toShort() as T
-        Byte::class   -> io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt ().toByte () as T
-        else -> start
-    }
-
-    override fun progress(start: T, end: T, value: T): Float = ((value.toDouble() - start.toDouble()) / (end.toDouble() - start.toDouble())).toFloat()
 }
 
 internal fun <T: Any> numberTypeConverter(type: KClass<T>): Interpolator<T> = object: Interpolator<T> {

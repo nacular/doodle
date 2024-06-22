@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.range
 
 import io.nacular.doodle.controls.ConfinedRangeModel
-import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
@@ -13,7 +12,6 @@ import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.round
-import kotlin.reflect.KClass
 
 /**
  * Base class for controls that represent range sliders. These controls have a [value] range that is bound between a [range]
@@ -28,9 +26,6 @@ public abstract class RangeValueSlider<T> internal constructor(
     private val interpolator: Interpolator<T>,
     private val function    : InvertibleFunction = LinearFunction,
 ): View() where T: Comparable<T> {
-
-    @Deprecated("Use version that takes converter instead")
-    protected constructor(model: ConfinedRangeModel<T>, type: KClass<T>, function: InvertibleFunction = LinearFunction): this(model, numberTypeConverter(type), function)
 
     /**
      * Indicates whether the slider should only take on values at the specify tick interval.

@@ -32,7 +32,6 @@ import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
 import io.nacular.doodle.controls.itemVisualizer
-import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
@@ -84,7 +83,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Units
 import kotlin.jvm.JvmName
 import kotlin.math.max
-import kotlin.reflect.KClass
 
 // region String
 
@@ -584,18 +582,6 @@ public fun <T> slider(
 
 // endregion
 
-/**
- * @see slider
- */
-@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
-@Deprecated("Use version without type.")
-public inline fun <reified T> slider(
-             model      : ConfinedValueModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : SliderConfig<T>.() -> Unit = {},
-             type       : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = slider(model, orientation, numberTypeConverter(), config)
-
 // endregion
 
 // region CircularSlider
@@ -873,17 +859,6 @@ public fun <T> circularSlider(
 }
 
 // endregion
-
-/**
- * @see circularSlider
- */
-@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
-@Deprecated("User version without type")
-public inline fun <reified T> circularSlider(
-             model : ConfinedValueModel<T>,
-    noinline config: CircularSliderConfig<T>.() -> Unit = {},
-             type  : KClass<T>
-): FieldVisualizer<T> where T: Number, T: Comparable<T> = circularSlider(model, numberTypeConverter(), config)
 
 // endregion
 
@@ -1226,18 +1201,6 @@ public fun <T> rangeSlider(
 }
 
 // endregion
-/**
- * @see rangeSlider
- */
-@Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
-@Deprecated("Use version without type.")
-public inline fun <reified T> rangeSlider(
-             model      : ConfinedRangeModel<T>,
-             orientation: Orientation = Horizontal,
-    noinline config     : RangeSliderConfig<T>.() -> Unit = {},
-             type       : KClass<T>,
-             function   : InvertibleFunction = LinearFunction
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = rangeSlider(model, numberTypeConverter(), orientation, function, config)
 
 // endregion
 
@@ -1537,18 +1500,6 @@ public fun <T> circularRangeSlider(
 
 // endregion
 
-/**
- * @see circularRangeSlider
- */
-@Suppress("UNUSED_PARAMETER", "DeprecatedCallableAddReplaceWith")
-@Deprecated("Use version without type")
-public inline fun <reified T> circularRangeSlider(
-             model   : ConfinedRangeModel<T>,
-    noinline config  : CircularRangeSliderConfig<T>.() -> Unit = {},
-             type    : KClass<T>,
-             function: InvertibleFunction = LinearFunction,
-): FieldVisualizer<ClosedRange<T>> where T: Number, T: Comparable<T> = circularRangeSlider(model, numberTypeConverter(), function, config)
-
 // endregion
 
 // endregion
@@ -1703,25 +1654,6 @@ public fun <T: Any> optionalRadioList(
 // endregion
 
 // region SelectBox
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], except it
- * DOES set a default value and its field is therefore ALWAYS [Valid].
- *
- * This control is useful when a meaningful default exists for an option list.
- *
- * @param T is the type of the bounded field
- * @param model for the select box
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param config used to control the resulting component
- */
-@Deprecated("Use selectBox instead", ReplaceWith("selectBox(model, boxItemVisualizer, listItemVisualizer, config)"))
-public fun <T, M: ListModel<T>> dropDown(
-    model             : M,
-    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
-    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(model, boxItemVisualizer, listItemVisualizer, config)
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -1773,34 +1705,6 @@ public fun <T, M: ListModel<T>> selectBox(
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param config used to control the resulting component
  */
-@Deprecated("Use selectBox", ReplaceWith("selectBox(first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, config = config)"))
-public fun <T> dropDown(
-               first             : T,
-        vararg rest              : T,
-               boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
-               listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-               config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
-    first,
-    *rest,
-    boxItemVisualizer  = boxItemVisualizer,
-    listItemVisualizer = listItemVisualizer,
-    config             = config
-)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], except it
- * DOES set a default value and its field is therefore ALWAYS [Valid].
- *
- * This control is useful when a meaningful default exists for an option list.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param config used to control the resulting component
- */
 public fun <T> selectBox(
     first             : T,
     vararg rest       : T,
@@ -1826,66 +1730,12 @@ public fun <T> selectBox(
  * @param label used to render the drop-down's box and list items
  * @param config used to control the resulting component
  */
-@Deprecated("Use selectBox", ReplaceWith("selectBox(first, *rest, label = label, config = config)"))
-public fun <T> dropDown(
-           first : T,
-    vararg rest  : T,
-           label : (T) -> String = { "$it" },
-           config: (SelectBox<T, *>) -> Unit = {}
-): FieldVisualizer<T> = selectBox(first, *rest, label = label, config = config)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], except it
- * DOES set a default value and its field is therefore ALWAYS [Valid].
- *
- * This control is useful when a meaningful default exists for an option list.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param label used to render the drop-down's box and list items
- * @param config used to control the resulting component
- */
 public fun <T> selectBox(
     first : T,
     vararg rest  : T,
     label : (T) -> String = { "$it" },
     config: (SelectBox<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], in that it
- * DOES NOT set a default value and its field is [Invalid] if no initial value
- * is bound to it. The control actually has an "unselected" state when it is invalid.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
- * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
- * @param config used to control the resulting component
- */
-@Deprecated("Use selectBox", ReplaceWith("selectBox( first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, unselectedBoxItemVisualizer = unselectedBoxItemVisualizer, unselectedListItemVisualizer = unselectedListItemVisualizer, config = config)"))
-public fun <T: Any> dropDown(
-    first                       : T,
-    vararg rest                 : T,
-    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
-    first,
-    *rest,
-    boxItemVisualizer            = boxItemVisualizer,
-    listItemVisualizer           = listItemVisualizer,
-    unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
-    unselectedListItemVisualizer = unselectedListItemVisualizer,
-    config                       = config
-)
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -1958,34 +1808,6 @@ public fun <T: Any> selectBox(
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
-@Deprecated("Use selectBox", ReplaceWith("selectBox( first, *rest, label = label, unselectedLabel = unselectedLabel, config = config)"))
-public fun <T: Any> dropDown(
-           first          : T,
-    vararg rest           : T,
-           label          : (T) -> String = { "$it" },
-           unselectedLabel: String,
-           config         : (SelectBox<T?, *>) -> Unit = {}
-): FieldVisualizer<T> = selectBox(
-    first,
-    *rest,
-    label           = label,
-    unselectedLabel = unselectedLabel,
-    config          = config
-)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], in that it
- * DOES NOT set a default value and its field is [Invalid] if no initial value
- * is bound to it. The control actually has an "unselected" state when it is invalid.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param label used to render the drop-down's items
- * @param unselectedLabel used to render the item that represents the "unselected" state
- * @param config used to control the resulting component
- */
 public fun <T: Any> selectBox(
            first          : T,
     vararg rest           : T,
@@ -1998,35 +1820,6 @@ public fun <T: Any> selectBox(
     boxItemVisualizer           = toString(StringVisualizer(), label),
     unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
     config                      = config
-)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
- * ignore selection entirely and therefore the resulting type is [T]?.
- *
- * @param T is the type of the bounded field
- * @param model for the select box
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
- * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
- * @param config used to control the resulting component
- */
-@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox( model, boxItemVisualizer, listItemVisualizer, unselectedBoxItemVisualizer, unselectedListItemVisualizer, config)"))
-public fun <T: Any, M: ListModel<T>> optionalDropDown(
-    model                       : M,
-    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSelectBox(
-    model,
-    boxItemVisualizer,
-    listItemVisualizer,
-    unselectedBoxItemVisualizer,
-    unselectedListItemVisualizer,
-    config
 )
 
 /**
@@ -2071,38 +1864,6 @@ public fun <T: Any, M: ListModel<T>> optionalSelectBox(
         config(this)
     }
 }
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
- * ignore selection entirely and therefore the resulting type is [T]?.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
- * @param unselectedListItemVisualizer used to render the "unselected item" in the drop-down's list
- * @param config used to control the resulting component
- */
-@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox(first, *rest, boxItemVisualizer = boxItemVisualizer, listItemVisualizer = listItemVisualizer, unselectedBoxItemVisualizer = unselectedBoxItemVisualizer, unselectedListItemVisualizer = unselectedListItemVisualizer, config = config)"))
-public fun <T: Any> optionalDropDown(
-           first                       : T,
-    vararg rest                        : T,
-           boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-           listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-           unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-           unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-           config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSelectBox(
-    first,
-    *rest,
-    boxItemVisualizer            = boxItemVisualizer,
-    listItemVisualizer           = listItemVisualizer,
-    unselectedBoxItemVisualizer  = unselectedBoxItemVisualizer,
-    unselectedListItemVisualizer = unselectedListItemVisualizer,
-    config                       = config
-)
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -2173,33 +1934,6 @@ public fun <T: Any> optionalSelectBox(
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
-@Deprecated("Use optionalSelectBox", ReplaceWith("optionalSelectBox(first, *rest, label = label, unselectedLabel = unselectedLabel, config = config)"))
-public fun <T: Any> optionalDropDown(
-           first          : T,
-    vararg rest           : T,
-           label          : (T) -> String = { "$it" },
-           unselectedLabel: String,
-           config         : (SelectBox<T?, *>) -> Unit = {}
-): FieldVisualizer<T?> = optionalSelectBox(
-     first,
-    *rest,
-    label           = label,
-    unselectedLabel = unselectedLabel,
-    config          = config
-)
-
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
- * ignore selection entirely and therefore the resulting type is [T]?.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param label used to render the drop-down's items
- * @param unselectedLabel used to render the item that represents the "unselected" state
- * @param config used to control the resulting component
- */
 public fun <T: Any> optionalSelectBox(
     first          : T,
     vararg rest           : T,
@@ -2216,13 +1950,6 @@ public fun <T: Any> optionalSelectBox(
 // endregion
 
 // region SpinButton
-
-@Deprecated("Use spinButton", ReplaceWith("spinButton(model,itemVisualizer,config)"))
-public fun <T, M: SpinButtonModel<T>> spinner(
-    model         : M,
-    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
-    config        : (SpinButton<T, M>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(model, itemVisualizer, config)
 
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
@@ -2261,14 +1988,6 @@ public fun <T, M: SpinButtonModel<T>> spinButton(
         }
     }.also(config)
 }
-
-@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)"))
-public fun <T> spinner(
-           first         : T,
-    vararg rest          : T,
-           itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
-           config        : (SpinButton<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = itemVisualizer, config = config)
 
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
@@ -2315,14 +2034,6 @@ public fun <T> spinButton(
     itemVisualizer,
     config
 )
-
-@Deprecated("Use spinButton", ReplaceWith("spinButton(first, *rest, label = label, config = config)"))
-public fun <T> spinner(
-           first : T,
-    vararg rest  : T,
-           label : (T) -> String = { "$it" },
-           config: (SpinButton<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(first, *rest, label = label, config = config)
 
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user

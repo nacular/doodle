@@ -3,7 +3,8 @@ package io.nacular.doodle.controls.form
 import JsName
 import io.mockk.mockk
 import io.mockk.verify
-import io.nacular.doodle.controls.form.FormControlsTests.Gender.*
+import io.nacular.doodle.controls.form.FormControlsTests.Gender.Female
+import io.nacular.doodle.controls.form.FormControlsTests.Gender.Male
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.PassThroughEncoder
@@ -247,7 +248,7 @@ class FormControlsTests {
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
         Form { this (
-            + dropDown(Female, Male),
+            + selectBox(Female, Male),
             onInvalid = onInvalid
         ) {
             onValid(it)
@@ -263,7 +264,7 @@ class FormControlsTests {
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
         Form { this (
-            Male to dropDown(Female, Male),
+            Male to selectBox(Female, Male),
             onInvalid = onInvalid
         ) {
             onValid(it)
@@ -279,7 +280,7 @@ class FormControlsTests {
         val onInvalid = mockk<(   ) -> Unit>(relaxed = true)
 
         Form { this (
-            23 to dropDown(1, 2, 3),
+            23 to selectBox(1, 2, 3),
             onInvalid = onInvalid
         ) {
             onValid(it)
@@ -295,7 +296,7 @@ class FormControlsTests {
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
         Form { this (
-            + dropDown(Female, Male, unselectedLabel = "unselected"),
+            + selectBox(Female, Male, unselectedLabel = "unselected"),
             onInvalid = onInvalid
         ) {
             onValid(it)
@@ -311,7 +312,7 @@ class FormControlsTests {
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
         Form { this (
-                Male to dropDown(Female, Male, unselectedLabel = "unselected"),
+                Male to selectBox(Female, Male, unselectedLabel = "unselected"),
                 onInvalid = onInvalid
         ) {
             onValid(it)
@@ -327,7 +328,7 @@ class FormControlsTests {
         val onInvalid = mockk<(   ) -> Unit>(relaxed = true)
 
         Form { this (
-                23 to dropDown(1, 2, 3, unselectedLabel = "unselected"),
+                23 to selectBox(1, 2, 3, unselectedLabel = "unselected"),
                 onInvalid = onInvalid
         ) {
             onValid(it)
@@ -343,7 +344,7 @@ class FormControlsTests {
         val onInvalid = mockk<(       ) -> Unit>(relaxed = true)
 
         Form { this (
-            + optionalDropDown(Female, Male, unselectedLabel = "unselected"),
+            + optionalSelectBox(Female, Male, unselectedLabel = "unselected"),
             onInvalid = onInvalid
         ) {
             onValid(it)
@@ -359,7 +360,7 @@ class FormControlsTests {
         val onInvalid = mockk<(       ) -> Unit>(relaxed = true)
 
         Form { this (
-                Male to optionalDropDown(Female, Male, unselectedLabel = "unselected"),
+                Male to optionalSelectBox(Female, Male, unselectedLabel = "unselected"),
                 onInvalid = onInvalid
         ) {
             onValid(it)
@@ -375,7 +376,7 @@ class FormControlsTests {
         val onInvalid = mockk<(    ) -> Unit>(relaxed = true)
 
         Form { this (
-                23 to optionalDropDown(1, 2, 3, unselectedLabel = "unselected"),
+                23 to optionalSelectBox(1, 2, 3, unselectedLabel = "unselected"),
                 onInvalid = onInvalid
         ) {
             onValid(it)

@@ -4,7 +4,6 @@ import io.nacular.doodle.accessibility.SliderRole
 import io.nacular.doodle.controls.ConfinedValueModel
 import io.nacular.doodle.controls.bind
 import io.nacular.doodle.controls.binding
-import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
@@ -16,7 +15,6 @@ import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.round
-import kotlin.reflect.KClass
 
 /**
  * Base class for controls that represent sliders. These controls have a single [value] that is bound between a [range]
@@ -32,9 +30,6 @@ public abstract class ValueSlider<T> internal constructor(
     private   val function    : InvertibleFunction = LinearFunction,
     protected val role        : SliderRole         = SliderRole()
 ): View(role) where T: Comparable<T> {
-
-    @Deprecated("This can only be used with Number types. Use version that takes converter instead")
-    protected constructor(model: ConfinedValueModel<T>, type: KClass<T>, function: InvertibleFunction = LinearFunction): this(model, numberTypeConverter(type), function)
 
     /**
      * Indicates whether the slider should only take on values at the specify tick interval.

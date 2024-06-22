@@ -42,9 +42,6 @@ import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 
-@Deprecated("Use BasicSpinButtonBehavior", replaceWith = ReplaceWith("BasicSpinButtonBehavior<T, M>"))
-public typealias BasicSpinnerBehavior<T, M> = BasicSpinButtonBehavior<T, M>
-
 public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     private val textMetrics        : TextMetrics,
     private val backgroundColor    : Color,

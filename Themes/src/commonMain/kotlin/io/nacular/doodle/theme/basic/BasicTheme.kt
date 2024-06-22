@@ -509,25 +509,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             showTicks            = showTicks
         )
 
-        @Deprecated("Use basicSpinButtonBehavior", ReplaceWith("basicSpinButtonBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, incrementA11yLabel, decrementA11yLabel)"))
-        public fun basicSpinnerBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            incrementA11yLabel : String? = null,
-            decrementA11yLabel : String? = null,
-        ): Module = basicSpinButtonBehavior(
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            foregroundColor     = foregroundColor,
-            cornerRadius        = cornerRadius,
-            buttonWidth         = buttonWidth,
-            incrementA11yLabel  = incrementA11yLabel,
-            decrementA11yLabel  = decrementA11yLabel
-        )
-
         public fun basicSpinButtonBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -556,25 +537,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 }
             }
         }
-
-        @Deprecated("Use basicMutableSpinButtonBehavior", ReplaceWith("basicMutableSpinButtonBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, incrementA11yLabel, decrementA11yLabel)"))
-        public fun basicMutableSpinnerBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            incrementA11yLabel : String? = null,
-            decrementA11yLabel : String? = null,
-        ): Module = basicMutableSpinButtonBehavior(
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            foregroundColor     = foregroundColor,
-            cornerRadius        = cornerRadius,
-            buttonWidth         = buttonWidth,
-            incrementA11yLabel  = incrementA11yLabel,
-            decrementA11yLabel  = decrementA11yLabel
-        )
 
         public fun basicMutableSpinButtonBehavior(
             backgroundColor    : Color?  = null,
@@ -865,25 +827,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
-        @Deprecated("Use basicSelectBoxBehavior", ReplaceWith("basicSelectBoxBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, buttonA11yLabel, inset)"))
-        public fun basicDropdownBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            buttonA11yLabel    : String? = null,
-            inset              : Double? = null,
-        ): Module = basicSelectBoxBehavior(
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            foregroundColor     = foregroundColor,
-            cornerRadius        = cornerRadius,
-            buttonWidth         = buttonWidth,
-            buttonA11yLabel     = buttonA11yLabel,
-            inset               = inset
-        )
-
         public fun basicSelectBoxBehavior(
             backgroundColor    : Color?  = null,
             darkBackgroundColor: Color?  = null,
@@ -914,25 +857,6 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 }
             }
         }
-
-        @Deprecated("Use basicMutableSelectBoxBehavior", ReplaceWith("basicMutableSelectBoxBehavior(backgroundColor, darkBackgroundColor, foregroundColor, cornerRadius, buttonWidth, buttonA11yLabel, inset)"))
-        public fun basicMutableDropdownBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            buttonA11yLabel    : String? = null,
-            inset              : Double? = null,
-        ): Module = basicMutableSelectBoxBehavior(
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            foregroundColor     = foregroundColor,
-            cornerRadius        = cornerRadius,
-            buttonWidth         = buttonWidth,
-            buttonA11yLabel     = buttonA11yLabel,
-            inset               = inset
-        )
 
         public fun basicMutableSelectBoxBehavior(
             backgroundColor    : Color?  = null,

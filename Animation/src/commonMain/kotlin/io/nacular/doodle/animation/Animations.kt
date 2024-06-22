@@ -138,39 +138,11 @@ public fun <T> tween(
     duration : Measure<Time>,
 ): FiniteNumericAnimationPlan<T, Double> = NumericAnimationPlanImpl(converter, TimedEasing(duration, easing))
 
-/**
- * Creates an animation that manipulates values of type [T] that are convertable to [Double].
- *
- * @param converter that maps [T] to and from [Double]
- * @param easing used to animate the numeric representation
- * @param duration of the animation
- * @param delay to apply before the animation begins
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(converter, easing, duration))"))
-public fun <T> tween(
-    converter: SingleDataConverter<T>,
-    easing   : EasingFunction,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-): FiniteNumericAnimationPlan<T, Double> = after(delay, tween(converter, easing, duration))
-
 /** @see tween */
 public fun tweenInt(
     easing   : EasingFunction,
     duration : Measure<Time>,
 ): FiniteNumericAnimationPlan<Int, Double> = tween(Int.animationConverter, easing, duration)
-
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenInt(easing, duration))"))
-public fun tweenInt(
-    easing   : EasingFunction,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-): FiniteNumericAnimationPlan<Int, Double> = after(delay, tweenInt(easing, duration))
 
 /** @see tween */
 public fun tweenFloat(
@@ -178,33 +150,11 @@ public fun tweenFloat(
     duration : Measure<Time>,
 ): FiniteNumericAnimationPlan<Float, Double> = tween(Float.animationConverter, easing, duration)
 
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenFloat(easing, duration))"))
-public fun tweenFloat(
-    easing   : EasingFunction,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-): FiniteNumericAnimationPlan<Float, Double> = after(delay, tweenFloat(easing, duration))
-
 /** @see tween */
 public fun tweenDouble(
     easing   : EasingFunction,
     duration : Measure<Time>,
 ): FiniteNumericAnimationPlan<Double, Double> = tween(Double.animationConverter, easing, duration)
-
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenDouble(easing, duration))"))
-public fun tweenDouble(
-    easing   : EasingFunction,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-): FiniteNumericAnimationPlan<Double, Double> = after(delay, tweenDouble(easing, duration))
 
 /** @see tween */
 public fun <T: Units> tween(
@@ -212,18 +162,6 @@ public fun <T: Units> tween(
     easing   : EasingFunction,
     duration : Measure<Time>,
 ): FiniteNumericAnimationPlan<Measure<T>, Double> = tween(units.animationConverter, easing, duration)
-
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(units, easing, duration))"))
-public fun <T: Units> tween(
-    units    : T,
-    easing   : EasingFunction,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-): FiniteNumericAnimationPlan<Measure<T>, Double> = after(delay, tween(units, easing, duration))
 
 /**
  * Defines an [easing] over some [duration].
@@ -245,54 +183,16 @@ public fun <T> tween(
     easings  : (dimension: Int) -> Easing,
 ): FiniteNumericAnimationPlan<T, Array<Double>> = MultiNumericAnimationPlanImpl(converter, easings)
 
-/**
- * Creates an animation that manipulates values of type [T] that are convertable to an array of [Double]. Each dimension of [T]
- * will be animated using a [Easing] returned by the [easings] function.
- *
- * @param converter that maps [T] to and from `Array<Double>`
- * @param easings that map to each dimension of [T]. The [Easing] at index `i` is used to animate the dimension at the same index.
- * @param delay to apply before the animation begins
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tween(converter, easings, duration))"))
-public fun <T> tween(
-    converter: MultiDataConverter<T>,
-    easings  : (dimension: Int) -> Easing,
-    delay    : Measure<Time>
-): FiniteNumericAnimationPlan<T, Array<Double>> = after(delay, tween(converter, easings))
-
 /** @see tween */
 public fun tweenPoint(
     easing  : EasingFunction,
     duration: Measure<Time>,
 ): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter) { Easing(easing, duration) }
 
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenPoint(easing, duration))"))
-public fun tweenPoint(
-    easing  : EasingFunction,
-    duration: Measure<Time>,
-    delay   : Measure<Time>,
-): FiniteNumericAnimationPlan<Point, Array<Double>> = after(delay, tweenPoint(easing, duration))
-
 /** @see tween */
 public fun tweenPoint(
     easings: (dimension: Int) -> Easing,
 ): FiniteNumericAnimationPlan<Point, Array<Double>> = tween(Point.animationConverter, easings)
-
-/**
- * @see tween
- * @see after
- */
-@JvmName("tweenPointDeprecated")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenPoint(easings))"))
-public fun tweenPoint(
-    easings: (dimension: Int) -> Easing,
-    delay  : Measure<Time>
-): FiniteNumericAnimationPlan<Point, Array<Double>> = after(delay, tweenPoint(easings))
 
 /** @see tween */
 public fun tweenSize(
@@ -300,32 +200,10 @@ public fun tweenSize(
     duration: Measure<Time>,
 ): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter) { Easing(easing, duration) }
 
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenSize(easing, duration))"))
-public fun tweenSize(
-    easing  : EasingFunction,
-    duration: Measure<Time>,
-    delay   : Measure<Time>,
-): FiniteNumericAnimationPlan<Size, Array<Double>> = after(delay, tweenSize(easing, duration))
-
 /** @see tween */
 public fun tweenSize(
     easings: (dimension: Int) -> Easing,
 ): FiniteNumericAnimationPlan<Size, Array<Double>> = tween(Size.animationConverter, easings)
-
-/**
- * @see tween
- * @see after
- */
-@JvmName("tweenSizeDeprecated")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenSize(easings))"))
-public fun tweenSize(
-    easings: (dimension: Int) -> Easing,
-    delay  : Measure<Time>
-): FiniteNumericAnimationPlan<Size, Array<Double>> = after(delay, tweenSize(easings))
 
 /** @see tween */
 public fun tweenRect(
@@ -333,32 +211,10 @@ public fun tweenRect(
     duration: Measure<Time>,
 ): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter) { Easing(easing, duration) }
 
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenRect(easing, duration))"))
-public fun tweenRect(
-    easing  : EasingFunction,
-    duration: Measure<Time>,
-    delay   : Measure<Time>,
-): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = after(delay, tweenRect(easing, duration))
-
 /** @see tween */
 public fun tweenRect(
     easings: (dimension: Int) -> Easing,
 ): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = tween(Rectangle.animationConverter, easings)
-
-/**
- * @see tween
- * @see after
- */
-@JvmName("tweenRectDeprecated")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenRect(easings))"))
-public fun tweenRect(
-    easings: (dimension: Int) -> Easing,
-    delay  : Measure<Time>
-): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = after(delay, tweenRect(easings))
 
 /** @see tween */
 public fun tweenColor(
@@ -366,32 +222,10 @@ public fun tweenColor(
     duration: Measure<Time>,
 ): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter) { Easing(easing, duration) }
 
-/**
- * @see tween
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenColor(easing, duration))"))
-public fun tweenColor(
-    easing  : EasingFunction,
-    duration: Measure<Time>,
-    delay   : Measure<Time>,
-): FiniteNumericAnimationPlan<Color, Array<Double>> = after(delay, tweenColor(easing, duration))
-
 /** @see tween */
 public fun tweenColor(
     easings: (dimension: Int) -> Easing,
 ): FiniteNumericAnimationPlan<Color, Array<Double>> = tween(Color.animationConverter, easings)
-
-/**
- * @see tween
- * @see after
- */
-@JvmName("tweenColorDeprecated")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, tweenColor(easings))"))
-public fun tweenColor(
-    easings: (dimension: Int) -> Easing,
-    delay  : Measure<Time>
-): FiniteNumericAnimationPlan<Color, Array<Double>> = after(delay, tweenColor(easings))
 
 // endregion
 
@@ -452,48 +286,11 @@ public fun <T> keyFrames(
     frames   : KeyFrameBlock<T>.() -> Unit
 ): FiniteNumericAnimationPlan<T, Double> = SingleKeyframeAnimationPlan(converter, duration, frames)
 
-/**
- * Creates an animation that manipulates values of type [T] that are convertable to a [Double].
- *
- * ```
- * keyFrames(converter, duration) {
- *     value1 at duration * 0   then easeInElastic
- *     value2 at duration * 1/3 then linear
- *     value3 at duration * 2/3 then easeOutBack
- * }
- * ```
- *
- * @param converter that maps [T] to and from `Array<Double>`
- * @param duration of the animation
- * @param delay to apply before the animation begins
- * @param frames defining the animation key points
- * @see after
- */
-@JvmName("keyFramesSingle")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFrames(converter, duration, frames))"))
-public fun <T> keyFrames(
-    converter: SingleDataConverter<T>,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<T>.() -> Unit
-): FiniteNumericAnimationPlan<T, Double> = after(delay, keyFrames(converter, duration, frames))
-
 /** @see keyFrames */
 public fun keyFramesInt(
     duration : Measure<Time>,
     frames   : KeyFrameBlock<Int>.() -> Unit
 ): FiniteNumericAnimationPlan<Int, Double> = keyFrames(Int.animationConverter, duration, frames)
-
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesInt(duration, frames))"))
-public fun keyFramesInt(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Int>.() -> Unit
-): FiniteNumericAnimationPlan<Int, Double> = after(delay, keyFramesInt(duration, frames))
 
 /** @see keyFrames */
 public fun keyFramesFloat(
@@ -501,33 +298,11 @@ public fun keyFramesFloat(
     frames   : KeyFrameBlock<Float>.() -> Unit
 ): FiniteNumericAnimationPlan<Float, Double> = keyFrames(Float.animationConverter, duration, frames)
 
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesFloat(duration, frames))"))
-public fun keyFramesFloat(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Float>.() -> Unit
-): FiniteNumericAnimationPlan<Float, Double> = after(delay, keyFramesFloat(duration, frames))
-
 /** @see keyFrames */
 public fun keyFramesDouble(
     duration : Measure<Time>,
     frames   : KeyFrameBlock<Double>.() -> Unit
 ): FiniteNumericAnimationPlan<Double, Double> = keyFrames(Double.animationConverter, duration, frames)
-
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesDouble(duration, frames))"))
-public fun keyFramesDouble(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Double>.() -> Unit
-): FiniteNumericAnimationPlan<Double, Double> = after(delay, keyFramesDouble(duration, frames))
 
 /**
  * Creates an animation that manipulates values of type [T] that are convertable to an array of [Double]. Each dimension of [T]
@@ -545,42 +320,11 @@ public fun <T> keyFrames(
     frames   : KeyFrameBlock<T>.() -> Unit
 ): FiniteNumericAnimationPlan<T, Array<Double>> = MultiKeyframeAnimationPlan(converter, duration, frames)
 
-/**
- * Creates an animation that manipulates values of type [T] that are convertable to an array of [Double]. Each dimension of [T]
- * will be animated using the definitions within [frames].
- *
- * @param converter that maps [T] to and from `Array<Double>`
- * @param duration of the animation
- * @param delay to apply before the animation begins
- * @param frames defining the animation key points
- * @see keyFrames
- * @see after
- */
-@JvmName("keyFramesMulti")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFrames(converter, duration, frames))"))
-public fun <T> keyFrames(
-    converter: MultiDataConverter<T>,
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<T>.() -> Unit
-): FiniteNumericAnimationPlan<T, Array<Double>> = after(delay, keyFrames(converter, duration, frames))
-
 /** @see keyFrames */
 public fun keyFramesPoint(
     duration : Measure<Time>,
     frames   : KeyFrameBlock<Point>.() -> Unit
 ): FiniteNumericAnimationPlan<Point, Array<Double>> = keyFrames(Point.animationConverter, duration, frames)
-
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesPoint(duration, frames))"))
-public fun keyFramesPoint(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Point>.() -> Unit
-): FiniteNumericAnimationPlan<Point, Array<Double>> = after(delay, keyFramesPoint(duration, frames))
 
 /** @see keyFrames */
 public fun keyFramesSize(
@@ -588,50 +332,17 @@ public fun keyFramesSize(
     frames   : KeyFrameBlock<Size>.() -> Unit
 ): FiniteNumericAnimationPlan<Size, Array<Double>> = keyFrames(Size.animationConverter, duration, frames)
 
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesSize(duration, frames))"))
-public fun keyFramesSize(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Size>.() -> Unit
-): FiniteNumericAnimationPlan<Size, Array<Double>> = after(delay, keyFramesSize(duration, frames))
-
 /** @see keyFrames */
 public fun keyFramesRect(
     duration : Measure<Time>,
     frames   : KeyFrameBlock<Rectangle>.() -> Unit
 ): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = keyFrames(Rectangle.animationConverter, duration, frames)
 
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesRect(duration, frames))"))
-public fun keyFramesRect(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Rectangle>.() -> Unit
-): FiniteNumericAnimationPlan<Rectangle, Array<Double>> = after(delay, keyFramesRect(duration, frames))
-
 /** @see keyFrames */
 public fun keyFramesColor(
     duration : Measure<Time>,
     frames   : KeyFrameBlock<Color>.() -> Unit
 ): FiniteNumericAnimationPlan<Color, Array<Double>> = keyFrames(Color.animationConverter, duration, frames)
-
-/**
- * @see keyFrames
- * @see after
- */
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, keyFramesColor(duration, frames))"))
-public fun keyFramesColor(
-    duration : Measure<Time>,
-    delay    : Measure<Time>,
-    frames   : KeyFrameBlock<Color>.() -> Unit
-): FiniteNumericAnimationPlan<Color, Array<Double>> = after(delay, keyFramesColor(duration, frames))
 
 // endregion
 
@@ -678,24 +389,6 @@ public fun <T> repeat(
  * @param animationPlan to repeat
  * @param times to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
- * @param delay to apply before the animation begins
- * @see after
- */
-@JvmName("repeatSingle")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, repeat(animationPlan, times, type))"))
-public fun <T> repeat(
-    animationPlan: FiniteNumericAnimationPlan<T, Double>,
-    times        : Int = 1,
-    type         : RepetitionType = Restart,
-    delay        : Measure<Time>
-): FiniteNumericAnimationPlan<T, Double> = after(delay, repeat(animationPlan, times, type))
-
-/**
- * Repeats the given [animationPlan] for the specified number of [times].
- *
- * @param animationPlan to repeat
- * @param times to repeat
- * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
  */
 @JvmName("repeatMulti")
 public fun <T> repeat(
@@ -709,24 +402,6 @@ public fun <T> repeat(
         initialVelocity
     )
 }
-
-/**
- * Repeats the given [animationPlan] for the specified number of [times].
- *
- * @param animationPlan to repeat
- * @param times to repeat
- * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
- * @param delay to apply before the animation begins
- * @see after
- */
-@JvmName("repeatMulti")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, repeat(animationPlan, times, type))"))
-public fun <T> repeat(
-    animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
-    times        : Int            = 1,
-    type         : RepetitionType = Restart,
-    delay        : Measure<Time>
-): FiniteNumericAnimationPlan<T, Array<Double>> = after(delay, repeat(animationPlan, times, type))
 
 /**
  * Loops the given [animationPlan] indefinitely.
@@ -747,22 +422,6 @@ public fun <T> loop(
  *
  * @param animationPlan to repeat
  * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
- * @param delay to apply before the animation begins
- * @see after
- */
-@JvmName("loopSingle")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, loop(animationPlan, type))"))
-public fun <T> loop(
-    animationPlan: FiniteNumericAnimationPlan<T, Double>,
-    type         : RepetitionType = Restart,
-    delay        : Measure<Time>
-): NumericAnimationPlan<T, Double> = after(delay, loop(animationPlan, type))
-
-/**
- * Loops the given [animationPlan] indefinitely.
- *
- * @param animationPlan to repeat
- * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
  */
 @JvmName("loopMulti")
 public fun <T> loop(
@@ -771,22 +430,6 @@ public fun <T> loop(
 ): NumericAnimationPlan<T, Array<Double>> = object: RepeatingAnimationPlan<T, Array<Double>>(animationPlan, type, Int.MAX_VALUE) {
     override fun finished(start: Array<Double>, end: Array<Double>, initialVelocity: Velocity<Array<Double>>, elapsedTime: Measure<Time>) = false
 }
-
-/**
- * Loops the given [animationPlan] indefinitely.
- *
- * @param animationPlan to repeat
- * @param type of repetition, [Restart] will start over while [Reverse][RepetitionType.Reverse] will reverse
- * @param delay to apply before the animation begins
- * @see after
- */
-@JvmName("loopMulti")
-@Deprecated("use after method instead to add delays", ReplaceWith("after(delay, loop(animationPlan, type))"))
-public fun <T> loop(
-    animationPlan: FiniteNumericAnimationPlan<T, Array<Double>>,
-    type         : RepetitionType = Restart,
-    delay        : Measure<Time>
-): NumericAnimationPlan<T, Array<Double>> = after(delay, loop(animationPlan, type))
 
 // endregion
 

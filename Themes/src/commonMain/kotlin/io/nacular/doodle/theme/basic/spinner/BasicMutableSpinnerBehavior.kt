@@ -17,9 +17,6 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
 
-@Deprecated("Use BasicMutableSpinButtonBehavior", replaceWith = ReplaceWith("BasicMutableSpinButtonBehavior<T, M>"))
-public typealias BasicMutableSpinnerBehavior<T, M> = BasicMutableSpinButtonBehavior<T, M>
-
 public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
     textMetrics        : TextMetrics,
     backgroundColor    : Color,

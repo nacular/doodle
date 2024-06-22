@@ -8,7 +8,6 @@ import io.nacular.doodle.controls.FloatTypeConverter
 import io.nacular.doodle.controls.IntTypeConverter
 import io.nacular.doodle.controls.LongTypeConverter
 import io.nacular.doodle.controls.ShortTypeConverter
-import io.nacular.doodle.controls.numberTypeConverter
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
@@ -21,7 +20,6 @@ import io.nacular.doodle.utils.interpolator
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Units
 import kotlin.jvm.JvmName
-import kotlin.reflect.KClass
 
 /**
  * Represents a range selection slider that is circular.
@@ -304,23 +302,5 @@ public open class CircularRangeSlider<T>(
         )
 
         // endregion
-
-        /**
-         * Creates a Slider with the given model.
-         *
-         * @param model of the bar
-         * @param type class type of the slider
-         */
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Use explicit inline versions for numbers instead.")
-        public inline operator fun <reified T> invoke(
-            model   : ConfinedRangeModel<T>,
-            type    : KClass<T>,
-            function: InvertibleFunction = LinearFunction
-        ): CircularRangeSlider<T> where T: Number, T: Comparable<T> = CircularRangeSlider(
-            model,
-            numberTypeConverter(),
-            function
-        )
     }
 }
