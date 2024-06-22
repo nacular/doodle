@@ -25,7 +25,7 @@ import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.buttons.ToggleButton
-import io.nacular.doodle.controls.dropdown.SelectBox
+import io.nacular.doodle.controls.selectbox.SelectBox
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState

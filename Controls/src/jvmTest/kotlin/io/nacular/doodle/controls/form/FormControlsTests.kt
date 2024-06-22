@@ -243,7 +243,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("dropDownDefaultsToFirst")
-    fun `dropdown defaults to first`() {
+    fun `selectBox defaults to first`() {
         val onValid   = mockk<(Gender) -> Unit>(relaxed = true)
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
@@ -259,7 +259,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("dropDownAcceptsValidInitialValue")
-    fun `dropdown accepts valid initial value`() {
+    fun `selectBox accepts valid initial value`() {
         val onValid   = mockk<(Gender) -> Unit>(relaxed = true)
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
@@ -275,7 +275,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("dropDownIgnoresInValidInitialValue")
-    fun `dropdown ignores invalid initial value`() {
+    fun `selectBox ignores invalid initial value`() {
         val onValid   = mockk<(Int) -> Unit>(relaxed = true)
         val onInvalid = mockk<(   ) -> Unit>(relaxed = true)
 
@@ -291,7 +291,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("deselectableDropDownDefaultsToInvalid")
-    fun `deselectable dropdown defaults to invalid`() {
+    fun `deselectable selectBox defaults to invalid`() {
         val onValid   = mockk<(Gender) -> Unit>(relaxed = true)
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
@@ -307,7 +307,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("deselectableDropDownAcceptsValidInitialValue")
-    fun `deselectable dropdown accepts valid initial value`() {
+    fun `deselectable selectBox accepts valid initial value`() {
         val onValid   = mockk<(Gender) -> Unit>(relaxed = true)
         val onInvalid = mockk<(      ) -> Unit>(relaxed = true)
 
@@ -323,7 +323,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("deselectableDropDownIgnoresInValidInitialValue")
-    fun `deselectable dropdown ignores invalid initial value`() {
+    fun `deselectable selectBox ignores invalid initial value`() {
         val onValid   = mockk<(Int) -> Unit>(relaxed = true)
         val onInvalid = mockk<(   ) -> Unit>(relaxed = true)
 
@@ -339,7 +339,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("optionalDropDownDefaultsToNull")
-    fun `optional dropdown defaults to null`() {
+    fun `optional selectBox defaults to null`() {
         val onValid   = mockk<(Gender?) -> Unit>(relaxed = true)
         val onInvalid = mockk<(       ) -> Unit>(relaxed = true)
 
@@ -355,7 +355,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("optionalDropDownAcceptsValidInitialValue")
-    fun `optional dropdown accepts valid initial value`() {
+    fun `optional selectBox accepts valid initial value`() {
         val onValid   = mockk<(Gender?) -> Unit>(relaxed = true)
         val onInvalid = mockk<(       ) -> Unit>(relaxed = true)
 
@@ -371,7 +371,7 @@ class FormControlsTests {
     }
 
     @Test @JsName("optionalDropDownIgnoresInValidInitialValue")
-    fun `optional dropdown ignores invalid initial value`() {
+    fun `optional selectBox ignores invalid initial value`() {
         val onValid   = mockk<(Int?) -> Unit>(relaxed = true)
         val onInvalid = mockk<(    ) -> Unit>(relaxed = true)
 

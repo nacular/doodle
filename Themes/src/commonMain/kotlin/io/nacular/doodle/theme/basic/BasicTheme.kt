@@ -13,8 +13,6 @@ import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.date.DaysOfTheWeekPanel
 import io.nacular.doodle.controls.date.MonthPanel
-import io.nacular.doodle.controls.dropdown.MutableSelectBox
-import io.nacular.doodle.controls.dropdown.SelectBox
 import io.nacular.doodle.controls.list.HorizontalDynamicList
 import io.nacular.doodle.controls.list.HorizontalList
 import io.nacular.doodle.controls.list.HorizontalMutableList
@@ -31,6 +29,8 @@ import io.nacular.doodle.controls.range.CircularRangeSlider
 import io.nacular.doodle.controls.range.CircularSlider
 import io.nacular.doodle.controls.range.RangeSlider
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.selectbox.MutableSelectBox
+import io.nacular.doodle.controls.selectbox.SelectBox
 import io.nacular.doodle.controls.spinbutton.MutableSpinButton
 import io.nacular.doodle.controls.spinbutton.MutableSpinButtonModel
 import io.nacular.doodle.controls.spinbutton.SpinButton
@@ -76,8 +76,8 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
 import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
-import io.nacular.doodle.theme.basic.dropdown.BasicMutableSelectBoxBehavior
-import io.nacular.doodle.theme.basic.dropdown.BasicSelectBoxBehavior
+import io.nacular.doodle.theme.basic.selectbox.BasicMutableSelectBoxBehavior
+import io.nacular.doodle.theme.basic.selectbox.BasicSelectBoxBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalListBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalMutableListBehavior
 import io.nacular.doodle.theme.basic.list.basicVerticalListBehavior

@@ -1,4 +1,4 @@
-package io.nacular.doodle.theme.basic.dropdown
+package io.nacular.doodle.theme.basic.selectbox
 
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.ItemVisualizer
@@ -9,10 +9,10 @@ import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
-import io.nacular.doodle.controls.dropdown.SelectBox
-import io.nacular.doodle.controls.dropdown.SelectBoxBehavior
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.selectbox.SelectBox
+import io.nacular.doodle.controls.selectbox.SelectBoxBehavior
 import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
@@ -153,23 +153,23 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private val enabledChanged: PropertyObserver<View, Boolean> = { dropdown,_,_ ->
-        if (!dropdown.enabled) {
-            (dropdown as? SelectBox<T, M>)?.let { hideList(it) }
+    private val enabledChanged: PropertyObserver<View, Boolean> = { selectBox,_,_ ->
+        if (!selectBox.enabled) {
+            (selectBox as? SelectBox<T, M>)?.let { hideList(it) }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private val boundsChanged: PropertyObserver<View, Rectangle> = { dropdown, old, new ->
+    private val boundsChanged: PropertyObserver<View, Rectangle> = { selectBox, old, new ->
         if (old.height != new.height) {
-            (dropdown as? SelectBox<T, M>)?.apply {
-                list?.behavior = listBehavior(dropdown)
+            (selectBox as? SelectBox<T, M>)?.apply {
+                list?.behavior = listBehavior(selectBox)
             }
         }
     }
 
     private inner class CustomListRow(
-        dropdown      : SelectBox<T, M>,
+        selectBox     : SelectBox<T, M>,
         list          : List<T, *>,
         row           : T,
         index         : Int,
@@ -185,8 +185,8 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             insetTop = 0.0
 
             pointerFilter += clicked {
-                dropdown.selection = this.index
-                hideList(dropdown)
+                selectBox.selection = this.index
+                hideList(selectBox)
             }
         }
 
@@ -202,12 +202,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private inner class ItemGenerator(private val dropdown: SelectBox<T, M>): ListBehavior.ItemGenerator<T> {
+    private inner class ItemGenerator(private val selectBox: SelectBox<T, M>): ListBehavior.ItemGenerator<T> {
         @Suppress("UNCHECKED_CAST")
         override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
             is ListItem<*> -> (current as BasicSelectBoxBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
             else           -> CustomListRow(
-                    dropdown       = dropdown,
+                    selectBox      = selectBox,
                     list           = list,
                     row            = item,
                     index          = index,
@@ -260,12 +260,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private fun listBehavior(dropdown: SelectBox<T, M>) = object: BasicListBehavior<T>(
+    private fun listBehavior(selectBox: SelectBox<T, M>) = object: BasicListBehavior<T>(
         focusManager = focusManager,
-        generator    = ItemGenerator(dropdown),
+        generator    = ItemGenerator(selectBox),
         fill         = null,
         positioner   = object: BasicVerticalListPositioner<T>(0.0) {
-            override val height get() = max(0.0, dropdown.height - 2 * inset)
+            override val height get() = max(0.0, selectBox.height - 2 * inset)
         }
     ) {
         override fun render(view: List<T, *>, canvas: Canvas) {
@@ -353,12 +353,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         view.enabledChanged -= enabledChanged
     }
 
-    override fun changed(dropdown: SelectBox<T, M>) {
-        updateCenter(dropdown)
+    override fun changed(selectBox: SelectBox<T, M>) {
+        updateCenter(selectBox)
     }
 
-    override fun alignmentChanged(dropdown: SelectBox<T, M>) {
-        viewContainer(dropdown)?.let { updateAlignment(dropdown, it) }
+    override fun alignmentChanged(selectBox: SelectBox<T, M>) {
+        viewContainer(selectBox)?.let { updateAlignment(selectBox, it) }
     }
 
     override fun pressed(event: KeyEvent) {
@@ -378,28 +378,28 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
 
     internal val centerChanged: Pool<(SelectBox<T, M>, View?, View?) -> Unit> = SetPool()
 
-    internal fun updateCenter(dropdown: SelectBox<T, M>, newValue: View = centerView(dropdown)) {
-        viewContainer(dropdown)?.let { centerView ->
+    internal fun updateCenter(selectBox: SelectBox<T, M>, newValue: View = centerView(selectBox)) {
+        viewContainer(selectBox)?.let { centerView ->
             centerView.children.clear()
 
             centerView += newValue
 
-            updateAlignment(dropdown, centerView)
+            updateAlignment(selectBox, centerView)
         }
     }
 
-    private fun centerView(dropdown: SelectBox<T, M>) = dropdown.value.fold(
-        onSuccess = { (dropdown.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(dropdown.selection, true)) },
+    private fun centerView(selectBox: SelectBox<T, M>) = selectBox.value.fold(
+        onSuccess = { (selectBox.boxItemVisualizer ?: itemVisualizer)(it, null, SimpleIndexedItem(selectBox.selection, true)) },
         onFailure = { object: View() {} }
     )
 
-    private  fun viewContainer  (dropdown: SelectBox<T, M>): Container? =  dropdown.children.firstOrNull { it !is PushButton } as? Container
-    internal fun visualizedValue(dropdown: SelectBox<T, M>): View?      = viewContainer(dropdown)?.firstOrNull()
+    private  fun viewContainer  (selectBox: SelectBox<T, M>): Container? =  selectBox.children.firstOrNull { it !is PushButton } as? Container
+    internal fun visualizedValue(selectBox: SelectBox<T, M>): View?      = viewContainer(selectBox)?.firstOrNull()
 
-    private fun updateAlignment(dropdown: SelectBox<T, M>, centerView: Container) {
+    private fun updateAlignment(selectBox: SelectBox<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = {
             withSizeInsets(width = 0.0) {
-                (dropdown.boxCellAlignment ?: center)(it)
+                (selectBox.boxCellAlignment ?: center)(it)
             }
         }
 
@@ -410,8 +410,8 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             }
         }
 
-        dropdown.list?.apply {
-            val alignment = dropdown.listCellAlignment ?: dropdown.boxCellAlignment ?: center
+        selectBox.list?.apply {
+            val alignment = selectBox.listCellAlignment ?: selectBox.boxCellAlignment ?: center
 
             cellAlignment = {
                 withSizeInsets(width = buttonWidth) {

@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.dropdown
+package io.nacular.doodle.controls.selectbox
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.IndexedItem
@@ -13,12 +13,12 @@ import io.nacular.doodle.utils.Editable
  */
 public interface SelectBoxEditor<T> {
     /**
-     * @param dropdown being edited
-     * @param value within [dropdown] that is being edited
+     * @param selectBox being edited
+     * @param value within [selectBox] that is being edited
      * @param current View used to represent that value
      * @return an edit operation to manage changing [value]
      */
-    public fun edit(dropdown: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T>
+    public fun edit(selectBox: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T>
 }
 
 /**
@@ -27,7 +27,7 @@ public interface SelectBoxEditor<T> {
  * @param block to execute to create the [EditOperation]
  * @return an edit operation
  */
-public inline fun <T> selectBoxEditor(crossinline block: (dropdown: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = object: SelectBoxEditor<T> {
+public inline fun <T> selectBoxEditor(crossinline block: (selectBox: MutableSelectBox<T, *>, value: T, current: View) -> EditOperation<T>): SelectBoxEditor<T> = object: SelectBoxEditor<T> {
     override fun edit(selectBox: MutableSelectBox<T, *>, value: T, current: View): EditOperation<T> = block(selectBox, value, current)
 }
 
@@ -39,23 +39,23 @@ public abstract class MutableSelectBoxBehavior<T, M: MutableListModel<T>>: Selec
      * Called whenever editing begins for the MutableDropdown. This lets the behavior reconfigure
      * the Dropdown accordingly.
      *
-     * @param dropdown being edited
+     * @param selectBox being edited
      * @param value being edited
      * @return the edit operation
      */
-    public abstract fun editingStarted(dropdown: MutableSelectBox<T, M>, value: T): EditOperation<T>?
+    public abstract fun editingStarted(selectBox: MutableSelectBox<T, M>, value: T): EditOperation<T>?
 
     /**
      * Called whenever editing completes for the MutableDropdown. This lets the behavior reconfigure
      * the Dropdown accordingly.
      *
-     * @param dropdown that was being edited
+     * @param selectBox that was being edited
      */
-    public abstract fun editingEnded(dropdown: MutableSelectBox<T, M>)
+    public abstract fun editingEnded(selectBox: MutableSelectBox<T, M>)
 }
 
 /**
- * A dropdown control that can be edited.
+ * A selectbox control that can be edited.
  * @see [SelectBox]
  *
  * @param model used to represent the underlying choices

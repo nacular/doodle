@@ -1,11 +1,11 @@
-package io.nacular.doodle.theme.basic.dropdown
+package io.nacular.doodle.theme.basic.selectbox
 
 import io.nacular.doodle.controls.EditOperation
 import io.nacular.doodle.controls.MutableListModel
 import io.nacular.doodle.controls.PopupManager
-import io.nacular.doodle.controls.dropdown.MutableSelectBox
-import io.nacular.doodle.controls.dropdown.MutableSelectBoxBehavior
-import io.nacular.doodle.controls.dropdown.SelectBox
+import io.nacular.doodle.controls.selectbox.MutableSelectBox
+import io.nacular.doodle.controls.selectbox.MutableSelectBoxBehavior
+import io.nacular.doodle.controls.selectbox.SelectBox
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -51,9 +51,9 @@ public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
             it.bottom eq parent.bottom
             it.width  eq buttonWidth + inset
         }
-        centerChanged += { dropdown, old, new ->
-            (dropdown as? MutableSelectBox<T, M>)?.let {
-                dropdown.cancelEditing()
+        centerChanged += { selectBox, old, new ->
+            (selectBox as? MutableSelectBox<T, M>)?.let {
+                selectBox.cancelEditing()
                 setupEditingTriggers(old, new)
             }
         }
@@ -71,24 +71,24 @@ public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
 
     override fun render(view: SelectBox<T, M>, canvas: Canvas) { delegate.render(view, canvas) }
 
-    override fun editingStarted(dropdown: MutableSelectBox<T, M>, value: T): EditOperation<T>? {
-        val center = delegate.visualizedValue(dropdown)!!
+    override fun editingStarted(selectBox: MutableSelectBox<T, M>, value: T): EditOperation<T>? {
+        val center = delegate.visualizedValue(selectBox)!!
 
-        return dropdown.editor?.edit(dropdown, value, center)?.also { operation ->
-            operation()?.let { delegate.updateCenter(dropdown, it) }
+        return selectBox.editor?.edit(selectBox, value, center)?.also { operation ->
+            operation()?.let { delegate.updateCenter(selectBox, it) }
         }
     }
 
-    override fun editingEnded(dropdown: MutableSelectBox<T, M>) {
-        delegate.updateCenter(dropdown)
+    override fun editingEnded(selectBox: MutableSelectBox<T, M>) {
+        delegate.updateCenter(selectBox)
     }
 
-    override fun changed(dropdown: SelectBox<T, M>): Unit = delegate.changed(dropdown)
+    override fun changed(selectBox: SelectBox<T, M>): Unit = delegate.changed(selectBox)
 
     override fun pressed(event: PointerEvent) {
-        event.source.let { dropdown ->
-            if (event.clickCount >= 2 && dropdown is MutableSelectBox<*,*>) {
-                dropdown.startEditing()
+        event.source.let { selectBox ->
+            if (event.clickCount >= 2 && selectBox is MutableSelectBox<*,*>) {
+                selectBox.startEditing()
                 event.consume()
             }
         }
@@ -101,21 +101,21 @@ public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
 }
 
 public open class SelectBoxTextEditOperation<T>(
-    focusManager: FocusManager?,
-    mapper      : Encoder<T, String>,
-    private val dropdown    : MutableSelectBox<T, *>,
-    value       : T,
-    current     : View): GenericTextEditOperation<T, MutableSelectBox<T, *>>(focusManager, mapper, dropdown, value, current) {
+                focusManager: FocusManager?,
+                mapper      : Encoder<T, String>,
+    private val selectBox   : MutableSelectBox<T, *>,
+                value       : T,
+                current     : View): GenericTextEditOperation<T, MutableSelectBox<T, *>>(focusManager, mapper, selectBox, value, current) {
 
     private val changed = { _: SelectBox<T, *> ->
-        dropdown.cancelEditing()
+        selectBox.cancelEditing()
     }
 
     init {
-        dropdown.changed += changed
+        selectBox.changed += changed
     }
 
     override fun cancel() {
-        dropdown.changed -= changed
+        selectBox.changed -= changed
     }
 }

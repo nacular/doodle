@@ -1,4 +1,4 @@
-package io.nacular.doodle.controls.dropdown
+package io.nacular.doodle.controls.selectbox
 
 import io.nacular.doodle.controls.IndexedItem
 import io.nacular.doodle.controls.IntProgressionModel
@@ -33,16 +33,16 @@ public interface SelectBoxBehavior<T, M: ListModel<T>>: Behavior<SelectBox<T, M>
      * Called whenever the SelectBox's value or selection changes. This is an explicit API to ensure that
      * behaviors receive the notification before listeners to [SelectBox.changed].
      *
-     * @param dropdown with change
+     * @param selectBox with change
      */
-    public fun changed(dropdown: SelectBox<T, M>) {}
+    public fun changed(selectBox: SelectBox<T, M>) {}
 
     /**
      * Called whenever [SelectBox.boxCellAlignment] or [SelectBox.listCellAlignment] change.
      *
-     * @param dropdown with change
+     * @param selectBox with change
      */
-    public fun alignmentChanged(dropdown: SelectBox<T, M>) {}
+    public fun alignmentChanged(selectBox: SelectBox<T, M>) {}
 }
 
 /**
