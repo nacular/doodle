@@ -9,6 +9,7 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform
@@ -97,6 +98,7 @@ class ThemeTests {
         override var transform: AffineTransform = Identity
         override val children                   = ObservableList<View>()
         override val popups                     = emptyList<View>()
+        override val positionable               = mockk<PositionableContainer>()
         override val cursorChanged              = mockk<PropertyObservers<Display, Cursor?>>()
         override val sizeChanged                = mockk<PropertyObservers<Display, Size>>()
         override var focusTraversalPolicy       = null as FocusTraversalPolicy?
@@ -125,6 +127,8 @@ class ThemeTests {
         override fun hidePopup(view: View) {}
 
         override fun showPopup(view: View) {}
+
+        override fun boundsChanged(child: View) {}
     }
 
     @Test fun `installs theme on update`() {

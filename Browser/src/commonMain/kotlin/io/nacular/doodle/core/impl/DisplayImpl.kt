@@ -102,8 +102,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
-    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
-        private set
+    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
 
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
@@ -111,8 +110,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
-    override var mirrorWhenRightLeft = true
-        set(new) {
+    override var mirrorWhenRightLeft = true; set(new) {
             if (field == new) return
 
             field = new
@@ -122,14 +120,15 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
-    override var contentDirection: ContentDirection = LeftRight
-        set(new) {
+    override var contentDirection: ContentDirection = LeftRight; set(new) {
             if (field == new) return
 
             field = new
 
             contentDirectionChanged()
         }
+
+    override val positionable: PositionableContainer = PositionableWrapper()
 
     private fun contentDirectionChanged() {
         (contentDirectionChanged as ChangeObserversImpl)()
@@ -144,20 +143,17 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     private val canvasElement       = htmlFactory.create<HTMLElement>()
     private val canvas              = canvasFactory(canvasElement)
-    private val positionableWrapper = PositionableWrapper()
     private var fill                = null as Paint?
 
     val renderOffset: Int get() = canvasElement.parent?.let { 1 } ?: 0
 
-    override var transform: AffineTransform = Identity
-        set (new) {
+    override var transform: AffineTransform = Identity; set (new) {
             field = new
 
             refreshAugmentedTransform()
         }
 
-    private var augmentedTransform: AffineTransform = Identity
-        set (new) {
+    private var augmentedTransform: AffineTransform = Identity; set (new) {
             field = new
 
             updateTransform()
@@ -247,7 +243,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     } else false
 
     override fun child(at: Point): View? = fromAbsolute(at).let { point ->
-        when (val result = layout?.child(positionableWrapper, point)) {
+        when (val result = layout?.child(positionable, point)) {
             null, Ignored -> child_(point) { true }
             is Found      -> result.child as? View
             is Empty      -> null
@@ -290,7 +286,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         if (!layingOut) {
             layingOut = true
 
-            layout?.layout(positionableWrapper)
+            layout?.layout(positionable)
 
             layingOut= false
         }

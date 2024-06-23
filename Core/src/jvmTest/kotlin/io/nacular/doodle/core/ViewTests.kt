@@ -181,7 +181,7 @@ class ViewTests {
     }
 
     @Test fun `rerender work`() {
-        val display       = mockk<Display>()
+        val display       = mockk<InternalDisplay>()
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
 
@@ -193,7 +193,7 @@ class ViewTests {
     }
 
     @Test fun `rerenderNow work`() {
-        val display       = mockk<Display>()
+        val display       = mockk<InternalDisplay>()
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
 
@@ -221,7 +221,7 @@ class ViewTests {
     }
 
     @Test fun `rerenders on clipCanvasToBounds change`() {
-        val display       = mockk<Display>()
+        val display       = mockk<InternalDisplay>()
         val renderManager = mockk<RenderManager>()
         val view          = view {}
 
@@ -554,7 +554,7 @@ class ViewTests {
     @Test fun `content direction falls back to display`() {
         val direction = mockk<ContentDirection>()
         val child     = object: View() {}
-        val display   = mockk<Display>().apply {
+        val display   = mockk<InternalDisplay>().apply {
             every { contentDirection } returns direction
         }
 
@@ -678,17 +678,27 @@ class ViewTests {
             }
         }
 
+        val display       = mockk<InternalDisplay>(relaxed = true) {
+            every { boundsChanged(view) } answers {
+                view.actualBounds = Rectangle(
+                    view.preferredPosition_,
+                    view.preferredSize_(Size.Empty, Size(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY))
+                )
+            }
+        }
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
-        view.bounds         = new
-        view.x              = 67.0
+        view.newBounds      = new
+        view.newBounds      = view.bounds.at(x = 67.0)
 
         verifyOrder {
-            renderManager.boundsChanged(view, old, new)
+//            renderManager.boundsChanged(view, old, new)
+            display.boundsChanged(view)
             observer(view, old, new)
-            renderManager.boundsChanged(view, new, new.at(x = 67.0))
+//            renderManager.boundsChanged(view, new, new.at(x = 67.0))
+            display.boundsChanged(view)
             observer(view, new, new.at(x = 67.0))
         }
     }
@@ -1101,6 +1111,38 @@ class ViewTests {
         }
     }
 
+    @Test
+    fun `new bounds works`() {
+        val child  = view {}
+        val parent = container {
+            + child
+
+            newBounds = Rectangle(100, 100)
+            layout2   = Layout2.simpleLayout { items, min, max ->
+                var maxRight  = 0.0
+                var maxBottom = 0.0
+
+                items.forEach {
+                    it.bounds = Rectangle(it.preferredPosition, it.preferredSize(min, max)).also {
+                        maxRight  = it.right
+                        maxBottom = it.bottom
+                    }
+                }
+
+                Size(maxRight, maxBottom)
+            }
+        }
+
+        child.newBounds = Rectangle(10, 10)
+
+        expect(Size(10)) { child.actualBounds.size }
+
+        child.newBounds = Rectangle(23, 56, 110, 110)
+
+        expect(Rectangle(23, 56, 110, 110)) { child.actualBounds  }
+        expect(Rectangle(child.bounds.right, child.bounds.bottom)) { parent.actualBounds }
+    }
+
     private class SubView: View() {
         public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
         public override fun handlePointerEvent(event: PointerEvent) { super.handlePointerEvent(event) }
@@ -1225,7 +1267,7 @@ class ViewTests {
     private fun <T> validateSetter(p: KMutableProperty1<View, T>, value: T, shouldRerender: Boolean = false) {
         view {}.also { view ->
             val renderManager = if (shouldRerender) {
-                val display       = mockk<Display>()
+                val display       = mockk<InternalDisplay>()
                 val renderManager = mockk<RenderManager>()
 
                 view.addedToDisplay(display, renderManager, null)

@@ -130,6 +130,15 @@ public sealed class LookupResult {
  */
 public interface Layout {
     /**
+     * Called whenever the View's parent wishes to update it's size.
+     *
+     * @param min the smallest size this View is allowed to be
+     * @param max the largest size this View is allowed to be
+     * @return a value that respects [min] and [max]
+     */
+    public fun size(container: PositionableContainer, min: Size, max: Size): Size = max
+
+    /**
      * Lays out the children of the given [Positionable].
      *
      * @param container to be laid out

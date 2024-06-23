@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.nacular.doodle.core.Container
-import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Path
@@ -344,7 +344,7 @@ class FocusTraversalPolicyImplTests {
         every { this@apply(any()) } returns false
     }
 
-    private fun display(numChildren: Int = 5) = mockk<Display>().apply {
+    private fun display(numChildren: Int = 5) = mockk<InternalDisplay>().apply {
         val children = ObservableList<View>()
 
         repeat(numChildren) {
@@ -359,7 +359,7 @@ class FocusTraversalPolicyImplTests {
     }
 
     private fun container(numChildren: Int = 5) = spyk(Container()).apply {
-        val display = mockk<Display>()
+        val display = mockk<InternalDisplay>()
 
         repeat(numChildren) {
             children += view(display = display, parent = this).also {
@@ -370,7 +370,7 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
-    private fun view(display: Display, parent: View? = null) = mockk<View>().apply {
+    private fun view(display: InternalDisplay, parent: View? = null) = mockk<View>().apply {
         every { display.ancestorOf(this@apply) } returns true
         every { this@apply.display             } returns display
         every { this@apply.parent              } returns parent

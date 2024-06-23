@@ -25,6 +25,10 @@ public open class Container: View(), PositionableContainer, Iterable<View> {
         get(   ) = super.layout
         set(new) { super.layout = new }
 
+    public override var layout2: Layout2?
+        get(   ) = super.layout2
+        set(new) { super.layout2 = new }
+
     public override var isFocusCycleRoot: Boolean
         get(   ) = super.isFocusCycleRoot
         set(new) { super.isFocusCycleRoot = new }

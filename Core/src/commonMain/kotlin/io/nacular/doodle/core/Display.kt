@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
@@ -182,12 +183,21 @@ public fun Display.fill(color: Color): Unit = fill(color.paint)
 /** @suppress */
 @Internal
 public interface InternalDisplay: Display {
-    public val popups: List<View>
+    public val popups      : List<View>
+    public val positionable: PositionableContainer
 
-    public fun repaint()
-
+    public fun repaint  (          )
     public fun showPopup(view: View)
     public fun hidePopup(view: View)
+
+    public fun boundsChanged(child: View): Unit = when (val l = layout) {
+        null -> {
+            children.forEach {
+                it.actualBounds = Rectangle(it.preferredPosition_, it.preferredSize_(Size.Empty, size))
+            }
+        }
+        else -> Unit.also { l.size(positionable, Size.Empty, size) }
+    }
 }
 
 /**

@@ -712,6 +712,24 @@ public open class RenderManagerImpl(
         }
     }
 
+    override fun actualBoundsChanged(view: View, old: Rectangle, new: Rectangle) {
+        val parent = view.parent
+
+        // Early exit if this event was triggered by an item as it is being removed from the container tree.
+        //
+        // Same for invisible items.
+        if ((parent == null && view !in display && view !in popups) || !view.visible) {
+            return
+        }
+
+        pendingBoundsChange += view
+
+        when {
+            !old.size.fastEquals(new.size) -> render(view, true)
+            else                           -> schedulePaint()
+        }
+    }
+
     private infix fun Size.sufficientlyDifferentTo(other: Size): Boolean {
         val epsilon = 1e-8
 

@@ -1292,7 +1292,7 @@ class RenderManagerImplTests {
         verify(exactly = count) { container.doLayout_() }
     }
 
-    private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: Display, view: View, times: Int = 1) {
+    private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: InternalDisplay, view: View, times: Int = 1) {
         verify(exactly = times) { view.addedToDisplay(display, renderManager.first, renderManager.second) }
         verify(exactly = times) { view.render        (any()                                             ) }
     }

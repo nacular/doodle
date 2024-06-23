@@ -112,11 +112,9 @@ internal class DisplayImpl(
 
     override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
-    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>)
-        private set
+    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
 
-    override val indexInParent: Int
-        get() = skiaLayer.skikoView?.let { skiaLayer.components.indexOf(it as Component) } ?: -1
+    override val indexInParent get() = skiaLayer.skikoView?.let { skiaLayer.components.indexOf(it as Component) } ?: -1
 
     override val locationOnScreen get() = skiaLayer.locationOnScreen.toDoodle()
 
@@ -126,25 +124,23 @@ internal class DisplayImpl(
 
     override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
-    override var mirrorWhenRightLeft = true
-        set(new) {
-            if (field == new) return
+    override var mirrorWhenRightLeft = true; set(new) {
+        if (field == new) return
 
-            field = new
+        field = new
 
-            notifyMirroringChanged()
-        }
+        notifyMirroringChanged()
+    }
 
     override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
 
-    override var contentDirection: ContentDirection = LeftRight
-        set(new) {
-            if (field == new) return
+    override var contentDirection: ContentDirection = LeftRight; set(new) {
+        if (field == new) return
 
-            field = new
+        field = new
 
-            contentDirectionChanged()
-        }
+        contentDirectionChanged()
+    }
 
     private var renderJob: Job? = null
     private var shutDown        = false
@@ -167,17 +163,16 @@ internal class DisplayImpl(
         requestRender()
     }
 
-    private val positionableWrapper = PositionableWrapper()
-    private var fill: Paint? by Delegates.observable(null) { _, _, _ ->
+    override val positionable: PositionableContainer = PositionableWrapper()
+    private var fill: Paint? by Delegates.observable(null) { _,_,_ ->
         requestRender()
     }
 
-    override var transform: AffineTransform = Identity
-        set (new) {
-            field = new
+    override var transform: AffineTransform = Identity; set (new) {
+        field = new
 
-            requestRender()
-        }
+        requestRender()
+    }
 
     private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, @Suppress("UNUSED_PARAMETER") nano: Long) {
         skiaCanvas.save ()
@@ -233,7 +228,7 @@ internal class DisplayImpl(
     } else false
 
     override fun child(at: Point): View? = fromAbsolute(at).let { point ->
-        when (val result = layout?.child(positionableWrapper, point)) {
+        when (val result = layout?.child(positionable, point)) {
             null, Ignored -> child_(point) { true }
             is Found      -> result.child as? View
             is Empty      -> null
@@ -276,7 +271,7 @@ internal class DisplayImpl(
         if (!layingOut) {
             layingOut = true
 
-            layout?.layout(positionableWrapper)
+            layout?.layout(positionable)
 
             layingOut = false
 

@@ -26,7 +26,7 @@ class DoodleTest {
 
     fun View.focusLost(@Suppress("UNUSED_PARAMETER") new: View?) = this.focusLost(new)
 
-    fun View.addedToDisplay(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager) = this.addedToDisplay(display, renderManager, accessibilityManager)
+    fun View.addedToDisplay(display: InternalDisplay, renderManager: RenderManager, accessibilityManager: AccessibilityManager) = this.addedToDisplay(display, renderManager, accessibilityManager)
 
     fun View.removedFromDisplay() = this.removedFromDisplay_()
 }

@@ -78,3 +78,5 @@ public fun lerp(first: Size, second: Size, fraction: Float): Size = Size(
     lerp(first.width,  second.width,  fraction),
     lerp(first.height, second.height, fraction)
 )
+
+public fun Size.coerceIn(min: Size, max: Size): Size = Size(width.coerceIn(min.width, max.width), height.coerceIn(min.height, max.height))
