@@ -11,10 +11,7 @@ import io.nacular.doodle.geometry.Size
  * @see View
  */
 public interface Positionable2 {
-    /** The top, left, width, and height. */
-    public var bounds: Rectangle
-
-    public val preferredPosition: Point
+    public val position: Point
 
     /** Whether this item is visible. */
     public val visible: Boolean
@@ -28,6 +25,8 @@ public interface Positionable2 {
     public operator fun contains(point: Point): Boolean
 
     public fun preferredSize(min: Size, max: Size): Size
+
+    public fun setBounds(bounds: Rectangle)
 }
 
 /**
@@ -44,11 +43,12 @@ public interface Layout2 {
     /**
      * Called whenever the View's parent wishes to update it's size.
      *
-     * @param min the smallest size this View is allowed to be
-     * @param max the largest size this View is allowed to be
+     * @param min the smallest size to fit the views in
+     * @param current size to fit the views in
+     * @param max the largest size to fit the views in
      * @return a value that respects [min] and [max]
      */
-    public fun size(of: Sequence<Positionable2>, min: Size, max: Size): Size = max
+    public fun layout(views: Sequence<Positionable2>, min: Size, current: Size, max: Size): Size = max
 
     /**
      * Gets the child within the Positionable at the given point.  The default is to ignore these
@@ -66,8 +66,8 @@ public interface Layout2 {
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        public inline fun simpleLayout(crossinline layout: (items: Sequence<Positionable2>, min: Size, max: Size) -> Size): Layout2 = object: Layout2 {
-            override fun size(of: Sequence<Positionable2>, min: Size, max: Size): Size = layout(of, min, max)
+        public inline fun simpleLayout(crossinline layout: (items: Sequence<Positionable2>, min: Size, current: Size, max: Size) -> Size): Layout2 = object: Layout2 {
+            override fun layout(views: Sequence<Positionable2>, min: Size, current: Size, max: Size): Size = layout(views, min, current, max)
         }
     }
 }

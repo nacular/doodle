@@ -337,7 +337,7 @@ public open class RenderManagerImpl(
     private fun performLayout(view: View) {
         layingOut = view
 
-        view.doLayout_()
+        view.doLayout2_()
 
         layingOut = null
 
@@ -712,7 +712,7 @@ public open class RenderManagerImpl(
         }
     }
 
-    override fun actualBoundsChanged(view: View, old: Rectangle, new: Rectangle) {
+    override fun boundsChanged2(view: View, old: Rectangle, new: Rectangle) {
         val parent = view.parent
 
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
@@ -723,6 +723,25 @@ public open class RenderManagerImpl(
         }
 
         pendingBoundsChange += view
+
+        if (!old.size.fastEquals(new.size)) {
+            if (view.children_.isNotEmpty() /*&& view.layout2_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true*/) {
+                when {
+                    layingOut !== view                       -> pendingLayout += view
+
+                    // view is in the middle of a layout, so re-do it to allow bounds
+                    // changes to take effect
+                    old.size sufficientlyDifferentTo new.size -> view.doLayout2_()
+                    else                                      -> return
+                }
+            }
+        }
+
+        when (parent) {
+            null -> /*if (display.layout2_?.requiresLayout(view, displayPositionableContainer, old, new) == true)*/ display.relayout()
+//            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
+            else -> /*if (parent.layout2_?.requiresLayout(view, parent.positionableWrapper, old, new) == true)*/ pendingLayout += parent
+        }
 
         when {
             !old.size.fastEquals(new.size) -> render(view, true)

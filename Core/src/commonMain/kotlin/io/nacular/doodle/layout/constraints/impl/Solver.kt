@@ -80,7 +80,7 @@ internal class Solver {
         Invalid, External, Slack, Error, Dummy
     }
 
-    private class Symbol constructor(val type: Type = Invalid) {
+    private class Symbol(val type: Type = Invalid) {
         override fun toString() = "$type"
     }
 

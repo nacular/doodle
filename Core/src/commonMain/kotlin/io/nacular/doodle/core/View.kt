@@ -213,63 +213,70 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
 
     /**
+     * Work-around to support ConstraintLayout
+     */
+    internal val boundsChangeAttempted: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
+
+//    private var doingLayout = false
+
+    /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-//    final override var bounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
-//        if (needsMirrorTransform && old.x != new.x) {
-//            resolvedTransformDirty = true
-//        }
-//
-//        boundingBox = getBoundingBox(new)
-//        renderManager?.boundsChanged(this, old, new)
-//    }
-    final override var bounds: Rectangle by ::newBounds
-
-    private var requestedBounds = null as Rectangle?
-
-    public var newBounds: Rectangle get() = actualBounds; set(new) {
-        if (!new.fastEqual(actualBounds)) {
-            requestedBounds = new
-
-            parent?.also {
-                it.boundsChanged(this)
-            } ?: display?.also {
-                it.boundsChanged(this)
-            } ?: run {
-                actualBounds   = new
-                allowedMaxSize = new.size
-            }
+    public final override var bounds: Rectangle get() = actualBounds; set(new) {
+        if (new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize) {
+            (boundsChangeAttempted as PropertyObserversImpl).forEach { it(this, actualBounds, new) }
         }
+
+        actualBounds = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+
+//        renderManager?.boundsChanged(this, actualBounds, new) ?: run {
+//            actualBounds = new
+//        }
+
+//        actualBounds = when (val newSize = new.size.coerceIn(allowedMinSize, allowedMaxSize)) {
+//            size -> new.with(size)
+//            else -> new.with(when (val l = layout2) {
+//                null -> newSize
+//                else -> doLayout2(l, allowedMinSize, newSize, allowedMaxSize)
+//            })
+//        }
     }
 
-    internal var actualBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
+    private var actualBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
+//        parent?.also {
+//            it.boundsChanged(this)
+//        } ?: display?.also {
+//            it.boundsChanged(this)
+//        }
+
         if (needsMirrorTransform && old.x != new.x) {
             resolvedTransformDirty = true
         }
 
         boundingBox = getBoundingBox(new)
-        renderManager?.actualBoundsChanged(this, old, new)
+        renderManager?.boundsChanged2(this, old, new)
     }
 
     private var allowedMinSize = Size.Empty
-    private var allowedMaxSize = Size.Empty
+    private var allowedMaxSize = Size.Infinite
 
-    private fun boundsChanged(child: View) {
-        newBounds = newBounds.with(when (val l = layout2) {
-            null -> actualBounds.size.also {
-                updateChildBounds(child)
-            }
-            else -> l.size(children.asSequence().map { it.positionable2Wrapper }, Size.Empty, Size(Double.POSITIVE_INFINITY))
-        })
+    internal fun resetConstraints() {
+        allowedMinSize = Size.Empty
+        allowedMaxSize = Size.Infinite
     }
 
-    internal val preferredPosition_ get() = preferredPosition
-
-    protected val preferredPosition: Point get() = requestedBounds?.position ?: Origin
+//    private fun boundsChanged(child: View) {
+//        if (doingLayout) return
+//
+//        size = when (val l = layout2) {
+//            null -> actualBounds.size
+//            else -> doLayout2(l, Size.Empty, actualBounds.size, Size.Infinite)
+//        }
+//    }
 
     /**
-     * Requests the View's preferred size within the specified [min] and [max] values. This method usually delegates to [layout2] if
+     * Requests the View's preferred size within the specified [min] and [max] constraints. This method usually delegates to [layout2] if
      * there is one.
      *
      * @param min the smallest size this View is allowed to be
@@ -277,16 +284,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     protected open fun preferredSize(min: Size, max: Size): Size = when (val l = layout2) {
-        null -> requestedBounds?.size ?: max.also {
-            children.forEach {
-                updateChildBounds(it)
-            }
-        }
-        else -> l.size(children.asSequence().map { it.positionable2Wrapper }, min, max)
-    }
-
-    private fun updateChildBounds(child: View) {
-        child.actualBounds = Rectangle(child.preferredPosition, child.preferredSize_(Size.Empty, Size(Double.POSITIVE_INFINITY)))
+        null -> size // should always be within [min,max]
+        else -> doLayout2(l, min, size, max)
     }
 
     /**
@@ -296,9 +295,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param max the largest size this View is allowed to be
      * @return a value that respects [min] and [max]
      */
-    internal fun preferredSize_(min: Size, max: Size): Size = when {
-        requestedBounds?.size != actualBounds.size -> preferredSize(min, max).coerceIn(min, max)
-        else -> actualBounds.size
+    internal fun preferredSize_(min: Size, max: Size): Size {
+        allowedMinSize = min
+        allowedMaxSize = max
+
+        return preferredSize(min, max).coerceIn(min, max)
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
@@ -763,12 +764,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         relayout()
     }
 
-    protected open var layout2: Layout2? by observable(null) { _,_ ->
-        parent?.also {
-            it.boundsChanged(this)
-        } ?:
+    internal val layout2_ get() = layout2
 
-        display?.boundsChanged(this)
+    protected open var layout2: Layout2? by observable(null) { _,_ ->
+        if (displayed) {
+            doLayout2_()
+        }
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -890,8 +891,32 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal fun doLayout_() = doLayout()
 
+    internal fun doLayout2_() {
+        layout2?.let { bounds = bounds.with(doLayout2(it, allowedMinSize, size, allowedMaxSize)) }
+    }
+
+    private fun doLayout2(layout: Layout2, min: Size, current: Size, max: Size): Size {
+//        doingLayout = true
+
+        return layout.layout(children.asSequence().map { it.positionable2Wrapper }, min, current, max).also {
+//            doingLayout = false
+        }
+    }
+
     /** Causes the [layout] (if any) to re-layout the View's [children] */
     protected open fun doLayout() { layout?.layout(positionableWrapper) }
+
+    protected open fun doLayout2() {
+        layout2?.let { bounds = bounds.with(doLayout2(it, allowedMinSize, size, allowedMaxSize)) }
+
+//        when (val newSize = new.size.coerceIn(allowedMinSize, allowedMaxSize)) {
+//            size -> new.with(size)
+//            else -> new.with(when (val l = layout2) {
+//                null -> newSize
+//                else -> doLayout2(l, allowedMinSize, newSize, allowedMaxSize)
+//            })
+//        }
+    }
 
     /**
      * Gets the child (if any) at the given point in the View's coordinate system (relative to the View).
@@ -1231,6 +1256,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         generationNumber = parent?.generationNumber?.plus(1) ?: 0
 
+        doLayout2_()
+
         addedToDisplay()
 
         (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
@@ -1287,13 +1314,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
-    private val positionable2Wrapper by lazy { object: Positionable2 {
-        override var bounds            by this@View::actualBounds
-        override val visible           by this@View::visible
-        override val preferredPosition by this@View::preferredPosition
+    internal val positionable2Wrapper by lazy { object: Positionable2 {
+        override val visible  by this@View::visible
+        override val position by this@View::position
 
-        override fun contains(point: Point) = point in this@View
+        override fun contains     (point: Point) = point in this@View
         override fun preferredSize(min: Size, max: Size) = this@View.preferredSize_(min, max)
+        override fun setBounds    (bounds: Rectangle) { actualBounds = bounds }
     } }
 
     private fun PointerListener.notify(event: PointerEvent) {

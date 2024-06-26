@@ -8,7 +8,6 @@ import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
@@ -193,7 +192,7 @@ public interface InternalDisplay: Display {
     public fun boundsChanged(child: View): Unit = when (val l = layout) {
         null -> {
             children.forEach {
-                it.actualBounds = Rectangle(it.preferredPosition_, it.preferredSize_(Size.Empty, size))
+                it.size = it.preferredSize_(Size.Empty, size)
             }
         }
         else -> Unit.also { l.size(positionable, Size.Empty, size) }

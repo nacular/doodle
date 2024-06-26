@@ -58,7 +58,7 @@ public abstract class RenderManager {
      */
     internal abstract fun boundsChanged(view: View, old: Rectangle, new: Rectangle)
 
-    internal abstract fun actualBoundsChanged(view: View, old: Rectangle, new: Rectangle)
+    internal abstract fun boundsChanged2(view: View, old: Rectangle, new: Rectangle)
 
     /**
      * Notifies whenever a View's [z-order][View.zOrder]z-order changes

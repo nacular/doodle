@@ -680,18 +680,15 @@ class ViewTests {
 
         val display       = mockk<InternalDisplay>(relaxed = true) {
             every { boundsChanged(view) } answers {
-                view.actualBounds = Rectangle(
-                    view.preferredPosition_,
-                    view.preferredSize_(Size.Empty, Size(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY))
-                )
+                view.size = view.preferredSize_(Size.Empty, Size.Infinite)
             }
         }
         val renderManager = mockk<RenderManager>(relaxed = true)
 
         view.addedToDisplay(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
-        view.newBounds      = new
-        view.newBounds      = view.bounds.at(x = 67.0)
+        view.bounds         = new
+        view.bounds         = view.bounds.at(x = 67.0)
 
         verifyOrder {
 //            renderManager.boundsChanged(view, old, new)
@@ -948,7 +945,7 @@ class ViewTests {
     }
 
     @Test fun `contains point works`() {
-        val view = object: View() {}
+        val view   = object: View() {}
         val bounds = Rectangle(10.0, 10.0, 25.0, 25.0)
 
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
@@ -1117,30 +1114,30 @@ class ViewTests {
         val parent = container {
             + child
 
-            newBounds = Rectangle(100, 100)
-            layout2   = Layout2.simpleLayout { items, min, max ->
+            bounds  = Rectangle(100, 100)
+            layout2 = Layout2.simpleLayout { items, min, current, max ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
                 items.forEach {
-                    it.bounds = Rectangle(it.preferredPosition, it.preferredSize(min, max)).also {
+                    it.setBounds(Rectangle(it.position, it.preferredSize(min, max)).also {
                         maxRight  = it.right
                         maxBottom = it.bottom
-                    }
+                    })
                 }
 
                 Size(maxRight, maxBottom)
             }
         }
 
-        child.newBounds = Rectangle(10, 10)
+        child.bounds = Rectangle(10, 10)
 
-        expect(Size(10)) { child.actualBounds.size }
+        expect(Size(10)) { child.size }
 
-        child.newBounds = Rectangle(23, 56, 110, 110)
+        child.bounds = Rectangle(23, 56, 110, 110)
 
-        expect(Rectangle(23, 56, 110, 110)) { child.actualBounds  }
-        expect(Rectangle(child.bounds.right, child.bounds.bottom)) { parent.actualBounds }
+        expect(Rectangle(23, 56, 110, 110)) { child.bounds  }
+        expect(Rectangle(child.bounds.right, child.bounds.bottom)) { parent.bounds }
     }
 
     private class SubView: View() {
