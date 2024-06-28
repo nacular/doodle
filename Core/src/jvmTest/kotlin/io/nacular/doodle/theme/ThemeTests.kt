@@ -123,8 +123,6 @@ class ThemeTests {
         override fun hidePopup(view: View) {}
 
         override fun showPopup(view: View) {}
-
-        override fun boundsChanged(child: View) {}
     }
 
     @Test fun `installs theme on update`() {

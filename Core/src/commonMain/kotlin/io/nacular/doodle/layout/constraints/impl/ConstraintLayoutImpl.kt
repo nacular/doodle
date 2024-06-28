@@ -1,16 +1,10 @@
 package io.nacular.doodle.layout.constraints.impl
 
-import io.nacular.doodle.core.PositionableContainer
-import io.nacular.doodle.core.PositionableContainerWrapper
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Rectangle.Companion.Empty
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Bounds
-import io.nacular.doodle.layout.constraints.ConstEdges
-import io.nacular.doodle.layout.constraints.ConstExpression
-import io.nacular.doodle.layout.constraints.ConstPosition
-import io.nacular.doodle.layout.constraints.ConstProperty
-import io.nacular.doodle.layout.constraints.ConstTerm
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintException
@@ -24,7 +18,7 @@ import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.PropertyWrapper
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
-import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Term
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -39,49 +33,13 @@ import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.diff.compare
 import io.nacular.doodle.utils.ifNull
-import kotlin.math.max
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.reflect.KMutableProperty0
-import kotlin.reflect.KProperty0
 
-private open class ParentBoundsImpl(val target: View, private val context: ConstraintDslContext): ParentBounds {
-    private val width_  by lazy { ReflectionVariable(target, target::width,  id = widthId ) { max(0.0, it) } }
-    private val height_ by lazy { ReflectionVariable(target, target::height, id = heightId) { max(0.0, it) } }
-
-    override val height  by lazy { ConstProperty  (height_)                           }
-    override val bottom  by lazy { ConstExpression(with(context) { 0 + height_     }) }
-    override val centerY by lazy { ConstExpression(with(context) { 0 + height_ / 2 }) }
-
-    override val width   by lazy { ConstProperty  (width_)                           }
-    override val right   by lazy { ConstExpression(with(context) { 0 + width_     }) }
-    override val centerX by lazy { ConstExpression(with(context) { 0 + width_ / 2 }) }
-
-    override val center by lazy { ConstPosition(Position(centerX.writable, centerY.writable)) }
-    override val edges  by lazy { ConstEdges(Edges(right = right.writable, bottom = bottom.writable)) }
-}
-
-internal class ImmutableSizeBounds(widthProperty: KProperty0<Double>, heightProperty: KProperty0<Double>, private val context: ConstraintDslContext): ParentBounds {
-    private val width_   = ReadOnlyProperty(widthProperty )
-    private val height_  = ReadOnlyProperty(heightProperty)
-
-    override val width   = ConstProperty(width_ )
-    override val height  = ConstProperty(height_)
-    override val right   by lazy { ConstExpression(with(context) { 0 + width_      }) }
-    override val bottom  by lazy { ConstExpression(with(context) { 0 + height_     }) }
-    override val centerX by lazy { ConstExpression(with(context) { 0 + width_  / 2 }) }
-    override val centerY by lazy { ConstExpression(with(context) { 0 + height_ / 2 }) }
-
-    override val center  by lazy { ConstPosition(Position(centerX.writable, centerY.writable)) }
-    override val edges   by lazy { ConstEdges(Edges(right = right.writable, bottom = bottom.writable)) }
-}
-
-internal open class BoundsImpl(private val target: View, private val context: ConstraintDslContext): Bounds {
+@Suppress("PropertyName")
+internal open class BoundsImpl(private val target: Positionable, bounds: Rectangle, private val context: ConstraintDslContext): Bounds {
     private val term: ReflectionVariable.() -> Term = {
-        context.let {
-            when {
-                this@BoundsImpl.target.parent != it.parent_ -> ConstTerm(this)
-                else                                        -> VariableTerm(this)
-            }
-        }
+        VariableTerm(this)
     }
 
     var x_      = bounds.x
@@ -101,17 +59,31 @@ internal open class BoundsImpl(private val target: View, private val context: Co
 
     override val center  by lazy { Position(centerX, centerY) }
     override val edges   by lazy { with(context) { Edges(top + 0, left + 0, right, bottom) } }
+
+    override val preferredSize get() = target.idealSize
+
+    fun commit() {
+        target.updateBounds(Rectangle(x_, y_, width_, height_))
+    }
 }
 
-internal class ReadOnlyProperty(val value: KProperty0<Double>): Property() {
+internal class SimpleVariable(val value: KMutableProperty0<Double>): Property(), Variable {
     override val readOnly: Double get() = value()
-    override fun toTerm() = ConstTerm(this)
+    override fun toTerm() = VariableTerm(this)
 
-    override fun toString() = "$value"
+    override val name: String = "$value"
+
+    override fun invoke(): Double = value()
+
+    override fun invoke(value: Double) {
+        this.value.set(value)
+    }
+
+    override fun toString() = name
 }
 
 internal class ReflectionVariable(
-            val target  : Any? = null,
+    val target  : Any? = null,
     private val delegate: KMutableProperty0<Double>,
     private val id      : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
     private val term    : ReflectionVariable.() -> Term = { VariableTerm(this) },
@@ -142,7 +114,7 @@ internal class ReflectionVariable(
 
         when (other) {
             is ReflectionVariable -> {}
-            is PropertyWrapper    -> return other.variable == this
+            is PropertyWrapper -> return other.variable == this
             else                  -> return false
         }
 
@@ -162,27 +134,59 @@ internal class ReflectionVariable(
     }
 }
 
+@Suppress("PropertyName")
+internal open class ParentBoundsImpl2(private val context: ConstraintDslContext, size: Size, var min: Size, var max: Size): ParentBounds {
+    var width_  = size.width
+    var height_ = size.height
+
+    override val width  = SimpleVariable(::width_ )
+    override val height = SimpleVariable(::height_)
+
+    override val right   by lazy { with(context) { 0 + width      } }
+    override val centerX by lazy { with(context) { 0 + width  / 2 } }
+    override val bottom  by lazy { with(context) { 0 + height     } }
+    override val centerY by lazy { with(context) { 0 + height / 2 } }
+
+    override val center  by lazy { Position(centerX, centerY) }
+    override val edges   by lazy { Edges(null, null, right, bottom) }
+}
+
 internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLambda: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
+    private var layingOut = false
+
     @Suppress("PrivatePropertyName")
-    private val parentChanged_ = ::parentChanged
+    private val boundsChangeAttempted_ = ::boundsChangeAttempted
 
     private val activeBounds  = mutableSetOf<ReflectionVariable>()
     private val updatedBounds = mutableSetOf<ReflectionVariable>()
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun boundsChanged(child: View, old: Rectangle, new: Rectangle) {
-        updatedBounds += ReflectionVariable(child, child::y,      yId     )
-        updatedBounds += ReflectionVariable(child, child::x,      xId     )
-        updatedBounds += ReflectionVariable(child, child::width,  widthId )
-        updatedBounds += ReflectionVariable(child, child::height, heightId)
+    private fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
+        if (layingOut) return
+
+        viewBounds[view]?.let {
+            it.x_      = new.x
+            it.y_      = new.y
+            it.width_  = new.width
+            it.height_ = new.height
+
+            updatedBounds += it.top
+            updatedBounds += it.left
+            updatedBounds += it.width
+            updatedBounds += it.height
+
+            if (old.size != new.size && relayout) {
+                view.parent?.doLayout_()
+            }
+        }
     }
 
-    internal data class BlockInfo(val constraints: List<Bounds>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
+    internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
 
     private val solver       = Solver()
     private val blocks       = mutableListOf(block)
     private val context      = ConstraintDslContext()
     private val blockTracker = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
+    private val viewBounds   = mutableMapOf<View, BoundsImpl>()
 
     override val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit> = SetPool()
 
@@ -190,17 +194,26 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         constrain(listOf(view) + others, originalLambda, block)
     }
 
-    override fun layout(container: PositionableContainer) {
-        context.apply {
-            parent = when (container) {
-                is View                         -> ParentBoundsImpl   (container,      this                                        ).also { parent_ = container      }
-                is PositionableContainerWrapper -> ParentBoundsImpl   (container.view, this                                        ).also { parent_ = container.view }
-                else                            -> ImmutableSizeBounds(widthProperty = container::width, heightProperty = container::height, this)
-            }
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        layingOut = true
+
+        with(context.parent_) {
+            width_   = current.width
+            height_  = current.height
+            this.min = min
+            this.max = max
         }
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
-        solve      (solver, context, activeBounds, updatedBounds, ::notifyOfErrors)
+        solve      (solver, activeBounds, updatedBounds, ::notifyOfErrors)
+
+        blockTracker.values.asSequence().flatMap { it.constraints }.forEach {
+            it.commit()
+        }
+
+        layingOut = false
+
+        return Size(context.parent_.width_, context.parent_.height_)
     }
 
     override fun constrain  (view: View, constraints: ConstraintDslContext.(Bounds) -> Unit) = constrain  (listOf(view), originalLambda = constraints) { (a) -> constraints(a) }
@@ -229,7 +242,14 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         return this
     }
 
+    @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
+        views.forEach {
+            it.boundsChangeAttempted -= boundsChangeAttempted_
+
+            it.resetConstraints()
+        }
+
         blockTracker.remove(views to constraintBlock)?.let {
             blocks -= it.block
         }
@@ -237,15 +257,19 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         return this
     }
 
-    private fun constraints(views: List<View>): List<Bounds> = views.map {
-        it.parentChange  += parentChanged_
-        it.boundsChanged += boundsChanged_
+    private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
+        view.boundsChangeAttempted += boundsChangeAttempted_
 
-        if (it.x != 0.0 || it.y != 0.0 || it.width != 0.0 || it.height != 0.0) {
-            boundsChanged(it, Empty, it.bounds)
+        BoundsImpl(view.positionable, view.newBounds_, context).also {
+            viewBounds[view] = it
+
+            if (view.y != 0.0 || view.x != 0.0 || view.width  != 0.0 || view.height != 0.0) {
+                updatedBounds += it.top
+                updatedBounds += it.left
+                updatedBounds += it.width
+                updatedBounds += it.height
+            }
         }
-
-        BoundsImpl(it, context)
     }
 
     private fun notifyOfErrors(exception: ConstraintException) {
@@ -263,9 +287,8 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
 
         private fun handleInsert(
             solver            : Solver,
-            context           : ConstraintDslContext,
-            updatedBounds     : MutableSet<ReflectionVariable>,
             insertedConstraint: Constraint,
+            updatedBounds     : MutableSet<ReflectionVariable>,
             errorHandler      : (ConstraintException) -> Unit
         ) {
             try {
@@ -275,8 +298,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
 
             insertedConstraint.expression.terms.map { it.variable }.toSet().forEach { variable ->
-
-                if (variable.name == "width" || variable.name == "height") {
+                if (variable.isSynthetic) {
                     // Add synthetic constraints that keep width and height positive
                     try {
                         solver.addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
@@ -284,9 +306,8 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 }
 
                 val strength = when {
-                    variable == context.parent.width.writable || variable == context.parent.height.writable -> Strength(Required.value - 1)
-                    variable is ReflectionVariable && variable.target in updatedBounds                      -> Strength(100)
-                    else                                                                                    -> Weak
+                    variable is ReflectionVariable && variable in updatedBounds -> Strength(100)
+                    else                                                        -> Strength.Weak
                 }
 
                 try {
@@ -303,12 +324,14 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
         }
 
+        private val Variable.isSynthetic get() = name == "width_" || name == "height_"
+
         private fun handleDelete(solver: Solver, constraint: Constraint) {
             try {
                 solver.removeConstraint(constraint)
             } catch (ignore: Exception) {}
 
-            constraint.expression.terms.map { it.variable }.filter { it.name == "width" || it.name == "height" }.toSet().forEach { variable ->
+            constraint.expression.terms.map { it.variable }.filter { it.isSynthetic }.toSet().forEach { variable ->
                 // Remove synthetic constraints that keep width and height positive
                 try {
                     solver.removeConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
@@ -325,6 +348,22 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         ) {
             val oldConstraints = context.constraints
             context.constraints = mutableListOf()
+
+            context.apply {
+                if (parent_.max == parent_.min) {
+                    parent.width  eq parent_.max.width
+                    parent.height eq parent_.max.height
+                } else {
+                    (parent.width  eq parent.width.readOnly ) .. Strong
+                    (parent.height eq parent.height.readOnly) .. Strong
+
+                    parent.width  greaterEq parent_.min.width
+                    parent.height greaterEq parent_.min.height
+
+                    if (parent_.max.width  < POSITIVE_INFINITY) { parent.width  lessEq parent_.max.width  }
+                    if (parent_.max.height < POSITIVE_INFINITY) { parent.height lessEq parent_.max.height }
+                }
+            }
 
             blocks.forEach {
                 it.block(context, it.constraints)
@@ -352,11 +391,11 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                                     // handle delete
                                     handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
                                     // handle insert
-                                    handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
+                                    handleInsert(solver, insertedConstraint, updatedBounds, errorHandler)
                                 }
                             }.ifNull {
                                 // handle insert
-                                handleInsert(solver, context, updatedBounds, insertedConstraint, errorHandler)
+                                handleInsert(solver, insertedConstraint, updatedBounds, errorHandler)
                             }
                         }
 
@@ -369,11 +408,11 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             handlePreviousDelete(solver, previousDelete)
         }
 
-        fun solve(solver       : Solver,
-                  context      : ConstraintDslContext,
-                  activeBounds : MutableSet<ReflectionVariable> = mutableSetOf(),
-                  updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
-                  errorHandler : (ConstraintException) -> Unit
+        fun solve(
+            solver       : Solver,
+            activeBounds : MutableSet<ReflectionVariable> = mutableSetOf(),
+            updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
+            errorHandler : (ConstraintException) -> Unit
         ) {
             activeBounds._removeAll { it !in updatedBounds }.forEach {
                 try {
@@ -381,7 +420,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 } catch (ignore: Exception) {}
 
                 try {
-                    solver.addEditVariable(it, Weak)
+                    solver.addEditVariable(it, Strength.Weak)
                     solver.suggestValue(it, it())
                 } catch (ignore: Exception) {}
             }
@@ -405,22 +444,6 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
 
             activeBounds.addAll(updatedBounds)
-
-            (context.parent.width.writable as? Variable)?.let {
-                try {
-                    if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.width.writable.readOnly)
-                    }
-                } catch (ignore: Exception) {}
-            }
-
-            (context.parent.height.writable as? Variable)?.let {
-                try {
-                    if (solver.containsEditVariable(it)) {
-                        solver.suggestValue(it, context.parent.height.writable.readOnly)
-                    }
-                } catch (ignore: Exception) {}
-            }
 
             updatedBounds.clear()
 

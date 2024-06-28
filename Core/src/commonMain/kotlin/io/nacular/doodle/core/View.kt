@@ -233,34 +233,44 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             it.invoke(this, actualBounds, new, new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize)
         }
 
-        actualBounds = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
-
-//        renderManager?.boundsChanged(this, actualBounds, new) ?: run {
-//            actualBounds = new
-//        }
-
-//        actualBounds = when (val newSize = new.size.coerceIn(allowedMinSize, allowedMaxSize)) {
-//            size -> new.with(size)
-//            else -> new.with(when (val l = layout2) {
-//                null -> newSize
-//                else -> doLayout2(l, allowedMinSize, newSize, allowedMaxSize)
-//            })
-//        }
+        newBounds = new//.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
     }
 
-    private var actualBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }, boundsChanged as PropertyObserversImpl) { old, new ->
-//        parent?.also {
-//            it.boundsChanged(this)
-//        } ?: display?.also {
-//            it.boundsChanged(this)
-//        }
+    private var idealSizeDirty = true
+
+    public var idealSize: Size = Size.Empty; get() {
+        if (idealSizeDirty) {
+            layout?.let {
+                field = doLayout(it, size, Size.Empty, Size.Infinite)
+            }
+
+            idealSizeDirty = false
+        }
+
+        return field
+    } set(value) {
+        field          = value
+        idealSizeDirty = false
+    }
+
+    internal val newBounds_ get() = newBounds
+
+    private var newBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { old, new ->
+        renderManager?.boundsChanged(this, actualBounds, new) ?: run {
+            actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
+        }
+    }
+
+    private var actualBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { old, new ->
+        newBounds = new
+
+        (boundsChanged as PropertyObserversImpl).forEach { it(this, old, new) }
 
         if (needsMirrorTransform && old.x != new.x) {
             resolvedTransformDirty = true
         }
 
         boundingBox = getBoundingBox(new)
-        renderManager?.boundsChanged2(this, old, new)
     }
 
     private var allowedMinSize = Size.Empty
@@ -279,9 +289,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param max the largest size this View is allowed to be
      * @return a value that respects [min] and [max]
      */
-    protected open fun preferredSize(min: Size, max: Size): Size = when (val l = layout2) {
-        null -> size // should always be within [min,max]
-        else -> doLayout2(l, min, size, max)
+    protected open fun preferredSize(min: Size, max: Size): Size = when (val l = layout) {
+        null -> newBounds.size
+        else -> doLayout(l, min, newBounds.size, max)
     }
 
     private var preferredSizeCalculated = false
@@ -830,7 +840,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal val focusTraversalPolicy_ get() = focusTraversalPolicy
     protected open var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    internal var display             : InternalDisplay?      = null; private set
+    internal var display             : Display?              = null; private set
     private  var renderManager       : RenderManager?        = null
     private  var accessibilityManager: AccessibilityManager? = null
 
@@ -856,13 +866,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal fun doLayout_() = doLayout()
 
-    private fun doLayout2(layout: Layout2, min: Size, current: Size, max: Size): Size {
-//        doingLayout = true
-
-        return layout.layout(children.asSequence().map { it.positionable2Wrapper }, min, current, max).also {
-//            doingLayout = false
-        }
-    }
+    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) = layout.layout(
+        children.asSequence().map { it.positionable },
+        min     = min,
+        max     = max,
+        current = current
+    )
 
     /** Causes the [layout_] (if any) to re-layout the View's [children] */
     protected open fun doLayout() {
@@ -1201,7 +1210,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param renderManager The RenderManager that will handle all renders for the view
      */
-    internal fun addedToDisplay(display: InternalDisplay, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
+    internal fun addedToDisplay(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
         this.display              = display
         this.renderManager        = renderManager
         this.accessibilityManager = accessibilityManager?.also {
@@ -1216,8 +1225,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
         generationNumber = parent?.generationNumber?.plus(1) ?: 0
-
-        doLayout2_()
 
         addedToDisplay()
 

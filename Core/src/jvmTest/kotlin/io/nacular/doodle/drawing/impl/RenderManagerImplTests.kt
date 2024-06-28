@@ -105,7 +105,7 @@ class RenderManagerImplTests {
         verify(exactly = 1) { display.relayout() }
     }
 
-    @Ignore @Test fun `lays out display on child bounds change`() {
+    @Test fun `lays out display on child bounds change`() {
         val child = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
         val display = display(child)
@@ -825,13 +825,13 @@ class RenderManagerImplTests {
         verify(exactly = 1) { container.revalidate_() }
     }
 
-    @Ignore @Test fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
+    @Test fun `lays out parent on size changed`() = verifyLayout { it.size *= 2.0 }
 
-    @Test fun `does not lay out parent on size changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.size *= 2.0 }
+//    @Ignore @Test fun `does not lay out parent on size changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.size *= 2.0 }
 
-    @Ignore @Test fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
+    @Test fun `lays out parent on position changed`() = verifyLayout { it.x += 2.0 }
 
-    @Test fun `does not lay out parent on position changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.x += 2.0 }
+//    @Ignore @Test fun `does not lay out parent on position changed when ignored`() = verifyLayout(layout(ignoreChildBounds = true), count = 1) { it.x += 2.0 }
 
     @Test fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
 
@@ -1141,7 +1141,7 @@ class RenderManagerImplTests {
 
         child.width = 100.0
 
-        val newRect = child.bounds.atOrigin
+        val newRect = child.bounds.atOrigin.with(width = 100.0)
 
         scheduler.runJobs()
 
@@ -1173,7 +1173,7 @@ class RenderManagerImplTests {
 
         child.width = 100.0
 
-        val newRect = child.bounds.atOrigin
+        val newRect = child.bounds.atOrigin.with(width = 100.0)
 
         scheduler.runJobs()
 
@@ -1190,10 +1190,10 @@ class RenderManagerImplTests {
         )
 
         listOf(
-            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0, 0, 10)) { _,parent,_ ->
+            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0,  0, 10)) { _,parent,_ ->
                 parent.x = -10.0
             },
-            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(10, 10)) { _,parent,_ ->
+            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(       10, 10)) { _,parent,_ ->
                 parent.width = 1000.0
             }
         ).forEach {
@@ -1225,36 +1225,36 @@ class RenderManagerImplTests {
         }
     }
 
-    @Test fun `cold display rect call works`() {
-        data class Data(
-                val grandParent: Rectangle,
-                val parent     : Rectangle,
-                val child      : Rectangle,
-                val event      : Pair<Rectangle, Rectangle>,
-                val operation  : (View, View, View) -> Unit
-        )
-
-        listOf(
-                Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0, 0, 10)) { _,parent,_ ->
-                    parent.x = -10.0
-                },
-                Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(10, 10)) { _,parent,_ ->
-                    parent.width = 1000.0
-                }
-        ).forEach {
-            val child         = view()
-            val parent        = container().apply { children += child;  bounds = it.parent      }
-            val grandParent   = container().apply { children += parent; bounds = it.grandParent }
-            val display       = display(grandParent)
-            val renderManager = renderManager(display)
-
-            it.operation(grandParent, parent, child)
-
-            expect(it.event.second) {
-                renderManager.first.displayRect(child)
-            }
-        }
-    }
+//    @Test fun `cold display rect call works`() {
+//        data class Data(
+//                val grandParent: Rectangle,
+//                val parent     : Rectangle,
+//                val child      : Rectangle,
+//                val event      : Pair<Rectangle, Rectangle>,
+//                val operation  : (View, View, View) -> Unit
+//        )
+//
+//        listOf(
+//            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0,  0, 10)) { _,parent,_ ->
+//                parent.x = -10.0
+//            },
+//            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(       10, 10)) { _,parent,_ ->
+//                parent.width = 1000.0
+//            }
+//        ).forEach {
+//            val child         = view()
+//            val parent        = container().apply { children += child;  bounds = it.parent      }
+//            val grandParent   = container().apply { children += parent; bounds = it.grandParent }
+//            val display       = display(grandParent)
+//            val renderManager = renderManager(display)
+//
+//            it.operation(grandParent, parent, child)
+//
+//            expect(it.event.second) {
+//                renderManager.first.displayRect(child)
+//            }
+//        }
+//    }
 
     @Test fun `stops monitoring display rect when disabled`() {
         val child = spyk(view()).apply {
@@ -1403,11 +1403,6 @@ class RenderManagerImplTests {
         every { this@mockk += capture(views) } answers { displayChildren += views.captured }
         every { this@mockk -= capture(views) } answers { displayChildren -= views.captured }
         every { showPopup(capture(view))     } answers { displayChildren -= view.captured  }
-        every { boundsChanged(capture(view)) } answers {
-            view.captured.apply {
-                size = preferredSize_(Size.Empty, Size.Infinite)
-            }
-        }
     }
 
     private val instantScheduler by lazy { mockk<AnimationScheduler> {

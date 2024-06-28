@@ -651,8 +651,12 @@ public open class RenderManagerImpl(
 
         pendingBoundsChange += view
 
+        var reRender = false
+
         if (!old.size.fastEquals(new.size)) {
-            if (view.children_.isNotEmpty() /*&& view.layout2_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true*/) {
+            reRender = !new.size.empty
+
+//            if (view.children_.isNotEmpty() /*&& view.layout2_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true*/) {
                 when {
                     layingOut !== view                       -> pendingLayout += view
 
@@ -661,7 +665,7 @@ public open class RenderManagerImpl(
                     old.size sufficientlyDifferentTo new.size -> view.doLayout_()
                     else                                      -> return
                 }
-            }
+//            }
         }
 
         when (parent) {
@@ -671,8 +675,8 @@ public open class RenderManagerImpl(
         }
 
         when {
-            !old.size.fastEquals(new.size) -> render(view, true)
-            else                           -> schedulePaint()
+            reRender -> render(view, true)
+            else     -> schedulePaint()
         }
     }
 

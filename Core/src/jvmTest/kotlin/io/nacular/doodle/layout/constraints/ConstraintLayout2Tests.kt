@@ -28,7 +28,6 @@ import io.nacular.doodle.utils.SetPool
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.times
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.expect
@@ -399,11 +398,6 @@ class ConstraintLayoutTests {
             result
         }
         every { this@apply.layout                    } returns layout
-        every { boundsChanged(capture(view)) } answers {
-            view.captured.apply {
-                size = preferredSize_(Size.Empty, Size.Infinite)
-            }
-        }
     }
 
     private fun renderManager(

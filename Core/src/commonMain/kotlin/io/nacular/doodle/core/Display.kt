@@ -199,13 +199,8 @@ public interface InternalDisplay: Display {
     public fun showPopup(view: View)
     public fun hidePopup(view: View)
 
-    public fun boundsChanged(child: View): Unit = when (val l = layout) {
-        null -> {
-            children.forEach {
-                it.size = it.preferredSize_(Size.Empty, size)
-            }
-        }
-        else -> Unit.also { l.size(positionable, Size.Empty, size) }
+    public override fun relayout() {
+        layout?.layout(children.asSequence().map { it.positionable }, Empty, size, Infinite)
     }
 }
 
