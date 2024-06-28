@@ -5,12 +5,10 @@ import io.nacular.doodle.utils.isEven
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
-import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.abs
-import kotlin.math.acos
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -344,7 +342,6 @@ private class PointRelationShip(
         val isRight : Boolean
 )
 
-internal val Vector2D.magnitude: Double get() =  sqrt(x*x + y*y)
 internal operator fun Vector2D.times(other: Vector2D) = x * other.x + y * other.y
 
 private fun collinearPoint(
@@ -377,9 +374,7 @@ private fun collinearPoint(
 
     val vector1 = point - previous
     val vector2 = next  - point
-
-    // interior angle := cos(α) = a·b / (|a|·|b|)
-    val angle = 180 * degrees - acos(vector1 * vector2 / (vector1.magnitude * vector2.magnitude)) * radians
+    val angle   = vector1 interiorAngle vector2
 
     val direction = vector1.x * vector2.y - vector1.y * vector2.x
 

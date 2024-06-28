@@ -30,7 +30,7 @@ internal class AccessibilityManagerImpl(
         private val idGenerator              : IdGenerator,
                     nativeEventHandlerFactory: NativeEventHandlerFactory,
                     htmlFactory              : HtmlFactory
-): AccessibilityManager, RawListener, NativeEventListener {
+): AccessibilityManager(), RawListener, NativeEventListener {
 
     private inner class IdRelationship(private val source: View, private val target: View, private val propertyName: String) {
         private val firstRender: (View) -> Unit = {
@@ -318,6 +318,7 @@ internal class AccessibilityManagerImpl(
                     updateAttribute(ARIA_VALUE_MAX,  role.max      )
                     updateAttribute(ARIA_VALUE_TEXT, role.valueText)
                 }
+                is SpinButtonRole   -> updateAttribute(ARIA_VALUE_TEXT, role.valueText)
                 is RadioRole        -> updateAttribute(ARIA_CHECKED, role.pressed)
                 is SwitchRole       -> updateAttribute(ARIA_CHECKED, role.pressed)
                 is CheckBoxRole     -> updateAttribute(ARIA_CHECKED, role.pressed)
@@ -341,12 +342,8 @@ internal class AccessibilityManagerImpl(
                 is TabListRole -> role.tabToPanelMap.forEach { (tab, tabPanel) ->
                     addOwnership(tab, tabPanel)
                 }
-                else           -> {}
-            }
-
-            when (role) {
                 is SliderRole -> updateAttribute(ARIA_ORIENTATION, role.orientation?.name?.lowercase())
-                else          -> {}
+                else           -> {}
             }
         }
     }

@@ -70,29 +70,27 @@ public open class CompletableImpl: Completable {
 
     private inner class CompletablePool: SetPool<(source: Completable) -> Unit>()
 
-    protected var state: State = Active
-        private set(new) {
-            if (field != Active) { return }
+    protected var state: State = Active; private set(new) {
+        if (field != Active) { return }
 
-            field = new
+        field = new
 
-            when (new) {
-                Completed -> {
-                    completed_?.forEach { it(this) }
-                    completed_ = null
-                    completed = InstantPool(this)
-                    canceled  = NoOpPool()
-                }
-                Canceled -> {
-                    canceled_?.forEach { it(this) }
-                    canceled_ = null
-                    canceled  = InstantPool(this)
-                    completed = NoOpPool()
-                }
-                else -> {}
+        when (new) {
+            Completed -> {
+                completed_?.forEach { it(this) }
+                completed_ = null
+                completed = InstantPool(this)
+                canceled  = NoOpPool()
             }
+            Canceled -> {
+                canceled_?.forEach { it(this) }
+                canceled_ = null
+                canceled  = InstantPool(this)
+                completed = NoOpPool()
+            }
+            else -> {}
         }
-
+    }
 
     private val poolObserverImpl = object: PoolObserver<(source: Completable) -> Unit> {
         override fun added(source: ObservablePool<(source: Completable) -> Unit>, item: (source: Completable) -> Unit) {

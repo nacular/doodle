@@ -19,7 +19,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:1.9.20")
+        classpath("org.jetbrains.dokka:dokka-base:${libs.versions.dokkaVersion.get()}")
     }
 }
 
@@ -29,9 +29,7 @@ fun DokkaBaseConfiguration.configDokka() {
     footerMessage                         = "(c) 2024 Nacular"
     separateInheritedMembers              = true
     mergeImplicitExpectActualDeclarations = true
-
 }
-
 
 tasks.withType<DokkaMultiModuleTask>().configureEach {
     pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
@@ -100,8 +98,14 @@ subprojects {
 
             externalDocumentationLink {
                 url.set(URL("https://nacular.github.io/measured-api"))
-                packageListUrl.set(URL("https://nacular.github.io/measured-api/measured/package-list"))
+                packageListUrl.set(URL("https://nacular.github.io/measured-api/package-list"))
             }
         }
+    }
+}
+
+dependencies {
+    subprojects.forEach {
+        kover(project(":${it.name}"))
     }
 }

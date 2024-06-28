@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.theme.range
 
 import io.nacular.doodle.controls.range.CircularRangeSlider
-import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
@@ -21,39 +20,53 @@ import io.nacular.measured.units.normalize
 import io.nacular.measured.units.times
 import kotlin.math.abs
 
-public interface CircularRangeSliderBehavior<T>: Behavior<CircularRangeSlider<T>> where T: Number, T: Comparable<T> {
-    public fun CircularRangeSlider<T>.set(to: ClosedRange<Double>) {
-        this.set(to)
+public interface CircularRangeSliderBehavior<T>: Behavior<CircularRangeSlider<T>> where T: Comparable<T> {
+    public var CircularRangeSlider<T>.fraction: ClosedRange<Float> get() = fraction; set(new) { fraction = new }
+
+    @Deprecated("Use fraction instead")
+    public fun <A> CircularRangeSlider<A>.set(to: ClosedRange<Double>) where A : Comparable<A>, A: Number {
+        fraction = ((to.start - range.start.toDouble()) / (range.endInclusive.toDouble() - range.start.toDouble())).toFloat() ..
+                ((to.endInclusive - range.start.toDouble()) / (range.endInclusive.toDouble() - range.start.toDouble())).toFloat()
     }
 
-    public fun CircularRangeSlider<T>.adjust(startBy: Double, endBy: Double) {
-        this.adjust(startBy, endBy)
+    @Deprecated("Use fraction instead")
+    public fun <A> CircularRangeSlider<A>.adjust(startBy: Double, endBy: Double) where A : Comparable<A>, A: Number {
+        set(value.start.toDouble() + startBy .. value.endInclusive.toDouble() + endBy)
     }
 
-    public fun CircularRangeSlider<T>.setLimits(range: ClosedRange<Double>) {
-        this.setLimits(range)
+    @Deprecated("Will be removed soon")
+    public fun <T> CircularRangeSlider<T>.setLimits(range: ClosedRange<Double>) where T: Number, T: Comparable<T> {
+        @Suppress("UNCHECKED_CAST")
+        when (model.limits.start) {
+            is Int    -> model.limits = (range.start.toInt() .. range.endInclusive.toInt()                    ) as ClosedRange<T>
+            is Float  -> model.limits = (range.start.toFloat() .. range.endInclusive.toFloat()                ) as ClosedRange<T>
+            is Double -> model.limits = (range.start .. range.endInclusive                                    ) as ClosedRange<T>
+            is Long   -> model.limits = (range.start.toLong() .. range.endInclusive.toLong()                  ) as ClosedRange<T>
+            is Short  -> model.limits = (range.start.toInt().toShort() .. range.endInclusive.toInt().toShort()) as ClosedRange<T>
+            is Byte   -> model.limits = (range.start.toInt().toByte() .. range.endInclusive.toInt().toByte()  ) as ClosedRange<T>
+        }
     }
 }
 
 public abstract class AbstractCircularRangeSliderBehavior<T>(
         private val focusManager: FocusManager?,
         private val startAngle  : Measure<Angle> = _270
-): CircularRangeSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
+): CircularRangeSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
-    private lateinit var lastEnd       : T
-    private lateinit var lastStart     : T
-    private          var draggingFirst   = false
-    private          val changed       : (CircularRangeSlider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { it,_,_ -> it.rerender() }
-    private          val enabledChanged: (View,                   Boolean,        Boolean       ) -> Unit = { it,_,_ -> it.rerender() }
-    private          val styleChanged  : (View                                                  ) -> Unit = {           it.rerender() }
+    private var lastEnd       = 0f
+    private var lastStart     = 0f
+    private var draggingFirst = false
+    private val changed       : (CircularRangeSlider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { it,_,_ -> it.rerender() }
+    private val enabledChanged: (View,                   Boolean,        Boolean       ) -> Unit = { it,_,_ -> it.rerender() }
+    private val styleChanged  : (View                                                  ) -> Unit = {           it.rerender() }
 
     private var lastPointerPosition: Point = Origin
 
     protected var lastPointerAngle: Measure<Angle> = _0; private set
 
     override fun install(view: CircularRangeSlider<T>) {
-        lastStart                  = view.value.start
-        lastEnd                    = view.value.endInclusive
+        lastStart                  = view.fraction.start
+        lastEnd                    = view.fraction.endInclusive
         view.changed              += changed
         view.keyChanged           += this
         view.styleChanged         += styleChanged
@@ -77,7 +90,7 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
         val offset           = pointerAngle(event) `as` degrees
         val startHandleAngle = startHandleAngle(slider)
         val rangeSweep       = rangeSweep(slider)
-        val newValue         = (offset - startAngle      ).normalize() / _360 * slider.range.size.toDouble()
+        val newValue         = fraction(offset)
         val delta            = (offset - startHandleAngle).normalize()
 
         draggingFirst = delta < rangeSweep / 2 || delta > (rangeSweep + (_360 - rangeSweep) / 2).normalize()
@@ -86,19 +99,19 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
             draggingFirst -> {
                 var start = newValue
 
-                if (newValue > lastEnd.toDouble()) {
-                    start = if (lastStart < lastEnd) 0.0 else lastEnd.toDouble()
+                if (newValue > lastEnd) {
+                    start = if (lastStart < lastEnd) 0f else lastEnd
                 }
 
-                slider.set(start .. slider.value.endInclusive.toDouble())
+                slider.fraction = start .. slider.fraction.endInclusive
             }
-            else          -> slider.set(slider.value.start.toDouble() .. newValue)
+            else          -> slider.fraction = slider.fraction.start .. newValue
         }
 
         lastPointerPosition = event.location - Point(event.source.width / 2, event.source.height / 2)
         lastPointerAngle    = offset
-        lastStart           = slider.value.start
-        lastEnd             = slider.value.endInclusive
+        lastStart           = slider.fraction.start
+        lastEnd             = slider.fraction.endInclusive
 
         focusManager?.requestFocus(slider)
 
@@ -108,16 +121,16 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
         (event.source as? CircularRangeSlider<T>)?.let {
-            lastStart = it.value.start
-            lastEnd   = it.value.endInclusive
-            handleKeyPress(it, event)
+            lastStart = it.fraction.start
+            lastEnd   = it.fraction.endInclusive
+            it.handleKeyPress(event)
         }
     }
 
     override fun dragged(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
         val slider    = event.source as CircularRangeSlider<T>
-        val newValue  = (pointerAngle(event) - startAngle).normalize() / _360 * slider.range.size.toDouble()
+        val newValue  = fraction(pointerAngle(event))
         val clockWise = clockwise(event.location - Point(event.source.width / 2, event.source.height / 2), lastPointerPosition)
 
         when {
@@ -125,35 +138,37 @@ public abstract class AbstractCircularRangeSliderBehavior<T>(
                 var start = newValue
 
                 when {
-                    newValue > lastEnd.toDouble() -> start = if (clockWise) lastEnd.toDouble() else slider.range.start.toDouble()
-                    else                          -> lastPointerPosition = event.location - Point(event.source.width / 2, event.source.height / 2)
+                    newValue > lastEnd -> start = if (clockWise) lastEnd else 0f
+                    else               -> lastPointerPosition = event.location - Point(event.source.width / 2, event.source.height / 2)
                 }
 
-                slider.set(start .. lastEnd.toDouble())
+                slider.fraction = start .. lastEnd
             }
             else          -> {
                 var end = newValue
 
                 when {
-                    newValue < lastStart.toDouble() -> end = if (!clockWise) lastStart.toDouble() else slider.range.endInclusive.toDouble()
-                    else                            -> lastPointerPosition = event.location - Point(event.source.width / 2, event.source.height / 2)
+                    newValue < lastStart -> end = if (!clockWise) lastStart else 1f
+                    else                 -> lastPointerPosition = event.location - Point(event.source.width / 2, event.source.height / 2)
                 }
 
-                slider.set(lastStart.toDouble() .. end)
+                slider.fraction = lastStart .. end
             }
         }
 
         event.consume()
     }
 
+    private fun fraction(offset: Measure<Angle>) = ((offset - startAngle).normalize() / _360).toFloat()
+
     protected fun startHandleAngle(slider: CircularRangeSlider<T>): Measure<Angle> = when {
         slider.range.isEmpty() -> startAngle
-        else                   -> startAngle + ((slider.value.start.toDouble() - slider.range.start.toDouble()) / slider.range.size.toDouble()) * _360
+        else                   -> startAngle + slider.fraction.start * _360
     }.normalize()
 
     protected fun endHandleAngle(slider: CircularRangeSlider<T>): Measure<Angle> = when {
         slider.range.isEmpty() -> startAngle
-        else                   -> startAngle + ((slider.value.endInclusive.toDouble() - slider.range.start.toDouble()) / slider.range.size.toDouble()) * _360
+        else                   -> startAngle + slider.fraction.endInclusive * _360
     }.normalize()
 
     private fun rangeSweep(slider: CircularRangeSlider<T>): Measure<Angle> = (endHandleAngle(slider) - startHandleAngle(slider)).normalize()

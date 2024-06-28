@@ -1,6 +1,12 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.utils.lerp
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.Angle.Companion.degrees
+import io.nacular.measured.units.Angle.Companion.radians
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.times
+import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -94,6 +100,8 @@ public sealed interface Point: Vector3D {
     public infix fun distanceFrom(other: Vector2D): Double = sqrt((x - other.x).pow(2) + (y - other.y).pow(2))
 
     public fun as3d(): Vector3D
+
+    public override fun magnitude(): Double = sqrt(x*x + y*y)
 
     public companion object {
         /** Vector at 0,0 */
@@ -280,6 +288,13 @@ public operator fun Double.times(value: Vector3D): Vector3D = value * this
  * Interpolates between 2 points
  */
 public fun lerp(first: Vector2D, second: Vector2D, fraction: Float): Vector2D = Point(lerp(first.x, second.x, fraction), lerp(first.y, second.y, fraction))
+
+/**
+ * Calculate the interior angle between 2 vectors => `angle := cos(α) = a·b / (|a|·|b|)`.
+ *
+ * @param other vector to compare [this] with
+ */
+public infix fun Vector3D.interiorAngle(other: Vector3D): Measure<Angle> = 180 * degrees - acos(this * other / (magnitude() * other.magnitude())) * radians
 
 internal class VectorImpl(override val x: Double = 0.0, override val y: Double = 0.0, override val z: Double = 0.0): Vector2D, Vector3D {
     override inline fun as2d() = this

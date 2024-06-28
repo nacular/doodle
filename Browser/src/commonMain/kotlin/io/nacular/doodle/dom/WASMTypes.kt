@@ -24,6 +24,6 @@ internal expect operator fun <T: JsAny?> JsArray<T>.get(index: Int          ): T
 internal expect operator fun <T: JsAny?> JsArray<T>.set(index: Int, value: T)
 internal expect fun <T: JsAny?> JsArray<T>.push(value: T)
 
-internal expect fun JsArray<out JsString>.contains(value: JsString): Boolean
+internal expect operator fun JsArray<out JsString>.contains(value: JsString): Boolean
 
 internal expect external fun <T : JsAny> jsArrayOf(vararg values: T): JsArray<T>

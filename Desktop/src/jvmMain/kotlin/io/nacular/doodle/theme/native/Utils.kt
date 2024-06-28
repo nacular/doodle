@@ -8,6 +8,8 @@ import io.nacular.doodle.drawing.Font.Style.Normal
 import io.nacular.doodle.drawing.Font.Style.Oblique
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Alt
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -33,6 +35,7 @@ import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.paragraph.BaselineMode.IDEOGRAPHIC
 import org.jetbrains.skia.paragraph.TextStyle
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON2_DOWN_MASK
@@ -61,6 +64,8 @@ import java.awt.font.TextAttribute.WEIGHT
 import org.jetbrains.skia.Font as SkiaFont
 import java.awt.Color as AwtColor
 import java.awt.Font as AwtFont
+import java.awt.Point as AwtPoint
+import java.awt.Rectangle as AwtRectangle
 
 internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseEvent {
     val id = when (type) {
@@ -107,7 +112,7 @@ internal fun PointerEvent.toAwt(target: Component, at: Point = location): MouseE
     return MouseEvent(target, id, time, modifiers, at.x.toInt(), at.y.toInt(), clickCount, false, button)
 }
 
-internal fun MouseEvent.update(target: Component, location: java.awt.Point): MouseEvent = when (this) {
+internal fun MouseEvent.update(target: Component, location: AwtPoint): MouseEvent = when (this) {
     is MouseWheelEvent -> MouseWheelEvent(
                         target,
                         id,
@@ -194,3 +199,13 @@ internal fun SkiaFont.textStyle() = TextStyle().apply {
 }
 
 internal fun Color.toAwt() = AwtColor(red.toInt(), green.toInt(), blue.toInt(), (opacity * 255).toInt())
+internal fun AwtColor.toDoodle() = Color(red.toUByte(), green.toUByte(), blue.toUByte(), transparency.toFloat() / 255)
+
+internal fun Point.toAwt() = AwtPoint(x.toInt(), y.toInt())
+internal fun AwtPoint.toDoodle() = Point(x, y)
+
+internal fun Size.toAwt() = Dimension(width.toInt(), height.toInt())
+internal fun Dimension.toDoodle() = Size(width, height)
+
+internal fun Rectangle.toAwt() = AwtRectangle(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+internal fun AwtRectangle.toDoodle() = Rectangle(x, y, width, height)

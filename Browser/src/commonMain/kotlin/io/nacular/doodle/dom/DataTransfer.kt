@@ -14,9 +14,9 @@ internal expect abstract external class DataTransferItem {
 
 internal expect abstract external class DataTransferItemList {
     internal val length: Int
-
-    internal operator fun get(index: Int): DataTransferItem?
 }
+
+internal expect operator fun DataTransferItemList.get(index: Int): DataTransferItem?
 
 internal expect abstract external class DataTransfer {
     internal var dropEffect   : String

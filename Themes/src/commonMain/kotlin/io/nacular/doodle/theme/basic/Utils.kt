@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.spinner.Spinner
+import io.nacular.doodle.controls.spinner.SpinButton
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Color
@@ -66,7 +66,7 @@ public open class GenericTextEditOperation<T, V>(
         }
     }
 
-    private val changed = { _: Spinner<T, *> ->
+    private val changed = { _: SpinButton<T, *> ->
         view.cancelEditing()
     }
 

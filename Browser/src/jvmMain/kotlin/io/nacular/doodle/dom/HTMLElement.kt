@@ -222,7 +222,7 @@ internal actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
 
     actual var ondblclick     : ((MouseEvent  ) -> Boolean)? = null
     actual var onpointerup    : ((PointerEvent) -> Boolean)? = null
-    actual var onpointerout   : ((PointerEvent) -> Boolean)? = null
+    actual var onpointerout   : ((PointerEvent) -> Unit   )? = null
     actual var onpointerdown  : ((PointerEvent) -> Boolean)? = null
     actual var onpointermove  : ((PointerEvent) -> Boolean)? = null
     actual var onpointerover  : ((PointerEvent) -> Unit   )? = null

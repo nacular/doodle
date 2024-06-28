@@ -3,6 +3,8 @@ package io.nacular.doodle.deviceinput
 import io.mockk.Ordering.ORDERED
 import io.mockk.Runs
 import io.mockk.every
+import io.mockk.impl.JvmMockKGateway
+import io.mockk.impl.instantiation.JvmAnyValueGenerator
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
@@ -37,17 +39,31 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.PropertyObserver
+import kotlin.reflect.KClass
 import kotlin.test.Test
 
 /**
  * Created by Nicholas Eddy on 2/27/18.
  */
 class PointerInputManagerImplTests {
+    private class NullableValueGenerator(voidInstance: Any): JvmAnyValueGenerator(voidInstance) {
+        override fun anyValue(cls: KClass<*>, isNullable: Boolean, orInstantiateVia: () -> Any?): Any? = when {
+            isNullable -> null
+            else       -> super.anyValue(cls, isNullable, orInstantiateVia)
+        }
+    }
+
+    init {
+        JvmMockKGateway.anyValueGeneratorFactory = { voidInstance ->
+            NullableValueGenerator(voidInstance)
+        }
+    }
+
     @Test fun `correct default cursor on init`() {
         val display      = display()
         val inputService = mockk<PointerInputService>()
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         verify(exactly = 1) { inputService.addListener(display, manager) }
         verify(exactly = 1) { inputService.setCursor  (display, null   ) }
@@ -57,7 +73,7 @@ class PointerInputManagerImplTests {
         val display      = display(Help)
         val inputService = mockk<PointerInputService>()
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         verify(exactly = 1) { inputService.addListener(display, manager) }
         verify(exactly = 1) { inputService.setCursor  (display, Help   ) }
@@ -73,7 +89,7 @@ class PointerInputManagerImplTests {
             cursorChanged = lambda<(Display, Cursor?, Cursor?) -> Unit>().captured
         }
 
-        PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         cursorChanged(display, Help, Move)
 
@@ -90,7 +106,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         verify(exactly = 1) { inputService.setCursor(display, null) }
 
@@ -113,7 +129,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         verify(exactly = 1) { inputService.setCursor(display, null) }
 
@@ -144,7 +160,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         verify(exactly = 1) { inputService.setCursor(display, Progress) }
 
@@ -177,7 +193,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 2, emptySet()))
@@ -199,7 +215,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
 
@@ -228,7 +244,7 @@ class PointerInputManagerImplTests {
         grandParent.children += parent
         display.children     += grandParent
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
 
@@ -263,7 +279,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
@@ -289,7 +305,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
@@ -317,7 +333,7 @@ class PointerInputManagerImplTests {
 
         display.children += parent
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
@@ -341,16 +357,16 @@ class PointerInputManagerImplTests {
         parent.position  = Point(9.0, 9.0)
         parent.children_ += child
 
-        every { child.shouldHandlePointerEvent_(any())  } returns false
+        every { child.shouldHandlePointerEvent_(any() ) } returns false
         every { display.child(any()                   ) } returns null
-        every { display.child(any(), any()            ) } returns null
+        every { display.child(any(),             any()) } returns null
         every { display.child(Point(10.0, 10.0)       ) } returns parent
         every { display.child(Point(10.0, 10.0), any()) } returns parent
         every { child.parent                            } returns parent
 
         display.children += parent
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
@@ -377,7 +393,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down,      Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
@@ -405,7 +421,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Type.Move, Point(20.0, 20.0), setOf(Button1), 1, emptySet()))
@@ -429,7 +445,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Up,   Point(10.0, 10.0), setOf(Button1), 1, emptySet()))
@@ -456,7 +472,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Up,   Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
@@ -483,7 +499,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Down, Point(-10.0, -10.0), setOf(Button1), 1, emptySet()))
         manager(SystemPointerEvent(0, Up,   Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
@@ -509,7 +525,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Up, Point( 10.0,  10.0), setOf(Button1), 1, emptySet()))
 
@@ -532,7 +548,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Up, Point(10.0, 10.0), setOf(Button1), 2, emptySet()))
 
@@ -555,7 +571,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Enter, Point(10.0, 10.0), emptySet(), 0, emptySet()))
         manager(SystemPointerEvent(0, Down,  Point(10.0, 10.0), emptySet(), 0, emptySet()))
@@ -594,7 +610,7 @@ class PointerInputManagerImplTests {
 
         display.children += child
 
-        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl())
+        val manager = PointerInputManagerImpl(display, inputService, ViewFinderImpl)
 
         manager(SystemPointerEvent(0, Type.Move, Point(10.0, 10.0), emptySet(), 0, emptySet()))
 

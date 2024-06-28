@@ -92,6 +92,24 @@ public sealed interface PathBuilder {
 }
 
 /**
+ * Moves from the current point to this one.
+ *
+ * @see PathBuilder.moveTo
+ * @param x position move to
+ * @param y position move to
+ */
+public fun PathBuilder.moveTo(x: Double, y: Double): PathBuilder = this.moveTo(Point(x, y))
+
+/**
+ * Draws a line from the current point to this one.
+ *
+ * @see PathBuilder.lineTo
+ * @param x position end at
+ * @param y position end at
+ */
+public fun PathBuilder.lineTo(x: Double, y: Double): PathBuilder = this.lineTo(Point(x, y))
+
+/**
  * Creates a Path from the path data string.
  *
  * @param data conforming to https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#Path_commands
@@ -106,6 +124,16 @@ public fun path(data: String): Path? = if (data.isNotBlank()) Path(data) else nu
  * @return a builder to continue defining the path
  */
 public fun path(from: Point): PathBuilder = PathBuilderImpl(from)
+
+/**
+ * Creates a Path at the given x,y and a builder to further define it.
+ *
+ * @see path
+ * @param x the starting x of the path
+ * @param y the starting y of the path
+ * @return a builder to continue defining the path
+ */
+public fun path(x: Double, y: Double): PathBuilder = path(Point(x, y))
 
 /**
  * Converts a [Polygon] to a [Path].

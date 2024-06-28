@@ -10,10 +10,16 @@ internal expect external class Navigator {
     val userAgent: String
 }
 
+internal expect external class VisualViewport {
+    val offsetTop : Double
+    val offsetLeft: Double
+}
+
 internal expect abstract external class Window {
     open val location   : Location
-    val navigator  : Navigator
-    val performance: Performance?
+    val navigator     : Navigator
+    val performance   : Performance?
+    val visualViewport: VisualViewport?
 
     fun matchMedia           (query: String): MediaQueryList
     fun cancelAnimationFrame (handle: Int)

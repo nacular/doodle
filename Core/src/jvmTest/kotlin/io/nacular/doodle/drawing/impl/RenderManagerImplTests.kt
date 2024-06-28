@@ -52,7 +52,7 @@ class RenderManagerImplTests {
     // TODO: Add tests to make sure things in cleanup list never get rendered
 
     @Test fun `renders are batched`() {
-        val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
+        val view      = spyk<View> { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
         val display   = display(view)
 
@@ -105,7 +105,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `lays out display on child bounds change`() {
-        val child = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val child = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
 
         val display = display(child)
 
@@ -268,7 +268,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `handles becoming invisible before first render`() {
-        val view      = spyk<View>().apply { bounds = Rectangle(size = Size(100, 100)) }
+        val view      = spyk<View> { bounds = Rectangle(size = Size(100, 100)) }
         val scheduler = ManualAnimationScheduler()
         val display   = display(view)
 
@@ -300,7 +300,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `removes top-level views`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
 
@@ -318,7 +318,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `removes popups`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display()
         val scheduler = ManualAnimationScheduler()
 
@@ -338,7 +338,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `only updates index view converted to popup`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
         val surface   = mockk<GraphicsSurface>()
@@ -368,8 +368,8 @@ class RenderManagerImplTests {
     }
 
     @Test fun `no-op remove, add top-level views`() {
-        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container1 = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
         val surface1   = mockk<GraphicsSurface>()
         val surface2   = mockk<GraphicsSurface>()
@@ -396,7 +396,7 @@ class RenderManagerImplTests {
         val child2   = spyk(view())
         val child3   = spyk(view())
         val child4   = spyk(view())
-        val parent   = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2, child3) }
+        val parent   = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2, child3) }
         val display  = display(parent)
         val surface1 = mockk<GraphicsSurface>()
         val surface2 = mockk<GraphicsSurface>()
@@ -457,7 +457,7 @@ class RenderManagerImplTests {
     @Test fun `handles index change`() {
         val child1   = spyk(view())
         val child2   = spyk(view())
-        val parent   = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2) }
+        val parent   = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += listOf(child1, child2) }
         val display  = display(parent)
         val surface1 = mockk<GraphicsSurface>()
         val surface2 = mockk<GraphicsSurface>()
@@ -477,8 +477,8 @@ class RenderManagerImplTests {
     }
 
     @Test fun `z-order change top-level views`() {
-        val container1 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
-        val container2 = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container1 = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container2 = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
         val display    = display(container1, container2)
         val surface1   = mockk<GraphicsSurface>()
         val surface2   = mockk<GraphicsSurface>()
@@ -501,7 +501,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `opacity change handled`() {
-        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+        val view    = spyk<View> { bounds = Rectangle(size = Size(10.0, 10.0)) }
         val display = display(view)
         val surface = mockk<GraphicsSurface>()
 
@@ -515,7 +515,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `initializes graphics surface`() {
-        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
+        val view    = spyk<View> { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
         val display = display(view)
         val surface = mockk<GraphicsSurface>()
 
@@ -530,7 +530,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `initializes popup graphics surface`() {
-        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
+        val view    = spyk<View> { bounds = Rectangle(size = Size(10.0, 10.0)); opacity = 0.56f; zOrder = 4 }
         val display = display()
         val surface = mockk<GraphicsSurface>()
 
@@ -547,7 +547,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `removes nested views`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(10.0, 10.0)); children += spyk(view()).apply { children += spyk(view()) } }
 
         val display   = display(container)
         val scheduler = ManualAnimationScheduler()
@@ -567,7 +567,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `moves nested views to parent`() {
-        val parent = spyk<Container>().apply {
+        val parent = spyk<Container> {
             bounds    = Rectangle(size = Size(10.0, 10.0))
             children += spyk(container()).apply {
                 children += spyk(view())
@@ -597,7 +597,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `rerenders on bounds changed`() {
-        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
 
@@ -609,7 +609,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `rerenders on becoming visible`() {
-        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view    = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display = display(view)
 
         view.visible = false
@@ -625,7 +625,7 @@ class RenderManagerImplTests {
 
     @Test fun `rerenders on added becoming visible`() {
         val parent  = container()
-        val view    = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view    = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display = display(parent)
 
         view.visible = false
@@ -643,9 +643,9 @@ class RenderManagerImplTests {
     }
 
     @Test fun `addedToDisplay called in correct order`() {
-        val child       = spyk<View>     ().apply { bounds = Rectangle(size = Size(100, 100))                     }
-        val parent      = spyk<Container>().apply { bounds = Rectangle(size = Size(100, 100)); children += child  }
-        val grandParent = spyk<Container>().apply { bounds = Rectangle(size = Size( 10,  10)); children += parent }
+        val child       = spyk<View>      { bounds = Rectangle(size = Size(100, 100))                     }
+        val parent      = spyk<Container> { bounds = Rectangle(size = Size(100, 100)); children += child  }
+        val grandParent = spyk<Container> { bounds = Rectangle(size = Size( 10,  10)); children += parent }
         val display     = display(grandParent)
 
         val renderManager = renderManager(display)
@@ -662,7 +662,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `does not rerender on bounds zeroed`() {
-        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
 
@@ -674,7 +674,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `does not rerender on position changed`() {
-        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
 
@@ -686,7 +686,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `does not re-render on size zeroed`() {
-        val view          = spyk<View>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val view          = spyk<View> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val display       = display(view)
         val renderManager = renderManager(display)
 
@@ -777,6 +777,26 @@ class RenderManagerImplTests {
         verify(exactly = 0) { view.render(any()) }
     }
 
+    @Test fun `renderNow ignores views that are not displayed`() {
+        val view = spyk(view()) {
+            every { displayed } returns false
+        }
+
+        renderManager(display(view)).first.renderNow(view)
+
+        verify(exactly = 0) { view.render(any()) }
+    }
+
+    @Test fun `renderNow ignores views with zero size`() {
+        val view = spyk(view()) {
+            every { size } returns Size.Empty
+        }
+
+        renderManager(display(view)).first.renderNow(view)
+
+        verify(exactly = 0) { view.render(any()) }
+    }
+
     @Test fun `renderNow works`() {
         val view = spyk(view())
 
@@ -790,7 +810,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `revalidates parent out when new views`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         val display = display(container)
@@ -830,7 +850,7 @@ class RenderManagerImplTests {
 
         val parentSurface  = mockk<GraphicsSurface>  ()
         val childSurface   = mockk<GraphicsSurface>  ()
-        val graphicsDevice = mockk<GraphicsDevice<*>>().apply {
+        val graphicsDevice = mockk<GraphicsDevice<*>> {
             every { get(container) } returns parentSurface
             every { get(child    ) } returns childSurface
         }
@@ -848,7 +868,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `reflects transform change`() {
-        val child = spyk<View>().apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+        val child = spyk<View> { bounds = Rectangle(size = Size(10.0, 10.0)) }
 
         val childSurface   = mockk<GraphicsSurface>()
         val graphicsDevice = graphicsDevice(mapOf(child to childSurface))
@@ -865,7 +885,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `installs theme for displayed views`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         container += child
@@ -880,7 +900,7 @@ class RenderManagerImplTests {
     }
 
     @Test fun `installs theme for re-added views`() {
-        val container = spyk<Container>().apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
+        val container = spyk<Container> { bounds = Rectangle(size = Size(100.0, 100.0)) }
         val child     = view()
 
         container += child
@@ -1344,7 +1364,7 @@ class RenderManagerImplTests {
         every { requiresLayout(any(), any(), any<View.SizePreferences>(), any()) } returns !(ignoreChildIdealSize && ignoreChildMinSize)
     }
 
-    private fun display(vararg children: View, layout: Layout = layout()): InternalDisplay = mockk<InternalDisplay>().apply {
+    private fun display(vararg children: View, layout: Layout = layout()): InternalDisplay = mockk<InternalDisplay> {
         val displayChildren = ObservableList<View>()
 
         displayChildren.addAll(children)
@@ -1358,19 +1378,19 @@ class RenderManagerImplTests {
         val view  = slot<View>()
         val views = slot<Collection<View>>()
 
-        every { this@apply.size                      } returns Size(100, 100)
-        every { this@apply.children                  } returns displayChildren
-        every { this@apply.iterator()                } answers { displayChildren.iterator() }
-        every { this@apply.childrenChanged           } returns observers
-        every { sizeChanged                          } returns mockk()
-        every { this@apply.ancestorOf(capture(view)) } answers {
+        every { size                      } returns Size(100, 100)
+        every { this@mockk.children       } returns displayChildren
+        every { iterator()                } answers { displayChildren.iterator() }
+        every { childrenChanged           } returns observers
+        every { sizeChanged               } returns mockk()
+        every { ancestorOf(capture(view)) } answers {
             var result = false
 
-            if (this@apply.children.isNotEmpty()) {
+            if (this@mockk.children.isNotEmpty()) {
                 var parent: View? = view.captured
 
                 do {
-                    if (parent in this@apply.children) {
+                    if (parent in this@mockk.children) {
                         result = true
                         break
                     }
@@ -1381,16 +1401,16 @@ class RenderManagerImplTests {
 
             result
         }
-        every { this@apply.layout                    } returns layout
-        every { this@apply += capture(view )         } answers { displayChildren += view.captured  }
-        every { this@apply -= capture(view )         } answers { displayChildren -= view.captured  }
-        every { this@apply += capture(views)         } answers { displayChildren += views.captured }
-        every { this@apply -= capture(views)         } answers { displayChildren -= views.captured }
-        every { showPopup(capture(view))             } answers { displayChildren -= view.captured  }
+        every { this@mockk.layout            } returns layout
+        every { this@mockk += capture(view ) } answers { displayChildren += view.captured  }
+        every { this@mockk -= capture(view ) } answers { displayChildren -= view.captured  }
+        every { this@mockk += capture(views) } answers { displayChildren += views.captured }
+        every { this@mockk -= capture(views) } answers { displayChildren -= views.captured }
+        every { showPopup(capture(view))     } answers { displayChildren -= view.captured  }
     }
 
-    private val instantScheduler by lazy { mockk<AnimationScheduler>().apply {
-        every { this@apply.onNextFrame(captureLambda()) } answers {
+    private val instantScheduler by lazy { mockk<AnimationScheduler> {
+        every { this@mockk.onNextFrame(captureLambda()) } answers {
             lambda<(Measure<Time>) -> Unit>().captured(0 * milliseconds)
 
             val task = mockk<Task>()

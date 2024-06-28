@@ -2,6 +2,7 @@ package io.nacular.doodle.geometry
 
 
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import kotlin.math.PI
 import kotlin.math.min
 
 /**
@@ -59,6 +60,9 @@ public fun Circle.inset(inset: Double): Circle = Circle(center, radius - inset)
 
 /** The circle's diameter (2 * [Circle.radius]) */
 public val Circle.diameter: Double get() = 2 * radius
+
+/** The circle's circumference (2 * [PI] * [Circle.radius]) */
+public val Circle.circumference: Double get() = 2 * PI * radius
 
 /**
  * Creates a Circle that is inscribed within the rectangle

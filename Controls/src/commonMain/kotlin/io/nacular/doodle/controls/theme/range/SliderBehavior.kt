@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.theme.range
 
 import io.nacular.doodle.controls.range.Slider
-import io.nacular.doodle.controls.range.size
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.event.KeyEvent
@@ -10,41 +9,49 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
-import kotlin.math.round
+import io.nacular.doodle.utils.lerp
 
 /**
  * Created by Nicholas Eddy on 2/13/18.
  */
-public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Number, T: Comparable<T> {
-    public fun Slider<T>.set(to: Double) {
-        this.set(to)
+public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Comparable<T> {
+    public fun Slider<T>.setFraction(value: Float) { fraction = value }
+
+    @Deprecated("Use fraction instead")
+    public fun <A> Slider<A>.set(to: Double) where A : Comparable<A>, A: Number {
+        fraction = ((to - range.start.toDouble()) / (range.endInclusive.toDouble() - range.start.toDouble())).toFloat()
     }
 
-    public fun Slider<T>.adjust(by: Double) {
-        this.adjust(by)
+    @Deprecated("Use fraction instead")
+    public fun <A> Slider<A>.adjust(by: Double) where A : Comparable<A>, A: Number {
+        set(value.toDouble() + by)
     }
 
-    public fun Slider<T>.set(range: ClosedRange<Double>) {
-        this.set(range)
+    @Deprecated("Will be removed soon")
+    public fun <T> Slider<T>.set(range: ClosedRange<Double>) where T: Number, T: Comparable<T> {
+        when (model.limits.start) {
+            is Int    -> model.limits = (range.start.toInt() .. range.endInclusive.toInt()                    ) as ClosedRange<T>
+            is Float  -> model.limits = (range.start.toFloat() .. range.endInclusive.toFloat()                ) as ClosedRange<T>
+            is Double -> model.limits = (range.start .. range.endInclusive                                    ) as ClosedRange<T>
+            is Long   -> model.limits = (range.start.toLong() .. range.endInclusive.toLong()                  ) as ClosedRange<T>
+            is Short  -> model.limits = (range.start.toInt().toShort() .. range.endInclusive.toInt().toShort()) as ClosedRange<T>
+            is Byte   -> model.limits = (range.start.toInt().toByte() .. range.endInclusive.toInt().toByte()  ) as ClosedRange<T>
+        }
     }
 }
 
 public abstract class AbstractSliderBehavior<T>(
         private val focusManager: FocusManager?
-): SliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Number, T: Comparable<T> {
-
-    private lateinit var lastStart: T
+): SliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
     private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
     private val enabledChanged: (View,      Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
     private val styleChanged  : (View                       ) -> Unit = {           it.rerender() }
 
-    protected var lastPointerPosition: Double = -1.0; private set
-
     override fun install(view: Slider<T>) {
-        lastStart                  = view.value
         view.changed              += changed
         view.keyChanged           += this
         view.styleChanged         += styleChanged
@@ -64,76 +71,49 @@ public abstract class AbstractSliderBehavior<T>(
 
     override fun pressed(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
-        val slider         = event.source as Slider<T>
-        val scaleFactor    = scaleFactor(slider).let { if ( it != 0f) 1 / it else 0f }
-        val handleSize     = handleSize    (slider)
-        val handlePosition = handlePosition(slider)
+        val slider = event.source as Slider<T>
 
-        val offset = when (slider.orientation) {
-            Horizontal -> event.location.x
-            Vertical   -> event.location.y
-        }
-
-        if (offset < handlePosition || offset > handlePosition + handleSize) {
-            val handleCenter = handlePosition + handleSize / 2
-
-            val adjustment = when (slider.orientation) {
-                Horizontal -> offset       - handleCenter
-                Vertical   -> handleCenter - offset
-            }
-
-            slider.adjust(by = scaleFactor * adjustment)
-        }
-
-        lastPointerPosition = offset
-        lastStart           = slider.value
+        slider.fraction = fraction(slider, event.location)
 
         focusManager?.requestFocus(slider)
 
         event.consume()
     }
 
-    override fun released(event: PointerEvent) {
-        lastPointerPosition = -1.0
-    }
-
     override fun pressed(event: KeyEvent) {
         @Suppress("UNCHECKED_CAST")
-        (event.source as? Slider<T>)?.let {
-            lastStart = it.value
-            handleKeyPress(it, event)
-        }
+        ((event.source as? Slider<T>)?.handleKeyPress(event))
     }
 
     override fun dragged(event: PointerEvent) {
         @Suppress("UNCHECKED_CAST")
         val slider = event.source as Slider<T>
 
-        val delta = when (slider.orientation) {
-            Horizontal -> event.location.x    - lastPointerPosition
-            Vertical   -> lastPointerPosition - event.location.y
-        }
-
-        slider.set(to = lastStart.toDouble() + delta / scaleFactor(slider))
+        slider.fraction = fraction(slider, event.location)
 
         event.consume()
     }
 
-    private fun scaleFactor(slider: Slider<T>): Float {
-        val size = (if (slider.orientation === Horizontal) slider.width else slider.height) - handleSize(slider)
-
-        return if (!slider.range.isEmpty()) (size / slider.range.size.toDouble()).toFloat() else 0f
-    }
-
-    protected fun handlePosition(slider: Slider<T>): Double = round((slider.value.toDouble() - slider.range.start.toDouble()) * scaleFactor(slider)).let {
-        when (slider.orientation) {
-            Horizontal -> it
-            Vertical   -> slider.height - handleSize(slider) - it
-        }
+    protected fun handlePosition(slider: Slider<T>): Double = when (slider.orientation) {
+        Horizontal -> lerp(0.0,                                slider.width - handleSize(slider), slider.fraction)
+        Vertical   -> lerp(slider.height - handleSize(slider), 0.0,                               slider.fraction)
     }
 
     protected fun handleSize(slider: Slider<T>): Double = when (slider.orientation) {
         Horizontal -> slider.height
         else       -> slider.width
     }
+
+    private fun fraction(slider: Slider<T>, location: Point) = when (val sliderSize = size(slider)) {
+        0.0  -> 0f
+        else -> ((when (slider.orientation) {
+            Horizontal -> location.x
+            Vertical   -> slider.height - location.y
+        } - handleSize(slider) / 2) / sliderSize).toFloat().coerceIn(0f ..1f)
+    }
+
+    private fun size(slider: Slider<T>): Double = when (slider.orientation) {
+        Horizontal -> slider.width
+        else       -> slider.height
+    } - handleSize(slider)
 }

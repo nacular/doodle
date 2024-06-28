@@ -13,9 +13,9 @@ internal actual abstract class DataTransferItem {
 
 internal actual abstract class DataTransferItemList {
     actual val length: Int = 0
-
-    actual operator fun get(index: Int): DataTransferItem?  = null
 }
+
+internal actual operator fun DataTransferItemList.get(index: Int): DataTransferItem? = null
 
 internal actual abstract class DataTransfer {
     actual var dropEffect   : String = ""

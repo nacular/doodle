@@ -53,16 +53,20 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.KeyInputServiceStrategy
 import io.nacular.doodle.system.impl.KeyInputStrategyWebkit
+import io.nacular.doodle.system.impl.NoOpViewPortHackDetector
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
 import io.nacular.doodle.system.impl.PointerLocationResolver
 import io.nacular.doodle.system.impl.PointerLocationResolverImpl
+import io.nacular.doodle.system.impl.SafariViewPortHackDetector
+import io.nacular.doodle.system.impl.ViewPortHackDetector
 import io.nacular.doodle.user.UserPreferences
 import io.nacular.doodle.user.impl.UserPreferencesImpl
 import io.nacular.doodle.utils.RelativePositionMonitor
 import io.nacular.doodle.utils.RelativePositionMonitorImpl
 import org.kodein.di.DI.Module
+import org.kodein.di.bindInstance
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
@@ -80,11 +84,17 @@ public class Modules private constructor() {
 
         /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bindSingleton<ViewFinder>                  { ViewFinderImpl                   (                                  ) }
-            bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (document,   instance()            ) }
-            bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                        ) }
-            bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()) }
-            bindSingleton<PointerInputServiceStrategy> { PointerInputServiceStrategyWebkit(document,   instance(), instance()) }
+            bindSingleton<ViewPortHackDetector>        {
+                when {
+                    isSafari(window) -> SafariViewPortHackDetector(document, instance())
+                    else             -> NoOpViewPortHackDetector
+                }
+            }
+            bindInstance<ViewFinder>                   { ViewFinderImpl                                                                    }
+            bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                                    ) }
+            bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()            ) }
+            bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (window,     document,   instance(), instance()) }
+            bindSingleton<PointerInputServiceStrategy> { PointerInputServiceStrategyWebkit(document,   instance(), instance()            ) }
         }
 
         /** Enables keyboard use. Includes [FocusModule]. */

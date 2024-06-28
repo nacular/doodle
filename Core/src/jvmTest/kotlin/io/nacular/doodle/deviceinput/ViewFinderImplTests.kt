@@ -1,6 +1,8 @@
 package io.nacular.doodle.deviceinput
 
 import io.mockk.every
+import io.mockk.impl.JvmMockKGateway
+import io.mockk.impl.instantiation.JvmAnyValueGenerator
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.core.ChildObserver
@@ -11,11 +13,25 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.SetPool
 import org.junit.jupiter.api.Test
+import kotlin.reflect.KClass
 import kotlin.test.expect
 
 class ViewFinderImplTests {
+    private class NullableValueGenerator(voidInstance: Any): JvmAnyValueGenerator(voidInstance) {
+        override fun anyValue(cls: KClass<*>, isNullable: Boolean, orInstantiateVia: () -> Any?): Any? = when {
+            isNullable -> null
+            else       -> super.anyValue(cls, isNullable, orInstantiateVia)
+        }
+    }
+
+    init {
+        JvmMockKGateway.anyValueGeneratorFactory = { voidInstance ->
+            NullableValueGenerator(voidInstance)
+        }
+    }
+
     @Test fun `finds item at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child   = mockk<View>("child") {
             every { enabled } returns true
         }
@@ -39,7 +55,7 @@ class ViewFinderImplTests {
     }
 
     @Test fun `skips disabled item at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child   = mockk<View> {
             every { enabled } returns false
         }
@@ -55,7 +71,7 @@ class ViewFinderImplTests {
     }
 
     @Test fun `returns parent if disabled item at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child   = mockk<View> {
             every { enabled } returns false
         }
@@ -77,7 +93,7 @@ class ViewFinderImplTests {
     }
 
     @Test fun `returns parent if item filtered at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child   = mockk<View>("child" ) { every { enabled } returns true }
         val parent  = mockk<View>("parent") {
             every { parent               } returns null
@@ -95,7 +111,7 @@ class ViewFinderImplTests {
     }
 
     @Test fun `returns child below if item filtered at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child1  = mockk<View> { every { enabled } returns true }
         val child2  = mockk<View> { every { enabled } returns true }
         val parent  = mockk<View> {
@@ -114,7 +130,7 @@ class ViewFinderImplTests {
     }
 
     @Test fun `returns parent sibling below if items filtered at point`() {
-        val finder  = ViewFinderImpl()
+        val finder  = ViewFinderImpl
         val child1  = mockk<View>("child1") { every { enabled } returns true }
         val child2  = mockk<View>("child2") { every { enabled } returns true }
         val parent  = mockk<View>("parent") {

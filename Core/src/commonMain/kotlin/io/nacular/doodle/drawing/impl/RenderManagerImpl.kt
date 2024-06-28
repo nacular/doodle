@@ -310,7 +310,7 @@ public open class RenderManagerImpl(
                             pendingBoundsChange.remove(item)
                         }
                         // remove zero sized items that have never rendered since they won't be cleaned up otherwise
-                        item.size.empty -> pendingBoundsChange.remove(item)
+                        item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange.remove(item)
                     }
                 }
             } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)

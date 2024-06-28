@@ -35,7 +35,7 @@ public class BasicCircularRangeSliderBehavior<T>(
     private val rangeFill    : ((CircularRangeSlider<T>) -> Paint)? = endKnobFill,
     private val thickness    : Double = 20.0,
                 focusManager : FocusManager? = null
-): AbstractCircularRangeSliderBehavior<T>(focusManager) where T: Number, T: Comparable<T> {
+): AbstractCircularRangeSliderBehavior<T>(focusManager) where T: Comparable<T> {
     /**
      * Creates a basic behavior for rendering [CircularRangeSlider]s.
      *
