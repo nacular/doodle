@@ -5,6 +5,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
+import io.nacular.doodle.core.LookupResult.Found
+import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Point
@@ -13,6 +15,7 @@ import io.nacular.doodle.utils.ObservableList
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
+import kotlin.test.Ignore
 import kotlin.test.expect
 
 /**
@@ -88,6 +91,26 @@ class DisplayTests {
         verify (exactly = 1) { children -= listOf(child1, child2) }
     }
 
+    // FIXME: Need to figure out how to test this since the interface calls to layout cannot be mocked
+    @Ignore @Test fun `child at works`() {
+        val at       = Point(11.0, 13.0)
+        val result   = view {}
+        val children = ObservableList(listOf(result))
+        val layout   = mockk<Layout> {
+            every { item(any(), at = at) } returns Found(result.positionable)
+        }
+
+        display(children, layout).apply {
+            expect(result) { child(at) }
+
+            every { layout.item(any(), at = at) } returns Ignored
+
+            expect(null) { child(at) }
+
+            verify(exactly = 2) { layout.item(any(), at) }
+        }
+    }
+
     private data class MirroredTestData(val contentDirection: ContentDirection, val mirrorWhenRightLeft: Boolean) {
         override fun toString() = "contentDirection: $contentDirection, mirrorWhenRightLeft: $mirrorWhenRightLeft"
     }
@@ -108,22 +131,24 @@ class DisplayTests {
     private fun display(contentDirection: ContentDirection, mirrorWhenRightLeft: Boolean): Display {
         abstract class DisplayTester: Display
 
-        return mockk<DisplayTester>().apply {
-            every { this@apply.contentDirection    } returns contentDirection
-            every { this@apply.mirrorWhenRightLeft } returns mirrorWhenRightLeft
+        return mockk<DisplayTester> {
+            every { this@mockk.contentDirection    } returns contentDirection
+            every { this@mockk.mirrorWhenRightLeft } returns mirrorWhenRightLeft
             every { mirrored                       } answers { callOriginal() }
         }
     }
 
-    private fun display(children: ObservableList<View>): Display {
+    private fun display(children: ObservableList<View>, layout: Layout = mockk()): Display {
         abstract class DisplayTester2: Display
 
-        return mockk<DisplayTester2>().apply {
-            every { this@apply.children                   } returns children
-            every { this@apply += any<View>()             } answers { callOriginal() }
-            every { this@apply -= any<View>()             } answers { callOriginal() }
-            every { this@apply += any<Collection<View>>() } answers { callOriginal() }
-            every { this@apply -= any<Collection<View>>() } answers { callOriginal() }
+        return mockk<DisplayTester2> {
+            every { this@mockk.layout                     } returns layout
+            every { this@mockk.children                   } returns children
+            every { this@mockk += any<View>()             } answers { callOriginal() }
+            every { this@mockk -= any<View>()             } answers { callOriginal() }
+            every { this@mockk += any<Collection<View>>() } answers { callOriginal() }
+            every { this@mockk -= any<Collection<View>>() } answers { callOriginal() }
+            every { this@mockk.child(any())               } answers { callOriginal() }
         }
     }
 }

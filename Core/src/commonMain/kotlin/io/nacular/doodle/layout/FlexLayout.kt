@@ -2,9 +2,9 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
@@ -13,42 +13,25 @@ import kotlin.math.min
 
 private open class FlexLayout(private val orientation: Orientation, private val spacing: Double = 0.0): Layout {
     private var Positionable.offset get() = when (orientation) {
-        Horizontal -> x
-        else       -> y
+        Horizontal -> position.x
+        else       -> position.y
     }; set(new) {
         when (orientation) {
-            Horizontal -> x = new
-            else       -> y = new
+            Horizontal -> position = Point(new, position.y)
+            else       -> position = Point(position.x, new)
         }
     }
 
     private val Positionable.extent get() = when (orientation) {
+        Horizontal -> bounds.width
+        else       -> bounds.height
+    }
+
+    private val Positionable.minExtent get() = 0.0
+
+    private val Size.extent get() = when (orientation) {
         Horizontal -> width
         else       -> height
-    }
-
-    private val Positionable.minExtent get() = with(minimumSize) {
-        when (orientation) {
-            Horizontal -> width
-            else       -> height
-        }
-    }
-
-    private val Positionable.idealExtent get() = with(idealSize) {
-        when (orientation) {
-            Horizontal -> this?.width
-            else       -> this?.height
-        }
-    }
-
-    private val PositionableContainer.extent get() = when (orientation) {
-        Horizontal -> width
-        else       -> height
-    }
-
-    private val PositionableContainer.offset get() = when (orientation) {
-        Horizontal -> insets.left
-        else       -> insets.top
     }
 
     private val Insets.extent get() = when (orientation) {
@@ -56,15 +39,15 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         else       -> top  + bottom
     }
 
-    override fun layout(container: PositionableContainer) {
-        val x                      = container.insets.left
-        val y                      = container.insets.top
-        val w                      = max(0.0, container.width  - container.insets.run { left + right })
-        val h                      = max(0.0, container.height - container.insets.run { top + bottom })
-        var offset                 = container.offset
-        val totalAvailableSpace    = container.extent - container.insets.extent
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        val x                      = 0.0
+        val y                      = 0.0
+        val w                      = current.width
+        val h                      = current.height
+        var offset                 = 0.0
+        val totalAvailableSpace    = current.extent
         var remainingSpace         = totalAvailableSpace
-        val visibleChildren        = container.children.filter { it.visible }
+        val visibleChildren        = views.filter { it.visible }.toList()
         var numCollapsedSpaces     = 0
         var minDecreaseAvailable   = -1.0
         var numChildrenCanDecrease = 0
@@ -80,11 +63,11 @@ private open class FlexLayout(private val orientation: Orientation, private val 
             }
         }
         val updateRemainingSpace = {
-            remainingSpace = totalAvailableSpace - offset + container.offset
+            remainingSpace = totalAvailableSpace - offset
         }
 
         visibleChildren.forEachIndexed { index, child ->
-            val extent = child.idealExtent ?: child.minExtent
+            val extent = child.minExtent
 
             if (index > 0) {
                 when {
@@ -93,9 +76,15 @@ private open class FlexLayout(private val orientation: Orientation, private val 
                 }
             }
 
-            child.bounds = when (orientation) {
-                Horizontal -> Rectangle(offset, y, extent, h)
-                else       -> Rectangle(x, offset, w, extent)
+            when (orientation) {
+                Horizontal -> {
+                    val size = Size(extent, h)
+                    child.updateBounds(offset, y, size, size)
+                }
+                else       -> {
+                    val size = Size(w, extent)
+                    child.updateBounds(x, offset, size, size)
+                }
             }
 
             offset += child.extent
@@ -105,7 +94,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         }
 
         while (remainingSpace != 0.0) {
-            offset = container.offset
+            offset = 0.0
 
             when {
                 remainingSpace > 0.0 -> {
@@ -116,9 +105,15 @@ private open class FlexLayout(private val orientation: Orientation, private val 
                             offset += spacing
                         }
 
-                        child.bounds = when (orientation) {
-                            Horizontal -> Rectangle(offset,  child.y, newExtent,   child.height)
-                            else       -> Rectangle(child.x, offset,  child.width, newExtent   )
+                        when (orientation) {
+                            Horizontal -> {
+                                val size = Size(newExtent, child.bounds.height)
+                                child.updateBounds(offset,  child.bounds.y, size, size)
+                            }
+                            else       -> {
+                                val size = Size(child.bounds.width, newExtent)
+                                child.updateBounds(child.bounds.x, offset,  size, size)
+                            }
                         }
 
                         offset += child.extent
@@ -143,9 +138,15 @@ private open class FlexLayout(private val orientation: Orientation, private val 
                                             offset += spacing
                                         }
 
-                                        child.bounds = when (orientation) {
-                                            Horizontal -> Rectangle(offset,  child.y, child.extent - proportionalDecrease, child.height)
-                                            else       -> Rectangle(child.x, offset,  child.width, child.extent - proportionalDecrease)
+                                        when (orientation) {
+                                            Horizontal -> {
+                                                val size = Size(child.extent - proportionalDecrease, child.bounds.height)
+                                                child.updateBounds(offset, child.bounds.y, size, size)
+                                            }
+                                            else       -> {
+                                                val size = Size(child.bounds.width, child.extent - proportionalDecrease)
+                                                child.updateBounds(child.bounds.x, offset, size, size)
+                                            }
                                         }
 
                                         updateMinDecreaseInfo(child)
@@ -168,14 +169,9 @@ private open class FlexLayout(private val orientation: Orientation, private val 
                 }
             }
         }
-    }
 
-    override fun requiresLayout(
-        child: Positionable,
-        of  : PositionableContainer,
-        old : View.SizePreferences,
-        new : View.SizePreferences
-    ): Boolean = old.idealSize != new.idealSize || old.minimumSize != new.minimumSize
+        return super.layout(views, min, current, max)
+    }
 }
 
 /**

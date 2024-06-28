@@ -7,12 +7,7 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.LookupResult.Empty
-import io.nacular.doodle.core.LookupResult.Found
-import io.nacular.doodle.core.LookupResult.Ignored
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
@@ -128,8 +123,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             contentDirectionChanged()
         }
 
-    override val positionable: PositionableContainer = PositionableWrapper()
-
     private fun contentDirectionChanged() {
         (contentDirectionChanged as ChangeObserversImpl)()
         notifyMirroringChanged()
@@ -242,14 +235,6 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         child in children
     } else false
 
-    override fun child(at: Point): View? = fromAbsolute(at).let { point ->
-        when (val result = layout?.child(positionable, point)) {
-            null, Ignored -> child_(point) { true }
-            is Found      -> result.child as? View
-            is Empty      -> null
-        }
-    }
-
     override fun child(at: Point, predicate: (View) -> Boolean): View? = child_(fromAbsolute(at), predicate)
 
     private fun child_(at: Point, predicate: (View) -> Boolean): View? {
@@ -276,17 +261,17 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override fun iterator() = children.iterator()
 
-    private var layingOut = false
-
     override fun toAbsolute(point: Point) = resolvedTransform(point).as2d()
 
     override fun fromAbsolute(point: Point) = resolvedTransform.inverse?.invoke(point)?.as2d() ?: point
+
+    private var layingOut = false
 
     override fun relayout() {
         if (!layingOut) {
             layingOut = true
 
-            layout?.layout(positionable)
+            super.relayout()
 
             layingOut= false
         }
@@ -346,16 +331,5 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             mirrored -> augmentedTransform.flipHorizontally()
             else     -> augmentedTransform
         })
-    }
-
-    private inner class PositionableWrapper: PositionableContainer {
-        override val size        get() = this@DisplayImpl.size
-        override val width       get() = this@DisplayImpl.width
-        override val height      get() = this@DisplayImpl.height
-        override var idealSize   get() = null as Size?;           set(_) {}
-        override var minimumSize get() = Empty;                   set(_) {}
-
-        override val insets      get() = this@DisplayImpl.insets
-        override val children    get() = this@DisplayImpl.children
     }
 }

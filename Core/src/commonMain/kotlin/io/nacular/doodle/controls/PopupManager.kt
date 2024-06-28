@@ -114,7 +114,7 @@ public class PopupManagerImpl(
     }
 
     private inner class UnboundedPopup(view: View, val constraints: ConstraintDslContext.(Bounds) -> Unit): Popup(view) {
-        private val viewList = listOf(view)
+        private val viewList = listOf(view.positionable)
 
         override fun doLayout() {
             viewList.constrain(constraints) { _,_ ->
@@ -124,7 +124,7 @@ public class PopupManagerImpl(
     }
 
     private inner class BoundedPopup(view: View, val relativeTo: View, val constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): Popup(view) {
-        private val viewList       = listOf(view)
+        private val viewList       = listOf(view.positionable)
         lateinit var relativeBounds: Rectangle
 
         private val monitor = { _: View, _: Rectangle, _: Rectangle ->

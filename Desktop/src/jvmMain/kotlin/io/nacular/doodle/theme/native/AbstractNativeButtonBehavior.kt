@@ -43,7 +43,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
 
     private lateinit var nativePeer   : P
     private          var oldCursor    : Cursor? = null
-    private          var oldIdealSize : Size?   = null
+    private          var oldIdealSize = Size.Empty
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
         when (new) {

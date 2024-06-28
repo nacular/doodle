@@ -58,8 +58,6 @@ public abstract class RenderManager {
      */
     internal abstract fun boundsChanged(view: View, old: Rectangle, new: Rectangle)
 
-    internal abstract fun boundsChanged2(view: View, old: Rectangle, new: Rectangle)
-
     /**
      * Notifies whenever a View's [z-order][View.zOrder]z-order changes
      *
@@ -112,15 +110,6 @@ public abstract class RenderManager {
      * @param differences representing changes
      */
     internal abstract fun childrenChanged(view: View, differences: Differences<View>)
-
-    /**
-     * Notifies whenever a View's [ideal size][View.idealSize] or [minimum size][View.minimumSize] change.
-     *
-     * @param view that is changing
-     * @param old value
-     * @param new value
-     */
-    internal abstract fun sizePreferencesChanged(view: View, old: View.SizePreferences, new: View.SizePreferences)
 
     /**
      * Notifies whenever a View's interest in [display rect events][View.monitorsDisplayRect] changes

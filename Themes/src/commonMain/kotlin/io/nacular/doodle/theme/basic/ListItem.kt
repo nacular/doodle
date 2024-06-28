@@ -154,7 +154,7 @@ public open class ListItem<T>(
             }
         }
 
-        idealSize = children[0].idealSize?.let { Size(it.width + insetLeft, it.height + insetTop) }
+        idealSize = children[0].idealSize.let { Size(it.width + insetLeft, it.height + insetTop) }
         this.list = list
     }
 

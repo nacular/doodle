@@ -2,7 +2,6 @@ package io.nacular.doodle.layout.constraints
 
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.Layout2
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
@@ -13,24 +12,293 @@ import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
-import io.nacular.doodle.layout.constraints.impl.BoundsImpl2
-import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl2
-import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl2.Companion.setupSolver
-import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl2.Companion.solve
+import io.nacular.doodle.layout.constraints.impl.BoundsImpl
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl2
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
 
 
-//public val fill  : (ConstraintDslContext2.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
-//public val center: (ConstraintDslContext2.(Bounds) -> Unit) = { it.center eq parent.center }
-//
-//public fun fill  (                strength: Strength           ): (ConstraintDslContext2.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) .. strength }
-//public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext2.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) .. strength }
-//public fun center(                strength: Strength           ): (ConstraintDslContext2.(Bounds) -> Unit) = { (it.center eq parent.center        ) .. strength }
+public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
+public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center }
 
-public interface ParentBounds2 {
+public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) .. strength }
+public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) .. strength }
+public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) .. strength }
+
+/**
+ * A [Layout] that positions Views using a set of constraints. These layouts are created using
+ * the [constrain] functions and follow the form:
+ *
+ * ```
+ *
+ * val layout = constrain(view1, view2) { v1, v2 ->
+ *     v1.left  eq     10
+ *     v1.width lessEq parent.width / 2
+ *
+ *     v2.edges eq     parent.edges - 10
+ * }
+ * ```
+ */
+public abstract class ConstraintLayout: Layout {
+    /**
+     * Add constraints for [view].
+     *
+     * @param view being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(view: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for [view] that were created by [constraints].
+     *
+     * @param view being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(view: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Add constraints for 2 Views.
+     *
+     * @param first being constrained
+     * @param second being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Add constraints for 3 Views.
+     *
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param third View being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(first: View, second: View, third: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Add constraints for 4 Views.
+     *
+     * @param first first View being constrained
+     * @param second second View being constrained
+     * @param third third View being constrained
+     * @param fourth fourth View being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param fourth View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Add constraints for 5 Views.
+     *
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param third View being constrained
+     * @param fourth View being constrained
+     * @param fifth View being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param third View being unconstrained
+     * @param fourth View being unconstrained
+     * @param fifth View being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout
+
+    /**
+     * Add constraints for several Views.
+     *
+     * @param first View being constrained
+     * @param second View being constrained
+     * @param others Views being constrained
+     * @param constraints being applied
+     * @return Layout with additional constraints
+     */
+    public abstract fun constrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout
+
+    /**
+     * Remove all constraints for the given Views that were created by [constraints].
+     *
+     * @param first View being unconstrained
+     * @param second View being unconstrained
+     * @param others being unconstrained
+     * @param constraints being removed
+     * @return Layout with constraints removed
+     */
+    public abstract fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout
+
+    /**
+     * Notified whenever an unhandled [ConstraintException] is thrown during layout.
+     */
+    public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
+}
+
+/**
+ * Simple value within a [Bounds] set.
+ */
+public abstract class Property internal constructor() {
+    /**
+     * Provides the Property's value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Property won't be
+     * altered to try and satisfy the constraint.
+     */
+    public abstract val readOnly: Double
+
+    internal abstract fun toTerm(): Term
+}
+
+
+/**
+ * 2-Dimensional value within a [Bounds] set.
+ */
+public class Position internal constructor(internal val left: Expression, internal val top: Expression) {
+    /**
+     * Provides the Position's value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Position won't be
+     * altered to try and satisfy the constraint.
+     */
+    public val readOnly: Point get() = Point(x = left.value, y = top.value)
+}
+
+/**
+ * External boundaries of a constrained item.
+ */
+public class Edges internal constructor(
+    internal val top   : Expression? = null,
+    internal val left  : Expression? = null,
+    internal val right : Expression,
+    internal val bottom: Expression
+) {
+    /**
+     * Provides the Edges' value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Edges won't be
+     * altered to try and satisfy the constraint.
+     */
+    public val readOnly: Rectangle get() {
+        val x = left?.value ?: 0.0
+        val y = top?.value  ?: 0.0
+        return Rectangle(x = x, y = y, width = right.value - x, height = bottom.value - y)
+    }
+}
+
+public interface AllowsForcedMutation<T, V> {
+    public val writable: T
+    public val readOnly: V
+}
+
+public class ConstEdges internal constructor(public override val writable: Edges): AllowsForcedMutation<Edges, Rectangle> {
+    public override val readOnly: Rectangle get() = writable.readOnly
+}
+
+public class ConstProperty internal constructor(public override val writable: Property): AllowsForcedMutation<Property, Double> {
+    public override val readOnly: Double get() = writable.readOnly
+}
+
+public class ConstPosition internal constructor(public override val writable: Position): AllowsForcedMutation<Position, Point> {
+    public override val readOnly: Point get() = writable.readOnly
+}
+
+public class ConstExpression internal constructor(public override val writable: Expression): AllowsForcedMutation<Expression, Double> {
+    public override val readOnly: Double get() = writable.readOnly
+}
+
+/**
+ * The rectangular bounds for a View that is being constrained.
+ */
+public interface Bounds {
+    /** The rectangle's top edge */
+    public val top: Property
+
+    /** The rectangle's left edge */
+    public val left: Property
+
+    /** The rectangle's vertical extent */
+    public val height: Property
+
+    /** The rectangle's bottom edge */
+    public val bottom: Expression
+
+    /** The rectangle's vertical center */
+    public val centerY: Expression
+
+    /** The rectangle's horizontal extent */
+    public val width: Property
+
+    /** The rectangle's right side */
+    public val right: Expression
+
+    /** The rectangle's horizontal center */
+    public val centerX: Expression
+
+    /** The rectangle's 4 sides */
+    public val edges: Edges
+
+    /** The rectangle's center */
+    public val center: Position
+
+    /** The preferred width */
+    public val preferredWidth: Double get() = preferredSize.width
+
+    /** The preferred height */
+    public val preferredHeight: Double get() = preferredSize.width
+
+    /** The preferred size */
+    public val preferredSize: Size
+}
+
+/**
+ * [Bounds] the refer to the external, bounding rectangle for the parent of a View that is being constrained.
+ */
+public interface ParentBounds {
     /** The rectangle's vertical extent */
     public val height: Property
 
@@ -56,171 +324,34 @@ public interface ParentBounds2 {
     public val center: Position
 }
 
+/**
+ * Any error that can be raised when applying constrains.
+ */
+public open class ConstraintException internal constructor(message: String?): Exception(message)
 
 /**
- * A [Layout] that positions Views using a set of constraints. These layouts are created using
- * the [constrain] functions and follow the form:
- *
- * ```
- *
- * val layout = constrain(view1, view2) { v1, v2 ->
- *     v1.left  eq     10
- *     v1.width lessEq parent.width / 2
- *
- *     v2.edges eq     parent.edges - 10
- * }
- * ```
+ * Thrown when a duplicate [Constraint] is added.
  */
-public abstract class ConstraintLayout2: Layout2 {
-    /**
-     * Add constraints for [view].
-     *
-     * @param view being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(view: View, constraints: ConstraintDslContext2.(Bounds) -> Unit): ConstraintLayout2
+public class DuplicateConstraintException(public val constraint: Constraint): ConstraintException(constraint.toString())
 
-    /**
-     * Remove all constraints for [view] that were created by [constraints].
-     *
-     * @param view being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(view: View, constraints: ConstraintDslContext2.(Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Add constraints for 2 Views.
-     *
-     * @param first being constrained
-     * @param second being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(first: View, second: View, constraints: ConstraintDslContext2.(Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Remove all constraints for the given Views that were created by [constraints].
-     *
-     * @param first View being unconstrained
-     * @param second View being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(first: View, second: View, constraints: ConstraintDslContext2.(Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Add constraints for 3 Views.
-     *
-     * @param first View being constrained
-     * @param second View being constrained
-     * @param third View being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(first: View, second: View, third: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Remove all constraints for the given Views that were created by [constraints].
-     *
-     * @param first View being unconstrained
-     * @param second View being unconstrained
-     * @param third View being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(first: View, second: View, third: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Add constraints for 4 Views.
-     *
-     * @param first first View being constrained
-     * @param second second View being constrained
-     * @param third third View being constrained
-     * @param fourth fourth View being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Remove all constraints for the given Views that were created by [constraints].
-     *
-     * @param first View being unconstrained
-     * @param second View being unconstrained
-     * @param third View being unconstrained
-     * @param fourth View being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Add constraints for 5 Views.
-     *
-     * @param first View being constrained
-     * @param second View being constrained
-     * @param third View being constrained
-     * @param fourth View being constrained
-     * @param fifth View being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Remove all constraints for the given Views that were created by [constraints].
-     *
-     * @param first View being unconstrained
-     * @param second View being unconstrained
-     * @param third View being unconstrained
-     * @param fourth View being unconstrained
-     * @param fifth View being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(first: View, second: View, third: View, fourth: View, fifth: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2
-
-    /**
-     * Add constraints for several Views.
-     *
-     * @param first View being constrained
-     * @param second View being constrained
-     * @param others Views being constrained
-     * @param constraints being applied
-     * @return Layout with additional constraints
-     */
-    public abstract fun constrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext2.(List<Bounds>) -> Unit): ConstraintLayout2
-
-    /**
-     * Remove all constraints for the given Views that were created by [constraints].
-     *
-     * @param first View being unconstrained
-     * @param second View being unconstrained
-     * @param others being unconstrained
-     * @param constraints being removed
-     * @return Layout with constraints removed
-     */
-    public abstract fun unconstrain(first: View, second: View, vararg others: View, constraints: ConstraintDslContext2.(List<Bounds>) -> Unit): ConstraintLayout2
-
-    /**
-     * Notified whenever an unhandled [ConstraintException] is thrown during layout.
-     */
-    public abstract val exceptionThrown: Pool<(ConstraintLayout2, ConstraintException) -> Unit>
-}
-
+/**
+ * Indicates a [Constraint] is unsatisfiable.
+ */
+public class UnsatisfiableConstraintException(
+    public val constraint: Constraint,
+    public val existingConstraints: Collection<Constraint>
+): ConstraintException("constraint: $constraint\nexisting constraints: $existingConstraints")
 
 /**
  * Block within which constraints can be defined and captured.
  */
 @Suppress("MemberVisibilityCanBePrivate", "PropertyName")
-public open class ConstraintDslContext2 internal constructor() {
+public open class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
     internal val parent_ = ParentBoundsImpl2(this, size = Size.Empty, min = Size.Empty, max = Size.Empty)
 
-    public val parent: ParentBounds2 get() = parent_
+    public val parent: ParentBounds get() = parent_
 
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
@@ -651,20 +782,96 @@ public open class ConstraintDslContext2 internal constructor() {
         val t = this.top
         val l = this.left
 
-        override val right   by lazy { with(this@ConstraintDslContext2) { l + width      } }
-        override val centerX by lazy { with(this@ConstraintDslContext2) { l + width  / 2 } }
-        override val bottom  by lazy { with(this@ConstraintDslContext2) { t + height     } }
-        override val centerY by lazy { with(this@ConstraintDslContext2) { t + height / 2 } }
+        override val right   by lazy { with(this@ConstraintDslContext) { l + width      } }
+        override val centerX by lazy { with(this@ConstraintDslContext) { l + width  / 2 } }
+        override val bottom  by lazy { with(this@ConstraintDslContext) { t + height     } }
+        override val centerY by lazy { with(this@ConstraintDslContext) { t + height / 2 } }
 
-        override val center  by lazy { with(this@ConstraintDslContext2) { Position(left = centerX, top = centerY) } }
-        override val edges   by lazy { with(this@ConstraintDslContext2) { Edges(top = t + 0, left = l + 0, right = right, bottom = bottom) } }
+        override val center  by lazy { with(this@ConstraintDslContext) { Position(left = centerX, top = centerY) } }
+        override val edges   by lazy { with(this@ConstraintDslContext) { Edges(top = t + 0, left = l + 0, right = right, bottom = bottom) } }
     }
+}
+
+internal interface Transformer<T> {
+    fun set(value: T): T
+    fun get(value: T): T
+}
+
+public class OffsetTransformer(private val offset: Double): Transformer<Double> {
+    public override fun set(value: Double): Double = value + offset
+    public override fun get(value: Double): Double = value - offset
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is OffsetTransformer) return false
+
+        if (offset != other.offset) return false
+
+        return true
+    }
+
+    override fun toString(): String = "+/- $offset"
+
+    override fun hashCode(): Int = offset.hashCode()
+}
+
+internal class PropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
+    private val isConst      by lazy { variableTerm is ConstTerm }
+    private val variableTerm by lazy { variable.toTerm()         }
+
+    override val name     get() = variable.name
+    override val readOnly get() = invoke()
+
+    override fun toTerm() = when {
+        isConst -> ConstTerm   (this, variableTerm.coefficient)
+        else    -> VariableTerm(this, variableTerm.coefficient)
+    }
+    override fun invoke  (             ) = transformer.get(variable())
+    override fun invoke  (value: Double) = variable(transformer.set(value))
+    override fun equals  (other: Any?  ) = variable == other
+    override fun hashCode(             ) = variable.hashCode()
+    override fun toString(             ) = "$variable [$transformer]"
+}
+
+internal class ConstPropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
+    override val name     get() = variable.name
+    override val readOnly get() = invoke()
+
+    override fun toTerm  (             ) = ConstTerm(this, variable.toTerm().coefficient)
+    override fun invoke  (             ) = transformer.get(variable())
+    override fun invoke  (value: Double) = variable(transformer.set(value))
+    override fun toString(             ) = "$variable [$transformer]"
 }
 
 private fun adapter(variable: ReflectionVariable, transformer: Transformer<Double>?, forceConst: Boolean = false): Property = transformer?.let {
     if (forceConst) ConstPropertyWrapper(variable, transformer) else PropertyWrapper(variable, transformer)
 } ?: variable
 
+public fun ConstraintDslContext.withSizeInsets(
+    width : Double? = null,
+    height: Double? = null,
+    block : ConstraintDslContext.() -> Unit
+): Unit = when {
+    width == 0.0 && height == 0.0 -> block(this)
+    else                          -> this@withSizeInsets.withSizeInsets(width = width?.let { OffsetTransformer(it) }, height = height?.let { OffsetTransformer(it) }, block)
+}
+
+private fun ConstraintDslContext.withSizeInsets(
+    width : Transformer<Double>? = null,
+    height: Transformer<Double>? = null,
+    block : ConstraintDslContext.() -> Unit
+) {
+    apply {
+        val oldWidth  = parent_.width_
+        val oldHeight = parent_.height_
+
+        width?.get (parent_.width_ )?.let { parent_.width_  = it }
+        height?.get(parent_.height_)?.let { parent_.height_ = it }
+
+        parent_.width_  = oldWidth
+        parent_.height_ = oldHeight
+    }
+}
 
 /**
  * Creates a [ConstraintLayout] that constrains a single View.
@@ -673,7 +880,7 @@ private fun adapter(variable: ReflectionVariable, transformer: Transformer<Doubl
  * @param constraints with constraint details
  * @return Layout that constrains the given view
  */
-public fun constrain2(a: View, constraints: ConstraintDslContext2.(Bounds) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, originalLambda = constraints) { (a) -> constraints(a) }
+public fun constrain(a: View, constraints: ConstraintDslContext.(Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, originalLambda = constraints) { (a) -> constraints(a) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 2 Views.
@@ -683,7 +890,7 @@ public fun constrain2(a: View, constraints: ConstraintDslContext2.(Bounds) -> Un
  * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain2(a: View, b: View, constraints: ConstraintDslContext2.(Bounds, Bounds) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, b, originalLambda = constraints) { (a, b) -> constraints(a, b) }
+public fun constrain(a: View, b: View, constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, originalLambda = constraints) { (a, b) -> constraints(a, b) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 3 Views.
@@ -694,7 +901,7 @@ public fun constrain2(a: View, b: View, constraints: ConstraintDslContext2.(Boun
  * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain2(a: View, b: View, c: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, b, c, originalLambda = constraints) { (a, b, c) -> constraints(a, b, c) }
+public fun constrain(a: View, b: View, c: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, originalLambda = constraints) { (a, b, c) -> constraints(a, b, c) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 4 Views.
@@ -706,7 +913,7 @@ public fun constrain2(a: View, b: View, c: View, constraints: ConstraintDslConte
  * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain2(a: View, b: View, c: View, d: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, b, c, d, originalLambda = constraints) { (a, b, c, d) -> constraints(a, b, c, d) }
+public fun constrain(a: View, b: View, c: View, d: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, originalLambda = constraints) { (a, b, c, d) -> constraints(a, b, c, d) }
 
 /**
  * Creates a [ConstraintLayout] that constrains 5 Views.
@@ -719,7 +926,7 @@ public fun constrain2(a: View, b: View, c: View, d: View, constraints: Constrain
  * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain2(a: View, b: View, c: View, d: View, e: View, constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, b, c, d, e, originalLambda = constraints) { (a, b, c, d, e) -> constraints(a, b, c, d, e) }
+public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, b, c, d, e, originalLambda = constraints) { (a, b, c, d, e) -> constraints(a, b, c, d, e) }
 
 /**
  * Creates a [ConstraintLayout] that constrains several Views.
@@ -729,7 +936,7 @@ public fun constrain2(a: View, b: View, c: View, d: View, e: View, constraints: 
  * @param constraints with constraint details
  * @return Layout that constrains the given views
  */
-public fun constrain2(a: View, b: View, vararg others: View, constraints: ConstraintDslContext2.(List<Bounds>) -> Unit): ConstraintLayout2 = ConstraintLayoutImpl2(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
+public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
  * Applies the given constraints to the Positionables as though they were each within the Rectangle provided by [within].
@@ -740,12 +947,14 @@ public fun constrain2(a: View, b: View, vararg others: View, constraints: Constr
  * @suppress
  */
 @Internal
-public fun <T: Positionable> Iterable<T>.constrain2(
-    using      : ConstraintDslContext2.(Bounds) -> Unit,
-    within     : (Int, T) -> Rectangle
-): Unit = with(Constrainer2()) {
+public fun <T: Positionable> Iterable<T>.constrain(
+    using : ConstraintDslContext.(Bounds) -> Unit,
+    within: (Int, T) -> Rectangle
+): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
-        view.bounds = this(view.bounds, within(index, view), forceSetup = false, using)
+        this(view.bounds, within(index, view), forceSetup = false, using).apply {
+            view.updateBounds(x, y, size, size)
+        }
     }
 }
 
@@ -755,18 +964,18 @@ public fun <T: Positionable> Iterable<T>.constrain2(
  * @suppress
  */
 @Internal
-public class Constrainer2 {
+public class Constrainer {
     private val activeBounds  = mutableSetOf<ReflectionVariable>()
     private val updatedBounds = mutableSetOf<ReflectionVariable>()
 
-    private var using: ConstraintDslContext2.(Bounds) -> Unit = {}
+    private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
     private var parentSize = Size.Empty
     private val fakeView   = object: View() {}
     private val solver     = Solver()
-    private val context    = ConstraintDslContext2()
-    private val fakeBounds = BoundsImpl2(fakeView.positionable2Wrapper, fakeView.bounds, context)
-    private val blocks     = listOf(ConstraintLayoutImpl2.BlockInfo(listOf(fakeBounds)) {
+    private val context    = ConstraintDslContext()
+    private val fakeBounds = BoundsImpl(fakeView.positionable, fakeView.bounds, context)
+    private val blocks     = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
 
@@ -783,9 +992,14 @@ public class Constrainer2 {
         rectangle  : Rectangle,
         within     : Rectangle,
         forceSetup : Boolean = false,
-        using      : ConstraintDslContext2.(Bounds) -> Unit
+        using      : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
         if (fakeView.bounds != rectangle) {
+            fakeBounds.x_      = rectangle.x
+            fakeBounds.y_      = rectangle.y
+            fakeBounds.width_  = rectangle.width
+            fakeBounds.height_ = rectangle.height
+
             updatedBounds += fakeBounds.top
             updatedBounds += fakeBounds.left
             updatedBounds += fakeBounds.width

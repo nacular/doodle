@@ -5,7 +5,6 @@ import io.nacular.doodle.controls.files.FileSelectorBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeFileSelectorFactory
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 
 internal class NativeFileSelectorStylerImpl(private val nativeFileSelectorFactory: NativeFileSelectorFactory):
@@ -44,8 +43,8 @@ internal class NativeFileSelectorBehavior(nativeFileSelectorFactory: NativeFileS
         }
     }
 
-    private var oldCursor   : Cursor? = null
-    private var oldIdealSize: Size? = null
+    private var oldCursor    : Cursor? = null
+    private var oldIdealSize = fileSelector.idealSize
 
     override fun render(view: FileSelector, canvas: Canvas) {
         nativePeer.render(canvas)

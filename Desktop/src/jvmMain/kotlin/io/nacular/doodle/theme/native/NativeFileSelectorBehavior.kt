@@ -156,7 +156,7 @@ internal class NativeFileSelectorBehavior(
 
     private lateinit var nativePeer   : FileSelectorPeer
     private          var oldCursor    : Cursor? = null
-    private          var oldIdealSize : Size?   = null
+    private          var oldIdealSize = Size.Empty
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
         when (new) {

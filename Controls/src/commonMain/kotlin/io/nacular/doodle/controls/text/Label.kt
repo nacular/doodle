@@ -23,7 +23,7 @@ import io.nacular.doodle.utils.observable
 
 
 public interface LabelBehavior: Behavior<Label> {
-    public val Label.textSize: Size get() = _textSize
+    public val Label.textSize: Size get() = textSize
 
     public fun measureText(label: Label): Size
 }
@@ -111,15 +111,11 @@ public open class Label(
      */
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
-    internal val _textSize get() = textSize
-
-    private var textSize = Empty
-        set(new) {
-            field     = new
-            idealSize = new
-            if (Width  in fitText) width  = new.width
-            if (Height in fitText) height = new.height
-        }
+    internal var textSize = Empty; private set(new) {
+        field     = new
+        idealSize = new
+        size      = new
+    }
 
     public var behavior: LabelBehavior? by behavior { _,new ->
         mirrorWhenRightLeft = false
@@ -131,13 +127,9 @@ public open class Label(
         return behavior?.measureText(this)?.also { textSize = it } ?: Empty
     }
 
-    init {
-        boundsChanged += { _,old,new ->
-            if (old.size != new.size) {
-                measureText()
-            }
-        }
+    override fun preferredSize(min: Size, max: Size): Size = textSize
 
+    init {
         styleChanged += {
             // force update
             actualStyledText = actualStyledText

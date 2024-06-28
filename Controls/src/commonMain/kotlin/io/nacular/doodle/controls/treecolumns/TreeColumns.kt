@@ -10,8 +10,7 @@ import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.MutableList
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.tree.TreeModel
-import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -22,10 +21,8 @@ import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Path
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.Resizer
-import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import kotlin.math.max
@@ -289,24 +286,24 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
         children.addAll(columns.map { createScrollPanel(it.list) })
 
-        layout = object: Layout {
-            override fun layout(container: PositionableContainer) {
-                val y     = container.insets.top
-                var x     = container.insets.left
-                val h     = container.height - container.insets.run { top + bottom }
-                var width = 0.0
+        layout = simpleLayout { views, _, current, _ ->
+            val y     = 0.0
+            var x     = 0.0
+            val h     = current.height
+            var width = 0.0
 
-                container.children.forEach {
-                    it.bounds = Rectangle(x, y, it.width, h)
-
+            views.forEach {
+                it.updateBounds(Rectangle(x, y, it.bounds.width, h).also {
                     x     += it.width
                     width += it.width
-                }
-
-                if (width > 0) {
-                    this@TreeColumns.width = max(container.width, width + container.insets.run { left + right })
-                }
+                })
             }
+
+            if (width > 0) {
+                this@TreeColumns.width = max(current.width, width)
+            }
+
+            current
         }
     }
 
@@ -377,7 +374,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
         contentWidthConstraints  = { it eq width - verticalScrollBarWidth                   }
-        contentHeightConstraints = { it eq max(content?.minimumSize?.height ?: 0.0, height) }
+        contentHeightConstraints = { it eq height }
 
 //        sizePreferencesChanged += { _,_,_ ->
 //            idealSize?.let { width = it.width }

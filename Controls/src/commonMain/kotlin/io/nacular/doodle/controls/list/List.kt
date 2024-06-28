@@ -15,8 +15,6 @@ import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.scrollTo
@@ -30,8 +28,8 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
-import io.nacular.doodle.utils.Pool
+import io.nacular.doodle.utils.Dimension.Height
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
@@ -212,11 +210,12 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
+    private var minimumSize = Size.Empty
+
     protected fun updateVisibleHeight() {
         val oldSize = minimumSize
 
         minimumSize = itemPositioner?.minimumSize(this) ?: minimumSize
-        idealSize   = minimumSize
 
         if (oldSize == minimumSize) {
             // FIXME: This reset logic could be handled better
@@ -236,33 +235,18 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = object: Layout {
-            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle,       new: Rectangle      ) = !handlingRectChange
-            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = !handlingRectChange
-
-            override fun layout(container: PositionableContainer) {
-                (firstVisibleItem .. lastVisibleItem).forEach {
-                    if (it < model.size) {
-                        model[it].onSuccess { item ->
-                            children.getOrNull(it % children.size)?.let { child ->
-                                layout(child, item, it)
-                            }
+        layout = Layout.simpleLayout { items, min, current, max ->
+            (firstVisibleItem .. lastVisibleItem).forEach {
+                if (it < model.size) {
+                    model[it].onSuccess { item ->
+                        children.getOrNull(it % children.size)?.let { child ->
+                            layout(child, item, it)
                         }
                     }
                 }
             }
-        }
 
-        sizePreferencesChanged += { _,old,new ->
-            if (new.minimumSize != old.minimumSize) {
-                if (Width in fitContent) {
-                    width = new.minimumSize.width
-                }
-
-                if (Height in fitContent) {
-                    height = new.minimumSize.height
-                }
-            }
+            size
         }
     }
 
@@ -365,7 +349,6 @@ public open class List<T, out M: ListModel<T>>(
             maxBottom   = max(maxBottom, view.bounds.bottom)
 
             val mSize   = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
-            idealSize   = mSize
             minimumSize = mSize
         }
     }

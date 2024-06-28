@@ -103,9 +103,6 @@ public open class Carousel<T, M: ListModel<T>>(
         public var position   : Point           by view::position
         public var transform  : AffineTransform by view::transform
 
-        public val idealSize  : Size?           by view::idealSize
-        public val minimumSize: Size            by view::minimumSize
-
         /**
          * Indicates that the item has been changed in some way that might require
          * the Presenter to refresh any internal state.

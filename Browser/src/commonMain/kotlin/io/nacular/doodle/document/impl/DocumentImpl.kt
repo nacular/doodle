@@ -1,8 +1,7 @@
 package io.nacular.doodle.document.impl
 
 import io.nacular.doodle.controls.document.Document
-import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Block
 import io.nacular.doodle.dom.Display
@@ -48,14 +47,14 @@ internal class DocumentImpl(
     init {
         height = 1.0 // FIXME: Remove once a better solution exists to allow first render
 
-        layout = object: Layout {
-            override fun layout(container: PositionableContainer) {
-                children.forEach {
-                    it.bounds = it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) })
-                }
-
-                resizeTask = resizeTask ?: scheduler.now { resize() }
+        layout = simpleLayout { items, min, current, max ->
+            children.forEach {
+                it.bounds = it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) })
             }
+
+            resizeTask = resizeTask ?: scheduler.now { resize() }
+
+            current
         }
     }
 

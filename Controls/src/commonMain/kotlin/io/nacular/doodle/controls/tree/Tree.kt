@@ -12,8 +12,6 @@ import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.scrollTo
@@ -22,7 +20,6 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -147,9 +144,8 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   var maxVisiblePosition                   = Origin
     private   var minHeight                            = 0.0
         set(new) {
-            field       = new
-            height      = field
-            minimumSize = Size(minimumSize.width, field)
+            field  = new
+            height = field
         }
 
     private   var handlingRectChange   = false
@@ -170,28 +166,21 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     init {
-        sizePreferencesChanged += { _,_,_ ->
-            idealSize = minimumSize
-        }
-
         monitorsDisplayRect = true
 
         updateNumRows()
 
         @Suppress("LeakingThis")
-        layout = object: Layout {
-            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle,       new: Rectangle      ) = !handlingRectChange
-            override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = !handlingRectChange
-
-            override fun layout(container: PositionableContainer) {
-                (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
-                    model[path].onSuccess { value ->
-                        children.getOrNull(index % children.size)?.let { child ->
-                            layout(child, value, path, index)
-                        }
+        layout = Layout.simpleLayout { _, _, current, _ ->
+            (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+                model[path].onSuccess { value ->
+                    children.getOrNull(index % children.size)?.let { child ->
+                        layout(child, value, path, index)
                     }
                 }
             }
+
+            current
         }
     }
 
@@ -499,12 +488,12 @@ public open class Tree<T, out M: TreeModel<T>>(
         return result
     }
 
+    // FIXME: Use a Layout to ensure Tree scales properly
     protected fun layout(view: View, node: T, path: Path<Int>, index: Int) {
         rowPositioner?.let {
             view.bounds = it.rowBounds(this, node, path, index, view)
 
-            minimumSize = Size(max(width, view.width), minHeight)
-            idealSize   = Size(max(idealSize?.width ?: 0.0, view.idealSize?.width ?: minimumSize.width), minHeight)
+//            idealSize = Size(max(idealSize.width, view.idealSize.width), minHeight)
         }
     }
 

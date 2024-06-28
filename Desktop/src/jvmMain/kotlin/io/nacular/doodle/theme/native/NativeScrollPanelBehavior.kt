@@ -7,7 +7,7 @@ import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Horiz
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Vertical
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -16,6 +16,7 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.swing.doodle
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
@@ -140,7 +141,7 @@ internal class NativeScrollPanelBehavior(
     }
 
     private var oldCursor    : Cursor?    = null
-    private var oldIdealSize : Size?      = null
+    private var oldIdealSize              = Empty
     private var clickedTarget: Component? = null
 
     private lateinit var nativePeer     : JScrollPanePeer
@@ -190,14 +191,14 @@ internal class NativeScrollPanelBehavior(
     override fun mirrorWhenRightToLeft(view: ScrollPanel) = false
 
     private inner class LayoutWrapper(delegate: Layout): Layout by delegate {
-        override fun child(of: PositionableContainer, at: Point): LookupResult {
+        override fun item(of: Sequence<Positionable>, at: Point): LookupResult {
             val target = when {
                 this@NativeScrollPanelBehavior::nativePeer.isInitialized -> nativePeer.getComponentAt(at.x.toInt(), at.y.toInt())
                 else                                                     -> null
             }
 
             return when (target) {
-                null, nativePeer.viewport, nativePeer.viewport.view, nativePeer -> super.child(of, at)
+                null, nativePeer.viewport, nativePeer.viewport.view, nativePeer -> super.item(of, at)
                 else                                                            -> LookupResult.Empty
             }
         }

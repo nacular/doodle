@@ -115,14 +115,14 @@ internal class NativeButton internal constructor(
     private val textFactory           : TextFactory,
     private val htmlFactory           : HtmlFactory,
     private val graphicsSurfaceFactory: RealGraphicsSurfaceFactory,
-    handlerFactory        : NativeEventHandlerFactory,
+                handlerFactory        : NativeEventHandlerFactory,
     private val focusManager          : FocusManager?,
     private val button                : Button,
     private val insets                : Insets,
     private val border                : Insets
 ): NativeEventListener {
 
-    var idealSize: Size? = null; private set(new) {
+    var idealSize: Size = button.idealSize; private set(new) {
         field = new
         button.idealSize = new // TODO: Should this be done in NativeButtonBehavior instead?
     }

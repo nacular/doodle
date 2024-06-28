@@ -59,7 +59,7 @@ internal class NativeHyperLink internal constructor(
     private val hostName            : String,
     private val hyperLink           : HyperLink): NativeEventListener {
 
-    var idealSize: Size? = null
+    var idealSize: Size = hyperLink.idealSize
         private set
 
     private val nativeEventHandler: NativeEventHandler

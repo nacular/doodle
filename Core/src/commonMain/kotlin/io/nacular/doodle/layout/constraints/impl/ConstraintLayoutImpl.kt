@@ -84,10 +84,15 @@ internal open class BoundsImpl(private val target: View, private val context: Co
         }
     }
 
-    override val top     by lazy { ReflectionVariable(target, target::y,      id = yId,      term) }
-    override val left    by lazy { ReflectionVariable(target, target::x,      id = xId,      term) }
-    override val width   by lazy { ReflectionVariable(target, target::width,  id = widthId,  term) { max(0.0, it) } }
-    override val height  by lazy { ReflectionVariable(target, target::height, id = heightId, term) { max(0.0, it) } }
+    var x_      = bounds.x
+    var y_      = bounds.y
+    var width_  = bounds.width
+    var height_ = bounds.height
+
+    override val top     by lazy { ReflectionVariable(target, ::y_,      id = yId,      term) }
+    override val left    by lazy { ReflectionVariable(target, ::x_,      id = xId,      term) }
+    override val width   by lazy { ReflectionVariable(target, ::width_,  id = widthId,  term) }
+    override val height  by lazy { ReflectionVariable(target, ::height_, id = heightId, term) }
 
     override val right   by lazy { with(context) { left + width      } }
     override val centerX by lazy { with(context) { left + width  / 2 } }
@@ -160,15 +165,6 @@ internal class ReflectionVariable(
 internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLambda: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
     @Suppress("PrivatePropertyName")
     private val parentChanged_ = ::parentChanged
-
-    @Suppress("PrivatePropertyName")
-    private val boundsChanged_ = ::boundsChanged
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun parentChanged(child: View, old: View?, new: View?) {
-        child.parentChange  -= parentChanged_
-        child.boundsChanged -= boundsChanged_
-    }
 
     private val activeBounds  = mutableSetOf<ReflectionVariable>()
     private val updatedBounds = mutableSetOf<ReflectionVariable>()

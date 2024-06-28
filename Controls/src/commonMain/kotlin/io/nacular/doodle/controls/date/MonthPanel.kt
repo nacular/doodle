@@ -7,13 +7,14 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -60,14 +61,14 @@ public open class MonthPanel(
     private inner class MonthLayout: Layout {
         private val constrainer = Constrainer()
 
-        override fun layout(container: PositionableContainer) {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
             var row         = 0
             var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
-            val rowHeight   = container.height / numRows
-            val columnWidth = container.width  / numColumns
+            val rowHeight   = current.height / numRows
+            val columnWidth = current.width  / numColumns
 
             when (cellAlignment) {
-                fill -> container.children.forEach {
+                fill -> views.forEach {
                     val rect = Rectangle(
                         x      = columnWidth * col,
                         y      = rowHeight * row,
@@ -79,9 +80,9 @@ public open class MonthPanel(
 
                     if (col == 0) row++
 
-                    it.bounds = rect
+                    it.updateBounds(rect)
                 }
-                else -> container.children.forEach {
+                else -> views.forEach {
                     val within = Rectangle(
                         x      = columnWidth * col,
                         y      = rowHeight   * row,
@@ -93,9 +94,11 @@ public open class MonthPanel(
 
                     if (col == 0) row++
 
-                    it.bounds = constrainer(it.bounds, within = within, minimumSize = it.minimumSize, idealSize = it.idealSize, using = cellAlignment)
+                    it.updateBounds(constrainer(it.bounds, within = within, using = cellAlignment))
                 }
             }
+
+            return super.layout(views, min, current, max)
         }
     }
 

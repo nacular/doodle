@@ -1,8 +1,7 @@
 package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.lerp
 import io.nacular.doodle.utils.lerp
@@ -43,34 +42,40 @@ import io.nacular.doodle.utils.lerp
 public class InteractiveLayout(private val start: Layout, private val end: Layout): Layout {
     public var progress: Float = 0f
 
-    override fun layout(container: PositionableContainer) {
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        var result = current
+
         if (progress < 1f) {
-            start.layout(container)
+            result = start.layout(views, min, current, max)
         }
 
         if (progress == 0f) {
-            return // done since items are laid out according to start
+            return result // done since items are laid out according to start
         }
 
-        val startBounds = if (progress < 1f) container.children.map { it.bounds } else emptyList()
+        val children = views.toList()
 
-        end.layout(container)
+        val startBounds = if (progress < 1f) children.map { it.bounds } else emptyList()
+
+        result = end.layout(views, min, current, max)
 
         if (progress == 1f) {
-            return // done since items are laid out according to end
+            return result // done since items are laid out according to end
         }
 
-        val endBounds = container.children.map { it.bounds }
+        val endBounds = children.map { it.bounds }
 
-        container.children.forEachIndexed { index, view ->
+        views.forEachIndexed { index, view ->
             val start = startBounds[index]
             val end   = endBounds  [index]
 
-            view.bounds = Rectangle(
-                lerp(start.position, end.position, progress),
-                Size(lerp(start.width, end.width, progress), lerp(start.height, end.height, progress))
-            )
+            val position = lerp(start.position, end.position, progress)
+            val size     = Size(lerp(start.width, end.width, progress), lerp(start.height, end.height, progress))
+
+            view.updateBounds(position.x, position.y, size, size)
         }
+
+        return current
     }
 
     /**

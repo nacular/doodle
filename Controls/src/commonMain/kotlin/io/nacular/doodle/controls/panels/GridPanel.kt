@@ -4,7 +4,7 @@ import io.nacular.doodle.controls.panels.GridPanel.Companion.FitContent
 import io.nacular.doodle.controls.panels.SizingPolicy.OverlappingView
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
@@ -188,24 +188,19 @@ public open class GridPanel: View() {
         private var idealWidth  = null as Double?
         private var idealHeight = null as Double?
 
-        override fun idealSize(container: PositionableContainer, default: Size?) = idealWidth?.let { w ->
-            idealHeight?.let { h ->
-                Size(w, h)
-            }
-        }
-
-        override fun layout(container: PositionableContainer) {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
             val rowLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
             val colLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
 
             // Calculate row and column sizes
             children.forEach { child ->
                 locations[child]?.forEach {
-                    val rowSpan = rowSpans.getValue   (child)
-                    val colSpan = columnSpans.getValue(child)
+                    val rowSpan   = rowSpans.getValue   (child)
+                    val colSpan   = columnSpans.getValue(child)
+                    val idealSize = child.idealSize
 
-                    rowLanes.getOrPut(it.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, child.idealSize?.height) }
-                    colLanes.getOrPut(it.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  child.idealSize?.width ) }
+                    rowLanes.getOrPut(it.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, idealSize.height) }
+                    colLanes.getOrPut(it.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  idealSize.width ) }
                 }
             }
 
@@ -257,13 +252,11 @@ public open class GridPanel: View() {
                         widths.sumOf  { it.size } + horizontalSpacing * (widths.size - 1),
                         heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
                     ),
-                    minimumSize   = it.minimumSize,
-                    idealSize = it.idealSize,
                     using     = cellAlignment
                 )
             }
 
-            container.idealSize = Size(idealWidth!!, idealHeight!!)
+            return Size(idealWidth!!, idealHeight!!)
         }
     }
 

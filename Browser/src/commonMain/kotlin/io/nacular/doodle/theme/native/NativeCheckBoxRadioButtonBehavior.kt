@@ -31,7 +31,7 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
     private lateinit var oldSize     : Size
     private          var oldCursor   : Cursor? = null
-    private          var oldIdealSize: Size? = null
+    private          var oldIdealSize = button.idealSize
 
     override fun mirrorWhenRightToLeft(view: ToggleButton) = false
 

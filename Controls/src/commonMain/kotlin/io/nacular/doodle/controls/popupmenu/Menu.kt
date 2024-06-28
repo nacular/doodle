@@ -26,7 +26,6 @@ import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.event.PointerListener.Companion.entered
 import io.nacular.doodle.event.PointerListener.Companion.on
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
@@ -99,16 +98,17 @@ public class Menu private constructor(
     init {
         isFocusCycleRoot   = true
         clipCanvasToBounds = false
-        layout             = simpleLayout { container ->
+        layout             = simpleLayout { views, min, current, max ->
             var y        = insets.top
-            val maxWidth = container.children.maxOf { it.idealSize?.width ?: 0.0 }
+            val maxWidth = views.maxOf { it.idealSize.width }
 
-            container.children.forEach {
-                it.bounds  = Rectangle(insets.left, y, maxWidth, it.height)
-                y         += it.height
+            views.forEach {
+                it.updateBounds(insets.left, y, Size(maxWidth, 0.0), Size(maxWidth, Double.POSITIVE_INFINITY)).also {
+                    y += it.height
+                }
             }
 
-            size = Size(maxWidth + insets.right, height = y + insets.bottom)
+            Size(maxWidth + insets.right, height = y + insets.bottom)
         }
 
         enabledChanged += { _,_,enabled ->

@@ -3,12 +3,12 @@ package io.nacular.doodle.controls.date
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.DayOfWeek.MONDAY
 import kotlinx.datetime.DayOfWeek.SUNDAY
@@ -35,20 +35,23 @@ public interface DaysOfTheWeekPanelBehavior: Behavior<DaysOfTheWeekPanel> {
  */
 public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null): View() {
     private inner class DaysLayout: Layout {
-        override fun layout(container: PositionableContainer) {
-            val columnWidth = container.width / numColumns
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+            val columnWidth = current.width / numColumns
             var col         = shiftDay(weekStart) % numColumns
+            val size        = Size(columnWidth, current.height)
 
-            container.children.forEach {
-                it.bounds = Rectangle(
-                        x      = columnWidth * col,
-                        y      = 0.0,
-                        width  = columnWidth,
-                        height = container.height
+            views.forEach {
+                it.updateBounds(
+                    x   = columnWidth * col,
+                    y   = 0.0,
+                    min = size,
+                    max = size
                 )
 
                 col = (col + 1) % numColumns
             }
+
+            return super.layout(views, min, current, max)
         }
     }
 

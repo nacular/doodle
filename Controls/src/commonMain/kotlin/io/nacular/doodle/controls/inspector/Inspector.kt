@@ -4,21 +4,17 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.HorizontalFlowLayout
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.Extractor
-import kotlin.math.max
 
-public abstract class Field<T>: Positionable
+public abstract class Field<T>
 
 public class NamedField<T, C>(private val name           : String,
                               private val nameVisualizer : ItemVisualizer<String, Any>,
@@ -30,25 +26,21 @@ public class NamedField<T, C>(private val name           : String,
             children += listOf(nameVisualizer(name, null, Unit), valueVisualizer(item, previous, context))
 
             layout = when (val l = this@NamedField.layout) {
-                null -> HorizontalFlowLayout(horizontalSpacing = 5.0, verticalSpacing = 5.0).then {
-                    height = max(children[0].bounds.bottom, children[1].bounds.bottom)
-                }.also {
+                null -> HorizontalFlowLayout(horizontalSpacing = 5.0, verticalSpacing = 5.0).also {
                     width  = children[0].width + 5.0 + children[1].width
                 }
-                else -> {
+                else -> layout /*{
                     object: Layout {
                         val delegate = constrain(children[0], children[1], l)
 
-                        override fun layout(container: PositionableContainer) {
-                            delegate.layout(container)
+                        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+                            delegate.layout(views, min, current, max)
 
-                            height = max(children[0].bounds.bottom, children[1].bounds.bottom)
+                            return Size(current.width, max(children[0].bounds.bottom, children[1].bounds.bottom))
                         }
-                    }.then {
-                        // FIXME
-                        height = max(children[0].bounds.bottom, children[1].bounds.bottom)
+
                     }
-                }
+                }*/
             }
         }
     }
@@ -59,7 +51,7 @@ public interface FieldFactory<T> {
 }
 
 public open class Inspector<T>(public val value: T, private val block: FieldFactory<T>.() -> Unit): View() {
-    private class FieldImpl<T>(val view: View): Field<T>(), Positionable by view
+    private class FieldImpl<T>(val view: View): Field<T>()
 
     private inner class FieldFactoryImpl: FieldFactory<T> {
         override fun <R> field(extractor: Extractor<T, R>, visualizer: ItemVisualizer<R, Any>) = FieldImpl<R>(visualizer(extractor(value), null, Unit)).also {
@@ -80,13 +72,16 @@ public open class Inspector<T>(public val value: T, private val block: FieldFact
 
                 if (layout == null) {
                     layout = object: Layout {
-                        override fun layout(container: PositionableContainer) {
+                        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
                             var y = 0.0
 
-                            container.children.forEach {
-                                it.bounds = Rectangle(0.0, y, container.width, it.height)
-                                y += it.height
+                            views.forEach {
+                                it.updateBounds(0.0, y, Size(current.width, 0.0), Size.Infinite).also {
+                                    y += it.height
+                                }
                             }
+
+                            return current
                         }
                     }
                 }

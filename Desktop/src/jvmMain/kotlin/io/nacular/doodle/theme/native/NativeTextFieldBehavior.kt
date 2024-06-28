@@ -348,7 +348,7 @@ internal open class NativeTextFieldBehavior(
 
     private          var oldCursor    : Cursor? = null
     private lateinit var nativePeer   : JTextFieldPeer
-    private          var oldIdealSize : Size?   = null
+    private          var oldIdealSize           = Size.Empty
     private          var ignoreDoodleTextChange = false
 
     private val maskChanged = { _: TextField, _: Char?, new: Char? ->

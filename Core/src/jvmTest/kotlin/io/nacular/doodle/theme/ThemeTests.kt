@@ -9,7 +9,6 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform
@@ -98,7 +97,6 @@ class ThemeTests {
         override var transform: AffineTransform = Identity
         override val children                   = ObservableList<View>()
         override val popups                     = emptyList<View>()
-        override val positionable               = mockk<PositionableContainer>()
         override val cursorChanged              = mockk<PropertyObservers<Display, Cursor?>>()
         override val sizeChanged                = mockk<PropertyObservers<Display, Size>>()
         override var focusTraversalPolicy       = null as FocusTraversalPolicy?
@@ -113,8 +111,6 @@ class ThemeTests {
         override fun fromAbsolute(point: Point) = point
 
         override fun fill(fill: Paint) {}
-
-        override fun child(at: Point) = null
 
         override fun child(at: Point, predicate: (View) -> Boolean) = null
 

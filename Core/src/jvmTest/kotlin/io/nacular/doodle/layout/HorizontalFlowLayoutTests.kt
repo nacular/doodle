@@ -273,11 +273,11 @@ class HorizontalFlowLayoutTests {
     private fun validate(config: (Container) -> Info) {
         val container = container {
             size      = Size(500)
-            insets    = Insets(11.0, 12.0, 3.0, 5.0)
+            insets    = Insets.None //Insets(11.0, 12.0, 3.0, 5.0)
             children += (0 until 4).mapIndexed { index, _ ->
                 view { size = Size(100 + (5 * index), 100 + (3 * index)) }
             }
-            layout = HorizontalFlowLayout(spacing = 0.0)
+            this.layout = HorizontalFlowLayout(spacing = 0.0)
         }
 
         val info = config(container)

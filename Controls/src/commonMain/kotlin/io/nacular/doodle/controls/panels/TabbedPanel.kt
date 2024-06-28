@@ -10,10 +10,8 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.utils.BoxOrientation
 import io.nacular.doodle.utils.BoxOrientation.Top
-import io.nacular.doodle.utils.ListObserver
 import io.nacular.doodle.utils.ListObservers
 import io.nacular.doodle.utils.ObservableList
-import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool

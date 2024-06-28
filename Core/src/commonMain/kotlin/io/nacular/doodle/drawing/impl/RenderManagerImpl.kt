@@ -4,11 +4,7 @@ import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.View.SizePreferences
-import io.nacular.doodle.core.height
-import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.GraphicsSurface
@@ -305,6 +301,7 @@ public open class RenderManagerImpl(
                 pendingBoundsChange.firstOrNull()?.also { item ->
                     when {
                         item !in neverRendered -> {
+                            item.doLayout_()
                             updateGraphicsSurface(item, graphicsDevice[item])
 
                             pendingBoundsChange.remove(item)
@@ -337,7 +334,7 @@ public open class RenderManagerImpl(
     private fun performLayout(view: View) {
         layingOut = view
 
-        view.doLayout2_()
+        view.doLayout_()
 
         layingOut = null
 
@@ -384,6 +381,7 @@ public open class RenderManagerImpl(
             }
 
             if (view in pendingBoundsChange) {
+                view.doLayout_()
                 updateGraphicsSurface(view, graphicsSurface)
 
                 pendingBoundsChange -= view
@@ -641,78 +639,7 @@ public open class RenderManagerImpl(
         }
     }
 
-    override fun sizePreferencesChanged(view: View, old: SizePreferences, new: SizePreferences) {
-        val parent = view.parent
-
-        // Early exit if this event was triggered by an item as it is being removed from the container tree.
-        //
-        // Same for invisible items.
-        if ((parent == null && view !in display && view !in popups) || !view.visible) {
-            return
-        }
-
-        when (parent) {
-            null -> if (display.layout?.requiresLayout(view, displayPositionableContainer, old, new) == true) display.relayout()
-            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper,   old, new) == true) {
-                pendingLayout += parent
-                schedulePaint()
-            }
-        }
-    }
-
-    private val displayPositionableContainer = object: PositionableContainer {
-        override val size        get() = display.size
-        override val width       get() = display.width
-        override val height      get() = display.height
-        override var idealSize   get() = null as Size?; set(_) {}
-        override var minimumSize get() = Size.Empty;    set(_) {}
-
-        override val insets      get() = display.insets
-        override val children    get() = display.children
-    }
-
     override fun boundsChanged(view: View, old: Rectangle, new: Rectangle) {
-        val parent = view.parent
-
-        // Early exit if this event was triggered by an item as it is being removed from the container tree.
-        //
-        // Same for invisible items.
-        if ((parent == null && view !in display && view !in popups) || !view.visible) {
-            return
-        }
-
-        var reRender = false
-
-        pendingBoundsChange += view
-
-        if (!old.size.fastEquals(new.size)) {
-            reRender = true
-
-            if (view.children_.isNotEmpty() && view.layout_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true) {
-                when {
-                    layingOut !== view                       -> pendingLayout += view
-
-                    // view is in the middle of a layout, so re-do it to allow bounds
-                    // changes to take effect
-                    old.size sufficientlyDifferentTo new.size -> view.doLayout_()
-                    else                                      -> return
-                }
-            }
-        }
-
-        when (parent) {
-            null -> if (display.layout?.requiresLayout(view, displayPositionableContainer, old, new) == true) display.relayout()
-//            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
-            else -> if (parent.layout_?.requiresLayout(view, parent.positionableWrapper, old, new) == true) pendingLayout += parent
-        }
-
-        when {
-            reRender -> render(view, true)
-            else     -> schedulePaint()
-        }
-    }
-
-    override fun boundsChanged2(view: View, old: Rectangle, new: Rectangle) {
         val parent = view.parent
 
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
@@ -731,7 +658,7 @@ public open class RenderManagerImpl(
 
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
-                    old.size sufficientlyDifferentTo new.size -> view.doLayout2_()
+                    old.size sufficientlyDifferentTo new.size -> view.doLayout_()
                     else                                      -> return
                 }
             }

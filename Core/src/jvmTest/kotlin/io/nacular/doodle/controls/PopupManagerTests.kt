@@ -183,6 +183,7 @@ class PopupManagerTests {
 
     @Test fun `popup re-positioned on view bounds change`() {
         val view              = mockk<View>()
+        val positionable      = mockk<View.PositionableView>()
         val display           = createSizeableDisplay().apply { size_ = Size(100) }
         val renderManager     = mockk<RenderManager>()
         val constraints       = mockk<ConstraintDslContext.(Bounds) -> Unit>()
@@ -192,6 +193,8 @@ class PopupManagerTests {
             viewBoundsChanged = lambda()
         }
 
+        every { view.positionable } returns positionable
+
         val manager = createManager(display, renderManager)
 
         manager.show(view, constraints)
@@ -199,17 +202,22 @@ class PopupManagerTests {
         val oldBounds = view.bounds
         val newBounds = Rectangle(10, 10, 10, 10)
 
-        every { view.bounds } answers { newBounds }
+        every { positionable.bounds } answers { newBounds }
 
         viewBoundsChanged.captured(view, oldBounds, newBounds)
 
         val displaySize = Size(display.width, display.height)
 
-        verify(exactly = 1) { constraints(match {
-            it.parent.edges.readOnly.size == displaySize
-        }, match {
-            it.edges.readOnly.also { println("edges: $it") } == newBounds
-        }) }
+        verify(exactly = 1) {
+            constraints(
+                match {
+                    it.parent.edges.readOnly.size == displaySize
+                },
+                match {
+                    it.edges.readOnly.also { println("edges: $it") } == newBounds
+                }
+            )
+        }
     }
 
     private fun createManager(

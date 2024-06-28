@@ -5,13 +5,13 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constraint
@@ -88,10 +88,6 @@ public open class ScrollPanel(content: View? = null): View() {
         if (new == this) this.content = view
     }
 
-    private val sizePreferencesListener: (View, SizePreferences, SizePreferences) -> Unit = { _,_,new ->
-        if (matchContentIdealSize) idealSize = new.idealSize
-    }
-
     /** Width of the panel's vertical scroll bar */
     public var verticalScrollBarWidth: Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
 
@@ -114,8 +110,7 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
         field?.let {
-            it.parentChange           -= parentChanged
-            it.sizePreferencesChanged -= sizePreferencesListener
+            it.parentChange -= parentChanged
             children -= it
             (layout as? ViewLayout)?.clearConstrains()
         }
@@ -125,9 +120,7 @@ public open class ScrollPanel(content: View? = null): View() {
 
         field?.let {
             children += it
-            it.parentChange           +=  parentChanged
-            it.sizePreferencesChanged += sizePreferencesListener
-            if (matchContentIdealSize) idealSize = it.idealSize
+            it.parentChange +=  parentChanged
             (layout as? ViewLayout)?.updateConstraints()
         }
 
@@ -138,14 +131,14 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.width ?: it.readOnly) }; set(new) {
+    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it.preserve }; set(new) {
         field = new
 
         (layout as? ViewLayout)?.updateConstraints()
     }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it eq (content?.idealSize?.height ?: it.readOnly) }; set(new) {
+    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it.preserve }; set(new) {
         field = new
 
         (layout as? ViewLayout)?.updateConstraints()
@@ -188,7 +181,7 @@ public open class ScrollPanel(content: View? = null): View() {
 
     // Expose container APIs for behavior
     internal val _children         get() = children
-    internal var _insets           get() = insets; set(new) { insets = new }
+    internal var _insets           get() = insets;  set(new) { insets = new }
     internal var _layout           get() = layout; set(new) { layout = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
@@ -318,15 +311,14 @@ public open class ScrollPanel(content: View? = null): View() {
             updateConstraints()
         }
 
-        override fun requiresLayout(child: Positionable, of: PositionableContainer, old: Rectangle, new: Rectangle) = !ignoreLayout.also { ignoreLayout = false }
-        override fun requiresLayout(child: Positionable, of: PositionableContainer, old: SizePreferences, new: SizePreferences) = new.idealSize != old.idealSize && matchContentIdealSize
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+            val r = delegate?.layout(views, min, current, max)
 
-        override fun layout(container: PositionableContainer) {
-            delegate?.layout(container)
-
-            container.children.forEach  {
+            views.forEach  {
                 it.position = Point(-scroll.x, -scroll.y)
             }
+
+            return super.layout(views, min, current, max)
         }
 
         fun clearConstrains() {

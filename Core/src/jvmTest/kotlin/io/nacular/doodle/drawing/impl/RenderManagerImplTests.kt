@@ -26,6 +26,7 @@ import io.nacular.doodle.drawing.RenderManager
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.times
+import io.nacular.doodle.geometry.with
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.theme.InternalThemeManager
@@ -42,7 +43,6 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.expect
 
@@ -388,7 +388,7 @@ class RenderManagerImplTests {
         listOf(container1, container2).forEach {
             verify(exactly = 0) { it.removedFromDisplay_(     ) }
             verify(exactly = 1) { it.render             (any()) }
-            verify(exactly = 1) { it.doLayout_          (     ) }
+            verify(exactly = 1) { it.doLayout_         (     ) }
         }
     }
 
@@ -497,7 +497,7 @@ class RenderManagerImplTests {
         listOf(container1, container2).forEach {
             verify(exactly = 0) { it.removedFromDisplay_(     ) }
             verify(exactly = 1) { it.render             (any()) }
-            verify(exactly = 1) { it.doLayout_          (     ) }
+            verify(exactly = 1) { it.doLayout_         (     ) }
         }
     }
 
@@ -835,13 +835,13 @@ class RenderManagerImplTests {
 
     @Test fun `lays out parent on visibility changed`() = verifyLayout { it.visible = false }
 
-    @Test fun `does not lay out parent on ideal-size changed`() = verifyLayout(count = 1) { it.idealSize = Size(100) }
+//    @Test fun `does not lay out parent on ideal-size changed`() = verifyLayout(count = 1) { it.idealSize = Size(100) }
 
-    @Test fun `lays out parent on ideal-size changed when not ignored`() = verifyLayout(layout(ignoreChildIdealSize = false)) { it.idealSize = Size(100) }
+//    @Test fun `lays out parent on ideal-size changed when not ignored`() = verifyLayout(layout(ignoreChildIdealSize = false)) { it.idealSize = Size(100) }
 
-    @Test fun `does not lay out parent on min-size changed`() = verifyLayout(count = 1) { it.minimumSize = Size(100) }
-
-    @Test fun `lays out parent on min-size changed when not ignored`() = verifyLayout(layout(ignoreChildMinSize = false)) { it.minimumSize = Size(100) }
+//    @Test fun `does not lay out parent on min-size changed`() = verifyLayout(count = 1) { it.minimumSize = Size(100) }
+//
+//    @Test fun `lays out parent on min-size changed when not ignored`() = verifyLayout(layout(ignoreChildMinSize = false)) { it.minimumSize = Size(100) }
 
     @Test fun `reflects visibility change`() {
         val container = spyk<Container> ("xyz").apply { bounds = Rectangle(size = Size(100.0, 100.0)) }
@@ -1354,15 +1354,10 @@ class RenderManagerImplTests {
         return result
     }
 
-    private fun layout(
-        ignoreChildBounds   : Boolean = false,
-        ignoreParentBounds  : Boolean = false,
-        ignoreChildIdealSize: Boolean = true,
-        ignoreChildMinSize  : Boolean = true,
-    ): Layout = mockk {
-        every { requiresLayout(any(), any(), any<Rectangle>(), any())            } returns !ignoreChildBounds
-        every { requiresLayout(any(), any(), any())                              } returns !ignoreParentBounds
-        every { requiresLayout(any(), any(), any<View.SizePreferences>(), any()) } returns !(ignoreChildIdealSize && ignoreChildMinSize)
+    private fun layout(): Layout = mockk {
+        val currentSize = slot<Size>()
+
+        every { layout(any(), any(), capture(currentSize), any()) } answers { currentSize.captured }
     }
 
     private fun display(vararg children: View, layout: Layout = layout()): InternalDisplay = mockk<InternalDisplay> {

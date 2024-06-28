@@ -37,7 +37,7 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 3/8/22.
  */
-class ConstraintLayout2Tests {
+class ConstraintLayoutTests {
     @Test fun basic() {
         val child1    = view {}.apply { height = 10.0 }
         val child2    = view {}
@@ -45,7 +45,7 @@ class ConstraintLayout2Tests {
             this += listOf(child1, child2)
         }
 
-        container.layout2 = constrain2(child1, child2) { a, b ->
+        container.layout = constrain(child1, child2) { a, b ->
             a.width   eq parent.width  - 10
             a.height  eq parent.height - 10
             b.width   eq 50
@@ -55,7 +55,7 @@ class ConstraintLayout2Tests {
 
         container.size = Size(200)
 
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(Size ( 50   )) { child2.size     }
         expect(Point( 75, 0)) { child2.position }
@@ -72,7 +72,7 @@ class ConstraintLayout2Tests {
             this += listOf(child1, child2)
         }
 
-        container.layout2 = constrain2(child1, child2) { a, b ->
+        container.layout = constrain(child1, child2) { a, b ->
             a.top     eq     0
             a.left    eq     0
             a.width   lessEq parent.width / 3
@@ -86,14 +86,14 @@ class ConstraintLayout2Tests {
         }
 
         container.size = Size(1200)
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds    }
         expect(Rectangle(        1200      )) { container.bounds }
         expect(Rectangle(         100, 1200)) { child1.bounds    }
 
         child1.width = 200.0
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(Rectangle(200, 0, 1000, 1200)) { child2.bounds    }
         expect(Rectangle(        1200      )) { container.bounds }
@@ -110,7 +110,7 @@ class ConstraintLayout2Tests {
             this += listOf(child1, child2, child3, child4)
         }
 
-        container.layout2 = constrain2(child1, child2, child3) { a, b, c ->
+        container.layout = constrain(child1, child2, child3) { a, b, c ->
             a.top    eq 0
             a.left   eq 0
             a.width  lessEq parent.width / 3
@@ -128,17 +128,17 @@ class ConstraintLayout2Tests {
         }
 
         container.size = Size(1200)
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
 
         child1.width = 200.0
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
 
         child3.x = 500.0
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
     }
@@ -148,7 +148,7 @@ class ConstraintLayout2Tests {
 
         var c = emptyList<Constraint>()
 
-        val layout = constrain2(view) {
+        val layout = constrain(view) {
             c = listOf(
                 it.top     greaterEq 10,
                 it.left    greaterEq 10,
@@ -159,7 +159,7 @@ class ConstraintLayout2Tests {
                 (it.height eq 500) .. Medium).takeLast(1).map { it.getOrThrow() }
         }
 
-        layout.layout(sequenceOf(view).map { it.positionable2Wrapper }, Size.Empty, Size(100), Size.Infinite)
+        layout.layout(sequenceOf(view).map { it.positionable }, Size.Empty, Size(100), Size.Infinite)
 
         val solver = Solver()
 
@@ -177,7 +177,7 @@ class ConstraintLayout2Tests {
 
         val parent = container {
             this += listOf(child1, child2)
-            layout2 = constrain2(child1, child2) { a, b ->
+            layout = constrain(child1, child2) { a, b ->
                 a.top    eq     0
                 a.left   eq     0
                 a.width  lessEq parent.width / 3
@@ -190,7 +190,7 @@ class ConstraintLayout2Tests {
 
         val grandParent = container {
             this += listOf(parent)
-            layout2 = constrain2(parent) {
+            layout = constrain(parent) {
                 it.top    eq     0
                 it.bottom lessEq this.parent.bottom
 
@@ -229,7 +229,7 @@ class ConstraintLayout2Tests {
             this += listOf(view1, view2, view3)
         }
 
-        val constraints: ConstraintDslContext2.(Bounds, Bounds, Bounds) -> Unit = { v1, v2, v3 ->
+        val constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit = { v1, v2, v3 ->
             v1.left   eq 23
             v1.height eq 100
 
@@ -238,28 +238,28 @@ class ConstraintLayout2Tests {
             v3.width eq 100
         }
 
-        container.layout2 = constrain2(view1, view2, view3, constraints)
+        container.layout = constrain(view1, view2, view3, constraints)
 
         view1.x      = 67.0
         view1.height = 67.0
         view2.y      = 67.0
         view3.width  = 67.0
 
-        container.doLayout2_()
+        container.doLayout_()
 
         expect( 23.0) { view1.x      }
         expect(100.0) { view1.height }
         expect(100.0) { view2.y      }
         expect(100.0) { view3.width  }
 
-        (container.layout2 as ConstraintLayout2).unconstrain(view1, view2, view3, constraints)
+        (container.layout as ConstraintLayout).unconstrain(view1, view2, view3, constraints)
 
         view1.x      = 67.0
         view1.height = 67.0
         view2.y      = 67.0
         view3.width  = 67.0
 
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(67.0) { view1.x      }
         expect(67.0) { view1.height }
@@ -270,7 +270,7 @@ class ConstraintLayout2Tests {
     @Test fun `edges with inset`() {
         val view = view {}
 
-        val align: ConstraintDslContext2.(Bounds) -> Unit = {
+        val align: ConstraintDslContext.(Bounds) -> Unit = {
             it.edges eq parent.edges + Insets(10.0)
         }
 
@@ -278,12 +278,12 @@ class ConstraintLayout2Tests {
             this   += view
             width   = 100.0
             height  = 100.0
-            layout2 = constrain2(view) {
+            layout = constrain(view) {
                 align(it)
             }
         }
 
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(Rectangle(10, 10, 80, 80)) { view.bounds }
     }
@@ -293,11 +293,11 @@ class ConstraintLayout2Tests {
         val view2 = view {}
         val view3 = view {}
         val view4 = view {}
-        val constraint: ConstraintDslContext2.(Bounds) -> Unit = {
+        val constraint: ConstraintDslContext.(Bounds) -> Unit = {
             it.edges eq parent.edges
         }
 
-        listOf(view1, view2, view3, view4).constrain2(using = constraint) { index,_ ->
+        listOf(view1, view2, view3, view4).map { it.positionable }.constrain(using = constraint) { index,_ ->
             Rectangle(index, index, 100, 100)
         }
 
@@ -308,24 +308,6 @@ class ConstraintLayout2Tests {
         )) { listOf(view1, view2, view3).map { it.bounds } }
     }
 
-    @Ignore @Test fun `mutable works`() {
-        val view = view {}
-
-        val container = container {
-            this   += view
-            width   = 100.0
-            height  = 100.0
-            layout2 = constrain2(view) {
-                it.width eq parent.width
-            }
-        }
-
-        container.doLayout_()
-
-        expect(100.0) { view.width }
-    }
-
-    @Suppress("LocalVariableName")
     @Test fun `non-required const updates`() {
         val header = view {}.apply { height = 117.0 }
         val main   = view {}.apply { height = 186.0 }
@@ -338,7 +320,8 @@ class ConstraintLayout2Tests {
 
         val minHeight = 106.0
 
-        container.layout2 = constrain2(header, main, footer) { header_, main_, footer_ ->
+        @Suppress("LocalVariableName")
+        container.layout = constrain(header, main, footer) { header_, main_, footer_ ->
             listOf(header_, main_, footer_).forEach { it.centerX eq parent.centerX }
             header_.top    eq       9
             header_.height.preserve
@@ -353,24 +336,24 @@ class ConstraintLayout2Tests {
         }
 
         container.height = 9 + header.height + 5 + minHeight + targetHeight + 65 + footer.height
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(minHeight + targetHeight) { main.height }
 
         targetHeight = 0
 
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(minHeight + targetHeight) { main.height }
 
         targetHeight = 174
         container.height -= 1
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(container.height - (main.y + footer.height + 65)) { main.height }
 
         container.height = 100.0
-        container.doLayout2_()
+        container.doLayout_()
 
         expect(minHeight) { main.height }
     }

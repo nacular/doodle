@@ -74,8 +74,9 @@ import kotlin.js.JsName
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-private typealias BooleanObservers = PropertyObservers<View, Boolean>
-private typealias ZOrderObservers  = PropertyObservers<View, Int>
+private typealias BooleanObservers         = PropertyObservers<View, Boolean>
+private typealias ZOrderObservers          = PropertyObservers<View, Int>
+private typealias AttemptedBoundsObservers = Pool<(View, Rectangle, Rectangle, Boolean) -> Unit>
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -86,7 +87,13 @@ private typealias ZOrderObservers  = PropertyObservers<View, Int>
  *
  * @constructor
  */
-public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable, Positionable {
+public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable {
+    private inner class AttemptedBoundsObserversImpl: SetPool<(View, Rectangle, Rectangle, Boolean) -> Unit>() {
+        operator fun invoke(old: Rectangle, new: Rectangle, relayout: Boolean) {
+            forEach { it(this@View, old, new, relayout) }
+        }
+    }
+
     /**
      * Defines a clipping path for a View's children.
      *
@@ -180,27 +187,27 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // region Bounds
 
     /** Left edge of [bounds] */
-    final override var x: Double
+    public var x: Double
         get( ) = bounds.x
         set(x) { if (x != bounds.x) setBounds(x, y, width, height) }
 
     /** Top edge of [bounds] */
-    final override var y: Double
+    public var y: Double
         get( ) = bounds.y
         set(y) { if (y != bounds.y) setBounds(x, y, width, height) }
 
     /** Top-left corner of [bounds] */
-    final override var position: Point
+    public var position: Point
         get(        ) = bounds.position
         set(position) = setBounds(position.x, position.y, width, height)
 
     /** Horizontal extent of [bounds] */
-    final override var width: Double
+    public var width: Double
         get(     ) = bounds.width
         set(width) { if (width != bounds.width) setBounds(x, y, width, height) }
 
     /** Vertical extent of [bounds] */
-    final override var height: Double
+    public var height: Double
         get(      ) = bounds.height
         set(height) { if (height != bounds.height) setBounds(x, y, width, height) }
 
@@ -215,17 +222,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Work-around to support ConstraintLayout
      */
-    internal val boundsChangeAttempted: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
-
-//    private var doingLayout = false
+    internal val boundsChangeAttempted: AttemptedBoundsObservers by lazy { AttemptedBoundsObserversImpl() }
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    public final override var bounds: Rectangle get() = actualBounds; set(new) {
-        if (new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize) {
-            (boundsChangeAttempted as PropertyObserversImpl).forEach { it(this, actualBounds, new) }
+    public var bounds: Rectangle get() = actualBounds; set(new) {
+        (boundsChangeAttempted as AttemptedBoundsObserversImpl).forEach {
+            it.invoke(this, actualBounds, new, new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize)
         }
 
         actualBounds = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
@@ -266,17 +271,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         allowedMaxSize = Size.Infinite
     }
 
-//    private fun boundsChanged(child: View) {
-//        if (doingLayout) return
-//
-//        size = when (val l = layout2) {
-//            null -> actualBounds.size
-//            else -> doLayout2(l, Size.Empty, actualBounds.size, Size.Infinite)
-//        }
-//    }
-
     /**
-     * Requests the View's preferred size within the specified [min] and [max] constraints. This method usually delegates to [layout2] if
+     * Requests the View's preferred size within the specified [min] and [max] constraints. This method usually delegates to [layout] if
      * there is one.
      *
      * @param min the smallest size this View is allowed to be
@@ -288,6 +284,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         else -> doLayout2(l, min, size, max)
     }
 
+    private var preferredSizeCalculated = false
+
     /**
      * Called whenever the View's parent wishes to update it's size.
      *
@@ -296,8 +294,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     internal fun preferredSize_(min: Size, max: Size): Size {
+        if (preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) return size
+
         allowedMinSize = min
         allowedMaxSize = max
+
+        preferredSizeCalculated = true
 
         return preferredSize(min, max).coerceIn(min, max)
     }
@@ -355,39 +357,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Smallest enclosing [Rectangle] around the View's [bounds] given it's [transform]. */
     public var boundingBox: Rectangle = bounds; private set
 
-    /** Size that would best display this View, or `null` if no preference */
-    final override var idealSize: Size? = null
-        get(   ) = layout?.idealSize(positionableWrapper, field) ?: field
-        set(new) {
-            if (field == new) return
-            val old = field
-            field = new
-
-            notifySizePreferencesChanged(SizePreferences(old, minimumSize), SizePreferences(new, minimumSize))
-        }
-
-    /** Minimum size preferred by the View, default is [Empty][Size.Empty] */
-    final override var minimumSize: Size = Size.Empty
-        get(   ) = layout?.minimumSize(positionableWrapper, field) ?: field
-        set(new) {
-            if (field == new) return
-            val old = field
-            field = new
-
-            notifySizePreferencesChanged(SizePreferences(idealSize, old), SizePreferences(idealSize, new))
-        }
-
-    /**
-     * Indicates the minimum and ideal sizes for a View.
-     *
-     * @property idealSize preferred
-     * @property minimumSize preferred
-     */
-    public class SizePreferences(public val idealSize: Size?, public val minimumSize: Size)
-
-    /** Notifies changes to [idealSize] or [minimumSize] */
-    public val sizePreferencesChanged: PropertyObservers<View, SizePreferences> by lazy { PropertyObserversImpl(this) }
-
     /**
      * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,
      * but **NOT** cousins (siblings, anywhere in the hierarchy)
@@ -416,7 +385,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
 
     /** Whether this View is visible. The default is `true`. */
-    final override var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+    public var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
         renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
     }
@@ -761,15 +730,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Layout responsible for positioning of this View's children */
     protected open var layout: Layout? by observable(null) { _,_ ->
-        relayout()
-    }
+        idealSizeDirty = true
 
-    internal val layout2_ get() = layout2
-
-    protected open var layout2: Layout2? by observable(null) { _,_ ->
-        if (displayed) {
-            doLayout2_()
-        }
+//        if (displayed) {
+//            doLayout_()
+//        }
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -891,10 +856,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal fun doLayout_() = doLayout()
 
-    internal fun doLayout2_() {
-        layout2?.let { bounds = bounds.with(doLayout2(it, allowedMinSize, size, allowedMaxSize)) }
-    }
-
     private fun doLayout2(layout: Layout2, min: Size, current: Size, max: Size): Size {
 //        doingLayout = true
 
@@ -903,19 +864,19 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    /** Causes the [layout] (if any) to re-layout the View's [children] */
-    protected open fun doLayout() { layout?.layout(positionableWrapper) }
-
-    protected open fun doLayout2() {
-        layout2?.let { bounds = bounds.with(doLayout2(it, allowedMinSize, size, allowedMaxSize)) }
-
-//        when (val newSize = new.size.coerceIn(allowedMinSize, allowedMaxSize)) {
-//            size -> new.with(size)
-//            else -> new.with(when (val l = layout2) {
-//                null -> newSize
-//                else -> doLayout2(l, allowedMinSize, newSize, allowedMaxSize)
-//            })
-//        }
+    /** Causes the [layout_] (if any) to re-layout the View's [children] */
+    protected open fun doLayout() {
+        actualBounds = when (val l = layout) {
+            null -> newBounds.with(preferredSize(allowedMinSize, allowedMaxSize))
+            else -> newBounds.with(
+                doLayout(
+                    l,
+                    min     = allowedMinSize,
+                    max     = allowedMaxSize,
+                    current = newBounds.size
+                )
+            )
+        }
     }
 
     /**
@@ -926,9 +887,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     protected open fun child(at: Point): View? = when {
         false == childrenClipPath?.contains(at) -> null
-        else                                    -> when (val result = layout?.child(positionableWrapper, at)) {
+        else                                    -> when (val result = layout?.item(children.asSequence().map { it.positionable }, at)) {
             null, Ignored -> child_(at) { true }
-            is Found      -> result.child as? View
+            is Found      -> (result.item as? PositionableView)?.view
             is Empty      -> null
         }
     }
@@ -1002,7 +963,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param point within the View's parent
      * @return `true` IFF the point falls within the View
      */
-    override operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(toPlane(point))?.let { intersects(it.as2d()) } ?: false
+    public open operator fun contains(point: Point): Boolean = resolvedTransform.inverse?.invoke(toPlane(point))?.let { intersects(it.as2d()) } ?: false
 
     /**
      * Checks whether a point on the View's plane, but relative to its parent, intersects (is "touching") the View. This enables custom
@@ -1313,15 +1274,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    internal val positionableWrapper by lazy { PositionableContainerWrapper(this) }
-    internal val positionable2Wrapper by lazy { object: Positionable2 {
-        override val visible  by this@View::visible
-        override val position by this@View::position
+    internal inner class PositionableView: Positionable {
+        val view get() = this@View
 
-        override fun contains     (point: Point) = point in this@View
-        override fun preferredSize(min: Size, max: Size) = this@View.preferredSize_(min, max)
-        override fun setBounds    (bounds: Rectangle) { actualBounds = bounds }
-    } }
+        override val visible       by this@View::visible
+        override var position      by this@View::position
+        override val bounds        by this@View::bounds
+        override val idealSize get() = this@View.idealSize
+
+        override fun contains    (point: Point) = point in this@View
+        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
+            return this@View.preferredSize_(min, max).also {
+                val r = Rectangle(x, y, it.width, it.height)
+                actualBounds = r
+            }
+        }
+    }
+
+    internal val positionable by lazy { PositionableView() }
 
     private fun PointerListener.notify(event: PointerEvent) {
         when(event.type) {
@@ -1339,14 +1309,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             Move -> moved  (event)
             Drag -> dragged(event)
             else -> {}
-        }
-    }
-
-    private fun notifySizePreferencesChanged(old: SizePreferences, new: SizePreferences) {
-        renderManager?.sizePreferencesChanged(this, old, new)
-
-        (sizePreferencesChanged as PropertyObserversImpl).forEach {
-            it(this, old, new)
         }
     }
 
@@ -1462,7 +1424,7 @@ public class ViewBuilder internal constructor(): View() {
     /** @see View.render */
     public var render: Canvas.() -> Unit = {}
 
-    /** @see View.layout */
+    /** @see View.layout_ */
     public override var layout: Layout? get() = super.layout; set(new) { super.layout = new }
 
     /** @see View.children */

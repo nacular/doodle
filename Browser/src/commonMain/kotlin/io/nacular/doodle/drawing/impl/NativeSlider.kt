@@ -145,8 +145,7 @@ internal class NativeSlider<T> internal constructor(
                 Vertical   -> Size(defaultSize.height + marginSize.height, defaultSize.width  + marginSize.width )
             }
 
-            idealSize   = size
-            minimumSize = if (orientation == Horizontal) Size(0.0, size.height) else Size(size.width, 0.0)
+            idealSize = size
         }
     }
 

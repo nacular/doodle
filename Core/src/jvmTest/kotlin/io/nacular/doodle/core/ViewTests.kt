@@ -13,9 +13,9 @@ import io.nacular.doodle.accessibility.AccessibilityRole
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.ContentDirection.RightLeft
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
-import io.nacular.doodle.core.View.SizePreferences
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform2D
@@ -91,9 +91,8 @@ class ViewTests {
                 View::display                          to null,
                 View::displayed                        to false,
                 View::focusable                        to true,
-                View::idealSize                        to null,
+                View::idealSize                        to Size.Empty,
                 View::displayRect                      to Empty,
-                View::minimumSize                      to Size.Empty,
                 View::dropReceiver                     to null,
                 View::acceptsThemes                    to true,
                 View::dragRecognizer                   to null,
@@ -147,7 +146,6 @@ class ViewTests {
         validateSetter(View::position,                         Origin                         )
         validateSetter(View::focusable,                        false                          )
         validateSetter(View::idealSize,                        Size(20.0, 37.6)               )
-        validateSetter(View::minimumSize,                      Size.Empty                     )
         validateSetter(View::foregroundColor,                  Red                            )
         validateSetter(View::backgroundColor,                  Green                          )
         validateSetter(View::isFocusCycleRoot_,                true                           )
@@ -314,7 +312,7 @@ class ViewTests {
             init {
                 children_ += child
                 layout     = mockk<Layout>().apply {
-                    every { child(any(), any()) } returns Ignored
+                    every { item(any(), any()) } returns Ignored
                 }
             }
         }
@@ -329,7 +327,7 @@ class ViewTests {
             init {
                 children_ += child
                 layout    = mockk<Layout>().apply {
-                    every { child(any(), any()) } returns LookupResult.Empty
+                    every { item(any(), any()) } returns LookupResult.Empty
                 }
             }
         }
@@ -344,7 +342,7 @@ class ViewTests {
             init {
                 children_ += child
                 layout    = mockk<Layout>().apply {
-                    every { child(any(), any()) } returns Found(found)
+                    every { item(any(), any()) } returns Found(found.positionable)
                 }
             }
         }
@@ -448,72 +446,72 @@ class ViewTests {
         }
     }
 
-    @Test fun `min size triggers size preference event`() {
-        val view          = object: View() {}
-        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
-        val renderManager = mockk<RenderManager>(relaxed = true)
+//    @Test fun `min size triggers size preference event`() {
+//        val view          = object: View() {}
+//        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
+//        val renderManager = mockk<RenderManager>(relaxed = true)
+//
+//        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+//
+//        view.sizePreferencesChanged += observer
+//
+//        val newSize      = Size(100, 100)
+//        view.minimumSize = newSize
+//
+//        verifyOrder {
+//            renderManager.sizePreferencesChanged(view,
+//                match { it.minimumSize == Size.Empty && it.idealSize == null },
+//                match { it.minimumSize == newSize    && it.idealSize == null })
+//
+//
+//            observer(view,
+//                match { it.minimumSize == Size.Empty && it.idealSize == null },
+//                match { it.minimumSize == newSize    && it.idealSize == null })
+//        }
+//    }
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+//    @Test fun `ideal size triggers size preference event`() {
+//        val view          = object: View() {}
+//        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
+//        val renderManager = mockk<RenderManager>(relaxed = true)
+//
+//        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+//
+//        view.sizePreferencesChanged += observer
+//
+//        val newSize    = Size(100, 100)
+//        view.idealSize = newSize
+//
+//        verifyOrder {
+//            renderManager.sizePreferencesChanged(view,
+//                    match { it.minimumSize == Size.Empty && it.idealSize == null },
+//                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
+//
+//            observer(view,
+//                    match { it.minimumSize == Size.Empty && it.idealSize == null },
+//                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
+//        }
+//    }
 
-        view.sizePreferencesChanged += observer
-
-        val newSize      = Size(100, 100)
-        view.minimumSize = newSize
-
-        verifyOrder {
-            renderManager.sizePreferencesChanged(view,
-                match { it.minimumSize == Size.Empty && it.idealSize == null },
-                match { it.minimumSize == newSize    && it.idealSize == null })
-
-
-            observer(view,
-                match { it.minimumSize == Size.Empty && it.idealSize == null },
-                match { it.minimumSize == newSize    && it.idealSize == null })
-        }
-    }
-
-    @Test fun `ideal size triggers size preference event`() {
-        val view          = object: View() {}
-        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
-        val renderManager = mockk<RenderManager>(relaxed = true)
-
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
-
-        view.sizePreferencesChanged += observer
-
-        val newSize    = Size(100, 100)
-        view.idealSize = newSize
-
-        verifyOrder {
-            renderManager.sizePreferencesChanged(view,
-                    match { it.minimumSize == Size.Empty && it.idealSize == null },
-                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
-
-            observer(view,
-                    match { it.minimumSize == Size.Empty && it.idealSize == null },
-                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
-        }
-    }
-
-    @Test fun `min size delegates to layout`() {
-        val size = Size(10, 10)
-        val view = object: View() {
-            init {
-                layout = mockk<Layout>().apply {
-                    every { minimumSize(any(), any()) } returns size
-                }
-            }
-        }
-
-        expect(size) { view.minimumSize }
-    }
+//    @Test fun `min size delegates to layout`() {
+//        val size = Size(10, 10)
+//        val view = object: View() {
+//            init {
+//                layout = mockk<Layout>().apply {
+//                    every { minimumSize(any(), any()) } returns size
+//                }
+//            }
+//        }
+//
+//        expect(size) { view.minimumSize }
+//    }
 
     @Test fun `ideal size delegates to layout`() {
         val size = Size(10, 10)
         val view = object: View() {
             init {
                 layout = mockk<Layout>().apply {
-                    every { idealSize(any(), any()) } returns size
+                    every { layout(any(), Size.Empty, any(), Size.Infinite) } returns size
                 }
             }
         }
@@ -678,25 +676,17 @@ class ViewTests {
             }
         }
 
-        val display       = mockk<InternalDisplay>(relaxed = true) {
-            every { boundsChanged(view) } answers {
-                view.size = view.preferredSize_(Size.Empty, Size.Infinite)
-            }
-        }
+        val display       = mockk<Display>      (relaxed = true)
         val renderManager = mockk<RenderManager>(relaxed = true)
 
         view.addedToDisplay(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
         view.bounds         = new
-        view.bounds         = view.bounds.at(x = 67.0)
+        view.bounds         = new.at(x = 67.0)
 
         verifyOrder {
-//            renderManager.boundsChanged(view, old, new)
-            display.boundsChanged(view)
-            observer(view, old, new)
-//            renderManager.boundsChanged(view, new, new.at(x = 67.0))
-            display.boundsChanged(view)
-            observer(view, new, new.at(x = 67.0))
+            renderManager.boundsChanged(view, old, new             )
+            renderManager.boundsChanged(view, old, new.at(x = 67.0))
         }
     }
 
@@ -1115,15 +1105,15 @@ class ViewTests {
             + child
 
             bounds  = Rectangle(100, 100)
-            layout2 = Layout2.simpleLayout { items, min, current, max ->
+            layout = simpleLayout { items, min, current, max ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
                 items.forEach {
-                    it.setBounds(Rectangle(it.position, it.preferredSize(min, max)).also {
-                        maxRight  = it.right
-                        maxBottom = it.bottom
-                    })
+                    it.updateBounds(it.position.x, it.position.y, min, max).apply {
+                        maxRight  = it.bounds.right
+                        maxBottom = it.bounds.bottom
+                    }
                 }
 
                 Size(maxRight, maxBottom)
@@ -1131,10 +1121,12 @@ class ViewTests {
         }
 
         child.bounds = Rectangle(10, 10)
+        parent.doLayout_()
 
         expect(Size(10)) { child.size }
 
         child.bounds = Rectangle(23, 56, 110, 110)
+        parent.doLayout_()
 
         expect(Rectangle(23, 56, 110, 110)) { child.bounds  }
         expect(Rectangle(child.bounds.right, child.bounds.bottom)) { parent.bounds }

@@ -7,7 +7,7 @@ import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.panels.TabbedPanelBehavior
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
@@ -239,18 +239,19 @@ public open class BasicTabProducer<T>(override  val tabHeight          : Double 
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
-    override fun layout(container: PositionableContainer) {
-        val maxLineWidth = max(0.0, container.width - container.insets.left - container.insets.right - (container.children.size - 1) * spacing)
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        val children = views.toList()
+        val maxLineWidth = max(0.0, current.width - (children.size - 1) * spacing)
 
-        var x     = container.insets.left
-        val width = max(minWidth, min(defaultWidth, maxLineWidth / container.children.size))
+        var x     = 0.0
+        val width = max(minWidth, min(defaultWidth, maxLineWidth / children.size))
 
-        container.children.filter { it.visible }.forEach { child ->
-            child.width    = width
-            child.position = Point(x, container.insets.top)
-
+        children.filter { it.visible }.forEach { child ->
+            child.updateBounds(x, 0.0, Size(width, 0.0), Size(width, Double.POSITIVE_INFINITY))
             x += width + spacing
         }
+
+        return current
     }
 }
 
@@ -578,15 +579,15 @@ public open class BasicTabbedPanelBehavior<T>(
                 })
             }
 
-            layout = object: Layout {
-                override fun layout(container: PositionableContainer) {
-                    container.children.forEachIndexed { index, view ->
-                        view.bounds = when (index) {
-                            0    -> Rectangle(container.width, tabProducer.tabHeight + 10)
-                            else -> Rectangle(size = container.size).inset(Insets(top = tabProducer.tabHeight + 10))
-                        }
+            layout = Layout.simpleLayout { items, min, current, max ->
+                items.forEachIndexed { index, view ->
+                    when (index) {
+                        0    -> view.updateBounds(Rectangle(current.width, tabProducer.tabHeight + 10))
+                        else -> view.updateBounds(Rectangle(size = current).inset(Insets(top = tabProducer.tabHeight + 10)))
                     }
                 }
+
+                current
             }
         }
     }

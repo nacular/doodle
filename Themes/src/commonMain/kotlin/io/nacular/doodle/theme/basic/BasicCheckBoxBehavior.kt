@@ -133,6 +133,6 @@ public class BasicCheckBoxBehavior(
     override fun install(view: CheckBox) {
         super.install(view)
 
-        view.idealSize = view.idealSize?.run { Size(max(16.0, width), max(16.0, height)) }
+        view.idealSize = view.idealSize.run { Size(max(16.0, width), max(16.0, height)) }
     }
 }

@@ -30,7 +30,6 @@ import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.Resizer.Phase
 import io.nacular.doodle.utils.Resizer.Phase.EventBubbling
 import io.nacular.doodle.utils.Resizer.Phase.EventSinking
-import kotlin.math.max
 
 /**
  * Utility for resizing/moving a View. It supports compass direction resizing and dragging.
@@ -139,31 +138,29 @@ public class Resizer(
                 var y         = bounds.y
                 var width     = bounds.width
                 var height    = bounds.height
-                val minWidth  = view.minimumSize.width
-                val minHeight = view.minimumSize.height
                 var consume   = false
                 val delta     = view.toLocal(activeInteraction.location, event.target) - initialPosition
 
                 when {
                     West in dragMode && West in directions -> {
-                        width    = max(minWidth, view.width - delta.x)
+                        width    = view.width - delta.x
                         x       += bounds.width - width
                         consume  = true
                     }
                     East in dragMode && East in directions -> {
-                        width   = max(minWidth, initialSize.width + delta.x)
+                        width   = initialSize.width + delta.x
                         consume = true
                     }
                 }
 
                 when {
                     North in dragMode && North in directions -> {
-                        height   = max(minHeight, view.height - delta.y)
+                        height   = view.height - delta.y
                         y       += bounds.height - height
                         consume  = true
                     }
                     South in dragMode && South in directions -> {
-                        height  = max(minHeight, initialSize.height + delta.y)
+                        height  = initialSize.height + delta.y
                         consume = true
                     }
                 }

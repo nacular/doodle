@@ -369,7 +369,7 @@ public open class TextEditOperation<T>(
     override fun invoke(): View = object: Container() {
         init {
             children += this@TextEditOperation
-            layout    = constrain(this@TextEditOperation) {
+            this.layout = constrain(this@TextEditOperation) {
                 column.cellAlignment?.let { alignment -> alignment(it) }
             }
         }

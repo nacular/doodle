@@ -4,13 +4,11 @@ import io.nacular.doodle.controls.table.MetaRowVisibility.Always
 import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.PositionableContainer
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.then
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import kotlin.math.max
@@ -24,18 +22,20 @@ internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val 
 
     init {
         focusable = false
-        layout    = Layout.simpleLayout { container ->
+        this.layout = Layout.simpleLayout { views, _, current, _ ->
             var x          = 0.0
             var totalWidth = 0.0
 
-            container.children.forEachIndexed { index, view ->
-                view.bounds = Rectangle(Point(x, 0.0), Size(columns[index].width, container.height))
+            views.forEachIndexed { index, view ->
+                val size = Size(columns[index].width, current.height)
 
-                x          += view.width
-                totalWidth += view.width
+                view.updateBounds(x, 0.0, size, size).let {
+                    x          += it.width
+                    totalWidth += it.width
+                }
             }
 
-//                width = totalWidth + (columns.getOrNull(columns.size - 1)?.width ?: 0.0)
+            Size(totalWidth, current.height)
         }
     }
 
@@ -51,25 +51,30 @@ internal class TablePanel(columns: List<InternalColumn<*,*,*,*>>, private val re
         focusable = false
         children += columns.map { it.view }
 
-        layout = object: Layout {
-            override fun layout(container: PositionableContainer) {
+        this.layout = object: Layout {
+            override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
                 var x          = 0.0
                 var height     = 0.0
                 var totalWidth = 0.0
 
-                container.children.forEachIndexed { index, view ->
-                    view.bounds = Rectangle(Point(x, 0.0), Size(columns[index].width, view.minimumSize.height))
+                views.forEachIndexed { index, view ->
+                    // FIXME Min height handling?
+                    val size = Size(columns[index].width, 0.0) //view.minimumSize.height)
 
-                    x          += view.width
-                    height      = max(height, view.height)
-                    totalWidth += view.width
+                    view.updateBounds(x, 0.0, size, size).also {
+                        x          += it.width
+                        height      = max(height, it.height)
+                        totalWidth += it.width
+                    }
                 }
 
-                container.idealSize = Size(totalWidth, height)
+                val idealSize = Size(totalWidth, height)
 
-                container.children.forEach {
-                    it.height = container.height
+                views.forEach {
+                    it.updateBounds(it.bounds.with(height = idealSize.height))
                 }
+
+                return idealSize
             }
         }
     }
@@ -117,22 +122,21 @@ internal fun <T: View> tableLayout(
 
         footer_.width  eq parent.width
         footer_.height eq footerHeight
-        (footer_.bottom eq parent.bottom - insetBottom - if (isFooterSticky) parent.height - displayRect.bottom else 0.0) .. Strong
+        // FIXME: Remove readOnly
+        (footer_.bottom eq parent.bottom - insetBottom - if (isFooterSticky) parent.height.readOnly - displayRect.bottom else 0.0) .. Strong
     }
 
     panel_.top    eq header_.bottom.readOnly - if (isHeaderSticky) displayRect.y else 0.0 + headerPadding
     panel_.left   eq 0
     panel_.right  eq parent.right
 
-    if ((isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect && panel.idealSize != null) {
-        panel_.height greaterEq panel.idealSize!!.height
+    if ((isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect) {
+        panel_.height greaterEq panel.idealSize.height
         (panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding)) .. Strong
-        (parent.height.writable eq panel_.bottom.readOnly + footer_.height.readOnly + footerPadding) .. Strong
+        (parent.height eq panel_.bottom.readOnly + footer_.height.readOnly + footerPadding) .. Strong
     } else {
         panel_.bottom eq parent.bottom - (footer_.height.readOnly + footerPadding)
     }
-}.then {
-    table.idealSize = Size(table.idealSize?.width ?: 0.0, max(footer.bounds.bottom, panel.bounds.bottom))
 }
 
 private fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {

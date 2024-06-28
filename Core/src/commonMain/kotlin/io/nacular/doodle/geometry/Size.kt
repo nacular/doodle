@@ -1,6 +1,7 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.utils.lerp
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 
 /**
@@ -51,7 +52,8 @@ public class Size private constructor(public val width: Double = 0.0, public val
         /** The size with [width] and [height] equal to `0` */
         public val Empty: Size = Size(0.0)
 
-        internal val Infinite: Size = Size(Double.POSITIVE_INFINITY)
+        /** The size with [width] and [height] equal to [POSITIVE_INFINITY] */
+        public val Infinite: Size = Size(POSITIVE_INFINITY)
     }
 }
 

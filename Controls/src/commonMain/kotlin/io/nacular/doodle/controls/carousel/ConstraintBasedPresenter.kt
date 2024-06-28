@@ -46,8 +46,6 @@ public abstract class ConstraintBasedPresenter<T>(
     ): Rectangle = item.constrainer(
         Rectangle(size = item.size),
         within      = Rectangle(size = viewPort),
-        minimumSize = item.minimumSize,
-        idealSize   = item.idealSize,
         forceSetup  = forceSetup,
         using       = itemConstraints
     )

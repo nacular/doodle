@@ -1,6 +1,9 @@
 package io.nacular.doodle.core
 
 import io.nacular.doodle.core.ContentDirection.RightLeft
+import io.nacular.doodle.core.LookupResult.Empty
+import io.nacular.doodle.core.LookupResult.Found
+import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
@@ -9,6 +12,8 @@ import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObservers
@@ -115,7 +120,13 @@ public interface Display: Iterable<View> {
      * @param at the x,y within the Display's coordinate-space
      * @return a View if one is found to contain the given point
      */
-    public fun child(at: Point): View?
+    public fun child(at: Point): View? = fromAbsolute(at).let { point ->
+        when (val result = layout?.item(children.asSequence().map { it.positionable }, point)) {
+            null, Ignored -> child(at = point) { true }
+            is Found      -> (result.item as? View.PositionableView)?.view
+            is Empty      -> null
+        }
+    }
 
     /**
      * @param at the x,y within the Display's coordinate-space
@@ -183,7 +194,6 @@ public fun Display.fill(color: Color): Unit = fill(color.paint)
 @Internal
 public interface InternalDisplay: Display {
     public val popups      : List<View>
-    public val positionable: PositionableContainer
 
     public fun repaint  (          )
     public fun showPopup(view: View)

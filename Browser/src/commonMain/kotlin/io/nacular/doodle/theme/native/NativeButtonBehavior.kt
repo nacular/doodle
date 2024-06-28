@@ -8,7 +8,6 @@ import io.nacular.doodle.drawing.impl.NativeButtonFactory
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Default
 
@@ -19,8 +18,8 @@ internal class NativeButtonBehavior(
     button             : Button): CommonTextButtonBehavior<Button>(textMetrics, focusManager = focusManager) {
 
     private val nativePeer by lazy { nativeButtonFactory(button) }
-    private var oldCursor   : Cursor? = null
-    private var oldIdealSize: Size? = null
+    private var oldCursor    : Cursor? = null
+    private var oldIdealSize = button.idealSize
 
     override fun render(view: Button, canvas: Canvas) {
         nativePeer.render(canvas)

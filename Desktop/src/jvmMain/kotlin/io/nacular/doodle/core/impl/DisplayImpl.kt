@@ -6,12 +6,7 @@ import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.LookupResult.Empty
-import io.nacular.doodle.core.LookupResult.Found
-import io.nacular.doodle.core.LookupResult.Ignored
-import io.nacular.doodle.core.PositionableContainer
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.height
 import io.nacular.doodle.core.width
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -163,7 +158,6 @@ internal class DisplayImpl(
         requestRender()
     }
 
-    override val positionable: PositionableContainer = PositionableWrapper()
     private var fill: Paint? by Delegates.observable(null) { _,_,_ ->
         requestRender()
     }
@@ -227,14 +221,6 @@ internal class DisplayImpl(
         child in children
     } else false
 
-    override fun child(at: Point): View? = fromAbsolute(at).let { point ->
-        when (val result = layout?.child(positionable, point)) {
-            null, Ignored -> child_(point) { true }
-            is Found      -> result.child as? View
-            is Empty      -> null
-        }
-    }
-
     override fun child(at: Point, predicate: (View) -> Boolean): View? = child_(fromAbsolute(at), predicate)
 
     private fun child_(at: Point, predicate: (View) -> Boolean): View? {
@@ -271,7 +257,7 @@ internal class DisplayImpl(
         if (!layingOut) {
             layingOut = true
 
-            layout?.layout(positionable)
+            super.relayout()
 
             layingOut = false
 
@@ -306,16 +292,5 @@ internal class DisplayImpl(
     private val resolvedTransform get() = when {
         mirrored -> transform.flipHorizontally(at = width / 2)
         else     -> transform
-    }
-
-    private inner class PositionableWrapper: PositionableContainer {
-        override val size        get() = this@DisplayImpl.size
-        override val width       get() = this@DisplayImpl.width
-        override val height      get() = this@DisplayImpl.height
-        override var idealSize   get() = null as Size?;           set(_) {}
-        override var minimumSize get() = Empty;                   set(_) {}
-
-        override val insets      get() = this@DisplayImpl.insets
-        override val children    get() = this@DisplayImpl.children
     }
 }
