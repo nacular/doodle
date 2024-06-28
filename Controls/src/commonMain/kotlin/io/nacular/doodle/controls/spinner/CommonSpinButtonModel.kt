@@ -7,7 +7,7 @@ import io.nacular.doodle.utils.ChangeObserversImpl
 public typealias CommonSpinnerModel<T> = CommonSpinButtonModelModel<T>
 
 public abstract class CommonSpinButtonModelModel<T>: SpinButtonModel<T> {
-    @Suppress("PrivatePropertyName")
+    @Suppress("PropertyName")
     protected val changed_: ChangeObserversImpl<CommonSpinButtonModelModel<T>> = ChangeObserversImpl(this)
 
     override val changed: ChangeObservers<SpinButtonModel<T>> = changed_
