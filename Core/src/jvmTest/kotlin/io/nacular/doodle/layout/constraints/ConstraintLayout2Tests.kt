@@ -357,6 +357,35 @@ class ConstraintLayoutTests {
         expect(minHeight) { main.height }
     }
 
+    @Test fun `center works`() {
+        val childSize = Size(100)
+        val child     = view {}.apply { size = childSize }
+
+        val layout = constrain(child) {
+            it.center eq parent.center
+        }
+
+        val parentSize          = Size(200)
+        val expectedChildBounds = Rectangle(
+            (parentSize.width  - childSize.width ) / 2,
+            (parentSize.height - childSize.height) / 2,
+            childSize.width,
+            childSize.height
+        )
+
+        val doLayout = {
+            layout.layout(sequenceOf(child).map { it.positionable }, parentSize, parentSize, parentSize)
+        }
+
+        doLayout()
+        expect(expectedChildBounds) { child.bounds }
+
+        child.x -= 10
+
+        doLayout()
+        expect(expectedChildBounds) { child.bounds }
+    }
+
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
     }

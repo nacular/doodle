@@ -261,16 +261,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    private var actualBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { old, new ->
-        newBounds = new
+    private var actualBounds: Rectangle = Empty; set(new) {
+        newBounds = new // ensure newBounds updated to match actualBounds
 
-        (boundsChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+        if (field.fastEqual(new)) return
 
-        if (needsMirrorTransform && old.x != new.x) {
+        (boundsChanged as PropertyObserversImpl).forEach { it(this, field, new) }
+
+        if (needsMirrorTransform && field.x != new.x) {
             resolvedTransformDirty = true
         }
 
         boundingBox = getBoundingBox(new)
+
+        field = new
     }
 
     private var allowedMinSize = Size.Empty
@@ -304,7 +308,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     internal fun preferredSize_(min: Size, max: Size): Size {
-        if (preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) return size
+        if ((preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) || (min == max && min == size)) return size
 
         allowedMinSize = min
         allowedMaxSize = max
@@ -742,9 +746,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected open var layout: Layout? by observable(null) { _,_ ->
         idealSizeDirty = true
 
-//        if (displayed) {
-//            doLayout_()
-//        }
+//        relayout()
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -861,6 +863,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     protected operator fun contains(child: View): Boolean = child.parent == this
 
+    internal fun relayout_() = relayout()
+
     /** Prompts the View to lay out its children if it has a Layout installed. */
     protected open fun relayout() { renderManager?.layout(this) }
 
@@ -872,6 +876,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         max     = max,
         current = current
     )
+
+    internal fun syncBounds() {
+        if (newBounds != actualBounds) {
+            actualBounds = newBounds.with(preferredSize(allowedMinSize, allowedMaxSize))
+        }
+    }
 
     /** Causes the [layout_] (if any) to re-layout the View's [children] */
     protected open fun doLayout() {
@@ -1292,8 +1302,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun contains    (point: Point) = point in this@View
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
             return this@View.preferredSize_(min, max).also {
-                val r = Rectangle(x, y, it.width, it.height)
-                actualBounds = r
+                actualBounds = Rectangle(x, y, it.width, it.height)
             }
         }
     }

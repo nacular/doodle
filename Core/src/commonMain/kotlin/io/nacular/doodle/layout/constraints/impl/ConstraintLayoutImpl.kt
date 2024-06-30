@@ -135,12 +135,12 @@ internal class ReflectionVariable(
 }
 
 @Suppress("PropertyName")
-internal open class ParentBoundsImpl2(private val context: ConstraintDslContext, size: Size, var min: Size, var max: Size): ParentBounds {
+internal open class ParentBoundsImpl(private val context: ConstraintDslContext, size: Size, var min: Size, var max: Size): ParentBounds {
     var width_  = size.width
     var height_ = size.height
 
-    override val width  = SimpleVariable(::width_ )
-    override val height = SimpleVariable(::height_)
+    override val width   by lazy { SimpleVariable(::width_ ) }
+    override val height  by lazy { SimpleVariable(::height_) }
 
     override val right   by lazy { with(context) { 0 + width      } }
     override val centerX by lazy { with(context) { 0 + width  / 2 } }
@@ -175,7 +175,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             updatedBounds += it.height
 
             if (old.size != new.size && relayout) {
-                view.parent?.doLayout_()
+                view.parent?.relayout_()
             }
         }
     }

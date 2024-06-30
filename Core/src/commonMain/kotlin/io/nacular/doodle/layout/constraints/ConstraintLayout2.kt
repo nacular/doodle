@@ -16,7 +16,7 @@ import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
-import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl2
+import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
@@ -349,7 +349,7 @@ public class UnsatisfiableConstraintException(
 public open class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
-    internal val parent_ = ParentBoundsImpl2(this, size = Size.Empty, min = Size.Empty, max = Size.Empty)
+    internal val parent_ = ParentBoundsImpl(this, size = Size.Empty, min = Size.Empty, max = Size.Empty)
 
     public val parent: ParentBounds get() = parent_
 

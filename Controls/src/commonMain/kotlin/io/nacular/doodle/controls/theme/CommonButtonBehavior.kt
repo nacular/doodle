@@ -49,7 +49,6 @@ public abstract class CommonButtonBehavior<in T: Button>(private val focusManage
 
         (view as? ToggleButton)?.let { it.selectedChanged += selectionChanged }
 
-        view.rerender()
         // TODO: Handle changes to the model from other places
     }
 

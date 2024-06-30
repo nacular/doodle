@@ -59,30 +59,29 @@ public open class RenderManagerImpl(
         }
     }
 
-    protected open val views              : MutableSet<View>                   = fastMutableSetOf()
-    protected open val dirtyViews         : MutableSet<View>                   = fastMutableSetOf()
-    protected open val displayTree        : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
-    protected open val neverRendered      : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingLayout      : MutableSet<View>                   = MutableTreeSet(generationComparator)
-    protected open val pendingRender      : MutableSet<View>                   = LinkedHashSet()
-    protected open val pendingCleanup     : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
-    protected open val addedInvisible     : MutableSet<View>                   = fastMutableSetOf()
-    protected open val visibilityChanged  : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingBoundsChange: MutableSet<View>                   = fastMutableSetOf()
-    protected open val popups             : MutableSet<View>                   = fastMutableSetOf()
-    protected open val livingViews        : MutableSet<View>                   = fastMutableSetOf()
+    protected open val views               : MutableSet<View>                   = fastMutableSetOf()
+    protected open val dirtyViews          : MutableSet<View>                   = fastMutableSetOf()
+    protected open val displayTree         : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
+    protected open val neverRendered       : MutableSet<View>                   = fastMutableSetOf()
+    protected open val pendingLayout       : MutableSet<View>                   = MutableTreeSet(generationComparator)
+    protected open val pendingRender       : MutableSet<View>                   = LinkedHashSet()
+    protected open val pendingCleanup      : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
+    protected open val addedInvisible      : MutableSet<View>                   = fastMutableSetOf()
+    protected open val visibilityChanged   : MutableSet<View>                   = fastMutableSetOf()
+    protected open val pendingBoundsChange : MutableSet<View>                   = fastMutableSetOf()
+    protected open val popups              : MutableSet<View>                   = fastMutableSetOf()
+    protected open val livingViews         : MutableSet<View>                   = fastMutableSetOf()
+    protected open var displayPendingLayout: Boolean                            = false
 
     init {
         display.childrenChanged += { _, diffs ->
-            var needsLayout = false
-
             diffs.computeMoves().forEach {
                 when (it) {
                     is Insert -> {
                         it.items.forEach { item ->
                             if (it.origin(of = item) == null) {
                                 childAdded(null, item)
-                                needsLayout = true
+                                displayPendingLayout = true
                             }
                         }
                     }
@@ -91,7 +90,7 @@ public open class RenderManagerImpl(
                             when (val destination = it.destination(of = item)) {
                                 null -> {
                                     childRemoved(null, item)
-                                    needsLayout = true
+                                    displayPendingLayout = true
                                 }
                                 else -> {
                                    graphicsDevice[item].index = destination
@@ -103,8 +102,9 @@ public open class RenderManagerImpl(
                 }
             }
 
-            if (needsLayout) {
+            if (displayPendingLayout) {
                 display.relayout()
+                displayPendingLayout = false
             }
         }
 
@@ -114,6 +114,8 @@ public open class RenderManagerImpl(
 
         display.sizeChanged += { _,_,_ ->
             display.relayout()
+
+            displayPendingLayout = false
 
             display.forEach { checkDisplayRectChange(it) }
         }
@@ -270,6 +272,11 @@ public open class RenderManagerImpl(
 
         val newRenders = mutableListOf<View>()
 
+        if (displayPendingLayout) {
+            display.relayout()
+            displayPendingLayout = false
+        }
+
         // This loop is here because the process of laying out, rendering etc can generate new objects that need to be
         // handled. Therefore, the loop runs until these items are exhausted.
         // TODO: Should this loop be limited to avoid infinite spinning? That way we could defer things that happen beyond a point to run on the next animation frame
@@ -301,7 +308,7 @@ public open class RenderManagerImpl(
                 pendingBoundsChange.firstOrNull()?.also { item ->
                     when {
                         item !in neverRendered -> {
-                            item.doLayout_()
+                            item.syncBounds()
                             updateGraphicsSurface(item, graphicsDevice[item])
 
                             pendingBoundsChange.remove(item)
@@ -381,7 +388,7 @@ public open class RenderManagerImpl(
             }
 
             if (view in pendingBoundsChange) {
-                view.doLayout_()
+                view.syncBounds()
                 updateGraphicsSurface(view, graphicsSurface)
 
                 pendingBoundsChange -= view
@@ -669,9 +676,8 @@ public open class RenderManagerImpl(
         }
 
         when (parent) {
-            null -> /*if (display.layout2_?.requiresLayout(view, displayPositionableContainer, old, new) == true)*/ display.relayout()
-//            parent.layout_ == null && old.size == new.size -> updateGraphicsSurface(view, graphicsDevice[view]) // There are cases when an item's position might be constrained by logic outside a layout
-            else -> /*if (parent.layout2_?.requiresLayout(view, parent.positionableWrapper, old, new) == true)*/ pendingLayout += parent
+            null -> displayPendingLayout = true
+            else -> pendingLayout += parent
         }
 
         when {

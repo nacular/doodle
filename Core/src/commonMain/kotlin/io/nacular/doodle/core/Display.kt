@@ -12,8 +12,6 @@ import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.utils.ChangeObservers
@@ -200,7 +198,7 @@ public interface InternalDisplay: Display {
     public fun hidePopup(view: View)
 
     public override fun relayout() {
-        layout?.layout(children.asSequence().map { it.positionable }, Empty, size, Infinite)
+        layout?.layout(children.asSequence().map { it.positionable }, size, size, size)
     }
 }
 
