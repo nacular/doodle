@@ -1,9 +1,6 @@
 package io.nacular.doodle.core
 
 import io.nacular.doodle.core.ContentDirection.RightLeft
-import io.nacular.doodle.core.LookupResult.Empty
-import io.nacular.doodle.core.LookupResult.Found
-import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color
@@ -118,13 +115,7 @@ public interface Display: Iterable<View> {
      * @param at the x,y within the Display's coordinate-space
      * @return a View if one is found to contain the given point
      */
-    public fun child(at: Point): View? = fromAbsolute(at).let { point ->
-        when (val result = layout?.item(children.asSequence().map { it.positionable }, point)) {
-            null, Ignored -> child(at = point) { true }
-            is Found      -> (result.item as? View.PositionableView)?.view
-            is Empty      -> null
-        }
-    }
+    public fun child(at: Point): View?
 
     /**
      * @param at the x,y within the Display's coordinate-space
@@ -168,6 +159,9 @@ public interface Display: Iterable<View> {
 
     /** Prompts the Display to layout its children if it has a Layout installed. */
     public fun relayout()
+
+    public val Positionable.view: View?        get() = (this as? View.PositionableView)?.view
+    public val View.positionable: Positionable get() = positionable
 }
 
 /**

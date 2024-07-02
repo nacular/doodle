@@ -168,7 +168,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         view.layout = constrain(center, next, previous) { center_, next_, previous_ ->
             center_.top      eq INSET
             center_.left     eq INSET
-            center_.right    eq next_.left     - INSET
+            center_.right    eq next_.left    - INSET
             center_.bottom   eq parent.bottom - INSET
 
             next_.top        eq INSET

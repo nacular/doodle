@@ -7,6 +7,7 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.LookupResult
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.Event
@@ -234,6 +235,14 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
         child in children
     } else false
+
+    override fun child(at: Point): View? = fromAbsolute(at).let { point ->
+        when (val result = layout?.item(children.asSequence().map { it.positionable }, point)) {
+            null, LookupResult.Ignored -> child_(at = point) { true }
+            is LookupResult.Found -> result.item.view
+            is LookupResult.Empty -> null
+        }
+    }
 
     override fun child(at: Point, predicate: (View) -> Boolean): View? = child_(fromAbsolute(at), predicate)
 

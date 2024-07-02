@@ -38,19 +38,15 @@ import kotlin.reflect.KMutableProperty0
 
 @Suppress("PropertyName")
 internal open class BoundsImpl(private val target: Positionable, bounds: Rectangle, private val context: ConstraintDslContext): Bounds {
-    private val term: ReflectionVariable.() -> Term = {
-        VariableTerm(this)
-    }
-
     var x_      = bounds.x
     var y_      = bounds.y
     var width_  = bounds.width
     var height_ = bounds.height
 
-    override val top     by lazy { ReflectionVariable(target, ::y_,      id = yId,      term) }
-    override val left    by lazy { ReflectionVariable(target, ::x_,      id = xId,      term) }
-    override val width   by lazy { ReflectionVariable(target, ::width_,  id = widthId,  term) }
-    override val height  by lazy { ReflectionVariable(target, ::height_, id = heightId, term) }
+    override val top     by lazy { ReflectionVariable(target, ::y_,      id = yId     ) }
+    override val left    by lazy { ReflectionVariable(target, ::x_,      id = xId     ) }
+    override val width   by lazy { ReflectionVariable(target, ::width_,  id = widthId ) }
+    override val height  by lazy { ReflectionVariable(target, ::height_, id = heightId) }
 
     override val right   by lazy { with(context) { left + width      } }
     override val centerX by lazy { with(context) { left + width  / 2 } }
@@ -71,7 +67,7 @@ internal class SimpleVariable(val value: KMutableProperty0<Double>): Property(),
     override val readOnly: Double get() = value()
     override fun toTerm() = VariableTerm(this)
 
-    override val name: String = "$value"
+    override val name: String = value.name
 
     override fun invoke(): Double = value()
 

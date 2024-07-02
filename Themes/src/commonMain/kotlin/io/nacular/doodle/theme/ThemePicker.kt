@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.spinbutton.MutableListSpinButtonModel
 import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.core.View
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.fill
 
 /**
  * Simple View that uses a [SpinButton] internally to allow switching between the themes within
@@ -36,13 +37,7 @@ public class ThemePicker(themeManager: ThemeManager): View() {
         }
 
         children += spinButton
-
-        layout = constrain(spinButton) {
-            it.top    eq 0
-            it.left   eq 0
-            it.right  eq parent.right
-            it.bottom eq parent.bottom
-        }
+        layout    = constrain(spinButton, fill)
 
         spinButton.changed += {
             it.value.onSuccess {

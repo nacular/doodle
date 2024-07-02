@@ -119,11 +119,10 @@ public open class Label(
 
     public var behavior: LabelBehavior? by behavior { _,new ->
         mirrorWhenRightLeft = false
-
-        new?.measureText(this)?.also { textSize = it }
+        measureText(new)
     }
 
-    private fun measureText(): Size {
+    private fun measureText(behavior: LabelBehavior? = this.behavior): Size {
         return behavior?.measureText(this)?.also { textSize = it } ?: Empty
     }
 

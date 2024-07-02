@@ -308,14 +308,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     internal fun preferredSize_(min: Size, max: Size): Size {
-        if ((preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) || (min == max && min == size)) return size
+        if (preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) return size
 
-        allowedMinSize = min
-        allowedMaxSize = max
-
+        allowedMinSize          = min
+        allowedMaxSize          = max
         preferredSizeCalculated = true
 
-        return preferredSize(min, max).coerceIn(min, max)
+        return when (min) {
+            max -> min
+            else -> preferredSize(min, max).coerceIn(min, max)
+        }
     }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
