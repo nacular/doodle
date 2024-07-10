@@ -12,7 +12,6 @@ import io.nacular.doodle.geometry.Size
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.DayOfWeek.MONDAY
 import kotlinx.datetime.DayOfWeek.SUNDAY
-import kotlinx.datetime.DayOfWeek.values
 
 /**
  * Determines how a [DaysOfTheWeekPanel] renders.
@@ -51,11 +50,11 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVi
                 col = (col + 1) % numColumns
             }
 
-            return super.layout(views, min, current, max)
+            return current
         }
     }
 
-    private val numColumns = values().size
+    private val numColumns = DayOfWeek.entries.size
 
     /**
      * Indicates which day should be used as the start of the week.
@@ -88,6 +87,6 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVi
 
         val visualizer = behavior?.itemVisualizer(this) ?: itemVisualizer ?: return
 
-        children += values().map { visualizer(it, null, Unit) }
+        children += DayOfWeek.entries.map { visualizer(it, null, Unit) }
     }
 }

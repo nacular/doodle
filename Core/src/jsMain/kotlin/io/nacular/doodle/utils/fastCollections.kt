@@ -1,6 +1,5 @@
 package io.nacular.doodle.utils
 
-import kotlinx.browser.window
 import kotlin.collections.Map.Entry
 import kotlin.collections.MutableMap.MutableEntry
 
@@ -178,26 +177,28 @@ private class FastHashSet<E>: AbstractMutableSet<E>(), MutableSet<E> {
 }
 
 public actual fun <K, V> fastMutableMapOf(): MutableMap<K, V> = when {
-    window.asDynamic()["Map"] != null -> MapWrapper()
-    else                              -> mutableMapOf()
+    mapSupported -> MapWrapper  ()
+    else         -> mutableMapOf()
 }
 
 public actual fun <E> fastSetOf(): Set<E> = when {
-    window.asDynamic()["Map"] != null -> FastHashSet()
-    else                              -> setOf()
+    mapSupported -> FastHashSet()
+    else         -> setOf      ()
 }
 
 public actual fun <E> fastMutableSetOf(): MutableSet<E> = when {
-    window.asDynamic()["Map"] != null -> FastHashSet()
-    else                              -> mutableSetOf()
+    mapSupported -> FastHashSet ()
+    else         -> mutableSetOf()
 }
 
 public actual fun <E> fastSetOf(vararg elements: E): Set<E> = when {
-    window.asDynamic()["Map"] != null -> FastHashSet<E>().apply { elements.forEach { add(it) } }
-    else                              -> setOf(*elements)
+    mapSupported -> FastHashSet<E>().apply { elements.forEach { add(it) } }
+    else         -> setOf(*elements)
 }
 
 public actual fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E> = when {
-    window.asDynamic()["Map"] != null -> FastHashSet<E>().apply { elements.forEach { add(it) } }
-    else                              -> mutableSetOf(*elements)
+    mapSupported -> FastHashSet<E>().apply { elements.forEach { add(it) } }
+    else         -> mutableSetOf(*elements)
 }
+
+private val mapSupported by lazy { false } //window.asDynamic()["Map"] != null }

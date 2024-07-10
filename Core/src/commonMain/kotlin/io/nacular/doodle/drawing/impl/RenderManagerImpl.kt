@@ -308,7 +308,6 @@ public open class RenderManagerImpl(
                 pendingBoundsChange.firstOrNull()?.also { item ->
                     when {
                         item !in neverRendered -> {
-                            item.syncBounds()
                             updateGraphicsSurface(item, graphicsDevice[item])
 
                             pendingBoundsChange.remove(item)
@@ -372,6 +371,12 @@ public open class RenderManagerImpl(
         val graphicsSurface    = if (renderable) graphicsDevice[view] else null
 
         graphicsSurface?.let {
+            if (view in pendingBoundsChange) {
+                updateGraphicsSurface(view, graphicsSurface)
+
+                pendingBoundsChange -= view
+            }
+
             val visibleAndNotEmpty = recursivelyVisible && !view.size.empty
 
             if (visibleAndNotEmpty && view in neverRendered) {
@@ -385,13 +390,6 @@ public open class RenderManagerImpl(
                 if (view !in popups) {
                     graphicsSurface.zOrder = view.zOrder
                 }
-            }
-
-            if (view in pendingBoundsChange) {
-                view.syncBounds()
-                updateGraphicsSurface(view, graphicsSurface)
-
-                pendingBoundsChange -= view
             }
 
             if (visibilityChanged) {
@@ -433,6 +431,7 @@ public open class RenderManagerImpl(
     }
 
     private fun updateGraphicsSurface(view: View, surface: GraphicsSurface) {
+        view.syncBounds()
         surface.bounds = view.bounds
 
         if (view in displayTree) {
@@ -663,16 +662,16 @@ public open class RenderManagerImpl(
         if (!old.size.fastEquals(new.size)) {
             reRender = !new.size.empty
 
-//            if (view.children_.isNotEmpty() /*&& view.layout2_?.requiresLayout(view.positionableWrapper, old.size, new.size) == true*/) {
+            if (view.children_.isNotEmpty() && view.layout_ != null) {
                 when {
                     layingOut !== view                       -> pendingLayout += view
 
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
                     old.size sufficientlyDifferentTo new.size -> view.doLayout_()
-                    else                                      -> return
+//                    else                                      -> return
                 }
-//            }
+            }
         }
 
         when (parent) {

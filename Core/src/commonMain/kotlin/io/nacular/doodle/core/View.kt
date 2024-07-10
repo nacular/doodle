@@ -257,11 +257,17 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private var newBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { old, new ->
         renderManager?.boundsChanged(this, actualBounds, new) ?: run {
-            actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
+            if (!settingActualBounds) {
+                actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
+            }
         }
     }
 
+    private var settingActualBounds = false
+
     private var actualBounds: Rectangle = Empty; set(new) {
+        settingActualBounds = true
+
         newBounds = new // ensure newBounds updated to match actualBounds
 
         if (field.fastEqual(new)) return
@@ -272,9 +278,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             resolvedTransformDirty = true
         }
 
+        field = new
+
         boundingBox = getBoundingBox(new)
 
-        field = new
+        settingActualBounds = false
     }
 
     private var allowedMinSize = Size.Empty
@@ -310,13 +318,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal fun preferredSize_(min: Size, max: Size): Size {
         if (preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) return size
 
-        allowedMinSize          = min
-        allowedMaxSize          = max
+        allowedMinSize          = min.coerceIn(Size.Empty,     Size.Infinite)
+        allowedMaxSize          = max.coerceIn(allowedMinSize, Size.Infinite)
         preferredSizeCalculated = true
 
         return when (min) {
             max -> min
-            else -> preferredSize(min, max).coerceIn(min, max)
+            else -> preferredSize(min, max).coerceIn(allowedMinSize, allowedMaxSize)
         }
     }
 
@@ -1296,10 +1304,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal inner class PositionableView: Positionable {
         val view get() = this@View
 
-        override val visible       by this@View::visible
-        override var position      by this@View::position
-        override val bounds        by this@View::bounds
-        override val idealSize get() = this@View.idealSize
+        override val visible         by this@View::visible
+        override var position  get() =  this@View.newBounds.position; set(value) { this@View.position = value }    //by this@View::newBounds.position
+        override val bounds          by this@View::newBounds
+        override val idealSize get() =  this@View.idealSize
 
         override fun contains    (point: Point) = point in this@View
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
@@ -1396,7 +1404,7 @@ public fun View.mostRecentAncestor(filter: (View) -> Boolean): View? {
  *
  * @param beforeChange is called before a change is applied
  */
-public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange, { _,_ -> })
+public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange) { _,_ -> }
 
 public fun <T: View, B: Behavior<T>> behavior(beforeChange: (old: B?, new: B?) -> Unit = { _,_ -> }, afterChange: (old: B?, new: B?) -> Unit = { _,_ -> }): ReadWriteProperty<T, B?> = BehaviorDelegateImpl(beforeChange, afterChange)
 

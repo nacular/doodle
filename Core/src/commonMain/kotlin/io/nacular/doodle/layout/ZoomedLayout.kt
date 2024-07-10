@@ -40,6 +40,6 @@ public class ZoomedLayout(private val index: Int, private val targetBounds: Rect
             }
         }
 
-        return super.layout(views, min, current, max)
+        return current
     }
 }

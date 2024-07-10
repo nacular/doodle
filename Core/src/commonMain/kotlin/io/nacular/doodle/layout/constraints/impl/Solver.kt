@@ -110,12 +110,36 @@ internal class Solver {
 
         private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { fastMutableSetOf() }.add(this) }
         private fun unregisterSymbol(symbol: Symbol) {
+            if (false)
             rowsWithSymbol[symbol]?.let {
                 it.remove(this)
                 if (it.isEmpty()) {
                     rowsWithSymbol.remove(symbol)
                 }
             }
+
+            when (val set = rowsWithSymbol[symbol]) {
+                null -> {}
+                else -> {
+                    val s = set.size
+                    set.remove(this)
+
+                    if (set.size >= s) {
+                        println("FAILED: unregisterSymbol")
+                    }
+
+                    if (set.isEmpty()) {
+                        val s = rowsWithSymbol.size
+
+                        rowsWithSymbol.remove(symbol)
+
+                        if (rowsWithSymbol.size >= s) {
+                            println("FAILED: unregisterSymbol 2")
+                        }
+                    }
+                }
+            }
+
         }
 
         /**
@@ -314,8 +338,6 @@ internal class Solver {
         optimize(objective)
     }
 
-    fun containsEditVariable(variable: Variable) = variable in edits
-
     fun addEditVariable(variable: Variable, strength: Strength) {
         if (edits.containsKey(variable)) {
             throw DuplicateEditVariableException()
@@ -397,7 +419,15 @@ internal class Solver {
                             infeasibleRows.add(currentRow.symbol!!)
                         }
                     }
-                    else                      -> it.remove()
+                    else                      -> {
+                        val s = rowsWithSymbol[tag.marker]?.size ?: 0
+
+                        it.remove()
+
+                        if ((rowsWithSymbol[tag.marker]?.size ?: 0) >= s) {
+                            println("FAILED: updateRow")
+                        }
+                    }
                 }
             }
         }
@@ -409,6 +439,8 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
+//        println("${hashCode()},${rowsWithSymbol.values.sumOf { it.size }}")
+
         for ((variable, symbol) in vars) {
             rows[symbol]?.let {
                 variable(it.constant)
@@ -546,7 +578,13 @@ internal class Solver {
     }
 
     private fun unregisterRow(symbol: Symbol, cleanup: Boolean) {
+        val s = rows.size
+
         rows.remove(symbol)?.let { if (cleanup) it.symbol = null }
+
+        if (rows.size >= s) {
+            println("COULDN'T REMOVE ROW!!")
+        }
     }
 
     /**

@@ -235,22 +235,6 @@ public interface AllowsForcedMutation<T, V> {
     public val readOnly: V
 }
 
-public class ConstEdges internal constructor(public override val writable: Edges): AllowsForcedMutation<Edges, Rectangle> {
-    public override val readOnly: Rectangle get() = writable.readOnly
-}
-
-public class ConstProperty internal constructor(public override val writable: Property): AllowsForcedMutation<Property, Double> {
-    public override val readOnly: Double get() = writable.readOnly
-}
-
-public class ConstPosition internal constructor(public override val writable: Position): AllowsForcedMutation<Position, Point> {
-    public override val readOnly: Point get() = writable.readOnly
-}
-
-public class ConstExpression internal constructor(public override val writable: Expression): AllowsForcedMutation<Expression, Double> {
-    public override val readOnly: Double get() = writable.readOnly
-}
-
 /**
  * The rectangular bounds for a View that is being constrained.
  */
@@ -372,20 +356,6 @@ public open class ConstraintDslContext internal constructor() {
     public operator fun Property.div       (denominator: Number): Term = this * 1.0 / denominator
     public operator fun Property.unaryMinus(                   ): Term = this * -1.0
 
-    public operator fun ConstProperty.plus(expression: Expression): Expression = expression + this.writable.readOnly
-    public operator fun ConstProperty.plus(term      : Term      ): Expression = term + this.writable.readOnly
-    public operator fun ConstProperty.plus(other     : Property  ): Expression = this.writable.readOnly + other
-    public operator fun ConstProperty.plus(constant  : Number    ): Double     = this.writable.readOnly + constant.toDouble()
-
-    public operator fun ConstProperty.minus(expression: Expression): Expression = this.writable.readOnly + -expression
-    public operator fun ConstProperty.minus(term      : Term      ): Expression = this.writable.readOnly + -term
-    public operator fun ConstProperty.minus(other     : Property  ): Expression = this.writable.readOnly + -other
-    public operator fun ConstProperty.minus(constant  : Number    ): Double     = this.writable.readOnly + -constant.toDouble()
-
-    public operator fun ConstProperty.times     (coefficient: Number): Double = this.writable.readOnly * coefficient.toDouble()
-    public operator fun ConstProperty.div       (denominator: Number): Double = this.writable.readOnly / denominator.toDouble()
-    public operator fun ConstProperty.unaryMinus(                   ): Double = this.writable.readOnly * -1.0
-
     /**
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
@@ -405,32 +375,15 @@ public open class ConstraintDslContext internal constructor() {
     public fun max(a: Property, b: Property  ): Term       = max(a.toTerm(), b.toTerm())
     public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
 
-    public fun min(a: ConstProperty, b: Term          ): Expression = min(a.writable.readOnly, b)
-    public fun min(a: ConstProperty, b: Number        ): Double     = kotlin.math.min(a.writable.readOnly, b.toDouble())
-    public fun min(a: ConstProperty, b: Property      ): Expression = min(b, a.writable.readOnly)
-    public fun min(a: ConstProperty, b: Expression    ): Expression = min(b, a.writable.readOnly)
-    public fun min(a: ConstProperty, b: ConstProperty): Double = kotlin.math.min(a.writable.readOnly, b.writable.readOnly)
-
-    public fun max(a: ConstProperty, b: Term      ): Expression = max(a.writable.readOnly, b)
-    public fun max(a: ConstProperty, b: Number    ): Double     = kotlin.math.max(a.writable.readOnly, b.toDouble())
-    public fun max(a: ConstProperty, b: Property  ): Expression = max(b, a.writable.readOnly)
-    public fun max(a: ConstProperty, b: Expression): Expression = max(b, a.writable.readOnly)
-
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
     public operator fun Term.plus(property  : Property  ): Expression = this + property.toTerm()
     public operator fun Term.plus(expression: Expression): Expression = expression + this
 
-    public operator fun Term.plus(property  : ConstProperty  ): Expression = this + property.writable.readOnly
-    public operator fun Term.plus(expression: ConstExpression): Expression = expression.writable.readOnly + this
-
     public operator fun Term.minus(term      : Term      ): Expression = this + -term
     public operator fun Term.minus(constant  : Number    ): Expression = this + -constant.toDouble()
     public operator fun Term.minus(property  : Property  ): Expression = this + -property
     public operator fun Term.minus(expression: Expression): Expression = -expression + this
-
-    public operator fun Term.minus(property  : ConstProperty  ): Expression = this + -property.writable.readOnly
-    public operator fun Term.minus(expression: ConstExpression): Expression = -expression.writable.readOnly + this
 
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
@@ -443,9 +396,6 @@ public open class ConstraintDslContext internal constructor() {
         else              -> b
     }
 
-    public fun min(a: Term, b: ConstProperty  ): Expression = min(a, b.writable.readOnly)
-    public fun min(a: Term, b: ConstExpression): Expression = min(a + 0, b.writable.readOnly)
-
     public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
     public fun max(a: Term, b: Property  ): Term       = max(a, 1 * b)
     public fun max(a: Term, b: Expression): Expression = max(a + 0, b)
@@ -454,28 +404,15 @@ public open class ConstraintDslContext internal constructor() {
         else              -> b
     }
 
-    public fun max(a: Term, b: ConstProperty  ): Expression = max(a,     b.writable.readOnly)
-    public fun max(a: Term, b: ConstExpression): Expression = max(a + 0, b.writable.readOnly)
-
     public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
     public operator fun Expression.plus(constant: Number    ): Expression = Expression(terms, constant = this.constant + constant.toDouble())
     public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
     public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant)
 
-    public operator fun ConstExpression.plus(term    : Term      ): Expression = writable.readOnly + term
-    public operator fun ConstExpression.plus(constant: Number    ): Double     = writable.readOnly + constant.toDouble()
-    public operator fun ConstExpression.plus(property: Property  ): Expression = writable.readOnly + property
-    public operator fun ConstExpression.plus(other   : Expression): Expression = writable.readOnly + other
-
     public operator fun Expression.minus(term    : Term      ): Expression = this + -term
     public operator fun Expression.minus(value   : Number    ): Expression = this + -value.toDouble()
     public operator fun Expression.minus(property: Property  ): Expression = this + -property
     public operator fun Expression.minus(other   : Expression): Expression = this + -other
-
-    public operator fun ConstExpression.minus(term    : Term      ): Expression = writable.readOnly + -term
-    public operator fun ConstExpression.minus(value   : Number    ): Double     = writable.readOnly + -value.toDouble()
-    public operator fun ConstExpression.minus(property: Property  ): Expression = writable.readOnly + -property
-    public operator fun ConstExpression.minus(other   : Expression): Expression = writable.readOnly + -other
 
     public operator fun Expression.times(coefficient: Number    ): Expression = Expression(*Array(terms.size) { terms[it] * coefficient.toDouble() }, constant = constant * coefficient.toDouble()) // TODO Do we need to make a copy of the term objects in the array?
     public operator fun Expression.times(other      : Expression): Expression = when {
@@ -484,24 +421,13 @@ public open class ConstraintDslContext internal constructor() {
         else             -> throw NonlinearExpressionException()
     }
 
-    public operator fun ConstExpression.times(coefficient: Number    ): Double     = writable.readOnly * coefficient.toDouble()
-    public operator fun ConstExpression.times(other      : Expression): Expression = writable.readOnly * other
-
     public operator fun Expression.div(denominator: Number    ): Expression = this * (1.0 / denominator.toDouble())
     public operator fun Expression.div(other      : Expression): Expression = when {
         other.isConstant -> this / other.constant
         else             -> throw NonlinearExpressionException()
     }
 
-    public operator fun ConstExpression.div(coefficient: Number    ): Double = writable.readOnly / coefficient.toDouble()
-    public operator fun ConstExpression.div(other      : Expression): Double = when {
-        other.isConstant -> this / other.constant
-        else             -> throw NonlinearExpressionException()
-    }
-
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
-
-    public operator fun ConstExpression.unaryMinus(): Double = -writable.readOnly
 
     public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
     public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
@@ -511,15 +437,6 @@ public open class ConstraintDslContext internal constructor() {
         else              -> b
     }
 
-    public fun min(a: ConstExpression, b: Term      ): Expression = min(a, b + 0)
-    public fun min(a: ConstExpression, b: Number    ): Double     = kotlin.math.min(a.writable.readOnly, b.toDouble())
-    public fun min(a: ConstExpression, b: Property  ): Expression = min(a, 1 * b)
-    public fun min(a: ConstExpression, b: Expression): Expression = when {
-        a.writable.readOnly < b.value -> Expression(constant = a.writable.readOnly)
-        else                          -> b
-    }
-    public fun min(a: Expression, b: ConstExpression): Expression = min(a, b.writable.readOnly)
-
     public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
     public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
@@ -527,36 +444,18 @@ public open class ConstraintDslContext internal constructor() {
         a.value > b.value -> a
         else              -> b
     }
-    public fun max(a: Expression, b: ConstExpression): Expression = max(a, b.writable.readOnly)
-
-    public fun max(a: ConstExpression, b: Term      ): Expression = max(a, b + 0)
-    public fun max(a: ConstExpression, b: Number    ): Double     = kotlin.math.max(a.writable.readOnly, b.toDouble())
-    public fun max(a: ConstExpression, b: Property  ): Expression = max(a, 1 * b)
-    public fun max(a: ConstExpression, b: Expression): Expression = when {
-        a.writable.readOnly > b.value -> Expression(constant = a.writable.readOnly)
-        else                          -> b
-    }
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
     public operator fun Number.plus(expression: Expression): Expression = expression + this.toDouble()
 
-    public operator fun Number.plus(property  : ConstProperty  ): Double = property.writable.readOnly   + this.toDouble()
-    public operator fun Number.plus(expression: ConstExpression): Double = expression.writable.readOnly + this.toDouble()
-
     public operator fun Number.minus(term      : Term      ): Expression = -term       + this.toDouble()
     public operator fun Number.minus(property  : Property  ): Expression = -property   + this.toDouble()
     public operator fun Number.minus(expression: Expression): Expression = -expression + this.toDouble()
 
-    public operator fun Number.minus(property  : ConstProperty  ): Double = -property   + this.toDouble()
-    public operator fun Number.minus(expression: ConstExpression): Double = -expression + this.toDouble()
-
     public operator fun Number.times(term      : Term      ): Term       = term       * this.toDouble()
     public operator fun Number.times(property  : Property  ): Term       = property   * this.toDouble()
     public operator fun Number.times(expression: Expression): Expression = expression * this.toDouble()
-
-    public operator fun Number.times(property  : ConstProperty  ): Double = property   * this.toDouble()
-    public operator fun Number.times(expression: ConstExpression): Double = expression.writable.readOnly * this.toDouble()
 
     public fun min(a: Number, b: Term      ): Expression = min(b, a)
     public fun min(a: Number, b: Property  ): Expression = min(b, a)
@@ -566,12 +465,6 @@ public open class ConstraintDslContext internal constructor() {
     public fun max(a: Number, b: Property  ): Expression = max(b, a)
     public fun max(a: Number, b: Expression): Expression = max(b, a)
 
-    public fun min(a: Number, b: ConstProperty  ): Double = min(b, a)
-    public fun min(a: Number, b: ConstExpression): Double = min(b, a)
-
-    public fun max(a: Number, b: ConstProperty  ): Double = max(b, a)
-    public fun max(a: Number, b: ConstExpression): Double = max(b, a)
-
     public class NonlinearExpressionException: Exception()
 
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
@@ -579,79 +472,50 @@ public open class ConstraintDslContext internal constructor() {
     public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
     public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, Required))
 
-    public infix fun Expression.eq(property: ConstProperty  ): Result<Constraint> = this eq property.writable.readOnly
-    public infix fun Expression.eq(other   : ConstExpression): Result<Constraint> = this eq other.writable.readOnly
-
     public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
     public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
     public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
     public infix fun Expression.lessEq(other   : Expression): Result<Constraint> = add(Constraint(this - other, LE, Required))
-
-    public infix fun Expression.lessEq(property: ConstProperty  ): Result<Constraint> = this lessEq property.writable.readOnly
-    public infix fun Expression.lessEq(other   : ConstExpression): Result<Constraint> = this lessEq other.writable.readOnly
 
     public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
     public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
     public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
     public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, Required))
 
-    public infix fun Expression.greaterEq(property: ConstProperty  ): Result<Constraint> = this greaterEq property.writable.readOnly
-    public infix fun Expression.greaterEq(other   : ConstExpression): Result<Constraint> = this greaterEq other.writable.readOnly
-
     public infix fun Term.eq(term      : Term      ): Result<Constraint> = Expression(this) eq term
     public infix fun Term.eq(constant  : Number    ): Result<Constraint> = Expression(this) eq constant.toDouble()
     public infix fun Term.eq(property  : Property  ): Result<Constraint> = Expression(this) eq property
     public infix fun Term.eq(expression: Expression): Result<Constraint> = expression       eq this
-
-    public infix fun Term.eq(property  : ConstProperty  ): Result<Constraint> = this eq property.writable.readOnly
-    public infix fun Term.eq(expression: ConstExpression): Result<Constraint> = this eq expression.writable.readOnly
 
     public infix fun Term.lessEq(term      : Term      ): Result<Constraint> = Expression(this) lessEq term
     public infix fun Term.lessEq(constant  : Number    ): Result<Constraint> = Expression(this) lessEq constant.toDouble()
     public infix fun Term.lessEq(property  : Property  ): Result<Constraint> = Expression(this) lessEq property
     public infix fun Term.lessEq(expression: Expression): Result<Constraint> = Expression(this) lessEq expression
 
-    public infix fun Term.lessEq(property  : ConstProperty  ): Result<Constraint> = this lessEq property.writable.readOnly
-    public infix fun Term.lessEq(expression: ConstExpression): Result<Constraint> = this lessEq expression.writable.readOnly
-
     public infix fun Term.greaterEq(second    : Term      ): Result<Constraint> = Expression(this) greaterEq second
     public infix fun Term.greaterEq(constant  : Number    ): Result<Constraint> = Expression(this) greaterEq constant.toDouble()
     public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
     public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
-
-    public infix fun Term.greaterEq(property  : ConstProperty  ): Result<Constraint> = this greaterEq property.writable.readOnly
-    public infix fun Term.greaterEq(expression: ConstExpression): Result<Constraint> = this greaterEq expression.writable.readOnly
 
     public infix fun Property.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
     public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
     public infix fun Property.eq(expression: Expression): Result<Constraint> = expression eq this
 
-    public infix fun Property.eq(property  : ConstProperty  ): Result<Constraint> = this eq property.writable.readOnly
-    public infix fun Property.eq(expression: ConstExpression): Result<Constraint> = this eq expression.writable.readOnly
-
     public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
     public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
     public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
     public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
-
-    public infix fun Property.lessEq(second    : ConstProperty  ): Result<Constraint> = this lessEq second.writable.readOnly
-    public infix fun Property.lessEq(expression: ConstExpression): Result<Constraint> = this lessEq expression.writable.readOnly
 
     public infix fun Property.greaterEq(term      : Term      ): Result<Constraint> = this.toTerm() greaterEq term
     public infix fun Property.greaterEq(constant  : Number    ): Result<Constraint> = this.toTerm() greaterEq constant.toDouble()
     public infix fun Property.greaterEq(second    : Property  ): Result<Constraint> = this.toTerm() greaterEq second
     public infix fun Property.greaterEq(expression: Expression): Result<Constraint> = this.toTerm() greaterEq expression
 
-    public infix fun Property.greaterEq(second    : ConstProperty  ): Result<Constraint> = this greaterEq second.writable.readOnly
-    public infix fun Property.greaterEq(expression: ConstExpression): Result<Constraint> = this greaterEq expression.writable.readOnly
-
     public infix fun Position.eq(other: Position): List<Result<Constraint>> = listOf(
         top  eq other.top,
         left eq other.left
     )
-
-    public infix fun Position.eq(other: ConstPosition): List<Result<Constraint>> = this eq other.writable.readOnly
 
     public infix fun Position.eq(point: Point): List<Result<Constraint>> = listOf(
         top  eq point.y,
@@ -678,22 +542,6 @@ public open class ConstraintDslContext internal constructor() {
         left = x - position.left
     )
 
-    public operator fun ConstPosition.plus(point: Point): ConstPosition = ConstPosition(
-        writable + point
-    )
-
-    public operator fun ConstPosition.minus(point: Point): ConstPosition = ConstPosition(
-        writable - point
-    )
-
-    public operator fun Point.plus(position: ConstPosition): ConstPosition = ConstPosition(
-        this + position.writable
-    )
-
-    public operator fun Point.minus(position: ConstPosition): ConstPosition = ConstPosition(
-        this - position.writable
-    )
-
     public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(  value.toDouble() )
 
@@ -703,12 +551,6 @@ public open class ConstraintDslContext internal constructor() {
         right  - insets.right,
         bottom - insets.bottom
     )
-
-    public operator fun ConstEdges.plus (insets: Insets): Rectangle = writable.readOnly.run { Rectangle(insets.left, insets.top, kotlin.math.max(0.0, width - (insets.left + insets.right)), kotlin.math.max(0.0, height - (insets.top + insets.bottom))) }
-    public operator fun ConstEdges.plus (value:  Number): Rectangle = this + Insets(-(value.toDouble()))
-    public operator fun ConstEdges.minus(value:  Number): Rectangle = this + Insets(  value.toDouble() )
-
-    public infix fun Edges.eq(other: ConstEdges): List<Result<Constraint>> = this eq other.writable.readOnly
 
     public infix fun Edges.eq(other: Edges): List<Result<Constraint>> {
         val result = mutableListOf<Result<Constraint>>()
@@ -833,18 +675,8 @@ internal class PropertyWrapper(internal val variable: ReflectionVariable, privat
     override fun toString(             ) = "$variable [$transformer]"
 }
 
-internal class ConstPropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
-    override val name     get() = variable.name
-    override val readOnly get() = invoke()
-
-    override fun toTerm  (             ) = ConstTerm(this, variable.toTerm().coefficient)
-    override fun invoke  (             ) = transformer.get(variable())
-    override fun invoke  (value: Double) = variable(transformer.set(value))
-    override fun toString(             ) = "$variable [$transformer]"
-}
-
-private fun adapter(variable: ReflectionVariable, transformer: Transformer<Double>?, forceConst: Boolean = false): Property = transformer?.let {
-    if (forceConst) ConstPropertyWrapper(variable, transformer) else PropertyWrapper(variable, transformer)
+private fun adapter(variable: ReflectionVariable, transformer: Transformer<Double>?): Property = transformer?.let {
+    PropertyWrapper(variable, transformer)
 } ?: variable
 
 public fun ConstraintDslContext.withSizeInsets(
@@ -853,7 +685,11 @@ public fun ConstraintDslContext.withSizeInsets(
     block : ConstraintDslContext.() -> Unit
 ): Unit = when {
     width == 0.0 && height == 0.0 -> block(this)
-    else                          -> this@withSizeInsets.withSizeInsets(width = width?.let { OffsetTransformer(it) }, height = height?.let { OffsetTransformer(it) }, block)
+    else                          -> this@withSizeInsets.withSizeInsets(
+        width  = width?.let  { OffsetTransformer(it) },
+        height = height?.let { OffsetTransformer(it) },
+        block  = block
+    )
 }
 
 private fun ConstraintDslContext.withSizeInsets(
@@ -867,6 +703,8 @@ private fun ConstraintDslContext.withSizeInsets(
 
         width?.get (parent_.width_ )?.let { parent_.width_  = it }
         height?.get(parent_.height_)?.let { parent_.height_ = it }
+
+        block(this)
 
         parent_.width_  = oldWidth
         parent_.height_ = oldHeight
@@ -970,7 +808,6 @@ public class Constrainer {
 
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
-    private var parentSize = Size.Empty
     private val fakeView   = object: View() {}
     private val solver     = Solver()
     private val context    = ConstraintDslContext()
@@ -1006,7 +843,7 @@ public class Constrainer {
             updatedBounds += fakeBounds.height
         }
 
-        if (forceSetup || within.size != parentSize || this.using != using) {
+        if (forceSetup || within.size != context.parent_.min || this.using != using) {
             this.using = using
             context.parent_.min     = within.size
             context.parent_.max     = within.size

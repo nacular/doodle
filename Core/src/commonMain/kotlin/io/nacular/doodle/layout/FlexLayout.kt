@@ -170,7 +170,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
             }
         }
 
-        return super.layout(views, min, current, max)
+        return current
     }
 }
 

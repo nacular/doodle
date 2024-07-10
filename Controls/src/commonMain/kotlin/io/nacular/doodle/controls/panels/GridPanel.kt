@@ -194,18 +194,18 @@ public open class GridPanel: View() {
 
             // Calculate row and column sizes
             children.forEach { child ->
-                locations[child]?.forEach {
+                locations[child]?.forEach { location ->
                     val rowSpan   = rowSpans.getValue   (child)
                     val colSpan   = columnSpans.getValue(child)
                     val idealSize = child.idealSize
 
-                    rowLanes.getOrPut(it.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, idealSize.height) }
-                    colLanes.getOrPut(it.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  idealSize.width ) }
+                    rowLanes.getOrPut(location.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, idealSize.height) }
+                    colLanes.getOrPut(location.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  idealSize.width ) }
                 }
             }
 
-            val panelWidth        = width  - insets.run { left + right  }
-            val panelHeight       = height - insets.run { top  + bottom }
+            val panelWidth        = current.width  - insets.run { left + right  }
+            val panelHeight       = current.height - insets.run { top  + bottom }
             val verticalSpacing   = rowSpacing  (panelHeight)
             val horizontalSpacing = columnSpacing(panelWidth)
 
@@ -256,7 +256,7 @@ public open class GridPanel: View() {
                 )
             }
 
-            return Size(idealWidth!!, idealHeight!!)
+            return Size(idealWidth!! + insets.run { left + right }, idealHeight!! + insets.run { top + bottom })
         }
     }
 

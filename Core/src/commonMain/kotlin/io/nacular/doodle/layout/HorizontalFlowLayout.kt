@@ -12,7 +12,6 @@ import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.VerticalAlignment.Top
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * [Layout] that positions children in order horizontally and wraps.
@@ -32,7 +31,7 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
         val itemList     = mutableListOf<Positionable>()
         var lineWidth    = 0.0
         var lineHeight   = 0.0
-        val maxLineWidth = max.width
+        val maxLineWidth = current.width
 
         views.filter { it.visible }.forEach { child ->
             val childBounds = child.updateBounds(child.bounds.x, child.bounds.y, Size.Empty, Size.Infinite)
@@ -66,7 +65,7 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
             layoutLine(itemList, current, lineWidth, y, lineHeight)
         }
 
-        return Size(max.width, min(height, max.height))
+        return Size(current.width, y + lineHeight)
     }
 
     private fun layoutLine(itemList: List<Positionable>, parent: Size, lineWidth: Double, lineY: Double, lineHeight: Double) {

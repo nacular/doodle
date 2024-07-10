@@ -312,13 +312,13 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
         override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
-            val r = delegate?.layout(views, min, current, max)
+            val layoutSize = delegate?.layout(views, min, current, max)
 
             views.forEach  {
                 it.position = Point(-scroll.x, -scroll.y)
             }
 
-            return super.layout(views, min, current, max)
+            return layoutSize ?: current
         }
 
         fun clearConstrains() {

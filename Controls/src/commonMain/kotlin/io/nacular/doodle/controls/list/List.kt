@@ -210,7 +210,10 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var minimumSize = Size.Empty
+    private var minimumSize by observable(Size.Empty) { _,new ->
+        idealSize = new
+        size      = new
+    }
 
     protected fun updateVisibleHeight() {
         val oldSize = minimumSize
@@ -272,6 +275,8 @@ public open class List<T, out M: ListModel<T>>(
 
         super.removedFromDisplay()
     }
+
+    override fun preferredSize(min: Size, max: Size): Size = minimumSize
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         itemPositioner?.let { positioner ->

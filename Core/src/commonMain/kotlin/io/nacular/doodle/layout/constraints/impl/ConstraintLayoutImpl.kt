@@ -10,15 +10,13 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintException
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.Edges
-import io.nacular.doodle.layout.constraints.Expression
-import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.PropertyWrapper
 import io.nacular.doodle.layout.constraints.Strength
-import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.Term
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -64,22 +62,30 @@ internal open class BoundsImpl(private val target: Positionable, bounds: Rectang
 }
 
 internal class SimpleVariable(val value: KMutableProperty0<Double>): Property(), Variable {
+    override val name    : String get() = value.name
     override val readOnly: Double get() = value()
+
     override fun toTerm() = VariableTerm(this)
-
-    override val name: String = value.name
-
     override fun invoke(): Double = value()
-
     override fun invoke(value: Double) {
         this.value.set(value)
     }
 
     override fun toString() = name
+    override fun hashCode() = value.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SimpleVariable) return false
+
+        if (value != other.value) return false
+
+        return true
+    }
 }
 
 internal class ReflectionVariable(
-    val target  : Any? = null,
+            val target  : Any? = null,
     private val delegate: KMutableProperty0<Double>,
     private val id      : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
     private val term    : ReflectionVariable.() -> Term = { VariableTerm(this) },
@@ -110,7 +116,7 @@ internal class ReflectionVariable(
 
         when (other) {
             is ReflectionVariable -> {}
-            is PropertyWrapper -> return other.variable == this
+            is PropertyWrapper    -> return other.variable == this
             else                  -> return false
         }
 
@@ -276,7 +282,9 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
         private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
             previousDelete?.let {
                 it.items.forEach { constraint ->
-                    handleDelete(solver, constraint)
+                    try {
+                        solver.removeConstraint(constraint)
+                    } catch (ignore: Exception) {}
                 }
             }
         }
@@ -294,16 +302,9 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
             }
 
             insertedConstraint.expression.terms.map { it.variable }.toSet().forEach { variable ->
-                if (variable.isSynthetic) {
-                    // Add synthetic constraints that keep width and height positive
-                    try {
-                        solver.addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
-                    } catch (ignore: Exception) { }
-                }
-
                 val strength = when {
-                    variable is ReflectionVariable && variable in updatedBounds -> Strength(100)
-                    else                                                        -> Strength.Weak
+                    variable in updatedBounds -> Strength(100)
+                    else                      -> Weak
                 }
 
                 try {
@@ -317,21 +318,6 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                         errorHandler(exception)
                     } catch (ignore: UnknownEditVariableException) { }
                 }
-            }
-        }
-
-        private val Variable.isSynthetic get() = name == "width_" || name == "height_"
-
-        private fun handleDelete(solver: Solver, constraint: Constraint) {
-            try {
-                solver.removeConstraint(constraint)
-            } catch (ignore: Exception) {}
-
-            constraint.expression.terms.map { it.variable }.filter { it.isSynthetic }.toSet().forEach { variable ->
-                // Remove synthetic constraints that keep width and height positive
-                try {
-                    solver.removeConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
-                } catch (ignore: Exception) {}
             }
         }
 
@@ -416,7 +402,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
                 } catch (ignore: Exception) {}
 
                 try {
-                    solver.addEditVariable(it, Strength.Weak)
+                    solver.addEditVariable(it, Weak)
                     solver.suggestValue(it, it())
                 } catch (ignore: Exception) {}
             }

@@ -112,6 +112,7 @@ class ThemeTests {
 
         override fun fill(fill: Paint) {}
 
+        override fun child(at: Point): View?  = null
         override fun child(at: Point, predicate: (View) -> Boolean) = null
 
         override fun ancestorOf(view: View) = false

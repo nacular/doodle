@@ -67,38 +67,25 @@ public open class MonthPanel(
             val rowHeight   = current.height / numRows
             val columnWidth = current.width  / numColumns
 
-            when (cellAlignment) {
-                fill -> views.forEach {
-                    val rect = Rectangle(
-                        x      = columnWidth * col,
-                        y      = rowHeight * row,
-                        width  = columnWidth,
-                        height = rowHeight
-                    )
+            views.forEach {
+                val within = Rectangle(
+                    x      = columnWidth * col,
+                    y      = rowHeight   * row,
+                    width  = columnWidth,
+                    height = rowHeight
+                )
 
-                    col = (col + 1) % numColumns
+                col = (col + 1) % numColumns
 
-                    if (col == 0) row++
+                if (col == 0) row++
 
-                    it.updateBounds(rect)
-                }
-                else -> views.forEach {
-                    val within = Rectangle(
-                        x      = columnWidth * col,
-                        y      = rowHeight   * row,
-                        width  = columnWidth,
-                        height = rowHeight
-                    )
-
-                    col = (col + 1) % numColumns
-
-                    if (col == 0) row++
-
-                    it.updateBounds(constrainer(it.bounds, within = within, using = cellAlignment))
-                }
+                it.updateBounds(when (cellAlignment) {
+                    fill -> within
+                    else -> constrainer(it.bounds, within = within, using = cellAlignment)
+                })
             }
 
-            return super.layout(views, min, current, max)
+            return current
         }
     }
 
