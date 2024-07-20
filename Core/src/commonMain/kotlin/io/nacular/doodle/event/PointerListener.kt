@@ -59,11 +59,11 @@ public interface PointerListener {
             released: (PointerEvent) -> Unit = {},
             clicked : (PointerEvent) -> Unit = {},
         ): PointerListener = object: PointerListener {
-            inline override fun entered (event: PointerEvent) = entered (event)
-            inline override fun exited  (event: PointerEvent) = exited  (event)
-            inline override fun pressed (event: PointerEvent) = pressed (event)
-            inline override fun released(event: PointerEvent) = released(event)
-            inline override fun clicked (event: PointerEvent) = clicked (event)
+            override fun entered (event: PointerEvent) = entered (event)
+            override fun exited  (event: PointerEvent) = exited  (event)
+            override fun pressed (event: PointerEvent) = pressed (event)
+            override fun released(event: PointerEvent) = released(event)
+            override fun clicked (event: PointerEvent) = clicked (event)
         }
 
         /**

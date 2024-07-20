@@ -32,10 +32,9 @@ internal interface TableLike {
     val columnSizePolicy: ColumnSizePolicy
     val header          : Container
     val footer          : Container
+    val panel           : ScrollPanel
 
-    val panel: ScrollPanel
-
-    fun relayout()
+    fun columnSizeChanged()
 }
 
 internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F, R>(
@@ -55,96 +54,90 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
 
     override val alignmentChanged = ChangeObserversImpl(this)
 
-    override var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = headerAlignment
-        set(value) {
-            field = value
-            alignmentChanged.forEach { it(this) }
-        }
+    override var headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = headerAlignment; set(value) {
+        field = value
+        alignmentChanged.forEach { it(this) }
+    }
 
-    override var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = footerAlignment
-        set(value) {
-            field = value
-            alignmentChanged.forEach { it(this) }
-        }
+    override var footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = footerAlignment; set(value) {
+        field = value
+        alignmentChanged.forEach { it(this) }
+    }
 
-    override  var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = cellAlignment
-        set(value) {
-            field = value
-            alignmentChanged.forEach { it(this) }
-        }
+    override  var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = cellAlignment; set(value) {
+        field = value
+        alignmentChanged.forEach { it(this) }
+    }
 
-    override var preferredWidth = preferredWidth
-        set(new) {
-            field = new
+    override var preferredWidth = preferredWidth; set(new) {
+        field = new
 
-            field?.let {
-                table.resizingCol = index
-                table.columnSizePolicy.changeColumnWidth(table.width, table.internalColumns, index, it)
-                table.relayout()
-            }
+        field?.let {
+            table.resizingCol = index
+            table.columnSizePolicy.changeColumnWidth(table.width, table.internalColumns, index, it)
+            table.columnSizeChanged()
         }
+    }
 
-    override var width = preferredWidth ?: minWidth
-        set(new) {
-            field = max(minWidth, new).let {
-                maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
-            }
+    override var width = preferredWidth ?: minWidth; set(new) {
+        field = max(minWidth, new).let {
+            maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
         }
+    }
 
-    override var minWidth = minWidth
-        set(new) {
-            field = maxWidth?.let { max(new, it) } ?: new
-        }
+    override var minWidth = minWidth; set(new) {
+        field = maxWidth?.let { max(new, it) } ?: new
+    }
 
-    override var maxWidth = maxWidth
-        set(new) {
-            field = new?.let { min(it, minWidth) }
-        }
+    override var maxWidth = maxWidth; set(new) {
+        field = new?.let { min(it, minWidth) }
+    }
 
     private val x get() = view.x
 
-    private var index get() = table.columns.indexOf(this)
-        set(new) {
-            val index = this.index
+    private var index get() = table.columns.indexOf(this); set(new) {
+        val index = this.index
 
+        if (table.header.children.isNotEmpty()) {
             table.header.children.batch {
                 when {
                     new < size -> add(new, removeAt(index))
-                    else       -> add(removeAt(index))
+                    else -> add(removeAt(index))
                 }
             }
+        }
 
+        if (table.footer.children.isNotEmpty()) {
             table.footer.children.batch {
                 when {
                     new < size -> add(new, removeAt(index))
-                    else       -> add(removeAt(index))
+                    else -> add(removeAt(index))
                 }
             }
+        }
 
-            (table.panel.content as Container).children.batch {
-                if (new < size) {
-                    add(new, removeAt(index))
-                } else {
-                    add(removeAt(index))
-                }
+        (table.panel.content as Container).children.batch {
+            if (new < size) {
+                add(new, removeAt(index))
+            } else {
+                add(removeAt(index))
             }
-
-            table.internalColumns.add(new, table.internalColumns.removeAt(index))
         }
 
-    private var transform get() = view.transform
-        set(new) {
-            table.header.children.getOrNull(index)?.transform = new
-            table.footer.children.getOrNull(index)?.transform = new
-            view.transform                                    = new
-        }
+        table.internalColumns.add(new, table.internalColumns.removeAt(index))
+    }
 
-    private var zOrder get() = view.zOrder
-        set(new) {
-            table.header.children.getOrNull(index)?.zOrder = new
-            table.footer.children.getOrNull(index)?.zOrder = new
-            view.zOrder                                    = new
-        }
+    private var transform get() = view.transform; set(new) {
+        table.header.children.getOrNull(index)?.transform = new
+        table.footer.children.getOrNull(index)?.transform = new
+        view.transform                                    = new
+    }
+
+    private var zOrder get() = view.zOrder; set(new) {
+        table.header.children.getOrNull(index)?.zOrder = new
+        table.footer.children.getOrNull(index)?.zOrder = new
+        view.zOrder                                    = new
+    }
 
     private var animation: Completable? = null; set(new) {
         field?.cancel()

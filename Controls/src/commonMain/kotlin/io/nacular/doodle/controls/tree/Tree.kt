@@ -210,7 +210,6 @@ public open class Tree<T, out M: TreeModel<T>>(
 
             val oldFirst = firstVisibleRow
             val oldLast  = lastVisibleRow
-
             var position = new.position
 
             firstVisibleRow = when {

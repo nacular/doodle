@@ -14,7 +14,7 @@ import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
 import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.scrollTo
@@ -238,7 +238,7 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = Layout.simpleLayout { items, min, current, max ->
+        layout = simpleLayout { items, min, current, max ->
             (firstVisibleItem .. lastVisibleItem).forEach {
                 if (it < model.size) {
                     model[it].onSuccess { item ->
@@ -249,7 +249,7 @@ public open class List<T, out M: ListModel<T>>(
                 }
             }
 
-            size
+            current
         }
     }
 
@@ -276,7 +276,7 @@ public open class List<T, out M: ListModel<T>>(
         super.removedFromDisplay()
     }
 
-    override fun preferredSize(min: Size, max: Size): Size = minimumSize
+    override fun preferredSize(min: Size, max: Size): Size = Size(super.preferredSize(min, max).width, minimumSize.height)
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         itemPositioner?.let { positioner ->

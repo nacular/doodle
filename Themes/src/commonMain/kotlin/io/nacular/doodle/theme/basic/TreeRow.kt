@@ -19,7 +19,6 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
@@ -32,9 +31,9 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Path
+import io.nacular.doodle.utils.observable
 import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.times
-import kotlin.math.max
 
 /**
  * Created by Nicholas Eddy on 5/7/19.
@@ -105,29 +104,22 @@ public class TreeRow<T>(
 
     public var insetTop: Double = 1.0
 
-    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
-        set(new) {
-            if (field == new) {
-                return
-            }
-
-            field = new
-
-            updateLayout()
-        }
+    // FIXME: Shouldn't need the explicit left setting here
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({ it.left eq 0; it.centerY eq parent.centerY }) { _,_ ->
+       updateLayout() //relayout()
+    }
 
     private var icon    = null as TreeRowIcon?
     private var depth   = -1
-    public  var content: View = itemVisualizer.invoke(node, context = SimpleExpandableItem(tree, path, index))
-        private set(new) {
-            if (field != new) {
-                children.batch {
-                    remove(field)
-                    field = new
-                    add(field)
-                }
+    public  var content: View = itemVisualizer(node, context = SimpleExpandableItem(tree, path, index)); private set(new) {
+        if (field != new) {
+            children.batch {
+                remove(field)
+                field = new
+                add(field)
             }
         }
+    }
 
     private val iconWidth   = 20.0
     private var pointerOver = false
@@ -140,10 +132,20 @@ public class TreeRow<T>(
 
     private lateinit var constraintLayout: ConstraintLayout
 
-    private val iconConstraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { icon,_ ->
-        icon.width.preserve
-        icon.right   eq iconWidth * (1 + depth)
-        icon.centerY eq parent.centerY
+    private var indentAdjust = 0.0
+
+    private val indent get() = iconWidth * (depth + 1)
+
+    private val iconConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+        it.width.preserve
+        it.right   eq indent
+        it.centerY eq parent.centerY
+    }
+
+    private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+        withSizeInsets(width = indent, height = insetTop) {
+            positioner(it.withOffset(top = insetTop, left = indent))
+        }
     }
 
     init {
@@ -191,43 +193,48 @@ public class TreeRow<T>(
             }
         }
 
+        updateLayout()
         update(tree, node, path, index)
     }
 
-    private fun constrainLayout(view: View) = constrain(view) { content ->
-        withSizeInsets(width = iconWidth * (1 + depth), height = insetTop) {
-            positioner(content.withOffset(top = insetTop, left = iconWidth * (1 + depth)))
-        }
-    }
+    private fun constrainContent(view: View) = constrain(view, contentConstraints)
 
-    public fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int) {
-        this.path  = path
-        this.index = index
+    public fun update(tree: TreeLike, node: T, path: Path<Int>, index: Int): Unit = update(
+        itemVisualizer(node, content, SimpleExpandableItem(tree, path, index)),
+        tree,
+        path,
+        index
+    )
 
-        update(itemVisualizer(node, content, SimpleExpandableItem(tree, path, index)), tree)
-    }
+    public fun update(content: View, tree: TreeLike): Unit = update(content, tree, path, index)
 
-    public fun update(content: View, tree: TreeLike) {
+    private fun update(content: View, tree: TreeLike, path: Path<Int>, index: Int) {
         val oldDepth   = depth
         val oldContent = this.content
+        val oldPath    = this.path
+        val oldIndex   = this.index
 
-        if (oldDepth >= 0) {
-            this.content.position -= Point(iconWidth * (1 + oldDepth), insetTop)
-        }
+        this.path      = path
+        this.index     = index
+        this.depth     = path.depth - if (!tree.rootVisible) 1 else 0
+        this.content   = content
 
-        depth = path.depth - if (!tree.rootVisible) 1 else 0
-        this.content = content
+        if (oldDepth != depth || oldContent != content) {
+            println("updateLayout $oldContent <$oldDepth, $oldPath, $oldIndex> -> $content <$depth, $path, $index>")
 
-        this.content.position += Point(iconWidth * (1 + depth), insetTop)
+            if (oldContent != content) {
+                indentAdjust -= oldContent.x
+                constraintLayout.unconstrain(oldContent, contentConstraints)
+                constraintLayout.constrain  (content,    contentConstraints)
+            }
 
-        if (oldDepth != depth || oldContent != this.content) {
-            updateLayout()
+            relayout()
         }
 
         if (tree.isLeaf(path)) {
             icon?.let {
-                this.children -= it
-                constraintLayout.unconstrain(it, content, iconConstraints)
+                children -= it
+                constraintLayout.unconstrain(it, iconConstraints)
             }
             icon = null
         } else  {
@@ -235,19 +242,14 @@ public class TreeRow<T>(
                 width  = iconWidth
                 height = width
 
-                this@TreeRow.children += this
+                children += this
 
                 pointerChanged += object: PointerListener {
                     private var pressed     = false
                     private var pointerOver = false
 
-                    override fun entered(event: PointerEvent) {
-                        pointerOver = true
-                    }
-
-                    override fun exited(event: PointerEvent) {
-                        pointerOver = false
-                    }
+                    override fun entered(event: PointerEvent) { pointerOver = true  }
+                    override fun exited (event: PointerEvent) { pointerOver = false }
 
                     override fun pressed(event: PointerEvent) {
                         pressed     = true
@@ -257,10 +259,7 @@ public class TreeRow<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pressed) {
-                            when (tree.expanded(this@TreeRow.path)) {
-                                true -> tree.collapse(this@TreeRow.path)
-                                else -> tree.expand  (this@TreeRow.path)
-                            }
+                            if (tree.expanded(path)) tree.collapse(path) else tree.expand(path)
 
                             event.consume()
                         }
@@ -277,7 +276,7 @@ public class TreeRow<T>(
             }
         }
 
-        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
+//        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
         backgroundColor = when {
             tree.selected(path) -> {
                 tree.focusChanged += treeFocusChanged
@@ -302,7 +301,7 @@ public class TreeRow<T>(
     }
 
     private fun updateLayout() {
-        constraintLayout = constrainLayout(content)
+        constraintLayout = constrainContent(content)
 
         constrainIcon(icon)
 
@@ -311,7 +310,7 @@ public class TreeRow<T>(
 
     private fun constrainIcon(icon: TreeRowIcon?) {
         icon?.let {
-            constraintLayout.constrain(it, content, iconConstraints)
+            constraintLayout.constrain(it, iconConstraints)
         }
     }
 }

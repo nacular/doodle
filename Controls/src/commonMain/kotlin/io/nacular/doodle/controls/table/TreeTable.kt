@@ -7,6 +7,7 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.list.DynamicList
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.list.itemGenerator
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.table.MetaRowVisibility.Always
@@ -16,6 +17,7 @@ import io.nacular.doodle.controls.theme.rowGenerator
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeLike
 import io.nacular.doodle.controls.tree.TreeModel
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
@@ -126,11 +128,31 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     }
 }
 
+/**
+ * A visual component that renders an immutable list of items of type [T] using a [TreeTableBehavior]. Items are obtained via
+ * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
+ * efficiently, since Table recycles the Views generated to render its items.
+ *
+ * Note that this class assumes the given [TreeModel] is immutable and will not automatically respond
+ * to changes in the model.
+ *
+ * TreeTable provides vertical scrolling internally, so it does not need to be embedded in a [ScrollPanel] or similar component,
+ * unless horizontal scrolling is desired.
+ *
+ * @param model that holds the data for the Table
+ * @param selectionModel that manages the Table's selection state
+ * @param scrollCache determining how many "hidden" items are rendered above and below the Table's view-port. A value of 0 means
+ * only visible items are rendered, but quick scrolling is more likely to show blank areas.
+ * @param columns factory to define the set of columns for the Table
+ *
+ * @property model that holds the data for the Table
+ * @property selectionModel that manages the Table's selection state
+ */
 public open class TreeTable<T, M: TreeModel<T>>(
                   model         : M,
     protected val selectionModel: SelectionModel<Path<Int>>? = null,
     private   val scrollCache   : Int                        = 0,
-                  block         : ColumnFactory<T>.() -> Unit): View(), TreeLike {
+                  columns       : ColumnFactory<T>.() -> Unit): View(), TreeLike {
 
     override val rootVisible: Boolean get() = tree.rootVisible
 
@@ -148,7 +170,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
     override fun collapse(path: Path<Int>): Unit    = tree.collapse(path)
     override fun expand  (path: Path<Int>): Unit    = tree.expand  (path)
 
-    override fun expandAll  (): Unit = tree.expandAll()
+    override fun expandAll  (): Unit = tree.expandAll  ()
     override fun collapseAll(): Unit = tree.collapseAll()
 
     override fun selectAll      (                      ): Unit       = tree.selectAll      (      )
@@ -211,14 +233,20 @@ public open class TreeTable<T, M: TreeModel<T>>(
         override val footer           get() = this@TreeTable.footer
         override val panel            get() = this@TreeTable.panel
 
-        override var resizingCol get() = this@TreeTable.resizingCol
-            set(new) {
-                this@TreeTable.resizingCol = new
-            }
-
-        override fun relayout() {
-            this@TreeTable.relayout()
+        override var resizingCol get() = this@TreeTable.resizingCol; set(new) {
+            this@TreeTable.resizingCol = new
         }
+
+        override fun columnSizeChanged() {
+            this@TreeTable.columnSizeChanged()
+        }
+    }
+
+    private fun columnSizeChanged() {
+        header.relayout()
+        (panel.content as? TablePanel)?.relayout() // FIXME
+        footer.relayout()
+        relayout()
     }
 
     private inner class TableLikeBehaviorWrapper(val delegate: TreeTableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
@@ -247,7 +275,20 @@ public open class TreeTable<T, M: TreeModel<T>>(
             preferredWidth: Double?        = null,
             minWidth      : Double         = 0.0,
             maxWidth      : Double?        = null,
-            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerPosition, footer, footerPosition, cellGenerator, cellPosition, preferredWidth, minWidth, maxWidth, numFixedColumns = 1) {
+            extractor     : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(
+        TableLikeWrapper(),
+        TableLikeBehaviorWrapper(behavior),
+        header,
+        headerPosition,
+        footer,
+        footerPosition,
+        cellGenerator,
+        cellPosition,
+        preferredWidth,
+        minWidth,
+        maxWidth,
+        numFixedColumns = 1
+    ) {
 
         override val view by lazy {
             Tree(
@@ -413,7 +454,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
                         }, current)
                     }
 
-                    override val positioner get() = object: ListBehavior.ItemPositioner<R> {
+                    override val positioner get() = object: ItemPositioner<R> {
                         override fun itemBounds (of: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, view: View?) = it.rowPositioner.rowBounds(this@TreeTable, pathFromRow(index)!!, model[pathFromRow(index)!!].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
                         override fun item       (of: io.nacular.doodle.controls.list.List<R, *>, at: Point                       ) = it.rowPositioner.row      (this@TreeTable, at)
                         override fun minimumSize(of: io.nacular.doodle.controls.list.List<R, *>                                  ) = it.rowPositioner.size     (this@TreeTable, below = Path())
@@ -459,7 +500,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     // Last, unusable column
                     internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                    children += listOf(panel, footer, header)
+                    children += panel
 
                     this.block = null
                 }
@@ -478,18 +519,24 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     headerItemsToColumns.clear()
 
-                    addAll(usableColumns.map { column ->
-                        if (column.header != null) { header.hasContent = true }
+                    if (usableColumns.any { it.header != null }) {
+                        addAll(usableColumns.map { column ->
+                            if (column.header != null) { header.hasContent = true }
 
-                        behavior.headerCellGenerator(this@TreeTable, column).also {
-                            headerItemsToColumns[it] = column
-                        }
-                    })
+                            behavior.headerCellGenerator(this@TreeTable, column).also {
+                                headerItemsToColumns[it] = column
+                            }
+                        })
+                    }
                 }
 
-                behavior.headerPositioner.invoke(this@TreeTable).apply {
-                    header.y      = insetTop
-                    header.height = height
+                if (header.children.isNotEmpty()) {
+                    children += header
+
+                    behavior.headerPositioner.invoke(this@TreeTable).apply {
+                        header.y      = insetTop
+                        header.height = height
+                    }
                 }
 
                 footer.children.batch {
@@ -497,21 +544,41 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     footerItemsToColumns.clear()
 
-                    addAll(usableColumns.map { column ->
-                        if (column.footer != null) { footer.hasContent = true }
+                    if (usableColumns.any { it.footer != null }) {
+                        addAll(usableColumns.map { column ->
+                            if (column.footer != null) { footer.hasContent = true }
 
-                        behavior.footerCellGenerator(this@TreeTable, column).also {
-                            footerItemsToColumns[it] = column
-                        }
-                    })
+                            behavior.footerCellGenerator(this@TreeTable, column).also {
+                                footerItemsToColumns[it] = column
+                            }
+                        })
+                    }
                 }
 
-                behavior.headerPositioner.invoke(this@TreeTable).apply {
-                    footer.y      = this@TreeTable.height - insetTop
-                    footer.height = height
+                if (footer.children.isNotEmpty()) {
+                    children += footer
+
+                    behavior.footerPositioner(this@TreeTable).apply {
+                        footer.y      = this@TreeTable.height - insetTop
+                        footer.height = height
+                    }
                 }
 
-                layout = tableLayout(this@TreeTable, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
+                val delegate = tableLayout(this@TreeTable, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
+
+                layout = simpleLayout { items, min, current, max ->
+                    val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
+
+                    // explicitly set ideal size of table-panel so the scroll panel layout will update it
+                    panel.content?.idealSize = Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0)
+
+                    val size = delegate.layout(items, min, current, max)
+
+                    idealSize   = Size(w, size.height)
+                    resizingCol = null
+
+                    idealSize
+                }
             }
         }
     )
@@ -529,7 +596,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     protected open val factory: ColumnFactory<T> = ColumnFactoryImpl()
 
-    private var block: (ColumnFactory<T>.() -> Unit)? = block
+    private var block: (ColumnFactory<T>.() -> Unit)? = columns
 
     private val headerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
     private val footerItemsToColumns = mutableMapOf<View, InternalColumn<*,*,*,*>>()
@@ -564,7 +631,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
             contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
 
             scrollBarDimensionsChanged += {
-                doLayout()
+                columnSizeChanged()
             }
         }
     }
@@ -608,26 +675,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
         super.removedFromDisplay()
     }
 
-    public override var insets: Insets
-        get(   ) = super.insets
-        set(new) { super.insets = new }
+    public override var insets: Insets; get() = super.insets; set(new) { super.insets = new }
 
     private var resizingCol: Int? = null
-
-    override fun doLayout() {
-        width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
-        idealSize   = Size(width - (internalColumns.lastOrNull()?.width ?: 0.0), idealSize?.height ?: 0.0)
-        resizingCol = null
-
-        super.doLayout()
-
-        // Needed b/c width of header isn't constrained
-        header.doLayout()
-        (panel.content as? TablePanel)?.doLayout() // FIXME
-        footer.doLayout()
-
-        resizingCol = null
-    }
 
     internal fun rowsBelow(path: Path<Int>) = tree.rowsBelow(path)
 }

@@ -73,9 +73,9 @@ public val Double.Companion.animationConverter: SingleDataConverter<Double> get(
  * Animation converter for a [Measure].
  */
 public val <T: Units> T.animationConverter: SingleDataConverter<Measure<T>> get() = object: SingleDataConverter<Measure<T>> {
-    override val zero                           = 0 * this@animationConverter
+    override val zero                           = 0     *    this@animationConverter
     override fun serialize  (value: Measure<T>) = value `in` this@animationConverter
-    override fun deserialize(value: Double    ) = value * this@animationConverter
+    override fun deserialize(value: Double    ) = value *    this@animationConverter
 }
 
 /**

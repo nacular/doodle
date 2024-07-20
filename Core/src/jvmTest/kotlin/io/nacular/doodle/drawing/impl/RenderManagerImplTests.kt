@@ -388,7 +388,7 @@ class RenderManagerImplTests {
         listOf(container1, container2).forEach {
             verify(exactly = 0) { it.removedFromDisplay_(     ) }
             verify(exactly = 1) { it.render             (any()) }
-            verify(exactly = 1) { it.doLayout_         (     ) }
+            verify(exactly = 1) { it.doLayout_          (     ) }
         }
     }
 
@@ -497,7 +497,7 @@ class RenderManagerImplTests {
         listOf(container1, container2).forEach {
             verify(exactly = 0) { it.removedFromDisplay_(     ) }
             verify(exactly = 1) { it.render             (any()) }
-            verify(exactly = 1) { it.doLayout_         (     ) }
+            verify(exactly = 1) { it.doLayout_          (     ) }
         }
     }
 

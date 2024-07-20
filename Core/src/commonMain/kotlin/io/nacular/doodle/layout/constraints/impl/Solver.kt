@@ -20,6 +20,7 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.observable
+import kotlin.Double.Companion.MAX_VALUE
 import kotlin.math.abs
 
 /**
@@ -110,36 +111,12 @@ internal class Solver {
 
         private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { fastMutableSetOf() }.add(this) }
         private fun unregisterSymbol(symbol: Symbol) {
-            if (false)
             rowsWithSymbol[symbol]?.let {
                 it.remove(this)
                 if (it.isEmpty()) {
                     rowsWithSymbol.remove(symbol)
                 }
             }
-
-            when (val set = rowsWithSymbol[symbol]) {
-                null -> {}
-                else -> {
-                    val s = set.size
-                    set.remove(this)
-
-                    if (set.size >= s) {
-                        println("FAILED: unregisterSymbol")
-                    }
-
-                    if (set.isEmpty()) {
-                        val s = rowsWithSymbol.size
-
-                        rowsWithSymbol.remove(symbol)
-
-                        if (rowsWithSymbol.size >= s) {
-                            println("FAILED: unregisterSymbol 2")
-                        }
-                    }
-                }
-            }
-
         }
 
         /**
@@ -151,7 +128,6 @@ internal class Solver {
 
         /**
          * Insert a symbol into the row with a given coefficient.
-         *
          *
          * If the symbol already exists in the row, the coefficient will be
          * added to the existing coefficient. If the resulting coefficient
@@ -308,9 +284,8 @@ internal class Solver {
     }
 
     fun removeConstraint(constraint: Constraint) {
-        val tag = constraints[constraint] ?: throw UnknownConstraintException(constraint)
+        val tag = constraints.remove(constraint) ?: throw UnknownConstraintException(constraint)
 
-        constraints.remove(constraint)
         removeConstraintEffects(constraint, tag)
 
         var row = rows[tag.marker]
@@ -318,17 +293,9 @@ internal class Solver {
         when {
             row != null -> unregisterRow(tag.marker, cleanup = true)
             else        -> {
-                row = getMarkerLeavingRow(tag.marker) ?: throw InternalSolverError("internal solver error")
+                    row     = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
+                val leaving = rows.entries.find { it.value == row }?.key ?: throw InternalSolverError("internal solver error")
 
-                var leaving: Symbol? = null
-                for (s in rows.keys) {
-                    if (rows[s] == row) {
-                        leaving = s
-                    }
-                }
-                if (leaving == null) {
-                    throw InternalSolverError("internal solver error")
-                }
                 unregisterRow(leaving, cleanup = true)
                 row.solveFor(leaving, tag.marker)
                 substitute(tag.marker, row)
@@ -419,15 +386,7 @@ internal class Solver {
                             infeasibleRows.add(currentRow.symbol!!)
                         }
                     }
-                    else                      -> {
-                        val s = rowsWithSymbol[tag.marker]?.size ?: 0
-
-                        it.remove()
-
-                        if ((rowsWithSymbol[tag.marker]?.size ?: 0) >= s) {
-                            println("FAILED: updateRow")
-                        }
-                    }
+                    else                      -> it.remove()
                 }
             }
         }
@@ -439,8 +398,6 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
-//        println("${hashCode()},${rowsWithSymbol.values.sumOf { it.size }}")
-
         for ((variable, symbol) in vars) {
             rows[symbol]?.let {
                 variable(it.constant)
@@ -463,8 +420,8 @@ internal class Solver {
     }
 
     private fun getMarkerLeavingRow(marker: Symbol): Row? {
-        var ratio1 = Double.MAX_VALUE
-        var ratio2 = Double.MAX_VALUE
+        var ratio1 = MAX_VALUE
+        var ratio2 = MAX_VALUE
         var first : Row? = null
         var second: Row? = null
         var third : Row? = null
@@ -482,7 +439,7 @@ internal class Solver {
                     val ratio = -row.constant / coefficient
                     if (ratio < ratio1) {
                         ratio1 = ratio
-                        first = row
+                        first  = row
                     }
                 }
                 else                    -> {
@@ -495,7 +452,7 @@ internal class Solver {
             }
         }
 
-        return first ?: (second ?: third)
+        return first ?: second ?: third
     }
 
     /**
@@ -578,13 +535,7 @@ internal class Solver {
     }
 
     private fun unregisterRow(symbol: Symbol, cleanup: Boolean) {
-        val s = rows.size
-
         rows.remove(symbol)?.let { if (cleanup) it.symbol = null }
-
-        if (rows.size >= s) {
-            println("COULDN'T REMOVE ROW!!")
-        }
     }
 
     /**
@@ -706,7 +657,7 @@ internal class Solver {
     }
 
     private fun getDualEnteringSymbol(row: Row): Symbol {
-        var ratio    = Double.MAX_VALUE
+        var ratio    = MAX_VALUE
         var entering = Symbol()
 
         for ((symbol, value) in row.cells) {
@@ -742,7 +693,7 @@ internal class Solver {
      * the objective function is unbounded.
      */
     private fun getLeavingRow(entering: Symbol): Pair<Symbol, Row>? {
-        var ratio = Double.MAX_VALUE
+        var ratio = MAX_VALUE
         var result: Pair<Symbol, Row>? = null
         for ((symbol, row) in rows) {
             if (symbol.type != External) {

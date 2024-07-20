@@ -333,9 +333,7 @@ public class UnsatisfiableConstraintException(
 public open class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
-    internal val parent_ = ParentBoundsImpl(this, size = Size.Empty, min = Size.Empty, max = Size.Empty)
-
-    public val parent: ParentBounds get() = parent_
+    public lateinit var parent: ParentBounds
 
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
@@ -629,7 +627,7 @@ public open class ConstraintDslContext internal constructor() {
         override val bottom  by lazy { with(this@ConstraintDslContext) { t + height     } }
         override val centerY by lazy { with(this@ConstraintDslContext) { t + height / 2 } }
 
-        override val center  by lazy { with(this@ConstraintDslContext) { Position(left = centerX, top = centerY) } }
+        override val center  by lazy { Position(left = centerX, top = centerY) }
         override val edges   by lazy { with(this@ConstraintDslContext) { Edges(top = t + 0, left = l + 0, right = right, bottom = bottom) } }
     }
 }
@@ -661,8 +659,9 @@ internal class PropertyWrapper(internal val variable: ReflectionVariable, privat
     private val isConst      by lazy { variableTerm is ConstTerm }
     private val variableTerm by lazy { variable.toTerm()         }
 
-    override val name     get() = variable.name
-    override val readOnly get() = invoke()
+    override val name           get() = variable.name
+    override val readOnly       get() = invoke()
+    override val needsSynthetic get() = variable.needsSynthetic
 
     override fun toTerm() = when {
         isConst -> ConstTerm   (this, variableTerm.coefficient)
@@ -698,16 +697,18 @@ private fun ConstraintDslContext.withSizeInsets(
     block : ConstraintDslContext.() -> Unit
 ) {
     apply {
-        val oldWidth  = parent_.width_
-        val oldHeight = parent_.height_
+        (parent as ParentBoundsImpl).let { parent_ ->
+            val oldWidth = parent.width.readOnly
+            val oldHeight = parent.height.readOnly
 
-        width?.get (parent_.width_ )?.let { parent_.width_  = it }
-        height?.get(parent_.height_)?.let { parent_.height_ = it }
+            width?.get(parent_.width_)?.let   { parent_.width_ = it }
+            height?.get(parent_.height_)?.let { parent_.height_ = it }
 
-        block(this)
+            block(this)
 
-        parent_.width_  = oldWidth
-        parent_.height_ = oldHeight
+            parent_.width_ = oldWidth
+            parent_.height_ = oldHeight
+        }
     }
 }
 
@@ -808,6 +809,7 @@ public class Constrainer {
 
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
+    private var parentSize = Size.Empty
     private val fakeView   = object: View() {}
     private val solver     = Solver()
     private val context    = ConstraintDslContext()
@@ -843,12 +845,14 @@ public class Constrainer {
             updatedBounds += fakeBounds.height
         }
 
-        if (forceSetup || within.size != context.parent_.min || this.using != using) {
-            this.using = using
-            context.parent_.min     = within.size
-            context.parent_.max     = within.size
-            context.parent_.width_  = within.width
-            context.parent_.height_ = within.height
+        if (forceSetup || within.size != parentSize || this.using != using) {
+            this.using     = using
+            parentSize     = within.size
+            context.parent = ParentBoundsImpl(context, size = within.size, min = within.size, max = within.size)
+//            parent_.min     = within.size
+//            parent_.max     = within.size
+//            parent_.width_  = within.width
+//            parent_.height_ = within.height
 
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }

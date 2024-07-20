@@ -1,5 +1,6 @@
 package io.nacular.doodle.controls
 
+import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -21,6 +22,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.layout.constraints.constrain
@@ -28,6 +30,7 @@ import io.nacular.doodle.system.Cursor.Companion.Crosshair
 import io.nacular.doodle.system.Cursor.Companion.Grab
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
 import io.nacular.doodle.system.Cursor.Companion.None
+import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.measured.units.Angle
@@ -133,8 +136,8 @@ public class ColorPicker(color: Color): View() {
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
-                canvas.rect(rect, 3.0, LinearGradientPaint(White, baseColor,   Point.Origin,            Point(rect.width, 0.0)))
-                canvas.rect(rect, 3.0, LinearGradientPaint(Black, Transparent, Point(0.0, rect.height), Point.Origin          ))
+                canvas.rect(rect, 3.0, LinearGradientPaint(White, baseColor,   Origin,            Point(rect.width, 0.0)))
+                canvas.rect(rect, 3.0, LinearGradientPaint(Black, Transparent, Point(0.0, rect.height), Origin          ))
             }
 
             canvas.circle(Circle(Point(selection.first * width, selection.second * height), 7.0), Stroke(blackOrWhiteContrast(color.toRgb())))
@@ -154,17 +157,19 @@ public class ColorPicker(color: Color): View() {
 
         private val handle: Handle = Handle().apply { width = 12.0 }
 
-        var ratio = ratio
-            set(new) {
-                if (field == new) { return }
+        var ratio = ratio; set(new) {
+            if (field == new) { return }
 
-                val old = field
-                field = new
+            val old = field
+            field = new
 
-                handle.x = (width - handle.width) * field
+            handle.x = (width - handle.width) * field
 
-                changed_.forEach { it(this@Strip, old, field) }
-            }
+            changed_.forEach { it(this@Strip, old, field) }
+        }
+
+        final override var layout  : Layout?              get() = super.layout; set(new) { super.layout = new }
+        final override val children: ObservableList<View> get() = super.children
 
         init {
             children += handle
@@ -253,8 +258,12 @@ public class ColorPicker(color: Color): View() {
 
         private fun updateFill() {
             fill = LinearGradientPaint(
-                listOf(0, 60, 120, 180, 240, 300, 0).map { it * degrees }.mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) },
-                Point.Origin, Point(width, 0.0))
+                listOf(0, 60, 120, 180, 240, 300, 0)
+                    .map { it * degrees }
+                    .mapIndexed { index, measure -> Stop(HsvColor(measure, 1f, 1f).toRgb(), index / 6f) },
+                Origin,
+                Point(width, 0.0)
+            )
         }
     }
 
@@ -304,7 +313,7 @@ public class ColorPicker(color: Color): View() {
         }
 
         private fun updateFill() {
-            fill = LinearGradientPaint(Transparent, color.opacity(1f), Point.Origin, Point(width, 0.0))
+            fill = LinearGradientPaint(Transparent, color.opacity(1f), Origin, Point(width, 0.0))
         }
     }
 

@@ -157,6 +157,8 @@ public open class Label(
 
     override fun render(canvas: Canvas) { behavior?.render(this, canvas) }
 
+    override fun toString(): String = text
+
     public companion object {
         private val HorizontalAlignment.textAlignment get() = when (this) {
             HorizontalAlignment.Left  -> Start

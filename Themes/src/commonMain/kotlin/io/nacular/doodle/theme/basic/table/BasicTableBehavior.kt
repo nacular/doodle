@@ -102,14 +102,15 @@ public open class BasicCellGenerator<T>: CellGenerator<T> {
 }
 
 public open class BasicTableBehavior<T>(
-        private   val focusManager         : FocusManager?,
-        protected val rowHeight            : Double = 20.0,
-        protected val headerColor          : Color? = Lightgray,
-        protected val footerColor          : Color? = headerColor,
-                      evenRowColor         : Color? = White,
-                      oddRowColor          : Color? = Lightgray.lighter().lighter(),
-        protected val selectionColor       : Color? = Blue,
-        protected val selectionBlurredColor: Color? = Lightgray): TableBehavior<T>(), PointerListener, KeyListener, SelectableListKeyHandler {
+    private   val focusManager         : FocusManager?,
+    protected val rowHeight            : Double = 20.0,
+    protected val headerColor          : Color? = Lightgray,
+    protected val footerColor          : Color? = headerColor,
+                  evenRowColor         : Color? = White,
+                  oddRowColor          : Color? = Lightgray.lighter().lighter(),
+    protected val selectionColor       : Color? = Blue,
+    protected val selectionBlurredColor: Color? = Lightgray
+): TableBehavior<T>(), PointerListener, KeyListener, SelectableListKeyHandler {
 
     private val selectionChanged: SetObserver<Table<T, *>, Int> = { table,_,_ ->
         table.bodyDirty()

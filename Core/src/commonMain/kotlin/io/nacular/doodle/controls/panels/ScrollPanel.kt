@@ -131,14 +131,14 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it.preserve }; set(new) {
+    public var contentWidthConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
         field = new
 
         (layout as? ViewLayout)?.updateConstraints()
     }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: ConstraintDslContext.(Property) -> Result<Constraint> = { it.preserve }; set(new) {
+    public var contentHeightConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
         field = new
 
         (layout as? ViewLayout)?.updateConstraints()
@@ -181,13 +181,13 @@ public open class ScrollPanel(content: View? = null): View() {
 
     // Expose container APIs for behavior
     internal val _children         get() = children
-    internal var _insets           get() = insets;  set(new) { insets = new }
-    internal var _layout           get() = layout; set(new) { layout = new }
+    internal var _insets           get() = insets;           set(new) { insets           = new }
+    internal var _layout           get() = layout;           set(new) { layout           = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
-        contentWidthConstraints (it.width )
-        contentHeightConstraints(it.height)
+        contentWidthConstraints?.invoke (this, it.width )
+        contentHeightConstraints?.invoke(this, it.height)
     }
 
     private var ignoreLayout = false

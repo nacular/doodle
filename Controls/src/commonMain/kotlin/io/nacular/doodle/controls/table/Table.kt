@@ -1,7 +1,6 @@
 package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.IndexedItem
-import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.ListSelectionManager
 import io.nacular.doodle.controls.Selectable
@@ -9,12 +8,14 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.list.ListBehavior
+import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.controls.list.itemGenerator
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.table.MetaRowVisibility.Always
 import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
 import io.nacular.doodle.core.Container
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
@@ -80,14 +81,20 @@ public open class Table<T, M: ListModel<T>>(
         override val footer           get() = this@Table.footer as Container
         override val panel            get() = this@Table.panel
 
-        override var resizingCol get() = this@Table.resizingCol
-            set(new) {
-                this@Table.resizingCol = new
-            }
-
-        override fun relayout() {
-            this@Table.relayout()
+        override var resizingCol get() = this@Table.resizingCol; set(new) {
+            this@Table.resizingCol = new
         }
+
+        override fun columnSizeChanged() {
+            this@Table.columnSizeChanged()
+        }
+    }
+
+    private fun columnSizeChanged() {
+        header.relayout()
+        (panel.content as? TablePanel)?.relayout() // FIXME
+        footer.relayout()
+        relayout()
     }
 
     internal inner class TableLikeBehaviorWrapper(val delegate: TableBehavior<T>?): TableLikeBehavior<TableLikeWrapper> {
@@ -107,16 +114,29 @@ public open class Table<T, M: ListModel<T>>(
     }
 
     internal open inner class InternalListColumn<R>(
-            header         : View?,
-            headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            footer         : View?,
-            footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            itemVisualizer : CellVisualizer<T, R>,
-            cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            preferredWidth : Double?                                  = null,
-            minWidth       : Double                                   = 0.0,
-            maxWidth       : Double?                                  = null,
-            extractor      : Extractor<T, R>): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(TableLikeWrapper(), TableLikeBehaviorWrapper(behavior), header, headerAlignment, footer, footerAlignment, itemVisualizer, cellAlignment, preferredWidth, minWidth, maxWidth) {
+        header         : View?,
+        headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+        footer         : View?,
+        footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+        itemVisualizer : CellVisualizer<T, R>,
+        cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
+        preferredWidth : Double?                                  = null,
+        minWidth       : Double                                   = 0.0,
+        maxWidth       : Double?                                  = null,
+        extractor      : Extractor<T, R>
+    ): InternalColumn<TableLikeWrapper, TableLikeBehaviorWrapper, T, R>(
+        TableLikeWrapper(),
+        TableLikeBehaviorWrapper(behavior),
+        header,
+        headerAlignment,
+        footer,
+        footerAlignment,
+        itemVisualizer,
+        cellAlignment,
+        preferredWidth,
+        minWidth,
+        maxWidth
+    ) {
 
         private inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): ListModel<A> {
             override val size get() = model.size
@@ -133,9 +153,7 @@ public open class Table<T, M: ListModel<T>>(
         override val view: io.nacular.doodle.controls.list.List<R, *> by lazy {
             io.nacular.doodle.controls.list.List(
                 FieldModel(model, extractor),
-                object: ItemVisualizer<R, Any> {
-                    override fun invoke(item: R, previous: View?, context: Any) = object : View() {}
-                },
+                itemVisualizer { _,_,_ -> object : View() {} },
                 selectionModel,
                 scrollCache = scrollCache,
                 fitContent = emptySet()
@@ -158,7 +176,7 @@ public open class Table<T, M: ListModel<T>>(
                         }, current)
                     }
 
-                    override val positioner get() = object: ListBehavior.ItemPositioner<R> {
+                    override val positioner get() = object: ItemPositioner<R> {
                         override fun itemBounds (of: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, view: View?) = it.rowPositioner.rowBounds  (this@Table, model[index].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
                         override fun item       (of: io.nacular.doodle.controls.list.List<R, *>, at: Point                       ) = it.rowPositioner.row        (this@Table, at)
                         override fun minimumSize(of: io.nacular.doodle.controls.list.List<R, *>                                  ) = it.rowPositioner.minimumSize(this@Table)
@@ -174,8 +192,8 @@ public open class Table<T, M: ListModel<T>>(
         }
     }
 
-    override val numItems: Int   get() = model.size
-    public val isEmpty: Boolean get() = model.isEmpty
+    override val numItems: Int     get() = model.size
+    public   val isEmpty : Boolean get() = model.isEmpty
 
     public var columnSizePolicy: ColumnSizePolicy = ConstrainedSizePolicy; set(new) {
         field = new
@@ -195,7 +213,7 @@ public open class Table<T, M: ListModel<T>>(
                     // Last, unusable column
                     internalColumns += LastColumn(TableLikeWrapper(), behavior.overflowColumnConfig?.body(this))
 
-                    children += listOf(panel, footer, header)
+                    children += panel
 
                     this.block = null
                 }
@@ -214,18 +232,24 @@ public open class Table<T, M: ListModel<T>>(
 
                     headerItemsToColumns.clear()
 
-                    addAll(usableColumns.map { column ->
-                        if (column.header != null) { header.hasContent = true }
+                    if (usableColumns.any { it.header != null }) {
+                        addAll(usableColumns.map { column ->
+                            if (column.header != null) { header.hasContent = true }
 
-                        behavior.headerCellGenerator(this@Table, column).also {
-                            headerItemsToColumns[it] = column
-                        }
-                    })
+                            behavior.headerCellGenerator(this@Table, column).also {
+                                headerItemsToColumns[it] = column
+                            }
+                        })
+                    }
                 }
 
-                behavior.headerPositioner(this@Table).apply {
-                    header.y      = insetTop
-                    header.height = height
+                if (header.children.isNotEmpty()) {
+                    children += header
+
+                    behavior.headerPositioner(this@Table).apply {
+                        header.y      = insetTop
+                        header.height = height
+                    }
                 }
 
                 footer.children.batch {
@@ -233,21 +257,41 @@ public open class Table<T, M: ListModel<T>>(
 
                     footerItemsToColumns.clear()
 
-                    addAll(usableColumns.map { column ->
-                        if (column.footer != null) { footer.hasContent = true }
+                    if (usableColumns.any { it.footer != null }) {
+                        addAll(usableColumns.map { column ->
+                            if (column.footer != null) { footer.hasContent = true }
 
-                        behavior.footerCellGenerator(this@Table, column).also {
-                            footerItemsToColumns[it] = column
-                        }
-                    })
+                            behavior.footerCellGenerator(this@Table, column).also {
+                                footerItemsToColumns[it] = column
+                            }
+                        })
+                    }
                 }
 
-                behavior.footerPositioner(this@Table).apply {
-                    footer.y      = this@Table.height - insetTop
-                    footer.height = height
+                if (footer.children.isNotEmpty()) {
+                    children += footer
+
+                    behavior.footerPositioner(this@Table).apply {
+                        footer.y      = this@Table.height - insetTop
+                        footer.height = height
+                    }
                 }
 
-                layout = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
+                val delegate = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
+
+                layout = simpleLayout { items, min, current, max ->
+                    val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
+
+                    // explicitly set ideal size of table-panel so the scroll panel layout will update it
+                    panel.content?.idealSize = Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0)
+
+                    val size = delegate.layout(items, min, current, max)
+
+                    idealSize   = Size(w, size.height)
+                    resizingCol = null
+
+                    idealSize
+                }
             }
         }
     )
@@ -302,11 +346,12 @@ public open class Table<T, M: ListModel<T>>(
             contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
 
             scrollBarDimensionsChanged += {
-                doLayout()
+                columnSizeChanged()
             }
         }
     }
 
+    @Suppress("PropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)
@@ -354,26 +399,9 @@ public open class Table<T, M: ListModel<T>>(
         super.removedFromDisplay()
     }
 
-    public override var insets: Insets
-        get(   ) = super.insets
-        set(new) { super.insets = new }
+    public override var insets: Insets; get() = super.insets; set(new) { super.insets = new }
 
     private var resizingCol: Int? = null
-
-    override fun doLayout() {
-        width       = columnSizePolicy.layout(max(0.0, width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
-        idealSize   = Size(width - (internalColumns.lastOrNull()?.width ?: 0.0), idealSize?.height ?: 0.0)
-        resizingCol = null
-
-        super.doLayout()
-
-        // Needed b/c width of header isn't constrained
-        header.doLayout()
-        (panel.content as? TablePanel)?.doLayout()
-        footer.doLayout()
-
-        resizingCol = null
-    }
 
     public companion object {
         public operator fun <T> invoke(

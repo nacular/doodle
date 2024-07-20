@@ -229,6 +229,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     public var bounds: Rectangle get() = actualBounds; set(new) {
+        if (new == actualBounds) return
+
         (boundsChangeAttempted as AttemptedBoundsObserversImpl).forEach {
             it.invoke(this, actualBounds, new, new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize)
         }
@@ -255,7 +257,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal val newBounds_ get() = newBounds
 
-    private var newBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { old, new ->
+    private var newBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { _, new ->
         renderManager?.boundsChanged(this, actualBounds, new) ?: run {
             if (!settingActualBounds) {
                 actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
@@ -272,17 +274,19 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         if (field.fastEqual(new)) return
 
-        (boundsChanged as PropertyObserversImpl).forEach { it(this, field, new) }
-
         if (needsMirrorTransform && field.x != new.x) {
             resolvedTransformDirty = true
         }
+
+        val old = field
 
         field = new
 
         boundingBox = getBoundingBox(new)
 
         settingActualBounds = false
+
+        (boundsChanged as PropertyObserversImpl).forEach { it(this, old, field) }
     }
 
     private var allowedMinSize = Size.Empty
@@ -878,34 +882,54 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Prompts the View to lay out its children if it has a Layout installed. */
     protected open fun relayout() { renderManager?.layout(this) }
 
+    protected open fun relayoutNow() { renderManager?.layoutNow(this) }
+
     internal fun doLayout_() = doLayout()
+
+    protected fun doLayout() {
+        doLayout(allowedMinSize, newBounds.size, allowedMaxSize)
+    }
 
     private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) = layout.layout(
         children.asSequence().map { it.positionable },
         min     = min,
         max     = max,
         current = current
-    )
+    ).let {
+//        if (it != newBounds.size) {
+//            (boundsChangeAttempted as AttemptedBoundsObserversImpl).forEach { it2 ->
+//                it2.invoke(this, actualBounds, newBounds.with(it), newBounds.position != position || allowedMaxSize == allowedMinSize && it != allowedMinSize)
+//            }
+//        }
+        it.coerceIn(min, max)
+    }
 
     internal fun syncBounds() {
         if (newBounds != actualBounds) {
-            actualBounds = newBounds.with(preferredSize(allowedMinSize, allowedMaxSize))
+            val s = when {
+                newBounds.size != actualBounds.size -> preferredSize(allowedMinSize, allowedMaxSize)
+                else                                -> newBounds.size
+            }
+
+            actualBounds = newBounds.with(s)
         }
     }
 
-    /** Causes the [layout_] (if any) to re-layout the View's [children] */
-    protected open fun doLayout() {
+    /** Causes the [layout] (if any) to re-layout the View's [children] */
+    protected open fun doLayout(min: Size, current: Size, max: Size): Size {
         actualBounds = when (val l = layout) {
             null -> newBounds.with(preferredSize(allowedMinSize, allowedMaxSize))
             else -> newBounds.with(
                 doLayout(
                     l,
-                    min     = allowedMinSize,
-                    max     = allowedMaxSize,
-                    current = newBounds.size
+                    min     = min,
+                    max     = max,
+                    current = current
                 )
             )
         }
+
+        return actualBounds.size
     }
 
     /**
@@ -1305,7 +1329,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         val view get() = this@View
 
         override val visible         by this@View::visible
-        override var position  get() =  this@View.newBounds.position; set(value) { this@View.position = value }    //by this@View::newBounds.position
+        override var position  get() =  this@View.newBounds.position; set(value) { this@View.bounds = newBounds.at(value) }
         override val bounds          by this@View::newBounds
         override val idealSize get() =  this@View.idealSize
 

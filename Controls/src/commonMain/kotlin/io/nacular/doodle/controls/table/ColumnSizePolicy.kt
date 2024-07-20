@@ -98,11 +98,11 @@ public object EqualSizePolicy: ColumnSizePolicy {
 public object ProportionalSizePolicy: ColumnSizePolicy {
     override fun layout(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, startIndex: Int): Double {
         if (tableWidth > 0) {
-            val totalColWidth = columns.dropLast(1).sumOf { it.width }
+            val totalColWidth = columns.asSequence().take(columns.size - 1).sumOf { it.width }
 
-            columns.dropLast(1).forEach {
+            columns.asSequence().take(columns.size - 1).forEach {
                 it.width = when {
-                    totalColWidth > 0 -> (/*it.preferredWidth ?: */it.width) / totalColWidth * tableWidth
+                    totalColWidth > 0 -> it.width / totalColWidth * tableWidth
                     else              -> tableWidth / (columns.size - 1)
                 }
             }
@@ -113,5 +113,7 @@ public object ProportionalSizePolicy: ColumnSizePolicy {
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
         columns[index].width = to
+
+        layout(tableWidth, columns)
     }
 }

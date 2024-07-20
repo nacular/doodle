@@ -13,7 +13,6 @@ import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerListener.Companion.on
-import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.event.PointerMotionListener.Companion.on
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
@@ -292,12 +291,11 @@ public class TableFooterCell(private val column: Column<*>, private val fillColo
             }
         }
 
-        pointerMotionChanged += object : PointerMotionListener {
-            override fun moved(event: PointerEvent) {
+        pointerMotionChanged += on(
+            moved = { event ->
                 updateCursor(event)
-            }
-
-            override fun dragged(event: PointerEvent) {
+            },
+            dragged = { event ->
                 initialPosition?.let {
                     moved     = true
                     val delta = (toLocal(event.location, event.target) - it).x
@@ -315,7 +313,7 @@ public class TableFooterCell(private val column: Column<*>, private val fillColo
                     event.consume()
                 }
             }
-        }
+        )
 
         column.footer?.let { footer ->
             children += footer
