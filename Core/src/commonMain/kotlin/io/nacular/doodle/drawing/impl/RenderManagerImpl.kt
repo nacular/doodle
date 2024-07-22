@@ -543,7 +543,8 @@ public open class RenderManagerImpl(
                     releaseResources(view, it)
                 }
 
-                view.doLayout_()
+                performLayout(view)
+//                view.doLayout_()
             }
         }
     }

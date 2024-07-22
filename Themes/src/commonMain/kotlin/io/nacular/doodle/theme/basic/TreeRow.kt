@@ -105,7 +105,11 @@ public class TreeRow<T>(
     public var insetTop: Double = 1.0
 
     // FIXME: Shouldn't need the explicit left setting here
-    public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({ it.left eq 0; it.centerY eq parent.centerY }) { _,_ ->
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({
+        it.left    eq 0
+        it.width   eq it.preferredWidth
+        it.centerY eq parent.centerY
+    }) { _,_ ->
        updateLayout() //relayout()
     }
 
@@ -132,8 +136,6 @@ public class TreeRow<T>(
 
     private lateinit var constraintLayout: ConstraintLayout
 
-    private var indentAdjust = 0.0
-
     private val indent get() = iconWidth * (depth + 1)
 
     private val iconConstraints: ConstraintDslContext.(Bounds) -> Unit = {
@@ -143,8 +145,8 @@ public class TreeRow<T>(
     }
 
     private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
-        withSizeInsets(width = indent, height = insetTop) {
-            positioner(it.withOffset(top = insetTop, left = indent))
+        withSizeInsets(width = { indent }, height = { insetTop }) {
+            positioner(it.withOffset(top = { insetTop }, left = { indent }))
         }
     }
 
@@ -153,7 +155,7 @@ public class TreeRow<T>(
         children       += content
         styleChanged   += { rerender() }
         pointerChanged += object: PointerListener {
-            private var pressed   = false
+            private var pressed = false
 
             override fun entered(event: PointerEvent) {
                 pointerOver = true
@@ -223,7 +225,6 @@ public class TreeRow<T>(
             println("updateLayout $oldContent <$oldDepth, $oldPath, $oldIndex> -> $content <$depth, $path, $index>")
 
             if (oldContent != content) {
-                indentAdjust -= oldContent.x
                 constraintLayout.unconstrain(oldContent, contentConstraints)
                 constraintLayout.constrain  (content,    contentConstraints)
             }
@@ -259,7 +260,7 @@ public class TreeRow<T>(
 
                     override fun released(event: PointerEvent) {
                         if (pointerOver && pressed) {
-                            if (tree.expanded(path)) tree.collapse(path) else tree.expand(path)
+                            if (tree.expanded(this@TreeRow.path)) tree.collapse(this@TreeRow.path) else tree.expand(this@TreeRow.path)
 
                             event.consume()
                         }

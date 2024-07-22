@@ -1,9 +1,9 @@
 package io.nacular.doodle.controls.tree
 
 import io.nacular.doodle.controls.EditOperation
+import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SelectionModel
-import io.nacular.doodle.controls.ExpandableItem
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.Editable
@@ -96,10 +96,10 @@ public class MutableTree<T, M: MutableTreeModel<T>>(model         : M,
                     val i = row % children.size
 
                     editingPath   = path
-                    editOperation = it.edit(this, item, path, rowPositioner?.contentBounds(this, item, path, i, children[i]) ?: Rectangle.Empty, children[i]).also {
+                    editOperation = it.edit(this, item, path, rowPositioner?.contentBounds(this, item, path, i) ?: Rectangle.Empty, children[i]).also {
                         it()?.let { children[i] = it }
 
-                        layout(children[i], item, path, i)
+//                        layout(children[i], item, path, i)
                     }
                 }
             }

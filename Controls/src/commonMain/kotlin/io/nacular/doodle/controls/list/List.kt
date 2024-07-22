@@ -238,7 +238,7 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = simpleLayout { items, min, current, max ->
+        layout = simpleLayout { _,_,_,_ ->
             (firstVisibleItem .. lastVisibleItem).forEach {
                 if (it < model.size) {
                     model[it].onSuccess { item ->
@@ -249,7 +249,7 @@ public open class List<T, out M: ListModel<T>>(
                 }
             }
 
-            current
+            minimumSize
         }
     }
 

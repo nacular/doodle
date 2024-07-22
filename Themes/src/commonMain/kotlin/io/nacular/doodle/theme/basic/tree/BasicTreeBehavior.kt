@@ -47,23 +47,20 @@ import io.nacular.doodle.utils.RelativePositionMonitor
 import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T>() {
-    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = Rectangle(
+    override fun rowBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int) = Rectangle(
         tree.insets.left,
         tree.insets.top + index * height,
         max(0.0, tree.width - tree.insets.run { left + right }),
         height
     )
 
-    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?) = when (current) {
-        is TreeRow<*> -> current.content.bounds.let { it.at(y = it.y + index * height) }
-        else               -> {
-            // FIXME: Centralize
-            val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
-            val indent   = height * (1 + depth)
-            val maxWidth = max(0.0, tree.width - tree.insets.run { left + right } - indent)
+    override fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle {
+        // FIXME: Centralize
+        val depth    = (path.depth - if (!tree.rootVisible) 1 else 0)
+        val indent   = height * (1 + depth)
+        val maxWidth = max(0.0, tree.width - tree.insets.run { left + right } - indent)
 
-            Rectangle(tree.insets.left + indent, tree.insets.top + index * height, maxWidth, height)
-        }
+        return Rectangle(tree.insets.left + indent, tree.insets.top + index * height, maxWidth, height)
     }
 
     override fun row(of: Tree<T, *>, at: Point): Int {

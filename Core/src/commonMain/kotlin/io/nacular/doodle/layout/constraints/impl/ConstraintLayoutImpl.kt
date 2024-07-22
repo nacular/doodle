@@ -36,6 +36,10 @@ import io.nacular.doodle.utils.ifNull
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.reflect.KMutableProperty0
 
+internal interface BoundsAttemptObserver {
+    fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean)
+}
+
 @Suppress("PropertyName")
 internal open class BoundsImpl(private val target: Positionable, private val bounds: Rectangle, private val context: ConstraintDslContext): Bounds {
     var x_      = bounds.x
@@ -137,16 +141,17 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext, 
     override val edges   by lazy { Edges(null, null, right, bottom) }
 }
 
-internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLambda: Any, block: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout() {
-    private var layingOut = false
-
-    @Suppress("PrivatePropertyName")
-    private val boundsChangeAttempted_ = ::boundsChangeAttempted
-
+internal class ConstraintLayoutImpl(
+    view: View,
+    vararg others: View,
+    originalLambda: Any,
+    block: ConstraintDslContext.(List<Bounds>) -> Unit
+): ConstraintLayout(), BoundsAttemptObserver {
+    private var layingOut     = false
     private val activeBounds  = mutableSetOf<ReflectionVariable>()
     private val updatedBounds = mutableSetOf<ReflectionVariable>()
 
-    private fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
+    override fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
         if (layingOut) return
 
         viewBounds[view]?.let {
@@ -228,7 +233,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
     @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
         views.forEach {
-            it.boundsChangeAttempted -= boundsChangeAttempted_
+            --it.numBoundsAttemptObservers
 
             it.resetConstraints()
         }
@@ -241,7 +246,7 @@ internal class ConstraintLayoutImpl(view: View, vararg others: View, originalLam
     }
 
     private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
-        view.boundsChangeAttempted += boundsChangeAttempted_
+        ++view.numBoundsAttemptObservers
 
         viewBounds.getOrPut(view) {
             BoundsImpl(view.positionable, view.newBounds_, context).also {

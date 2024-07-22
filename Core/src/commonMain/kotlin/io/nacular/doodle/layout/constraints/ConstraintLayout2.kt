@@ -612,8 +612,13 @@ public open class ConstraintDslContext internal constructor() {
 
     public fun Bounds.withOffset(top: Double? = null, left: Double? = null): Bounds = when {
         top == 0.0 && left == 0.0 -> this
-        else                      -> withOffset(top = top?.let { OffsetTransformer(it) }, left = left?.let { OffsetTransformer(it) })
+        else                      -> withOffset(top = top?.let { OffsetTransformer { it } }, left = left?.let { OffsetTransformer { it } })
     }
+
+    public fun Bounds.withOffset(top: (() -> Double)? = null, left: (() -> Double)? = null): Bounds = withOffset(
+        top  = top?.let  { OffsetTransformer(it) },
+        left = left?.let { OffsetTransformer(it) }
+    )
 
     private fun Bounds.withOffset(top: Transformer<Double>? = null, left: Transformer<Double>? = null): Bounds = object: Bounds by this {
         override val top  = adapter(this@withOffset.top  as ReflectionVariable, top )
@@ -637,22 +642,22 @@ internal interface Transformer<T> {
     fun get(value: T): T
 }
 
-public class OffsetTransformer(private val offset: Double): Transformer<Double> {
-    public override fun set(value: Double): Double = value + offset
-    public override fun get(value: Double): Double = value - offset
+public class OffsetTransformer(private val offset: () -> Double): Transformer<Double> {
+    public override fun set(value: Double): Double = value + offset()
+    public override fun get(value: Double): Double = value - offset()
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is OffsetTransformer) return false
-
-        if (offset != other.offset) return false
-
-        return true
-    }
+//    override fun equals(other: Any?): Boolean {
+//        if (this === other) return true
+//        if (other !is OffsetTransformer) return false
+//
+//        if (offset != other.offset) return false
+//
+//        return true
+//    }
 
     override fun toString(): String = "+/- $offset"
 
-    override fun hashCode(): Int = offset.hashCode()
+//    override fun hashCode(): Int = offset.hashCode()
 }
 
 internal class PropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
@@ -685,11 +690,22 @@ public fun ConstraintDslContext.withSizeInsets(
 ): Unit = when {
     width == 0.0 && height == 0.0 -> block(this)
     else                          -> this@withSizeInsets.withSizeInsets(
-        width  = width?.let  { OffsetTransformer(it) },
-        height = height?.let { OffsetTransformer(it) },
+        width  = width?.let  { OffsetTransformer { it } },
+        height = height?.let { OffsetTransformer { it } },
         block  = block
     )
 }
+
+public fun ConstraintDslContext.withSizeInsets(
+    width : (() -> Double)? = null,
+    height: (() -> Double)? = null,
+    block : ConstraintDslContext.() -> Unit
+): Unit =this@withSizeInsets.withSizeInsets(
+    width  = width?.let  { OffsetTransformer(it) },
+    height = height?.let { OffsetTransformer(it) },
+    block  = block
+)
+
 
 private fun ConstraintDslContext.withSizeInsets(
     width : Transformer<Double>? = null,
@@ -849,11 +865,6 @@ public class Constrainer {
             this.using     = using
             parentSize     = within.size
             context.parent = ParentBoundsImpl(context, size = within.size, min = within.size, max = within.size)
-//            parent_.min     = within.size
-//            parent_.max     = within.size
-//            parent_.width_  = within.width
-//            parent_.height_ = within.height
-
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 

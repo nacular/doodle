@@ -50,6 +50,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
+import io.nacular.doodle.layout.constraints.impl.BoundsAttemptObserver
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
@@ -74,9 +75,8 @@ import kotlin.js.JsName
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-private typealias BooleanObservers         = PropertyObservers<View, Boolean>
-private typealias ZOrderObservers          = PropertyObservers<View, Int>
-private typealias AttemptedBoundsObservers = Pool<(View, Rectangle, Rectangle, Boolean) -> Unit>
+private typealias BooleanObservers = PropertyObservers<View, Boolean>
+private typealias ZOrderObservers  = PropertyObservers<View, Int>
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -88,12 +88,6 @@ private typealias AttemptedBoundsObservers = Pool<(View, Rectangle, Rectangle, B
  * @constructor
  */
 public abstract class View protected constructor(accessibilityRole: AccessibilityRole? = null): Renderable {
-    private inner class AttemptedBoundsObserversImpl: SetPool<(View, Rectangle, Rectangle, Boolean) -> Unit>() {
-        operator fun invoke(old: Rectangle, new: Rectangle, relayout: Boolean) {
-            forEach { it(this@View, old, new, relayout) }
-        }
-    }
-
     /**
      * Defines a clipping path for a View's children.
      *
@@ -222,7 +216,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Work-around to support ConstraintLayout
      */
-    internal val boundsChangeAttempted: AttemptedBoundsObservers by lazy { AttemptedBoundsObserversImpl() }
+    internal var numBoundsAttemptObservers = 0
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
@@ -231,9 +225,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var bounds: Rectangle get() = actualBounds; set(new) {
         if (new == actualBounds) return
 
-        (boundsChangeAttempted as AttemptedBoundsObserversImpl).forEach {
-            it.invoke(this, actualBounds, new, new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize)
-        }
+        notifyAttemptedBoundsChange(new)
 
         newBounds = new//.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
     }
@@ -896,11 +888,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         max     = max,
         current = current
     ).let {
-//        if (it != newBounds.size) {
-//            (boundsChangeAttempted as AttemptedBoundsObserversImpl).forEach { it2 ->
-//                it2.invoke(this, actualBounds, newBounds.with(it), newBounds.position != position || allowedMaxSize == allowedMinSize && it != allowedMinSize)
-//            }
-//        }
+        if (it != newBounds.size) {
+            notifyAttemptedBoundsChange(newBounds.with(it))
+        }
         it.coerceIn(min, max)
     }
 
@@ -1322,6 +1312,17 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
 
             ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
+        }
+    }
+
+    private fun notifyAttemptedBoundsChange(new: Rectangle) {
+        if (numBoundsAttemptObservers > 0) {
+            (parent?.layout as? BoundsAttemptObserver)?.boundsChangeAttempted(
+                this,
+                actualBounds,
+                new,
+                new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize
+            )
         }
     }
 

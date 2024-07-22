@@ -333,9 +333,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     }
 
                     override val positioner get() = object: TreeBehavior.RowPositioner<R>() {
-                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path].getOrNull()!!, index).run { Rectangle(0.0, y, tree.width, height) }
+                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path].getOrNull()!!, index).run { Rectangle(0.0, y, tree.width, height) }
 
-                        override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View?) = rowBounds(tree, node, path, index, current) // FIXME
+                        override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int) = rowBounds(tree, node, path, index) // FIXME
 
                         override fun row(of: Tree<R, *>, at: Point) = it.rowPositioner.row(this@TreeTable, at)
 

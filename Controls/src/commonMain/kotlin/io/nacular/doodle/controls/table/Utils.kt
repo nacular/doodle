@@ -55,19 +55,23 @@ internal class TablePanel(
             var totalWidth = 0.0
 
             views.forEachIndexed { index, view ->
-                val width = columns[index].width
+                val col   = columns[index]
+                val width = col.width
 
                 view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, POSITIVE_INFINITY)).also {
                     x          += it.width
-                    height      = max(height, it.height)
                     totalWidth += it.width
+
+                    if (index == columns.size - 2 && col !is LastColumn) {
+                        height = max(height, it.height)
+                    }
                 }
             }
 
             idealSize = Size(totalWidth, height)
 
             views.forEach {
-                it.updateBounds(it.bounds.with(height = idealSize.height))
+                it.updateBounds(it.bounds.with(height = max(current.height, idealSize.height)))
             }
 
             idealSize
@@ -123,7 +127,7 @@ internal fun <T: View> tableLayout(
     panel_.right eq parent.right
 
     if ((isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect) {
-        panel_.height greaterEq panel.idealSize.height
+        panel_.height greaterEq panel_.preferredHeight
         (panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding)) .. Strong
         (parent.height eq panel_.bottom.readOnly + footer_.height.readOnly + footerPadding) .. Strong
     } else {
