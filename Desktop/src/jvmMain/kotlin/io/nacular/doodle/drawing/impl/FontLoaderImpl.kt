@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.Font.Style.Oblique
 import io.nacular.doodle.drawing.FontInfo
 import io.nacular.doodle.drawing.FontLoader
 import org.jetbrains.skia.Data
+import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontSlant.OBLIQUE
 import org.jetbrains.skia.FontSlant.UPRIGHT
 import org.jetbrains.skia.FontStyle
@@ -18,7 +19,7 @@ import org.jetbrains.skia.paragraph.TypefaceFontProvider
 /**
  * Created by Nicholas Eddy on 5/20/21.
  */
-internal class FontLoaderImpl(private val fontCollection: FontCollection): FontLoader {
+internal class FontLoaderImpl(private val fontManager: FontMgr, private val fontCollection: FontCollection): FontLoader {
     private val loadedFonts = mutableMapOf<FontInfo, Font>()
 
     private val typefaceFontProvider = TypefaceFontProvider()
@@ -47,7 +48,7 @@ internal class FontLoaderImpl(private val fontCollection: FontCollection): FontL
 
     override suspend fun invoke(source: String, info: FontInfo.() -> Unit): Font? = FontInfo().apply(info).let { modifiedInfo ->
         loadedFonts[modifiedInfo] ?: Thread.currentThread().contextClassLoader.getResourceAsStream(source)?.let { file ->
-            val typeface = Typeface.makeFromData(Data.makeFromBytes(file.readBytes()))
+            val typeface = fontManager.makeFromData(Data.makeFromBytes(file.readBytes()))!!
             typefaceFontProvider.registerTypeface(typeface, modifiedInfo.family)
 
             typeface.toFont(modifiedInfo).also { loadedFonts[modifiedInfo] = it }

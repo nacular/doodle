@@ -7,6 +7,7 @@ import org.jetbrains.skia.FilterTileMode
 import org.jetbrains.skia.FilterTileMode.CLAMP
 import org.jetbrains.skia.FilterTileMode.MIRROR
 import org.jetbrains.skia.Font
+import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.GradientStyle
 import org.jetbrains.skia.Matrix33
@@ -84,7 +85,7 @@ import java.awt.image.RenderedImage
 import java.awt.image.VolatileImage
 import java.awt.image.renderable.RenderableImage
 import java.text.AttributedCharacterIterator
-import java.util.Hashtable
+import java.util.*
 import kotlin.math.max
 import org.jetbrains.skia.Image as SkiaImage
 import java.awt.Font as AwtFont
@@ -182,10 +183,12 @@ private class SkiaGraphicsConfiguration(private val width: Int, private val heig
 }
 
 internal class SkiaGraphics2D(
-        private val fontCollection: FontCollection,
-        private val defaultFont   : Font,
-        private val canvas        : Canvas,
-        private val textMetrics   : TextMetricsImpl): Graphics2D() {
+    private val fontManager   : FontMgr,
+    private val fontCollection: FontCollection,
+    private val defaultFont   : Font,
+    private val canvas        : Canvas,
+    private val textMetrics   : TextMetricsImpl
+): Graphics2D() {
 
     private val hints  = RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT)
     private var width  = 0
@@ -491,7 +494,7 @@ internal class SkiaGraphics2D(
 
     override fun getFontRenderContext(): FontRenderContext = fontRenderContext
 
-    override fun create(): Graphics = SkiaGraphics2D(fontCollection, defaultFont, canvas, textMetrics).also {
+    override fun create(): Graphics = SkiaGraphics2D(fontManager, fontCollection, defaultFont, canvas, textMetrics).also {
         it.setRenderingHints(renderingHints )
         it.clip  = clip
         it.paint = paint
@@ -534,7 +537,7 @@ internal class SkiaGraphics2D(
         val skiaStyle = font.skiaStyle()
 
         val typeface = typefaceMap.getOrPut(font.family to skiaStyle) {
-            Typeface.makeFromName(font.family, skiaStyle)
+            fontManager.legacyMakeTypeface(font.family, skiaStyle)
         }
 
         skiaFont = Font(typeface, font.size.toFloat())

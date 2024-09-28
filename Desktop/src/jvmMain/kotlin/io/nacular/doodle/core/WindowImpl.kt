@@ -1,7 +1,6 @@
 package io.nacular.doodle.core
 
 import io.nacular.doodle.accessibility.AccessibilityManagerSkiko
-import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuCreationContext
 import io.nacular.doodle.controls.popupmenu.MenuItem
@@ -30,7 +29,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaLayer
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -42,6 +40,7 @@ import javax.swing.JFrame
 import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
+import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import kotlin.system.exitProcess
 import javax.swing.Icon as SwingIcon
@@ -52,8 +51,8 @@ internal class WindowImpl(
                 uiDispatcher        : CoroutineDispatcher,
                 fontCollection      : FontCollection,
                 accessibilityManager: () -> AccessibilityManagerSkiko?,
-                graphicsDevices     : (SkiaLayer  ) -> RealGraphicsDevice<RealGraphicsSurface>,
-    private val renderManagers      : (DisplayImpl) -> RenderManager,
+                graphicsDevices     : (() -> Unit) -> RealGraphicsDevice<RealGraphicsSurface>,
+    private val renderManagers      : (DisplayImpl   ) -> RenderManager,
                 displays            : DisplayFactory,
                 size                : Size,
                 undecorated         : Boolean = false
@@ -171,11 +170,11 @@ internal class WindowImpl(
         }
     }
 
-    val skiaLayer = SkiaLayer(externalAccessibleFactory = { accessible }).apply {
-        addView(CustomSkikoView())
-    }
+    val skiaLayer: JPanel get() = display.panel
 
-    val graphicsDevice: GraphicsDevice<RealGraphicsSurface> = graphicsDevices(skiaLayer)
+    val graphicsDevice: GraphicsDevice<RealGraphicsSurface> = graphicsDevices {
+        display.paintNeeded()
+    }
 
     override val closed: ChangeObservers<WindowImpl> = ChangeObserversImpl(this)
 
@@ -194,24 +193,23 @@ internal class WindowImpl(
     override var focusable            get() = skiaWindow.focusableWindowState; set(new) { skiaWindow.focusableWindowState = new }
     override var triesToAlwaysBeOnTop get() = skiaWindow.isAlwaysOnTop;        set(new) { skiaWindow.isAlwaysOnTop        = new }
 
-    override val display: DisplaySkiko
+    override val display: DisplaySkiko = displays(
+        appScope,
+        uiDispatcher,
+        accessible,
+        defaultFont,
+        fontCollection,
+        graphicsDevice,
+        skiaWindow
+    )
     override val menuBar: MenuBar by lazy { MenuBarImpl() }
 
     init {
-        skiaLayer.attachTo(skiaWindow.contentPane)
-
         skiaWindow.preferredSize = size.run { Dimension(width.toInt(), height.toInt()) }
         skiaWindow.pack()
         skiaWindow.isVisible = true
 
-        display = displays(
-            appScope,
-            uiDispatcher,
-            skiaLayer,
-            defaultFont,
-            fontCollection,
-            graphicsDevice
-        )
+        display.syncSize()
     }
 
     fun start() {

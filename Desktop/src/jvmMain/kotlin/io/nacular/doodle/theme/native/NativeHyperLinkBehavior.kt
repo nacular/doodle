@@ -8,6 +8,7 @@ import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.skia.FontMgr
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
@@ -99,11 +100,22 @@ internal class NativeHyperLinkBehavior(
     window                   : WindowDiscovery,
     appScope                 : CoroutineScope,
     uiDispatcher             : CoroutineContext,
+    fontManager              : FontMgr,
     swingGraphicsFactory     : SwingGraphicsFactory,
     textMetrics              : TextMetrics,
     swingFocusManager        : javax.swing.FocusManager,
     focusManager             : FocusManager?,
     nativePointerPreprocessor: NativePointerPreprocessor?
-): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
+): AbstractNativeButtonBehavior<HyperLink, HyperLinkPeer>(
+    window,
+    appScope,
+    uiDispatcher,
+    textMetrics,
+    fontManager,
+    swingGraphicsFactory,
+    swingFocusManager,
+    focusManager,
+    nativePointerPreprocessor
+) {
     override fun createPeer(button: HyperLink) = HyperLinkPeer(focusManager, button)
 }

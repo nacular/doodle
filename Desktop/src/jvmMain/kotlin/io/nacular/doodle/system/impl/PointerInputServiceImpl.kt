@@ -1,6 +1,21 @@
 package io.nacular.doodle.system.impl
 
-import io.nacular.doodle.application.CustomSkikoView
+//import org.jetbrains.skiko.SkikoGestureEvent
+//import org.jetbrains.skiko.SkikoInputModifiers.Companion.ALT
+//import org.jetbrains.skiko.SkikoInputModifiers.Companion.CONTROL
+//import org.jetbrains.skiko.SkikoInputModifiers.Companion.META
+//import org.jetbrains.skiko.SkikoInputModifiers.Companion.SHIFT
+//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_1
+//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_2
+//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_3
+//import org.jetbrains.skiko.SkikoPointerEvent
+//import org.jetbrains.skiko.SkikoPointerEventKind
+//import org.jetbrains.skiko.SkikoPointerEventKind.DOWN
+//import org.jetbrains.skiko.SkikoPointerEventKind.DRAG
+//import org.jetbrains.skiko.SkikoPointerEventKind.ENTER
+//import org.jetbrains.skiko.SkikoPointerEventKind.EXIT
+//import org.jetbrains.skiko.SkikoPointerEventKind.MOVE
+//import org.jetbrains.skiko.SkikoPointerEventKind.UP
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.WindowGroupImpl
@@ -43,20 +58,6 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Down
 import io.nacular.doodle.system.SystemPointerEvent.Type.Enter
 import io.nacular.doodle.system.SystemPointerEvent.Type.Exit
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
-import org.jetbrains.skiko.SkikoGestureEvent
-import org.jetbrains.skiko.SkikoInputModifiers.Companion.ALT
-import org.jetbrains.skiko.SkikoInputModifiers.Companion.CONTROL
-import org.jetbrains.skiko.SkikoInputModifiers.Companion.META
-import org.jetbrains.skiko.SkikoInputModifiers.Companion.SHIFT
-import org.jetbrains.skiko.SkikoMouseButtons
-import org.jetbrains.skiko.SkikoPointerEvent
-import org.jetbrains.skiko.SkikoPointerEventKind
-import org.jetbrains.skiko.SkikoPointerEventKind.DOWN
-import org.jetbrains.skiko.SkikoPointerEventKind.DRAG
-import org.jetbrains.skiko.SkikoPointerEventKind.ENTER
-import org.jetbrains.skiko.SkikoPointerEventKind.EXIT
-import org.jetbrains.skiko.SkikoPointerEventKind.MOVE
-import org.jetbrains.skiko.SkikoPointerEventKind.UP
 import java.awt.Cursor.CROSSHAIR_CURSOR
 import java.awt.Cursor.DEFAULT_CURSOR
 import java.awt.Cursor.E_RESIZE_CURSOR
@@ -71,7 +72,14 @@ import java.awt.Cursor.S_RESIZE_CURSOR
 import java.awt.Cursor.TEXT_CURSOR
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.W_RESIZE_CURSOR
+import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseEvent.BUTTON2
+import java.awt.event.MouseEvent.BUTTON3
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import java.awt.event.MouseWheelEvent
+import java.awt.event.MouseWheelListener
 import java.awt.Cursor as AwtCursor
 
 internal typealias NativeScrollHandler = (event: MouseWheelEvent, pointInTarget: Point) -> Unit
@@ -131,18 +139,18 @@ internal class PointerInputServiceImpl(
         else      -> AwtCursor(DEFAULT_CURSOR)
     }
 
-    override fun getCursor(display: Display) = (display as? DisplayImpl)?.skiaLayer?.cursor?.doodle()
+    override fun getCursor(display: Display) = (display as? DisplayImpl)?.panel?.cursor?.doodle()
 
     override fun setCursor(display: Display, cursor: Cursor?) {
-        (display as? DisplayImpl)?.skiaLayer?.cursor = cursor.swing()
+        (display as? DisplayImpl)?.panel?.cursor = cursor.swing()
     }
 
     // FIXME: This doesn't seem to work
-    override fun getToolTipText(display: Display): String = (display as? DisplayImpl)?.skiaLayer?.toolTipText ?: ""
+    override fun getToolTipText(display: Display): String = "" //(display as? DisplayImpl)?.panel?.toolTipText ?: ""
 
     // FIXME: This doesn't seem to work
     override fun setToolTipText(display: Display, text: String) {
-        (display as? DisplayImpl)?.skiaLayer?.toolTipText = text
+//        (display as? DisplayImpl)?.panel?.toolTipText = text
     }
 
     override fun addListener   (display: Display, listener: Listener) { listeners.getOrPut(display) { mutableSetOf() }.plusAssign (listener); if (listeners.size == 1) startUp() }
@@ -150,17 +158,6 @@ internal class PointerInputServiceImpl(
 
     override fun addPreprocessor   (display: Display, preprocessor: Preprocessor) { preprocessors.getOrPut(display) { mutableSetOf() }.plusAssign (preprocessor); if (preprocessors.size == 1) startUp() }
     override fun removePreprocessor(display: Display, preprocessor: Preprocessor) { preprocessors[display]?.minusAssign(preprocessor); shutdown()                             }
-
-    private fun skikoPointerEvent(display: DisplayImpl, e: SkikoPointerEvent) {
-        when (e.kind) {
-            SkikoPointerEventKind.SCROLL -> handleMouseWheel  (display, e        )
-            else                         -> notifyPointerEvent(display, e, e.type)
-        }
-    }
-
-    private fun skikoGestureEvent(display: Display, e: SkikoGestureEvent) {
-        // TODO: Implement
-    }
 
     private fun startUp() {
         if (!started) {
@@ -175,20 +172,32 @@ internal class PointerInputServiceImpl(
         }
     }
 
-    private fun setupDisplay(display: DisplayImpl) {
-        (display.skiaLayer.skikoView as CustomSkikoView).apply {
-            onPointerEvent = { skikoPointerEvent(display, it) }
-            onGestureEvent = { skikoGestureEvent(display, it) }
-        }
+    private val displayListeners = mutableMapOf<DisplayImpl, SkikoPointerListener>()
 
-        // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
-        display.skiaLayer.canvas.isFocusable = false
+    private inner class SkikoPointerListener(private val display: DisplayImpl): MouseListener, MouseMotionListener, MouseWheelListener {
+        override fun mouseClicked   (e: MouseEvent     ) { notifyPointerEvent(display, e, Click    ) }
+        override fun mousePressed   (e: MouseEvent     ) { notifyPointerEvent(display, e, Down     ) }
+        override fun mouseReleased  (e: MouseEvent     ) { notifyPointerEvent(display, e, Up       ) }
+        override fun mouseEntered   (e: MouseEvent     ) { notifyPointerEvent(display, e, Enter    ) }
+        override fun mouseExited    (e: MouseEvent     ) { notifyPointerEvent(display, e, Exit     ) }
+        override fun mouseMoved     (e: MouseEvent     ) { notifyPointerEvent(display, e, Type.Move) }
+        override fun mouseDragged   (e: MouseEvent     ) { notifyPointerEvent(display, e, Type.Move) }
+        override fun mouseWheelMoved(e: MouseWheelEvent) { handleMouseWheel  (display, e           ) }
+    }
+
+    private fun setupDisplay(display: DisplayImpl) {
+        SkikoPointerListener(display).also {
+            displayListeners[display] = it
+
+            display.panel.addMouseListener      (it)
+            display.panel.addMouseMotionListener(it)
+        }
     }
 
     private fun teardownDisplay(display: DisplayImpl) {
-        (display.skiaLayer.skikoView as CustomSkikoView).apply {
-            onPointerEvent = {}
-            onGestureEvent = {}
+        displayListeners.remove(display)?.let {
+            display.panel.removeMouseListener      (it)
+            display.panel.removeMouseMotionListener(it)
         }
     }
 
@@ -198,7 +207,7 @@ internal class PointerInputServiceImpl(
         }
     }
 
-    private fun notifyPointerEvent(display: Display, pointerEvent: SkikoPointerEvent, type: Type): Boolean {
+    private fun notifyPointerEvent(display: Display, pointerEvent: MouseEvent, type: Type): Boolean {
         val event = pointerEvent.toDoodle(type)
 
         preprocessors[display]?.takeWhile { !event.consumed }?.forEach { it(event) }
@@ -207,15 +216,13 @@ internal class PointerInputServiceImpl(
         return event.consumed
     }
 
-    private fun handleMouseWheel(display: DisplayImpl, e: SkikoPointerEvent) {
+    private fun handleMouseWheel(display: DisplayImpl, wheelEvent: MouseWheelEvent) {
         // TODO: Expose wheel events to View generally?
         if (nativeScrollHandlerFinder == null) {
             return
         }
 
-        val wheelEvent = e.platform as MouseWheelEvent
-
-        val absoluteLocation = wheelEvent.location(display.skiaLayer)
+        val absoluteLocation = wheelEvent.location(display.panel)
 
         viewFinder.find(display, absoluteLocation)?.let {
             var target = it as View?
@@ -235,22 +242,12 @@ internal class PointerInputServiceImpl(
     }
 }
 
-private val SkikoPointerEvent.type: Type get() = when (kind) {
-    ENTER -> Enter
-    EXIT  -> Exit
-    DOWN  -> Down
-    UP    -> Up
-    DRAG  -> Type.Move
-    MOVE  -> Type.Move
-    else  -> Click
-}
-
-internal fun SkikoPointerEvent.toDoodle(type: Type = this.type): SystemPointerEvent {
+internal fun MouseEvent.toDoodle(type: Type): SystemPointerEvent {
     var buttons = when (this.button) {
-        SkikoMouseButtons.BUTTON_1 -> setOf(Button1)
-        SkikoMouseButtons.BUTTON_2 -> setOf(Button2)
-        SkikoMouseButtons.BUTTON_3 -> setOf(Button3)
-        else                       -> emptySet()
+        BUTTON1 -> setOf(Button1)
+        BUTTON2 -> setOf(Button2)
+        BUTTON3 -> setOf(Button3)
+        else    -> emptySet()
     }
 
     // FIXME: Change browser behavior to track released button instead of doing this
@@ -260,17 +257,18 @@ internal fun SkikoPointerEvent.toDoodle(type: Type = this.type): SystemPointerEv
 
     val modifiers = mutableSetOf<Modifier>()
 
-    if (this.modifiers.has(SHIFT  )) modifiers += Shift
-    if (this.modifiers.has(ALT    )) modifiers += Alt
-    if (this.modifiers.has(META   )) modifiers += Meta
-    if (this.modifiers.has(CONTROL)) modifiers += Ctrl
+    if (isAltDown    ) modifiers += Alt
+    if (isMetaDown   ) modifiers += Meta
+    if (isShiftDown  ) modifiers += Shift
+    if (isControlDown) modifiers += Ctrl
 
     return SystemPointerEvent(
             id                = 0,
             type              = type,
             location          = Point(x, y),
             buttons           = buttons,
-            clickCount        = this.platform?.clickCount ?: 0,
+            clickCount        = this.clickCount,
             modifiers         = modifiers,
-            nativeScrollPanel = false)
+            nativeScrollPanel = false
+    )
 }

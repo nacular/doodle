@@ -15,6 +15,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type
 import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.skia.FontMgr
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -25,6 +26,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
     private   val appScope                 : CoroutineScope,
     private   val uiDispatcher             : CoroutineContext,
                   textMetrics              : TextMetrics,
+    private   val fontManager              : FontMgr,
     private   val swingGraphicsFactory     : SwingGraphicsFactory,
     private   val swingFocusManager        : javax.swing.FocusManager,
     protected val focusManager             : FocusManager?,
@@ -65,7 +67,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
     }
 
     override fun render(view: T, canvas: Canvas) {
-        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
+        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun mirrorWhenRightToLeft(view: T) = false

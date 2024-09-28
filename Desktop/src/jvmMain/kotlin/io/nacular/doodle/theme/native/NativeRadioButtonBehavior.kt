@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.skia.FontMgr
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
@@ -49,11 +50,22 @@ internal class NativeRadioButtonBehavior(
     window                   : WindowDiscovery,
     appScope                 : CoroutineScope,
     uiDispatcher             : CoroutineContext,
+    fontManager              : FontMgr,
     swingGraphicsFactory     : SwingGraphicsFactory,
     textMetrics              : TextMetrics,
     swingFocusManager        : javax.swing.FocusManager,
     focusManager             : FocusManager?,
     nativePointerPreprocessor: NativePointerPreprocessor?
-): AbstractNativeButtonBehavior<ToggleButton, JRadioButtonPeer>(window, appScope, uiDispatcher, textMetrics, swingGraphicsFactory, swingFocusManager, focusManager, nativePointerPreprocessor) {
+): AbstractNativeButtonBehavior<ToggleButton, JRadioButtonPeer>(
+    window,
+    appScope,
+    uiDispatcher,
+    textMetrics,
+    fontManager,
+    swingGraphicsFactory,
+    swingFocusManager,
+    focusManager,
+    nativePointerPreprocessor
+) {
     override fun createPeer(button: ToggleButton) = JRadioButtonPeer(focusManager, button)
 }

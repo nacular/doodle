@@ -38,13 +38,9 @@ import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontSlant.UPRIGHT
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.PathMeasure
-import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkikoGestureEvent
-import org.jetbrains.skiko.SkikoInputEvent
-import org.jetbrains.skiko.SkikoKeyboardEvent
-import org.jetbrains.skiko.SkikoPointerEvent
-import org.jetbrains.skiko.SkikoView
+import org.jetbrains.skiko.ExperimentalSkikoApi
+import org.jetbrains.skiko.SkikoRenderDelegate
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
 import org.kodein.di.DI.Module
@@ -80,21 +76,6 @@ public fun createApplication(
         allowDefaultDarkMode: Boolean,
         modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
-internal class CustomSkikoView: SkikoView {
-    internal var onRender       : (canvas: Canvas, width: Int, height: Int, nanoTime: Long) -> Unit = { _,_,_,_ -> }
-    internal var onKeyboardEvent: (SkikoKeyboardEvent) -> Unit = {}
-    internal var onPointerEvent : (SkikoPointerEvent ) -> Unit = {}
-    internal var onInputEvent   : (SkikoInputEvent   ) -> Unit = {}
-    internal var onGestureEvent : (SkikoGestureEvent ) -> Unit = {}
-
-    override fun onKeyboardEvent(event: SkikoKeyboardEvent) = onKeyboardEvent.invoke(event)
-    override fun onPointerEvent (event: SkikoPointerEvent ) = onPointerEvent.invoke (event)
-    override fun onInputEvent   (event: SkikoInputEvent   ) = onInputEvent.invoke   (event)
-    override fun onGestureEvent (event: SkikoGestureEvent ) = onGestureEvent.invoke (event)
-
-    override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) = onRender.invoke(canvas, width, height, nanoTime)
-}
-
 private open class ApplicationHolderImpl protected constructor(
     previousInjector    : DirectDI,
     allowDefaultDarkMode: Boolean      = false,
@@ -112,7 +93,8 @@ private open class ApplicationHolderImpl protected constructor(
     private val defaultFontName = UIManager.getDefaults().getFont("defaultFont")?.fontName ?: "Courier"
 
     private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val defaultFont    = Font(Typeface.makeFromName(defaultFontName, FontStyle(300, 5, UPRIGHT)), 13f)
+    private val fontManager    = FontMgr.default
+    private val defaultFont    = Font(fontManager.legacyMakeTypeface(defaultFontName, FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.default)
     }
@@ -125,6 +107,7 @@ private open class ApplicationHolderImpl protected constructor(
         bindInstance<CoroutineDispatcher> { Dispatchers.Swing }
 
         bindInstance                      { defaultFont    }
+        bindInstance                      { fontManager    }
         bindInstance                      { fontCollection }
         bindFactory<Unit, PathMeasure>    { PathMeasure()  }
 
@@ -143,8 +126,8 @@ private open class ApplicationHolderImpl protected constructor(
                     defaultFont          = instance(),
                     uiDispatcher         = instance(),
                     fontCollection       = instance(),
-                    graphicsDevices      = { layer ->
-                        RealGraphicsDevice(RealGraphicsSurfaceFactory(layer, instance(), instance()))
+                    graphicsDevices      = { onPaintNeeded ->
+                        RealGraphicsDevice(RealGraphicsSurfaceFactory(instance(), instance(), onPaintNeeded))
                     },
                     renderManagers       = { display ->
                         DesktopRenderManagerImpl(display, instance(), instanceOrNull(), instanceOrNull())

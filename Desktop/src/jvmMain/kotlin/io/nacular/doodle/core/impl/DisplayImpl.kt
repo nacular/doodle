@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalSkikoApi::class)
+
 package io.nacular.doodle.core.impl
 
-import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.ContentDirection
 import io.nacular.doodle.core.ContentDirection.LeftRight
@@ -41,10 +42,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
+import org.jetbrains.skiko.ExperimentalSkikoApi
 import org.jetbrains.skiko.SkiaLayer
-import java.awt.Component
+import org.jetbrains.skiko.SkikoRenderDelegate
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import javax.accessibility.Accessible
+import javax.swing.JFrame
+import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 import org.jetbrains.skia.Canvas as SkiaCanvas
@@ -57,15 +62,23 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
 internal class DisplayImpl(
     private  val appScope      : CoroutineScope,
     private  val uiDispatcher  : CoroutineContext,
-    internal val skiaLayer     : SkiaLayer,
+    private  val accessible    : Accessible,
     private  val defaultFont   : Font,
     private  val fontCollection: FontCollection,
     internal val device        : GraphicsDevice<RealGraphicsSurface>,
-): DisplaySkiko {
+                 targetWindow  : JFrame,
+): DisplaySkiko, SkikoRenderDelegate {
     override var insets = Insets.None
 
     override var layout: Layout? by Delegates.observable(null) { _, _, _ ->
         relayout()
+    }
+
+    override val panel: JPanel get() = skiaLayer
+
+    private val skiaLayer = SkiaLayer(externalAccessibleFactory = { accessible }).apply {
+        renderDelegate     = this@DisplayImpl
+        canvas.isFocusable = false // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
     }
 
     override val popups get() = popUps
@@ -110,9 +123,9 @@ internal class DisplayImpl(
     override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
     override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
 
-    override val indexInParent get() = skiaLayer.skikoView?.let { skiaLayer.components.indexOf(it as Component) } ?: -1
+    override val indexInParent get() = 0
 
-    override val locationOnScreen get() = skiaLayer.locationOnScreen.toDoodle()
+    override val locationOnScreen get() = panel.locationOnScreen.toDoodle()
 
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
@@ -141,7 +154,11 @@ internal class DisplayImpl(
     private var renderJob: Job? = null
     private var shutDown        = false
 
-    private fun requestRender() {
+    override fun syncSize() {
+        size = Size(panel.width, panel.height)
+    }
+
+    override fun paintNeeded() {
         if ((renderJob == null || renderJob?.isActive != true) && !shutDown){
             renderJob = appScope.launch(uiDispatcher) {
                 skiaLayer.needRedraw()
@@ -156,56 +173,61 @@ internal class DisplayImpl(
 
     private fun notifyMirroringChanged() {
         (mirroringChanged as ChangeObserversImpl)()
-        requestRender()
+        paintNeeded()
     }
 
     private var fill: Paint? by Delegates.observable(null) { _,_,_ ->
-        requestRender()
+        paintNeeded()
     }
 
     override var transform: AffineTransform = Identity; set (new) {
         field = new
 
-        requestRender()
+        paintNeeded()
     }
 
-    private fun onRender(skiaCanvas: SkiaCanvas, width: Int, height: Int, @Suppress("UNUSED_PARAMETER") nano: Long) {
-        skiaCanvas.save ()
-        skiaCanvas.scale(skiaLayer.contentScale, skiaLayer.contentScale)
+    override fun onRender(canvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
+        canvas.save ()
+
+        panel.graphicsConfiguration.defaultTransform.scaleX.toFloat().let {
+            canvas.scale(it, it)
+        }
 
         when {
-            resolvedTransform.is3d -> skiaCanvas.concat(resolvedTransform.skia44())
-            else                   -> skiaCanvas.concat(resolvedTransform.skia33())
+            resolvedTransform.is3d -> canvas.concat(resolvedTransform.skia44())
+            else                   -> canvas.concat(resolvedTransform.skia33())
         }
 
         fill?.let {
-            CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
+            CanvasImpl(canvas, defaultFont, fontCollection).apply {
                 size = this@DisplayImpl.size
                 rect(Rectangle(width, height), it)
             }
         }
 
         children.forEach {
-            device[it].onRender(skiaCanvas)
+            device[it].onRender(canvas)
         }
 
         popUps.forEach {
-            device[it].onRender(skiaCanvas)
+            device[it].onRender(canvas)
         }
 
-        skiaCanvas.restore()
+        canvas.restore()
     }
 
     init {
+        skiaLayer.attachTo(targetWindow.contentPane)
+//
+//        targetWindow.add(skiaLayer)
+
         skiaLayer.addComponentListener(object: ComponentAdapter() {
             override fun componentResized(e: ComponentEvent) {
-                size = Size(skiaLayer.width, skiaLayer.height)
+                syncSize()
             }
         })
 
-        (skiaLayer.skikoView as CustomSkikoView).onRender = this::onRender
-
-        size = Size(skiaLayer.width, skiaLayer.height)
+        syncSize()
     }
 
     override fun fill(fill: Paint) {
@@ -270,7 +292,7 @@ internal class DisplayImpl(
 
             layingOut = false
 
-            requestRender()
+            paintNeeded()
         }
     }
 
@@ -285,7 +307,7 @@ internal class DisplayImpl(
 
     override fun repaint() {
         fill?.let {
-            requestRender()
+            paintNeeded()
         }
     }
 

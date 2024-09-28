@@ -23,6 +23,7 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skia.Canvas
+import org.jetbrains.skia.FontMgr
 import org.kodein.di.DI.Module
 import org.kodein.di.bindInstance
 import org.kodein.di.bindSingleton
@@ -60,11 +61,12 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindInstance { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration }
             bindSingleton {
                 object: SwingGraphicsFactory {
-                    override fun invoke(skiaCanvas: Canvas): SkiaGraphics2D {
+                    override fun invoke(fontManager: FontMgr, skiaCanvas: Canvas): SkiaGraphics2D {
                         return SkiaGraphics2D(
                             canvas         = skiaCanvas,
                             defaultFont    = instance(),
                             textMetrics    = instance(),
+                            fontManager    = fontManager,
                             fontCollection = instance()
                         )
                     }
@@ -91,14 +93,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<Button>(NTheme::class) { it.behavior = NativeButtonBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    textMetrics               = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingFocusManager         = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
+                window                    = instance(),
+                appScope                  = instance(),
+                textMetrics               = instance(),
+                uiDispatcher              = Dispatchers.Swing,
+                focusManager              = instanceOrNull(),
+                swingFocusManager         = FocusManager.getCurrentManager(),
+                swingGraphicsFactory      = instance(),
+                nativePointerPreprocessor = instanceOrNull(),
+                fontManager               = instance(),
             ) }
         }
 
@@ -113,12 +116,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
 
             bindBehavior<ScrollPanel>(NTheme::class) {
                 it.behavior = NativeScrollPanelBehavior(
-                        window                    = instance(),
-                        appScope                  = instance(),
-                        uiDispatcher              = Dispatchers.Swing,
-                        swingGraphicsFactory      = instance(),
-                        nativeScrollHandlerFinder = instanceOrNull(),
-                        nativePointerPreprocessor = instanceOrNull()) }
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    swingGraphicsFactory      = instance(),
+                    nativeScrollHandlerFinder = instanceOrNull(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    fontManager               = instance(),
+                )
+            }
         }
 
         /**
@@ -129,12 +135,13 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(
-                    window                    = instance(),
-                    appScope                  = instance(),
-                    uiDispatcher              = Dispatchers.Swing,
-                    focusManager              = instanceOrNull(),
-                    swingGraphicsFactory      = instance(),
-                    nativePointerPreprocessor = instanceOrNull()
+                window                    = instance(),
+                appScope                  = instance(),
+                fontManager              = instance(),
+                uiDispatcher              = Dispatchers.Swing,
+                focusManager              = instanceOrNull(),
+                swingGraphicsFactory      = instance(),
+                nativePointerPreprocessor = instanceOrNull(),
             ) }
         }
 
@@ -146,25 +153,27 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindBehavior<TextField>(NTheme::class) { it.behavior = NativeTextFieldBehavior(
-                    window               = instance(),
-                    appScope             = instance(),
-                    defaultFont          = instance(),
-                    uiDispatcher         = Dispatchers.Swing,
-                    focusManager         = instanceOrNull(),
-                    swingFocusManager    = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory = instance(),
-                    textMetrics          = instance()
+                window               = instance(),
+                appScope             = instance(),
+                defaultFont          = instance(),
+                uiDispatcher         = Dispatchers.Swing,
+                focusManager         = instanceOrNull(),
+                swingFocusManager    = FocusManager.getCurrentManager(),
+                swingGraphicsFactory = instance(),
+                textMetrics          = instance(),
+                fontManager          = instance(),
             ) }
 
             bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(
-                    window               = instance(),
-                    appScope             = instance(),
-                    defaultFont          = instance(),
-                    uiDispatcher         = Dispatchers.Swing,
-                    focusManager         = instanceOrNull(),
-                    swingFocusManager    = FocusManager.getCurrentManager(),
-                    swingGraphicsFactory = instance(),
-                    textMetrics          = instance()
+                window               = instance(),
+                appScope             = instance(),
+                defaultFont          = instance(),
+                uiDispatcher         = Dispatchers.Swing,
+                focusManager         = instanceOrNull(),
+                swingFocusManager    = FocusManager.getCurrentManager(),
+                swingGraphicsFactory = instance(),
+                textMetrics          = instance(),
+                fontManager          = instance(),
             ) }
         }
 
@@ -180,14 +189,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindBehavior<HyperLink>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
                 it.behavior = NativeHyperLinkBehavior(
-                        window                    = instance(),
-                        appScope                  = instance(),
-                        textMetrics               = instance(),
-                        uiDispatcher              = Dispatchers.Swing,
-                        focusManager              = instanceOrNull(),
-                        swingFocusManager         = FocusManager.getCurrentManager(),
-                        swingGraphicsFactory      = instance(),
-                        nativePointerPreprocessor = instanceOrNull()
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    textMetrics               = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    focusManager              = instanceOrNull(),
+                    swingFocusManager         = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory      = instance(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    fontManager               = instance(),
                 ) as Behavior<Button>
             }
         }
@@ -202,14 +212,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindBehavior<CheckBox>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
                 it.behavior = NativeCheckBoxBehavior(
-                        window                    = instance(),
-                        appScope                  = instance(),
-                        textMetrics               = instance(),
-                        uiDispatcher              = Dispatchers.Swing,
-                        focusManager              = instanceOrNull(),
-                        swingFocusManager         = FocusManager.getCurrentManager(),
-                        swingGraphicsFactory      = instance(),
-                        nativePointerPreprocessor = instanceOrNull()
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    textMetrics               = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    focusManager              = instanceOrNull(),
+                    swingFocusManager         = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory      = instance(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    fontManager               = instance(),
                 ) as Behavior<Button>
             }
         }
@@ -224,14 +235,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindBehavior<RadioButton>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
                 it.behavior = NativeRadioButtonBehavior(
-                        window                    = instance(),
-                        appScope                  = instance(),
-                        textMetrics               = instance(),
-                        uiDispatcher              = Dispatchers.Swing,
-                        focusManager              = instanceOrNull(),
-                        swingFocusManager         = FocusManager.getCurrentManager(),
-                        swingGraphicsFactory      = instance(),
-                        nativePointerPreprocessor = instanceOrNull()
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    textMetrics               = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    focusManager              = instanceOrNull(),
+                    swingFocusManager         = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory      = instance(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    fontManager               = instance(),
                 ) as Behavior<Button>
             }
         }
@@ -246,14 +258,15 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
             bindBehavior<Switch>(NTheme::class) {
                 @Suppress("UNCHECKED_CAST")
                 it.behavior = NativeCheckBoxBehavior(
-                        window                    = instance(),
-                        appScope                  = instance(),
-                        textMetrics               = instance(),
-                        uiDispatcher              = Dispatchers.Swing,
-                        focusManager              = instanceOrNull(),
-                        swingFocusManager         = FocusManager.getCurrentManager(),
-                        swingGraphicsFactory      = instance(),
-                        nativePointerPreprocessor = instanceOrNull()
+                    window                    = instance(),
+                    appScope                  = instance(),
+                    textMetrics               = instance(),
+                    uiDispatcher              = Dispatchers.Swing,
+                    focusManager              = instanceOrNull(),
+                    swingFocusManager         = FocusManager.getCurrentManager(),
+                    swingGraphicsFactory      = instance(),
+                    nativePointerPreprocessor = instanceOrNull(),
+                    fontManager               = instance(),
                 ) as Behavior<Button>
             }
         }
@@ -265,7 +278,7 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
         public fun nativeFileSelectorBehavior(prompt: String): Module = Module(name = "NativeFileSelectorBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
-            bindSingleton<NativeFileSelectorStyler> { NativeFileSelectorStylerImpl(window = instance()) }
+            bindSingleton<NativeFileSelectorStyler> { NativeFileSelectorStylerImpl(window = instance(), fontManager = instance()) }
 
             bindBehavior<FileSelector>(NTheme::class) {
                 it.behavior = NativeFileSelectorBehavior(
@@ -275,7 +288,8 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
                     focusManager              = instanceOrNull(),
                     swingGraphicsFactory      = instance(),
                     nativePointerPreprocessor = instanceOrNull(),
-                    prompt                    = prompt
+                    prompt                    = prompt,
+                    fontManager               = instance(),
                 )
             }
         }

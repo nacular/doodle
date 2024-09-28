@@ -23,7 +23,7 @@ import io.nacular.doodle.utils.HorizontalAlignment.Center
 import io.nacular.doodle.utils.HorizontalAlignment.Right
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.skia.Typeface
+import org.jetbrains.skia.FontMgr
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
@@ -85,46 +85,52 @@ public interface NativeTextFieldBehaviorModifierBuilder {
 }
 
 internal class NativeTextFieldStylerImpl(
-        private val window              : WindowDiscovery,
-        private val appScope            : CoroutineScope,
-        private val uiDispatcher        : CoroutineContext,
-        private val defaultFont         : SkiaFont,
-        private val swingGraphicsFactory: SwingGraphicsFactory,
-        private val swingFocusManager   : javax.swing.FocusManager,
-        private val textMetrics         : TextMetricsImpl,
-        private val focusManager        : FocusManager?
+    private val window              : WindowDiscovery,
+    private val appScope            : CoroutineScope,
+    private val uiDispatcher        : CoroutineContext,
+    private val defaultFont         : SkiaFont,
+    private val fontManager         : FontMgr,
+    private val swingGraphicsFactory: SwingGraphicsFactory,
+    private val swingFocusManager   : javax.swing.FocusManager,
+    private val textMetrics         : TextMetricsImpl,
+    private val focusManager        : FocusManager?
 ): NativeTextFieldStyler {
     override fun invoke(textField: TextField, behavior: NativeTextFieldBehaviorModifier): TextFieldBehavior = NativeTextFieldBehaviorWrapper(
-            window,
-            appScope,
-            uiDispatcher,
-            defaultFont,
-            swingGraphicsFactory,
-            swingFocusManager,
-            textMetrics,
-            focusManager,
-            behavior
-    )
-}
-
-private class NativeTextFieldBehaviorWrapper(
-                    window              : WindowDiscovery,
-                    appScope            : CoroutineScope,
-                    uiDispatcher        : CoroutineContext,
-                    defaultFont         : SkiaFont,
-                    swingGraphicsFactory: SwingGraphicsFactory,
-                    swingFocusManager   : javax.swing.FocusManager,
-                    textMetrics         : TextMetricsImpl,
-                    focusManager        : FocusManager?,
-        private val delegate            : NativeTextFieldBehaviorModifier): NativeTextFieldBehavior(
         window,
         appScope,
         uiDispatcher,
         defaultFont,
+        fontManager,
         swingGraphicsFactory,
         swingFocusManager,
         textMetrics,
-        focusManager), Behavior<TextField> by delegate {
+        focusManager,
+        behavior
+    )
+}
+
+private class NativeTextFieldBehaviorWrapper(
+                window              : WindowDiscovery,
+                appScope            : CoroutineScope,
+                uiDispatcher        : CoroutineContext,
+                defaultFont         : SkiaFont,
+                fontManager         : FontMgr,
+                swingGraphicsFactory: SwingGraphicsFactory,
+                swingFocusManager   : javax.swing.FocusManager,
+                textMetrics         : TextMetricsImpl,
+                focusManager        : FocusManager?,
+    private val delegate            : NativeTextFieldBehaviorModifier
+): NativeTextFieldBehavior(
+    window,
+    appScope,
+    uiDispatcher,
+    defaultFont,
+    fontManager,
+    swingGraphicsFactory,
+    swingFocusManager,
+    textMetrics,
+    focusManager
+), Behavior<TextField> by delegate {
 
     override fun render(view: TextField, canvas: Canvas) {
         delegate.renderBackground(view, canvas)
@@ -182,6 +188,7 @@ internal open class NativeTextFieldBehavior(
         private val appScope            : CoroutineScope,
         private val uiDispatcher        : CoroutineContext,
         private val defaultFont         : SkiaFont,
+        private val fontManager         : FontMgr,
         private val swingGraphicsFactory: SwingGraphicsFactory,
         private val swingFocusManager   : javax.swing.FocusManager,
         private val textMetrics         : TextMetricsImpl,
@@ -286,7 +293,7 @@ internal open class NativeTextFieldBehavior(
         }
 
         override fun getFontMetrics(font: Font?): FontMetrics = font?.let {
-            SkiaFontMetrics(SkiaFont(Typeface.makeFromName(font.family, font.skiaStyle()), font.size.toFloat()), font, textMetrics)
+            SkiaFontMetrics(SkiaFont(fontManager.legacyMakeTypeface(font.family, font.skiaStyle()), font.size.toFloat()), font, textMetrics)
         } ?: super.getFontMetrics(font)
 
         public override fun processMouseEvent(e: MouseEvent?) {
@@ -394,7 +401,7 @@ internal open class NativeTextFieldBehavior(
     }
 
     override fun render(view: TextField, canvas: Canvas) {
-        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
+        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun mirrorWhenRightToLeft(view: TextField) = false

@@ -20,7 +20,6 @@ import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Picture
 import org.jetbrains.skia.PictureRecorder
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaLayer
 import kotlin.properties.ReadWriteProperty
 import org.jetbrains.skia.Canvas as SkiaCanvas
 
@@ -28,10 +27,11 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class RealGraphicsSurface(
-        private val layer         : SkiaLayer,
-        private val defaultFont   : Font,
-        private val fontCollection: FontCollection,
-        private val parent        : RealGraphicsSurface?): GraphicsSurface {
+    private val defaultFont   : Font,
+    private val fontCollection: FontCollection,
+    private val parent        : RealGraphicsSurface?,
+    private val onPaintNeeded : () -> Unit,
+): GraphicsSurface {
 
     private var picture                         =  null as Picture?
     private val children                        =  mutableListOf<RealGraphicsSurface>()
@@ -143,7 +143,7 @@ internal class RealGraphicsSurface(
         picture = null
 
         when (parent) {
-            null -> layer.needRedraw    ()
+            null -> onPaintNeeded()
             else -> parent.needsRerender()
         }
     }
@@ -208,7 +208,7 @@ internal class RealGraphicsSurface(
         onChange(old, new)
 
         when (parent) {
-            null -> layer.needRedraw    ()
+            null -> onPaintNeeded()
             else -> parent.needsRerender()
         }
     }

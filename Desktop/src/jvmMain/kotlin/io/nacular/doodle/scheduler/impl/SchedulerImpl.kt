@@ -93,11 +93,11 @@ internal open class SchedulerImpl(private val scope: CoroutineScope, private val
     }
 }
 
-internal class DebounceEventQueue constructor(
-                    appScope      : CoroutineScope,
-                    context       : CoroutineContext,
-        private val timer         : Timer,
-        private val maxTimeToBlock: Measure<Time> = 4 * milliseconds
+internal class DebounceEventQueue(
+                appScope      : CoroutineScope,
+                context       : CoroutineContext,
+    private val timer         : Timer,
+    private val maxTimeToBlock: Measure<Time> = 4 * milliseconds
 ) {
     private val queue = Channel<() -> Unit>(Channel.UNLIMITED)
 

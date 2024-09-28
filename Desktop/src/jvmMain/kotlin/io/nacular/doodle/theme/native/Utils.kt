@@ -32,6 +32,7 @@ import org.jetbrains.skia.FontSlant.ITALIC
 import org.jetbrains.skia.FontSlant.OBLIQUE
 import org.jetbrains.skia.FontSlant.UPRIGHT
 import org.jetbrains.skia.FontStyle
+import org.jetbrains.skia.Typeface
 import org.jetbrains.skia.paragraph.BaselineMode.IDEOGRAPHIC
 import org.jetbrains.skia.paragraph.TextStyle
 import java.awt.Component
@@ -146,6 +147,8 @@ internal fun AwtFont.skiaStyle(): FontStyle {
         }
     })
 }
+
+internal val SkiaFont.typefaceOrDefault get() = typeface ?: Typeface.makeEmpty()
 
 internal fun SkiaFont.toAwt() = AwtFont(mutableMapOf(
         SIZE    to size,

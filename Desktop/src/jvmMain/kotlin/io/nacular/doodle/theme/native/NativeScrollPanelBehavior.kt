@@ -27,6 +27,7 @@ import io.nacular.doodle.system.impl.NativeScrollHandlerFinder
 import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.skia.FontMgr
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -45,12 +46,14 @@ import kotlin.coroutines.CoroutineContext
  * Created by Nicholas Eddy on 6/29/21.
  */
 internal class NativeScrollPanelBehavior(
-        private val window                   : WindowDiscovery,
-        private val appScope                 : CoroutineScope,
-        private val uiDispatcher             : CoroutineContext,
-        private val swingGraphicsFactory     : SwingGraphicsFactory,
-        private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?,
-        private val nativePointerPreprocessor: NativePointerPreprocessor?): ScrollPanelBehavior {
+    private val window                   : WindowDiscovery,
+    private val appScope                 : CoroutineScope,
+    private val uiDispatcher             : CoroutineContext,
+    private val fontManager              : FontMgr,
+    private val swingGraphicsFactory     : SwingGraphicsFactory,
+    private val nativeScrollHandlerFinder: NativeScrollHandlerFinder?,
+    private val nativePointerPreprocessor: NativePointerPreprocessor?
+): ScrollPanelBehavior {
 
     private class ViewPortComponent(scrollPanel: ScrollPanel?): JComponent(), Scrollable {
         init {
@@ -183,7 +186,7 @@ internal class NativeScrollPanelBehavior(
     }
 
     override fun render(view: ScrollPanel, canvas: Canvas) {
-        graphics2D = swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas)
+        graphics2D = swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas)
 
         nativePeer.paint(graphics2D)
     }

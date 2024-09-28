@@ -15,6 +15,7 @@ import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import io.nacular.doodle.utils.Orientation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.skia.FontMgr
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -29,12 +30,13 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.pow
 
 internal class NativeSliderBehavior<T>(
-        private val appScope                 : CoroutineScope,
-        private val uiDispatcher             : CoroutineContext,
-        private val window                   : WindowDiscovery,
-        private val swingGraphicsFactory     : SwingGraphicsFactory,
-        private val focusManager             : FocusManager?,
-        private val nativePointerPreprocessor: NativePointerPreprocessor?
+    private val appScope                 : CoroutineScope,
+    private val uiDispatcher             : CoroutineContext,
+    private val window                   : WindowDiscovery,
+    private val fontManager              : FontMgr,
+    private val swingGraphicsFactory     : SwingGraphicsFactory,
+    private val focusManager             : FocusManager?,
+    private val nativePointerPreprocessor: NativePointerPreprocessor?
 ): SliderBehavior<T> where T: Comparable<T> {
 
     private interface SliderValueAdapter<T> where T: Comparable<T> {
@@ -186,7 +188,7 @@ internal class NativeSliderBehavior<T>(
     private val limitsChangeListener: (Slider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,_,_ -> nativePeer.notifyChange() }
 
     override fun render(view: Slider<T>, canvas: Canvas) {
-        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
+        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun install(view: Slider<T>) {

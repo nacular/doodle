@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSkikoApi::class)
+
 package io.nacular.doodle.core.impl
 
 import io.nacular.doodle.core.InternalDisplay
@@ -7,7 +9,10 @@ import io.nacular.doodle.geometry.Point
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaLayer
+import org.jetbrains.skiko.ExperimentalSkikoApi
+import javax.accessibility.Accessible
+import javax.swing.JFrame
+import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -16,28 +21,33 @@ import kotlin.coroutines.CoroutineContext
 internal interface DisplaySkiko: InternalDisplay {
     val locationOnScreen: Point
     val indexInParent   : Int
+    val panel           : JPanel
 
-    fun shutdown()
+    fun syncSize   ()
+    fun shutdown   ()
+    fun paintNeeded()
 }
 
 internal interface DisplayFactory {
     operator fun invoke(
         appScope      : CoroutineScope,
         uiDispatcher  : CoroutineContext,
-        skiaLayer     : SkiaLayer,
+        accessible    : Accessible,
         defaultFont   : Font,
         fontCollection: FontCollection,
-        device        : GraphicsDevice<RealGraphicsSurface>
+        device        : GraphicsDevice<RealGraphicsSurface>,
+        targetWindow  : JFrame
     ): DisplaySkiko
 }
 
 internal class DisplayFactoryImpl: DisplayFactory {
     override fun invoke(
-        appScope: CoroutineScope,
-        uiDispatcher: CoroutineContext,
-        skiaLayer: SkiaLayer,
-        defaultFont: Font,
+        appScope      : CoroutineScope,
+        uiDispatcher  : CoroutineContext,
+        accessible    : Accessible,
+        defaultFont   : Font,
         fontCollection: FontCollection,
-        device: GraphicsDevice<RealGraphicsSurface>
-    ) = DisplayImpl(appScope, uiDispatcher, skiaLayer, defaultFont, fontCollection, device)
+        device        : GraphicsDevice<RealGraphicsSurface>,
+        targetWindow  : JFrame,
+    ) = DisplayImpl(appScope, uiDispatcher, accessible, defaultFont, fontCollection, device, targetWindow)
 }

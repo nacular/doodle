@@ -30,8 +30,8 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.toBufferedImage
+import java.awt.Component
 import java.awt.Cursor
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -64,7 +64,7 @@ internal class DragManagerImpl(
     private val fontCollection : FontCollection
 ): DragManager, DragGestureListener {
 
-    private val displays               = mutableMapOf<SkiaLayer, Display>()
+    private val displays               = mutableMapOf<Component, Display>()
     private var dropAllowed            = false
     private var currentAction          = null as Action?
     private var currentDropHandler     = null as Pair<View, DropReceiver>?
@@ -125,9 +125,9 @@ internal class DragManagerImpl(
     }
 
     private fun setupDisplay(display: DisplayImpl) {
-        dragSource.createDefaultDragGestureRecognizer(display.skiaLayer, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
+        dragSource.createDefaultDragGestureRecognizer(display.panel, ACTION_COPY_OR_MOVE or ACTION_LINK, this)
 
-        display.skiaLayer.transferHandler = object: TransferHandler() {
+        display.panel.transferHandler = object: TransferHandler() {
             override fun canImport(support: TransferSupport): Boolean {
                 (dragOperation?.bundle ?: createBundle(support)).let {
                     if (currentDropHandler == null) {
@@ -168,7 +168,7 @@ internal class DragManagerImpl(
             }
         }
 
-        displays[display.skiaLayer] = display
+        displays[display.panel] = display
     }
 
     init {
@@ -176,7 +176,7 @@ internal class DragManagerImpl(
 
         windowGroup.displaysChanged += { _, removed, added ->
             removed.forEach {
-                displays.remove(it.skiaLayer)
+                displays.remove(it.panel)
             }
             added.forEach(::setupDisplay)
         }
@@ -190,7 +190,7 @@ internal class DragManagerImpl(
             return
         }
 
-        val skiaLayer  = event.component as? SkiaLayer ?: return
+        val skiaLayer  = event.component ?: return
         val display    = displays[skiaLayer] ?: return
         val mouseEvent = event.triggerEvent as? MouseEvent ?: return
         val location   = mouseEvent.location(skiaLayer)
@@ -358,7 +358,7 @@ internal class DragManagerImpl(
             else                      -> SystemPointerEvent.Type.Move
         }
 
-    private fun MouseEvent.toDoodle(window: SkiaLayer, type: SystemPointerEvent.Type = this.type): SystemPointerEvent {
+    private fun MouseEvent.toDoodle(window: Component, type: SystemPointerEvent.Type = this.type): SystemPointerEvent {
         var buttons = when (button) {
             1    -> setOf(SystemPointerEvent.Button.Button1)
             2    -> setOf(SystemPointerEvent.Button.Button2)

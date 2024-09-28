@@ -20,6 +20,7 @@ import io.nacular.doodle.system.Cursor.Companion.Default
 import io.nacular.doodle.theme.native.NativeTheme.WindowDiscovery
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.skia.FontMgr
 import java.awt.Dimension
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
@@ -36,8 +37,8 @@ import javax.swing.JFileChooser.APPROVE_OPTION
 import javax.swing.filechooser.FileFilter
 import kotlin.coroutines.CoroutineContext
 
-internal class NativeFileSelectorStylerImpl(window: WindowDiscovery): NativeFileSelectorStyler {
-    private val fileHandler = FileSelectionHandler(window)
+internal class NativeFileSelectorStylerImpl(window: WindowDiscovery, fontManager: FontMgr): NativeFileSelectorStyler {
+    private val fileHandler = FileSelectionHandler(window, fontManager)
 
     override fun invoke(fileSelector: FileSelector, behavior: Behavior<FileSelector>): Behavior<FileSelector> = NativeFileSelectorBehaviorWrapper(
         fileHandler,
@@ -46,7 +47,7 @@ internal class NativeFileSelectorStylerImpl(window: WindowDiscovery): NativeFile
     )
 }
 
-private class FileSelectionHandler(private val window: WindowDiscovery) {
+private class FileSelectionHandler(private val window: WindowDiscovery, private val fontManager: FontMgr) {
     private val fileChooser: JFileChooser by lazy {
         JFileChooser().apply { isAcceptAllFileFilterUsed = false }
     }
@@ -101,15 +102,16 @@ private class NativeFileSelectorBehaviorWrapper(private val fileHandler: FileSel
 }
 
 internal class NativeFileSelectorBehavior(
-        private val appScope                 : CoroutineScope,
-        private val uiDispatcher             : CoroutineContext,
-        private val window                   : WindowDiscovery,
-        private val swingGraphicsFactory     : SwingGraphicsFactory,
-        private val focusManager             : FocusManager?,
-        private val nativePointerPreprocessor: NativePointerPreprocessor?,
-        private val prompt               : String,
+    private val appScope                 : CoroutineScope,
+    private val uiDispatcher             : CoroutineContext,
+    private val window                   : WindowDiscovery,
+    private val fontManager              : FontMgr,
+    private val swingGraphicsFactory     : SwingGraphicsFactory,
+    private val focusManager             : FocusManager?,
+    private val nativePointerPreprocessor: NativePointerPreprocessor?,
+    private val prompt                   : String,
 ): FileSelectorBehavior {
-    private val fileHandler = FileSelectionHandler(window)
+    private val fileHandler = FileSelectionHandler(window, fontManager)
 
     private inner class FileSelectorPeer(fileSelector: FileSelector): JButton(prompt) {
         // This needs to remain since JButton will render on construct before the local value is initialized
@@ -178,7 +180,7 @@ internal class NativeFileSelectorBehavior(
     }
 
     override fun render(view: FileSelector, canvas: Canvas) {
-        nativePeer.paint(swingGraphicsFactory((canvas as CanvasImpl).skiaCanvas))
+        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
 
     override fun install(view: FileSelector) {
