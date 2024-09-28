@@ -22,3 +22,15 @@ public open class DynamicTheme protected constructor(internal val behaviors: Ite
 public operator fun DynamicTheme.plus(other: DynamicTheme): DynamicTheme = object: DynamicTheme(behaviors + other.behaviors) {
     override fun toString() = "${this@plus} + $other"
 }
+
+// FIXME: Remove once standard library bug fixed
+private inline fun <T> Iterable<T>.lastOrNull(predicate: (T) -> Boolean): T? {
+    var last: T? = null
+    for (element in this) {
+        if (predicate(element)) {
+            last = element
+            break
+        }
+    }
+    return last
+}

@@ -41,8 +41,8 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Ray
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.geometry.Vector3D
 import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.coerceIn
@@ -183,32 +183,32 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Left edge of [bounds] */
     public var x: Double
         get( ) = bounds.x
-        set(x) { if (x != bounds.x) setBounds(x, y, width, height) }
+        set(x) { if (x != bounds.x) setBounds(x, newBounds.y, newBounds.width, newBounds.height) }
 
     /** Top edge of [bounds] */
     public var y: Double
         get( ) = bounds.y
-        set(y) { if (y != bounds.y) setBounds(x, y, width, height) }
+        set(y) { if (y != bounds.y) setBounds(newBounds.x, y, newBounds.width, newBounds.height) }
 
     /** Top-left corner of [bounds] */
     public var position: Point
         get(        ) = bounds.position
-        set(position) = setBounds(position.x, position.y, width, height)
+        set(position) = setBounds(position.x, position.y, newBounds.width, newBounds.height)
 
     /** Horizontal extent of [bounds] */
     public var width: Double
         get(     ) = bounds.width
-        set(width) { if (width != bounds.width) setBounds(x, y, width, height) }
+        set(width) { if (width != bounds.width) setBounds(newBounds.x, newBounds.y, width, newBounds.height) }
 
     /** Vertical extent of [bounds] */
     public var height: Double
         get(      ) = bounds.height
-        set(height) { if (height != bounds.height) setBounds(x, y, width, height) }
+        set(height) { if (height != bounds.height) setBounds(newBounds.x, newBounds.y, newBounds.width, height) }
 
     /** Width-height of [bounds]*/
     final override var size: Size
         get(    ) = bounds.size
-        set(size) = setBounds(x, y, size.width, size.height)
+        set(size) = setBounds(newBounds.x, newBounds.y, size.width, size.height)
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
     public val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
@@ -225,9 +225,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var bounds: Rectangle get() = actualBounds; set(new) {
         if (new == actualBounds) return
 
-        notifyAttemptedBoundsChange(new)
-
         newBounds = new//.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+
+        notifyAttemptedBoundsChange(new)
     }
 
     private var idealSizeDirty = true
@@ -235,7 +235,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var idealSize: Size = Size.Empty; get() {
         if (idealSizeDirty) {
             layout?.let {
-                field = doLayout(it, size, Size.Empty, Size.Infinite)
+                field = doLayout(it, size, Size.Empty, Infinite)
             }
 
             idealSizeDirty = false
@@ -249,20 +249,26 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal val newBounds_ get() = newBounds
 
-    private var newBounds: Rectangle by observable(Empty, { a, b -> a.fastEqual(b) }) { _, new ->
-        renderManager?.boundsChanged(this, actualBounds, new) ?: run {
-            if (!settingActualBounds) {
-                actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
+    private var announceBoundsChanged = true
+
+    private var newBounds: Rectangle by observable(Rectangle.Empty, { a, b -> a.fastEqual(b) }) { _, new ->
+        if (announceBoundsChanged) {
+            renderManager?.boundsChanged(this, actualBounds, new) ?: run {
+//            if (!settingActualBounds) {
+//                actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
+//            }
             }
         }
     }
 
     private var settingActualBounds = false
 
-    private var actualBounds: Rectangle = Empty; set(new) {
+    private var actualBounds: Rectangle = Rectangle.Empty; set(new) {
         settingActualBounds = true
 
-        newBounds = new // ensure newBounds updated to match actualBounds
+//        announceBoundsChanged = false
+        newBounds             = new // ensure newBounds updated to match actualBounds
+//        announceBoundsChanged = true
 
         if (field.fastEqual(new)) return
 
@@ -282,11 +288,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     private var allowedMinSize = Size.Empty
-    private var allowedMaxSize = Size.Infinite
+    private var allowedMaxSize = Infinite
 
     internal fun resetConstraints() {
         allowedMinSize = Size.Empty
-        allowedMaxSize = Size.Infinite
+        allowedMaxSize = Infinite
     }
 
     /**
@@ -299,7 +305,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     protected open fun preferredSize(min: Size, max: Size): Size = when (val l = layout) {
         null -> newBounds.size
-        else -> doLayout(l, min, newBounds.size, max)
+        else -> when {
+            preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize -> newBounds.size
+            else -> doLayout(l, min, newBounds.size, max)
+        }
     }
 
     private var preferredSizeCalculated = false
@@ -314,13 +323,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal fun preferredSize_(min: Size, max: Size): Size {
         if (preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize) return size
 
-        allowedMinSize          = min.coerceIn(Size.Empty,     Size.Infinite)
-        allowedMaxSize          = max.coerceIn(allowedMinSize, Size.Infinite)
-        preferredSizeCalculated = true
+        allowedMinSize = min.coerceIn(Size.Empty,     Infinite)
+        allowedMaxSize = max.coerceIn(allowedMinSize, Infinite)
 
         return when (min) {
-            max -> min
+            max  -> min
             else -> preferredSize(min, max).coerceIn(allowedMinSize, allowedMaxSize)
+        }.also {
+            preferredSizeCalculated = true
         }
     }
 
@@ -381,7 +391,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Current visible [Rectangle] for this View within it's coordinate space.  This accounts for clipping by ancestors,
      * but **NOT** cousins (siblings, anywhere in the hierarchy)
      */
-    public val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Empty
+    public val displayRect: Rectangle get() = renderManager?.displayRect(this) ?: Rectangle.Empty
 
     private val plane: Plane get() {
         val rect = resolvedTransform(bounds.points)
@@ -888,9 +898,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         max     = max,
         current = current
     ).let {
-        if (it != newBounds.size) {
-            notifyAttemptedBoundsChange(newBounds.with(it))
-        }
+//        if (it != newBounds.size) {
+//            notifyAttemptedBoundsChange(newBounds.with(it))
+//        }
         it.coerceIn(min, max)
     }
 
@@ -1326,7 +1336,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    internal inner class PositionableView: Positionable {
+    internal inner class PositionableView: PositionableExtended {
         val view get() = this@View
 
         override val visible         by this@View::visible
@@ -1339,6 +1349,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             return this@View.preferredSize_(min, max).also {
                 actualBounds = Rectangle(x, y, it.width, it.height)
             }
+        }
+
+        override fun updateBoundsWithFlex(x: Double, y: Double, min: Size, max: Size) {
+            updateBounds(x, y, min, max)
+            this@View.allowedMinSize = Size.Empty
+            this@View.allowedMaxSize = Infinite
         }
     }
 

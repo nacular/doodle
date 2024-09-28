@@ -124,14 +124,16 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
         val layout = when {
             first != null && last != null -> {
                 constrain(first, last) { first, last ->
+                    val panelSpacing = panelSpacing()
+
                     when (orientation) {
                         Vertical -> {
                             first.top    eq insets.top
                             first.left   eq insets.left
-                            first.right  eq first.left + (parent.width - (panelSpacing() + insets.right)) * ratio
+                            first.right  eq first.left + (parent.width - (panelSpacing + insets.right)) * ratio
                             first.bottom eq parent.bottom - insets.bottom
                             last.top     eq first.top
-                            last.left    eq first.right + panelSpacing()
+                            last.left    eq first.right + panelSpacing
                             last.right   eq parent.right - insets.right
                             last.bottom  eq first.bottom
                         }
@@ -139,8 +141,8 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                             first.top    eq insets.top
                             first.left   eq insets.left
                             first.right  eq parent.right - insets.right
-                            first.bottom eq first.top + (parent.height - (panelSpacing() + insets.bottom)) * ratio
-                            last.top     eq first.bottom + panelSpacing()
+                            first.bottom eq first.top + (parent.height - (panelSpacing + insets.bottom)) * ratio
+                            last.top     eq first.bottom + panelSpacing
                             last.left    eq first.left
                             last.right   eq first.right
                             last.bottom  eq parent.bottom - insets.bottom

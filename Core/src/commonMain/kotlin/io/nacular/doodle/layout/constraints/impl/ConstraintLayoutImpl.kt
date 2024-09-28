@@ -1,6 +1,7 @@
 package io.nacular.doodle.layout.constraints.impl
 
 import io.nacular.doodle.core.Positionable
+import io.nacular.doodle.core.PositionableExtended
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -18,6 +19,7 @@ import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.PropertyWrapper
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.Term
 import io.nacular.doodle.layout.constraints.Variable
@@ -40,12 +42,19 @@ internal interface BoundsAttemptObserver {
     fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean)
 }
 
-@Suppress("PropertyName")
-internal open class BoundsImpl(private val target: Positionable, private val bounds: Rectangle, private val context: ConstraintDslContext): Bounds {
-    var x_      = bounds.x
-    var y_      = bounds.y
-    var width_  = bounds.width
-    var height_ = bounds.height
+@Suppress("PrivatePropertyName")
+internal open class BoundsImpl(private val target: PositionableExtended, /*private val bounds: Rectangle,*/ private val context: ConstraintDslContext): Bounds {
+    private var x__      = target.bounds.x
+    private var y__      = target.bounds.y
+    private var width__  = target.bounds.width
+    private var height__ = target.bounds.height
+
+    // This looks strange, cut it works b/c the Solver reads variables and only updates them after computing their new
+    // values. Essentially, it never does read, ..., write, ..., read; only read, ..., read, write
+    private var x_      get() = target.bounds.x;      set(value) { x__      = value }
+    private var y_      get() = target.bounds.y;      set(value) { y__      = value }
+    private var width_  get() = target.bounds.width;  set(value) { width__  = value }
+    private var height_ get() = target.bounds.height; set(value) { height__ = value }
 
     override val top     by lazy { ReflectionVariable(target, ::y_,      id = yId                            ) }
     override val left    by lazy { ReflectionVariable(target, ::x_,      id = xId                            ) }
@@ -53,8 +62,8 @@ internal open class BoundsImpl(private val target: Positionable, private val bou
     override val height  by lazy { ReflectionVariable(target, ::height_, id = heightId, needsSynthetic = true) }
 
     override val right   by lazy { with(context) { left + width      } }
-    override val centerX by lazy { with(context) { left + width  / 2 } }
     override val bottom  by lazy { with(context) { top  + height     } }
+    override val centerX by lazy { with(context) { left + width  / 2 } }
     override val centerY by lazy { with(context) { top  + height / 2 } }
 
     override val center  by lazy { Position(centerX, centerY) }
@@ -63,17 +72,20 @@ internal open class BoundsImpl(private val target: Positionable, private val bou
     override val preferredSize get() = target.idealSize
 
     fun commit() {
-        val minWidth  = if (width_  == bounds.width ) 0.0               else width_
-        val maxWidth  = if (width_  == bounds.width ) POSITIVE_INFINITY else width_
-        val minHeight = if (height_ == bounds.height) 0.0               else height_
-        val maxHeight = if (height_ == bounds.height) POSITIVE_INFINITY else height_
+        val widthChanged  = target.bounds.width  != width__
+        val heightChanged = target.bounds.height != height__
 
-        target.updateBounds(x_, y_, Size(minWidth, minHeight), Size(maxWidth, maxHeight))
+        val minWidth  = if (widthChanged ) width__  else 0.0
+        val maxWidth  = if (widthChanged ) width__  else POSITIVE_INFINITY
+        val minHeight = if (heightChanged) height__ else 0.0
+        val maxHeight = if (heightChanged) height__ else POSITIVE_INFINITY
+
+        target.updateBounds(x__, y__, Size(minWidth, minHeight), Size(maxWidth, maxHeight))
     }
 }
 
 internal class ReflectionVariable(
-             val target        : Any? = null,
+             val target        : PositionableExtended? = null,
     private  val delegate      : KMutableProperty0<Double>,
     private  val id            : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
     override val needsSynthetic: Boolean = false,
@@ -92,12 +104,14 @@ internal class ReflectionVariable(
     override val readOnly: Double get() = invoke()
 
     override fun invoke(value: Double) {
+        println("$delegate -> $value")
+
         delegate.set(mapper(value))
     }
 
     override fun toTerm(): Term = VariableTerm(this)
 
-    override fun toString() = "${target?.let { it::class.simpleName }}.$name"
+    override fun toString() = "${(target as? View.PositionableView)?.let { it.view::class.simpleName }}.$name"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -155,18 +169,21 @@ internal class ConstraintLayoutImpl(
         if (layingOut) return
 
         viewBounds[view]?.let {
-            it.x_      = new.x
-            it.y_      = new.y
-            it.width_  = new.width
-            it.height_ = new.height
+//            it.x_      = new.x
+//            it.y_      = new.y
+//            it.width_  = new.width
+//            it.height_ = new.height
 
             updatedBounds += it.top
             updatedBounds += it.left
             updatedBounds += it.width
             updatedBounds += it.height
 
-            if (old.size != new.size && relayout) {
-                view.parent?.relayout_()
+            if (old.size != new.size && relayout && view.displayed) {
+                when (val p = view.parent) {
+                    null -> view.display?.relayout()
+                    else -> p.relayout_()
+                }
             }
         }
     }
@@ -194,6 +211,8 @@ internal class ConstraintLayoutImpl(
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
         solve      (solver, activeBounds, updatedBounds, ::notifyOfErrors)
+
+//        println("${context.constraints.map { it.toString() }}")
 
         blockTracker.values.asSequence().flatMap { it.constraints }.forEach {
             it.commit()
@@ -249,7 +268,7 @@ internal class ConstraintLayoutImpl(
         ++view.numBoundsAttemptObservers
 
         viewBounds.getOrPut(view) {
-            BoundsImpl(view.positionable, view.newBounds_, context).also {
+            BoundsImpl(view.positionable, context).also {
                 viewBounds[view] = it
 
                 if (view.y != 0.0 || view.x != 0.0 || view.width  != 0.0 || view.height != 0.0) {
@@ -285,8 +304,8 @@ internal class ConstraintLayoutImpl(
                     parent.height eq p.max.height
                 } else {
                     // FIXME: Need to find a way to do this since updating a constraint that isn't REQUIRED leaks memory
-                    (parent.width  eq parent.width.readOnly ) //.. Strong
-                    (parent.height eq parent.height.readOnly) //.. Strong
+                    (parent.width  eq parent.width.readOnly ) .. Strong
+                    (parent.height eq parent.height.readOnly) .. Strong
 
                     parent.width  greaterEq p.min.width
                     parent.height greaterEq p.min.height
@@ -408,7 +427,7 @@ internal class ConstraintLayoutImpl(
                 if (variable.needsSynthetic) {
                     // Add synthetic constraints that keep width and height positive
                     try {
-                        solver.addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
+                        solver.addConstraint(ensureNonNegative(variable))
                     } catch (ignore: Exception) { }
                 }
 
@@ -439,10 +458,12 @@ internal class ConstraintLayoutImpl(
             constraint.expression.terms.asSequence().map { it.variable }.filter { it.needsSynthetic }.forEach { variable ->
                 // Remove synthetic constraints that keep width and height positive
                 try {
-                    solver.removeConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required))
+                    solver.removeConstraint(ensureNonNegative(variable))
                 } catch (ignore: Exception) {}
             }
         }
+
+        private fun ensureNonNegative(variable: Variable) = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
 
         private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
             previousDelete?.let {

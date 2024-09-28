@@ -308,9 +308,9 @@ public open class RenderManagerImpl(
                 pendingBoundsChange.firstOrNull()?.also { item ->
                     when {
                         item !in neverRendered -> {
-                            updateGraphicsSurface(item, graphicsDevice[item])
-
                             pendingBoundsChange.remove(item)
+
+                            updateGraphicsSurface(item, graphicsDevice[item])
                         }
                         // remove zero sized items that have never rendered since they won't be cleaned up otherwise
                         item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange.remove(item)
@@ -372,9 +372,9 @@ public open class RenderManagerImpl(
 
         graphicsSurface?.let {
             if (view in pendingBoundsChange) {
-                updateGraphicsSurface(view, graphicsSurface)
-
                 pendingBoundsChange -= view
+
+                updateGraphicsSurface(view, graphicsSurface)
             }
 
             val visibleAndNotEmpty = recursivelyVisible && !view.size.empty

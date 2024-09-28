@@ -210,10 +210,7 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var minimumSize by observable(Size.Empty) { _,new ->
-        idealSize = new
-        size      = new
-    }
+    private var minimumSize = Size.Empty
 
     protected fun updateVisibleHeight() {
         val oldSize = minimumSize
@@ -238,7 +235,7 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = simpleLayout { _,_,_,_ ->
+        layout = simpleLayout { _,_,current,_ ->
             (firstVisibleItem .. lastVisibleItem).forEach {
                 if (it < model.size) {
                     model[it].onSuccess { item ->
@@ -249,7 +246,9 @@ public open class List<T, out M: ListModel<T>>(
                 }
             }
 
-            minimumSize
+            idealSize = Size(max(minimumSize.width, current.width), max(minimumSize.height, current.height))
+
+            idealSize
         }
     }
 

@@ -140,6 +140,8 @@ public class TreeRow<T>(
 
     private val iconConstraints: ConstraintDslContext.(Bounds) -> Unit = {
         it.width.preserve
+        it.height.preserve
+
         it.right   eq indent
         it.centerY eq parent.centerY
     }
@@ -148,6 +150,10 @@ public class TreeRow<T>(
         withSizeInsets(width = { indent }, height = { insetTop }) {
             positioner(it.withOffset(top = { insetTop }, left = { indent }))
         }
+
+        println("[$content] $indent + ${it.right.readOnly}")
+
+        parent.width greaterEq indent + it.right.readOnly
     }
 
     init {
@@ -157,17 +163,9 @@ public class TreeRow<T>(
         pointerChanged += object: PointerListener {
             private var pressed = false
 
-            override fun entered(event: PointerEvent) {
-                pointerOver = true
-            }
-
-            override fun exited(event: PointerEvent) {
-                pointerOver = false
-            }
-
-            override fun pressed(event: PointerEvent) {
-                pressed = true
-            }
+            override fun entered(event: PointerEvent) { pointerOver = true  }
+            override fun exited (event: PointerEvent) { pointerOver = false }
+            override fun pressed(event: PointerEvent) { pressed     = true  }
 
             override fun released(event: PointerEvent) {
                 if (pointerOver && pressed) {
@@ -222,7 +220,7 @@ public class TreeRow<T>(
         this.content   = content
 
         if (oldDepth != depth || oldContent != content) {
-            println("updateLayout $oldContent <$oldDepth, $oldPath, $oldIndex> -> $content <$depth, $path, $index>")
+//            println("updateLayout $oldContent <$oldDepth, $oldPath, $oldIndex> -> $content <$depth, $path, $index>")
 
             if (oldContent != content) {
                 constraintLayout.unconstrain(oldContent, contentConstraints)
@@ -241,7 +239,7 @@ public class TreeRow<T>(
         } else  {
             icon = icon ?: iconFactory().apply {
                 width  = iconWidth
-                height = width
+                height = iconWidth
 
                 children += this
 

@@ -124,8 +124,13 @@ public class PopupManagerImpl(
     }
 
     private inner class BoundedPopup(view: View, val relativeTo: View, val constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): Popup(view) {
-        private val viewList       = listOf(view.positionable)
+        private val viewList       = sequenceOf(view.positionable)
         lateinit var relativeBounds: Rectangle
+        private val constraint: ConstraintDslContext.(Bounds) -> Unit = {
+            constraints(it, relativeBounds)
+        }
+
+        private val layout = constrain(view, constraint)
 
         private val monitor = { _: View, _: Rectangle, _: Rectangle ->
             calculateRelativeBounds()
@@ -133,13 +138,15 @@ public class PopupManagerImpl(
         }
 
         override fun doLayout() {
-            if (!this::relativeBounds.isInitialized) {
+            if (!::relativeBounds.isInitialized) {
                 calculateRelativeBounds()
             }
 
-            viewList.constrain({ constraints(it, relativeBounds) }) { _,_ ->
-                Rectangle(size = display.size)
-            }
+            layout.layout(viewList, Size.Empty, display.size, Size.Infinite)
+
+//            viewList.constrain({ constraints(it, relativeBounds) }) { _,_ ->
+//                Rectangle(size = display.size)
+//            }
         }
 
         init {
@@ -150,6 +157,7 @@ public class PopupManagerImpl(
             super.discard()
 
             boundsMonitor[relativeTo] -= monitor
+            layout.unconstrain(view, constraint)
         }
 
         private fun calculateRelativeBounds() {
@@ -170,8 +178,8 @@ public class PopupManagerImpl(
     }
 
     override fun show(
-        view: View,
-        relativeTo: View,
+        view       : View,
+        relativeTo : View,
         constraints: ConstraintDslContext.(popUp: Bounds, anchor: Rectangle) -> Unit
     ): View = view.also {
         showInternal(view) { BoundedPopup(it, relativeTo, constraints) }

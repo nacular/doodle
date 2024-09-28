@@ -35,6 +35,9 @@ public interface Positionable {
     }
 }
 
+internal interface PositionableExtended: Positionable {
+    fun updateBoundsWithFlex(x: Double, y: Double, min: Size, max: Size)
+}
 
 /**
  * The result of [Layout.item].

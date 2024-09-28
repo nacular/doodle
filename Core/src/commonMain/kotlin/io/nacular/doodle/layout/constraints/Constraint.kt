@@ -60,7 +60,13 @@ internal enum class Operator {
 public value class Strength private constructor(public val value: Int): Comparable<Strength> {
     public override operator fun compareTo(other: Strength): Int = this.value.compareTo(other.value)
 
-    public override fun toString(): String = "$value"
+    public override fun toString(): String = when (this) {
+        Required -> "Required"
+        Strong   -> "Strong"
+        Medium   -> "Medium"
+        Weak     -> "Weak"
+        else     -> "$value"
+    }
 
     public companion object {
         /**

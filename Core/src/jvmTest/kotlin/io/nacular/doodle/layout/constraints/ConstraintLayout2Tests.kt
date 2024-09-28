@@ -8,6 +8,7 @@ import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.view
@@ -37,6 +38,30 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 3/8/22.
  */
 class ConstraintLayoutTests {
+    @Test fun foo() {
+        val child       = view {}.apply { width = 10.0 }
+        val parent      = container { + child }
+        val grandParent = container {
+            + parent
+
+            layout = simpleLayout { items, _, _, _ ->
+                items.forEach {
+                    it.updateBounds(0.0, 0.0, Size(10), Size.Infinite)
+                }
+
+                Size(100)
+            }
+        }
+
+        parent.layout = constrain(child) {
+            this.parent.width greaterEq it.right.readOnly + 10
+        }
+
+        grandParent.doLayout_()
+
+        expect(20.0) { parent.width }
+    }
+
     @Test fun basic() {
         val child1    = view {}.apply { height = 10.0 }
         val child2    = view {}

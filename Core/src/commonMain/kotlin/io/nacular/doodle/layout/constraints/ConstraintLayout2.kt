@@ -655,7 +655,7 @@ public class OffsetTransformer(private val offset: () -> Double): Transformer<Do
 //        return true
 //    }
 
-    override fun toString(): String = "+/- $offset"
+    override fun toString(): String = "+/- ${offset()}"
 
 //    override fun hashCode(): Int = offset.hashCode()
 }
@@ -829,7 +829,7 @@ public class Constrainer {
     private val fakeView   = object: View() {}
     private val solver     = Solver()
     private val context    = ConstraintDslContext()
-    private val fakeBounds = BoundsImpl(fakeView.positionable, fakeView.bounds, context)
+    private val fakeBounds = BoundsImpl(fakeView.positionable, context)
     private val blocks     = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
@@ -850,10 +850,11 @@ public class Constrainer {
         using      : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
         if (fakeView.bounds != rectangle) {
-            fakeBounds.x_      = rectangle.x
-            fakeBounds.y_      = rectangle.y
-            fakeBounds.width_  = rectangle.width
-            fakeBounds.height_ = rectangle.height
+            fakeView.bounds = rectangle
+//            fakeBounds.x_      = rectangle.x
+//            fakeBounds.y_      = rectangle.y
+//            fakeBounds.width_  = rectangle.width
+//            fakeBounds.height_ = rectangle.height
 
             updatedBounds += fakeBounds.top
             updatedBounds += fakeBounds.left
@@ -870,6 +871,8 @@ public class Constrainer {
 
         solve(solver, activeBounds = activeBounds, updatedBounds = updatedBounds) { throw it }
 
-        return Rectangle(within.x + fakeBounds.x_, within.y + fakeBounds.y_, fakeBounds.width_, fakeBounds.height_)
+        fakeBounds.commit()
+
+        return fakeView.bounds.at(fakeView.position + within.position) //Rectangle(within.x + fakeBounds.x__, within.y + fakeBounds.y_, fakeBounds.width_, fakeBounds.height_)
     }
 }

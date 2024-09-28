@@ -10,9 +10,9 @@ import io.nacular.doodle.drawing.Canvas
  */
 public interface NativeTextFieldBehaviorModifier: Behavior<TextField> {
     /**
-     * Allows custom rendering for [textField]'s background
-     * NOTE: implementations should most likely update [TextField.backgroundColor] to
-     * ensure the results of this call are visible.
+     * Allows custom rendering for [textField]'s background. The operations done in this
+     * call will be drawn under [textField]; so implementations should most likely update
+     * [TextField.backgroundColor] so it is not opaque to ensure the results of this call are visible.
      *
      * @param textField being rendered
      * @param canvas to render onto

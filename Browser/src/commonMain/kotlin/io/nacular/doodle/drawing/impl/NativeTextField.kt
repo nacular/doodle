@@ -104,20 +104,21 @@ internal class NativeTextFieldFactoryImpl internal constructor(
     }
 
     override fun invoke(textField: TextField) = NativeTextField(
-            eventHandlerFactory,
-            idGenerator,
-            systemStyler,
-            fontSerializer,
-            htmlFactory,
-            focusManager,
-            textMetrics,
-            MobileKeyboardManagerImpl(),
-            accessibilityManager,
-            scheduler,
-            sizeDifference,
-            spellCheck,
-            autoComplete,
-            textField)
+        eventHandlerFactory   = eventHandlerFactory,
+        idGenerator           = idGenerator,
+        systemStyler          = systemStyler,
+        fontSerializer        = fontSerializer,
+        htmlFactory           = htmlFactory,
+        focusManager          = focusManager,
+        textMetrics           = textMetrics,
+        mobileKeyboardManager = MobileKeyboardManagerImpl(),
+        accessibilityManager  = accessibilityManager,
+        scheduler             = scheduler,
+        borderSize            = sizeDifference,
+        spellCheck            = spellCheck,
+        autoComplete          = autoComplete,
+        textField             = textField
+    )
 }
 
 internal class NativeTextField(
@@ -345,7 +346,7 @@ internal class NativeTextField(
 
         val h = if (height == 0.0) textField.height - borderHeight else height
 
-        Size(max(8.0, width) + borderWidth, max(0.0, h) + borderHeight)
+        Size(max(8.0, width) + 2 * borderWidth, max(0.0, h) + 2 * borderHeight)
     }
 
     override fun onKeyUp(event: Event) = true.also { syncTextField() }

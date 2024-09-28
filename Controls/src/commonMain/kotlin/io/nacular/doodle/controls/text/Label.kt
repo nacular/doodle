@@ -61,7 +61,7 @@ public open class Label(
             field             = new
             visibleStyledText = field.copy()
             measureText()
-            rerender()
+            rerender   ()
         }
 
     /**

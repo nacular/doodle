@@ -31,6 +31,7 @@ import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.math.min
@@ -145,10 +146,10 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   var minVisiblePosition                   = Origin
     private   var maxVisiblePosition                   = Origin
     private   var minHeight                            = 0.0
-        set(new) {
-            field  = new
-            height = field
-        }
+//        set(new) {
+//            field  = new
+//            height = field
+//        }
 
     private   var handlingRectChange   = false
     protected var firstVisibleRow: Int =  0
@@ -175,20 +176,32 @@ public open class Tree<T, out M: TreeModel<T>>(
         updateNumRows()
 
         layout = simpleLayout { items, _, current, _ ->
-            val c = items.toList()
+            val c        = items.toList()
+            var maxRight = 0.0
 
             (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 model[path].onSuccess { value ->
                     c.getOrNull(index % c.size)?.let { child ->
                         rowPositioner?.let {
-                            child.updateBounds(it.rowBounds(this, value, path, index))
+                            val b = it.rowBounds(this, value, path, index)
+//                            child.updateBounds(b)
+                            child.updateBounds(b.x, b.y, Size(0.0, b.height), Size(POSITIVE_INFINITY, b.height)).let {
+//                                println("max($maxRight, ${b.x} + ${it.width})")
+                                maxRight = max(maxRight, b.x + it.width)
+                            }
                         }
                     }
                 }
             }
 
+            c.forEach {
+                // set every row's min-width to maxRight
+                it.updateBounds(it.bounds.x, it.bounds.y, Size(maxRight, it.bounds.height), Size(POSITIVE_INFINITY, it.bounds.height))
+//                it.updateBounds(it.bounds.with(width = maxRight))
+            }
+
             // FIXME: use maxWidth
-            Size(current.width, minHeight)
+            Size(maxRight, minHeight)
         }
     }
 
@@ -211,7 +224,7 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-        println("handleDisplayRectEvent($old, $new)")
+//        println("handleDisplayRectEvent($old, $new)")
 
         rowPositioner?.let { positioner ->
             if (maxVisiblePosition.x > new.right && maxVisiblePosition.y > new.bottom && minVisiblePosition.x < new.x && minVisiblePosition.y < new.y) {
@@ -538,7 +551,11 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         updateNumRows()
 
-        handleDisplayRectEvent(Empty, displayRect)
+        if (displayRect.height > 0.0) {
+            handleDisplayRectEvent(Empty, displayRect)
+        } else {
+            println("HERE")
+        }
     }
 
     private fun getMinHeight() = rowPositioner?.let {
