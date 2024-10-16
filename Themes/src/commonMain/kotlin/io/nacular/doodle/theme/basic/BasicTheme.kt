@@ -65,7 +65,7 @@ import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.SegmentBuilder
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.theme.Modules
+import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.PaintMapper
@@ -76,8 +76,6 @@ import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
 import io.nacular.doodle.theme.basic.date.BasicMonthPanelBehavior
-import io.nacular.doodle.theme.basic.selectbox.BasicMutableSelectBoxBehavior
-import io.nacular.doodle.theme.basic.selectbox.BasicSelectBoxBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalListBehavior
 import io.nacular.doodle.theme.basic.list.basicHorizontalMutableListBehavior
 import io.nacular.doodle.theme.basic.list.basicVerticalListBehavior
@@ -87,6 +85,8 @@ import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
 import io.nacular.doodle.theme.basic.range.TickPresentation
+import io.nacular.doodle.theme.basic.selectbox.BasicMutableSelectBoxBehavior
+import io.nacular.doodle.theme.basic.selectbox.BasicSelectBoxBehavior
 import io.nacular.doodle.theme.basic.spinbutton.BasicMutableSpinButtonBehavior
 import io.nacular.doodle.theme.basic.spinbutton.BasicSpinButtonBehavior
 import io.nacular.doodle.theme.basic.tabbedpanel.BasicTabProducer
@@ -126,7 +126,7 @@ private typealias MutableTreeModel<T>    = io.nacular.doodle.controls.tree.Mutab
 private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
 @Suppress("UNCHECKED_CAST")
-public open class BasicTheme(private val configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
+public open class BasicTheme(private val configProvider: ConfigProvider, behaviors: kotlin.collections.List<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
     override fun install(scene: Scene) {
         configProvider.config = config
 
@@ -178,7 +178,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public val BasicTheme: Module = basicThemeModule(name = "BasicTheme") {
             importOnce(ThemeModule, allowOverride = true)
 
-            bind<BasicTheme>() with singleton { BasicTheme(instance(), Instance(erasedSet())) }
+            bind<BasicTheme>() with singleton { BasicTheme(instance(), Instance(erasedSet<BehaviorResolver>()).toList()) }
         }
 
         public fun basicListBehavior(
@@ -978,7 +978,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
     }
 }
 
-public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<Modules.BehaviorResolver>): BasicTheme(configProvider, behaviors) {
+public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: kotlin.collections.List<BehaviorResolver>): BasicTheme(configProvider, behaviors) {
     public class DarkBasicThemeConfig: BasicThemeConfig {
         override val borderColor           : Color = super.borderColor.inverted
         override val foregroundColor       : Color = super.foregroundColor.inverted
@@ -1004,7 +1004,7 @@ public class DarkBasicTheme(configProvider: ConfigProvider, behaviors: Iterable<
 
     public companion object {
         public val DarkBasicTheme: Module = basicThemeModule(name = "DarkBasicTheme") {
-            bind<DarkBasicTheme>() with singleton { DarkBasicTheme(instance(), Instance(erasedSet())) }
+            bind<DarkBasicTheme>() with singleton { DarkBasicTheme(instance(), Instance(erasedSet<BehaviorResolver>()).toList()) }
         }
     }
 }

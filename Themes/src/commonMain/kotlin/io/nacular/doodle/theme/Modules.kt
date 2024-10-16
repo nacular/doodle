@@ -44,7 +44,7 @@ public class Modules private constructor() {
 
             bindSet<BehaviorResolver>()
 
-            bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet())) {} }
+            bind<DynamicTheme>() with singleton { object: DynamicTheme(Instance(erasedSet<BehaviorResolver>()).toList()) {} }
             bind<Theme>       () with singleton { instance<DynamicTheme>() }
         }
 

@@ -15,7 +15,7 @@ import io.nacular.doodle.core.WindowGroupImpl
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.system.impl.NativeScrollHandlerFinder
-import io.nacular.doodle.theme.Modules
+import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.Scene
@@ -40,7 +40,7 @@ private typealias NTheme = NativeTheme
  * Theme incorporates [Behavior]s that style Views using the underlying platform so they look as close to native as
  * possible.
  */
-public class NativeTheme internal constructor(behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
+public class NativeTheme internal constructor(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
     private lateinit var scene: Scene
 
     override fun toString(): String = this::class.simpleName ?: ""
@@ -82,7 +82,7 @@ public class NativeTheme internal constructor(behaviors: Iterable<Modules.Behavi
         public val NativeTheme: Module = Module(name = "NativeTheme") {
             importOnce(ThemeModule, allowOverride = true)
 
-            bindSingleton { NativeTheme(Instance(erasedSet())) }
+            bindSingleton { NativeTheme(Instance(erasedSet<BehaviorResolver>()).toList()) }
         }
 
         /**

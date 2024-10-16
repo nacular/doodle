@@ -33,6 +33,7 @@ import io.nacular.doodle.drawing.impl.NativeTextFieldFactory
 import io.nacular.doodle.drawing.impl.NativeTextFieldFactoryImpl
 import io.nacular.doodle.drawing.impl.RealGraphicsSurfaceFactory
 import io.nacular.doodle.theme.Modules
+import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
@@ -44,7 +45,7 @@ import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
 import org.kodein.di.singleton
 
-public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
+public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == NTheme::class }) {
     override fun toString(): String = this::class.simpleName ?: ""
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -88,7 +89,7 @@ public class NativeTheme(behaviors: Iterable<Modules.BehaviorResolver>): Dynamic
         public val NativeTheme: DI.Module = DI.Module(name = "NativeTheme") {
             importOnce(Modules.ThemeModule, allowOverride = true)
 
-            bind<NativeTheme>() with singleton { NativeTheme(Instance(erasedSet())) }
+            bind<NativeTheme>() with singleton { NativeTheme(Instance(erasedSet<BehaviorResolver>()).toList()) }
         }
 
         /**

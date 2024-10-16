@@ -17,14 +17,14 @@ import org.kodein.di.singleton
 /**
  * Created by Nicholas Eddy on 1/8/20.
  */
-public class MaterialTheme(behaviors: Iterable<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
+public class MaterialTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == MaterialTheme::class }) {
     override fun toString(): String = this::class.simpleName ?: ""
 
     public companion object {
         public class FontConfig(public val source: String, public val timeout: Measure<Time>)
 
         public val materialTheme: Module = Module(name = "MaterialTheme") {
-            bind<MaterialTheme>() with singleton { MaterialTheme(Instance(erasedSet())) }
+            bind<MaterialTheme>() with singleton { MaterialTheme(Instance(erasedSet<BehaviorResolver>()).toList()) }
         }
 
         public fun materialButtonBehavior(config: FontConfig? = null): Module = Module(name = "MaterialButtonBehavior") {
