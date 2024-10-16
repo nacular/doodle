@@ -14,9 +14,6 @@ import kotlin.math.max
  */
 public class Size private constructor(public val width: Double = 0.0, public val height: Double = width) {
 
-    public constructor(width: Int   = 0,  height: Int   = width): this(width.toDouble(), height.toDouble())
-    public constructor(width: Float = 0f, height: Float = width): this(width.toDouble(), height.toDouble())
-
     /** The area represented: [width] * [height] */
     public val area: Double by lazy { width * height }
 
@@ -48,6 +45,24 @@ public class Size private constructor(public val width: Double = 0.0, public val
          * @return a new Size
          */
         public operator fun invoke(width: Double = 0.0, height: Double = width): Size = Size(max(0.0, width), max(0.0, height))
+
+        /**
+         * Creates a [Size].
+         *
+         * @param width Horizontal extent; cannot be negative
+         * @param height Vertical extent; cannot be negative
+         * @return a new Size
+         */
+        public operator fun invoke(width: Int = 0, height: Int = width): Size = Size(width.toDouble(), height.toDouble())
+
+        /**
+         * Creates a [Size].
+         *
+         * @param width Horizontal extent; cannot be negative
+         * @param height Vertical extent; cannot be negative
+         * @return a new Size
+         */
+        public operator fun invoke(width: Float = 0f, height: Float = width): Size = Size(width.toDouble(), height.toDouble())
 
         /** The size with [width] and [height] equal to `0` */
         public val Empty: Size = Size(0.0)

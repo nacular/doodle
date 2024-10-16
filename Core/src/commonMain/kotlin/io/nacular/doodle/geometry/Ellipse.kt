@@ -2,6 +2,7 @@ package io.nacular.doodle.geometry
 
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import kotlin.math.PI
+import kotlin.math.max
 import kotlin.math.pow
 
 /**
@@ -12,7 +13,7 @@ import kotlin.math.pow
  * @property xRadius or horizontal radius
  * @property yRadius or vertical radius
  */
-public open class Ellipse(public val center: Point, public val xRadius: Double, public val yRadius: Double): Shape {
+public open class Ellipse(public val center: Point, xRadius: Double, yRadius: Double): Shape {
 
     /**
      * Creates an Ellipse centered at the [Origin].
@@ -22,10 +23,8 @@ public open class Ellipse(public val center: Point, public val xRadius: Double, 
      */
     public constructor(xRadius: Double, yRadius: Double): this(Origin, xRadius, yRadius)
 
-    init {
-        require(xRadius >= 0) { "x-radius must be >= 0" }
-        require(yRadius >= 0) { "y-radius must be >= 0" }
-    }
+    public val xRadius: Double = max(0.0, xRadius)
+    public val yRadius: Double = max(0.0, yRadius)
 
     override val boundingRectangle: Rectangle by lazy { Rectangle(center.x - xRadius, center.y - yRadius, 2 * xRadius, 2 * yRadius) }
 
