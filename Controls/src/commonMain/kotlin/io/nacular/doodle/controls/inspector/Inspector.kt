@@ -10,6 +10,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.HorizontalFlowLayout
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.Extractor
@@ -72,7 +73,7 @@ public open class Inspector<T>(public val value: T, private val block: FieldFact
 
                 if (layout == null) {
                     layout = object: Layout {
-                        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+                        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
                             var y = 0.0
 
                             views.forEach {

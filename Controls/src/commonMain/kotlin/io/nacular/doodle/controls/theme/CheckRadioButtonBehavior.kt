@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
@@ -60,7 +61,7 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
 
         val iconSize    = icon.size(view)
         val textSize    = textMetrics.size(view.text, font(view))
-        val idealWidth  = iconSize.width + 2 * iconInset + if (textSize.width  > 0) iconTextSpacing + textSize.width  else 0.0
+        val idealWidth  = iconSize.width + 2 * iconInset + if (textSize.width > 0) iconTextSpacing + textSize.width else 0.0
 
         @Suppress("UNCHECKED_CAST")
         view.icon                     = icon as Icon<Button>
@@ -70,8 +71,8 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         view.contentDirectionChanged += contentDirectionChanged
 
         Size(idealWidth, max(iconSize.height + 2 * iconInset, if (!textSize.empty) textSize.height else 0.0)).let {
-            view.size      = it
-            view.idealSize = it
+            view.size          = it
+            view.preferredSize = fixed(it)
         }
     }
 

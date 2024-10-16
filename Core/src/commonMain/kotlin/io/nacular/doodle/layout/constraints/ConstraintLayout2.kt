@@ -210,6 +210,18 @@ public class Position internal constructor(internal val left: Expression, intern
 }
 
 /**
+ * 2-Dimensional value within a [Bounds] set.
+ */
+public class Area internal constructor(internal val width: Expression, internal val height: Expression) {
+    /**
+     * Provides the Area's value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Area won't be
+     * altered to try and satisfy the constraint.
+     */
+    public val readOnly: Size get() = Size(width = width.value, height = height.value)
+}
+
+/**
  * External boundaries of a constrained item.
  */
 public class Edges internal constructor(
@@ -263,6 +275,9 @@ public interface Bounds {
     /** The rectangle's horizontal center */
     public val centerX: Expression
 
+    /** The rectangle's width/height */
+    public val size: Area
+
     /** The rectangle's 4 sides */
     public val edges: Edges
 
@@ -273,7 +288,7 @@ public interface Bounds {
     public val preferredWidth: Double get() = preferredSize.width
 
     /** The preferred height */
-    public val preferredHeight: Double get() = preferredSize.width
+    public val preferredHeight: Double get() = preferredSize.height
 
     /** The preferred size */
     public val preferredSize: Size
@@ -301,6 +316,9 @@ public interface ParentBounds {
     /** The rectangle's horizontal center */
     public val centerX: Expression
 
+    /** The rectangle's width/height */
+    public val size: Area
+
     /** The rectangle's 4 sides */
     public val edges: Edges
 
@@ -324,16 +342,26 @@ public class DuplicateConstraintException(public val constraint: Constraint): Co
 public class UnsatisfiableConstraintException(
     public val constraint: Constraint,
     public val existingConstraints: Collection<Constraint>
-): ConstraintException("constraint: $constraint\nexisting constraints: $existingConstraints")
+): ConstraintException("""
+    Failed Constraint: $constraint
+    
+    Existing constraints:
+    
+    ${existingConstraints.joinToString("\n")}
+""".trimIndent())
 
 /**
  * Block within which constraints can be defined and captured.
  */
-@Suppress("MemberVisibilityCanBePrivate", "PropertyName")
-public open class ConstraintDslContext internal constructor() {
+@Suppress("MemberVisibilityCanBePrivate")
+public class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
-    public lateinit var parent: ParentBounds
+    public val parent: ParentBounds = ParentBoundsImpl(this)
+
+    public fun updateParent(size: Size, min: Size, max: Size) {
+        (parent as ParentBoundsImpl).update(size, min, max)
+    }
 
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
@@ -495,10 +523,10 @@ public open class ConstraintDslContext internal constructor() {
     public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
     public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
 
-    public infix fun Property.eq(term      : Term      ): Result<Constraint> = term       eq this
+    public infix fun Property.eq(term      : Term      ): Result<Constraint> = term          eq this
     public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
     public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
-    public infix fun Property.eq(expression: Expression): Result<Constraint> = expression eq this
+    public infix fun Property.eq(expression: Expression): Result<Constraint> = expression    eq this
 
     public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
     public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
@@ -538,6 +566,16 @@ public open class ConstraintDslContext internal constructor() {
     public operator fun Point.minus(position: Position): Position = Position(
         top  = y - position.top,
         left = x - position.left
+    )
+
+    public infix fun Area.eq(other: Area): List<Result<Constraint>> = listOf(
+        width  eq other.width,
+        height eq other.height
+    )
+
+    public infix fun Area.eq(size: Size): List<Result<Constraint>> = listOf(
+        width  eq size.width,
+        height eq size.height
     )
 
     public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
@@ -599,6 +637,16 @@ public open class ConstraintDslContext internal constructor() {
     public infix fun Number.greaterEq(term      : Term      ): Result<Constraint> = Expression(constant = this.toDouble()) greaterEq term
     public infix fun Number.greaterEq(property  : Property  ): Result<Constraint> = this                                   greaterEq property.toTerm()
     public infix fun Number.greaterEq(expression: Expression): Result<Constraint> = expression                             lessEq    this
+
+    public infix fun Result<Constraint>.strength(strength: Strength): Result<Constraint> {
+        this.getOrNull()?.strength = strength
+        return this
+    }
+
+    public infix fun Result<Constraint>.strength(strength: Int): Result<Constraint> {
+        this.getOrNull()?.strength = Strength(strength)
+        return this
+    }
 
     public operator fun Result<Constraint>.rangeTo(strength: Strength): Result<Constraint> {
         this.getOrNull()?.strength = strength
@@ -865,7 +913,7 @@ public class Constrainer {
         if (forceSetup || within.size != parentSize || this.using != using) {
             this.using     = using
             parentSize     = within.size
-            context.parent = ParentBoundsImpl(context, size = within.size, min = within.size, max = within.size)
+            context.updateParent(size = within.size, min = within.size, max = within.size)
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 

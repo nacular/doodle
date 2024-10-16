@@ -9,6 +9,7 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Insets
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.DayOfWeek.MONDAY
 import kotlinx.datetime.DayOfWeek.SUNDAY
@@ -34,7 +35,7 @@ public interface DaysOfTheWeekPanelBehavior: Behavior<DaysOfTheWeekPanel> {
  */
 public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null): View() {
     private inner class DaysLayout: Layout {
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
             val columnWidth = current.width / numColumns
             var col         = shiftDay(weekStart) % numColumns
             val size        = Size(columnWidth, current.height)

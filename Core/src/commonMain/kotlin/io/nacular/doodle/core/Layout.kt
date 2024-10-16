@@ -4,6 +4,8 @@ import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.Insets.Companion.None
 
 /**
  * Represents an item that can be positioned.
@@ -68,15 +70,18 @@ public sealed class LookupResult {
  * @author Nicholas Eddy
  */
 public interface Layout {
+
     /**
      * Called whenever the View's parent wishes to update it's size.
      *
+     * @param views being laid out
      * @param min the smallest size to fit the views in
      * @param current size to fit the views in
      * @param max the largest size to fit the views in
+     * @param insets to apply
      * @return a value that respects [min] and [max]
      */
-    public fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size = max
+    public fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets = None): Size = max
 
     /**
      * Gets the child within the Positionable at the given point.  The default is to ignore these
@@ -94,8 +99,8 @@ public interface Layout {
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        public inline fun simpleLayout(crossinline layout: (items: Sequence<Positionable>, min: Size, current: Size, max: Size) -> Size): Layout = object: Layout {
-            override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size = layout(views, min, current, max)
+        public inline fun simpleLayout(crossinline layout: (items: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
+            override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size = layout(views, min, current, max, insets)
         }
     }
 }

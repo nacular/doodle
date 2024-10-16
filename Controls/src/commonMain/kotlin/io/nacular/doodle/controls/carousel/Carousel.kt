@@ -85,23 +85,23 @@ public open class Carousel<T, M: ListModel<T>>(
         public   var cache               : Any?,
         public   var clipPath            : ClipPath? = null
     ) {
-        private val initialBounds    = view.bounds
+        private val initialBounds    = view.prospectiveBounds
         private val initialTransform = view.transform
 
-        internal val boundsChanged    get() = initialBounds    != view.bounds
+        internal val boundsChanged    get() = initialBounds    != view.prospectiveBounds
         internal val transformChanged get() = initialTransform != view.transform
 
-        public var x          : Double          by view::x
-        public var y          : Double          by view::y
-        public var size       : Size            by view::size
-        public var width      : Double          by view::width
-        public var height     : Double          by view::height
-        public var bounds     : Rectangle       by view::bounds
-        public var zOrder     : Int             by view::zOrder
-        public var camera     : Camera          by view::camera
-        public var opacity    : Float           by view::opacity
-        public var position   : Point           by view::position
-        public var transform  : AffineTransform by view::transform
+        public var x        : Double          get() = view.prospectiveBounds.x;      set(value) { view.x      = value } //by view::x
+        public var y        : Double          get() = view.prospectiveBounds.y;      set(value) { view.y      = value } //by view::y
+        public var size     : Size            get() = view.prospectiveBounds.size;   set(value) { view.size   = value } //by view::size
+        public var width    : Double          get() = view.prospectiveBounds.width;  set(value) { view.width  = value } //by view::width
+        public var height   : Double          get() = view.prospectiveBounds.height; set(value) { view.height = value } //by view::height
+        public var bounds   : Rectangle       get() = view.prospectiveBounds;        set(value) { view.bounds = value } //by view::bounds
+        public var zOrder   : Int             by view::zOrder
+        public var camera   : Camera          by view::camera
+        public var opacity  : Float           by view::opacity
+        public var position : Point           get() = view.prospectiveBounds.position; set(value) { view.position = value } //by view::position
+        public var transform: AffineTransform by view::transform
 
         /**
          * Indicates that the item has been changed in some way that might require

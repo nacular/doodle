@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -165,10 +166,10 @@ public class TreeColumnRow<T>(
     public fun update(content: View, treeColumns: TreeColumns<T, *>) {
         this.content = content
 
-        idealSize = Size(
-                (content.idealSize?.width ?: content.width) + iconWidth + 2 * iconSpacing,
-                max(content.idealSize?.height ?: content.height, iconWidth)
-        )
+        preferredSize = fixed(Size(
+            content.idealSize.width + iconWidth + 2 * iconSpacing,
+            max(content.idealSize.height, iconWidth)
+        ))
 
         constraintLayout = constrainLayout(content)
 

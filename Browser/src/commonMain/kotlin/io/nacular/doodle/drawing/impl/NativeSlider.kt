@@ -2,6 +2,7 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
@@ -145,7 +146,7 @@ internal class NativeSlider<T> internal constructor(
                 Vertical   -> Size(defaultSize.height + marginSize.height, defaultSize.width  + marginSize.width )
             }
 
-            idealSize = size
+            preferredSize = fixed(size)
         }
     }
 

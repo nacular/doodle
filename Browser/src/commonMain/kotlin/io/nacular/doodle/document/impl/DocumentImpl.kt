@@ -47,7 +47,7 @@ internal class DocumentImpl(
     init {
         height = 1.0 // FIXME: Remove once a better solution exists to allow first render
 
-        layout = simpleLayout { items, min, current, max ->
+        layout = simpleLayout { _,_,current,_,_ ->
             children.forEach {
                 it.bounds = it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) })
             }

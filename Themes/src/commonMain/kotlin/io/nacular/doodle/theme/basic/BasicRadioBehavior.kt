@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.theme.CheckRadioButtonBehavior
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -88,4 +89,10 @@ public class BasicRadioBehavior(
         iconInset,
         disabledColorMapper,
         focusManager
-)
+) {
+    override fun install(view: RadioButton) {
+        super.install(view)
+
+        view.preferredSize = fixed(view.idealSize.run { Size(max(16.0, width), max(16.0, height)) })
+    }
+}

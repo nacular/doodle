@@ -9,6 +9,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
@@ -255,8 +256,8 @@ internal class NativeScrollPanelBehavior(
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
             view.apply {
-                cursor    = Cursor.Default
-                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                cursor        = Cursor.Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
             }
 
             window.frameFor(view)?.let {
@@ -277,7 +278,7 @@ internal class NativeScrollPanelBehavior(
 
         view.apply {
             cursor          = oldCursor
-            idealSize       = oldIdealSize
+            preferredSize   = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
             boundsChanged  -= this@NativeScrollPanelBehavior.boundsChanged
             contentChanged -= this@NativeScrollPanelBehavior.contentChanged
 

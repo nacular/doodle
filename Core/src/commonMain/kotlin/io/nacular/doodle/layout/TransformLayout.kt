@@ -9,7 +9,7 @@ import io.nacular.doodle.geometry.Size
  * Created by Nicholas Eddy on 3/31/19.
  */
 public class TransformLayout(private val transform: (Positionable) -> AffineTransform, private val start: Layout? = null): Layout {
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         start?.layout(views, min, current, max)
 
         views.forEach {

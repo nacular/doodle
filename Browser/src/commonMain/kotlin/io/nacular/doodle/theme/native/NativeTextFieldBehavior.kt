@@ -32,6 +32,12 @@ private class NativeTextFieldBehaviorWrapper(
         delegate.renderForeground(view, canvas)
     }
 
+    override fun install(view: TextField) {
+        super<TextFieldBehavior>.install(view)
+
+        view.preferredSize = { _,_ -> nativePeer.preferredSize }
+    }
+
     override fun uninstall(view: TextField) {
         super<TextFieldBehavior>.uninstall(view)
 
@@ -44,6 +50,12 @@ internal class NativeTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFa
 
     override fun fitTextSize       (textField: TextField) = nativePeer.fitTextSize()
     override fun clipCanvasToBounds(view     : TextField) = nativePeer.clipCanvasToBounds
+
+    override fun install(view: TextField) {
+        super.install(view)
+
+        view.preferredSize = { _,_ -> nativePeer.preferredSize }
+    }
 
     override fun render(view: TextField, canvas: Canvas) {
         nativePeer.size = view.size

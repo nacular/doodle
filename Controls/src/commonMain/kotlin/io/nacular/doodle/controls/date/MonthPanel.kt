@@ -15,6 +15,7 @@ import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constrainer
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -61,7 +62,7 @@ public open class MonthPanel(
     private inner class MonthLayout: Layout {
         private val constrainer = Constrainer()
 
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
             var row         = 0
             var col         = if (showAdjacentMonths) 0 else shiftDay(weekStart, startDate.dayOfWeek) % numColumns
             val rowHeight   = current.height / numRows

@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
@@ -142,7 +143,7 @@ public open class BasicButtonBehavior(
 
         size = Size(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
-        button.idealSize = size
+        button.preferredSize = fixed(size)
 
 //        button.setSize(size)
     }

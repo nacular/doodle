@@ -3,6 +3,7 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.dom.BorderStyle.None
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
@@ -123,8 +124,8 @@ internal class NativeButton internal constructor(
 ): NativeEventListener {
 
     var idealSize: Size = button.idealSize; private set(new) {
-        field = new
-        button.idealSize = new // TODO: Should this be done in NativeButtonBehavior instead?
+        field                = new
+        button.preferredSize = fixed(new) // TODO: Should this be done in NativeButtonBehavior instead?
     }
 
     private var textElement       : HTMLElement? = null

@@ -146,10 +146,10 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   var minVisiblePosition                   = Origin
     private   var maxVisiblePosition                   = Origin
     private   var minHeight                            = 0.0
-//        set(new) {
-//            field  = new
-//            height = field
-//        }
+        set(new) {
+            field  = new
+            height = field
+        }
 
     private   var handlingRectChange   = false
     protected var firstVisibleRow: Int =  0
@@ -175,18 +175,21 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         updateNumRows()
 
-        layout = simpleLayout { items, _, current, _ ->
+        layout = simpleLayout { items,_,_,_,_ ->
             val c        = items.toList()
             var maxRight = 0.0
+            var y        = 0.0
 
             (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
                 model[path].onSuccess { value ->
                     c.getOrNull(index % c.size)?.let { child ->
                         rowPositioner?.let {
                             val b = it.rowBounds(this, value, path, index)
-//                            child.updateBounds(b)
                             child.updateBounds(b.x, b.y, Size(0.0, b.height), Size(POSITIVE_INFINITY, b.height)).let {
-//                                println("max($maxRight, ${b.x} + ${it.width})")
+                                y += it.height
+
+                                if (y > minHeight) return@forEach
+
                                 maxRight = max(maxRight, b.x + it.width)
                             }
                         }
@@ -197,7 +200,6 @@ public open class Tree<T, out M: TreeModel<T>>(
             c.forEach {
                 // set every row's min-width to maxRight
                 it.updateBounds(it.bounds.x, it.bounds.y, Size(maxRight, it.bounds.height), Size(POSITIVE_INFINITY, it.bounds.height))
-//                it.updateBounds(it.bounds.with(width = maxRight))
             }
 
             // FIXME: use maxWidth
@@ -224,8 +226,6 @@ public open class Tree<T, out M: TreeModel<T>>(
     }
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
-//        println("handleDisplayRectEvent($old, $new)")
-
         rowPositioner?.let { positioner ->
             if (maxVisiblePosition.x > new.right && maxVisiblePosition.y > new.bottom && minVisiblePosition.x < new.x && minVisiblePosition.y < new.y) {
                 return
@@ -494,7 +494,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
                         rowGenerator(this, value, path, index, children.getOrNull(i)).also { ui ->
                             children[i] = ui
-                            relayout()
+//                            relayout()
                             if (index + 1 < numRows - 1) {
                                 ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
                             }
@@ -553,8 +553,6 @@ public open class Tree<T, out M: TreeModel<T>>(
 
         if (displayRect.height > 0.0) {
             handleDisplayRectEvent(Empty, displayRect)
-        } else {
-            println("HERE")
         }
     }
 

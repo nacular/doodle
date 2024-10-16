@@ -42,7 +42,7 @@ import io.nacular.doodle.utils.lerp
 public class InteractiveLayout(private val start: Layout, private val end: Layout): Layout {
     public var progress: Float = 0f
 
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         var result = current
 
         if (progress < 1f) {

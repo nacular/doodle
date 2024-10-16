@@ -5,6 +5,7 @@ import io.nacular.doodle.controls.files.FileSelector.Companion.AnyFile
 import io.nacular.doodle.controls.files.FileSelectorBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.datatransport.SimpleFile
@@ -199,8 +200,8 @@ internal class NativeFileSelectorBehavior(
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
             view.apply {
-                cursor    = Default
-                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                cursor        = Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
             }
 
             window.frameFor(view)?.add(nativePeer)
@@ -215,8 +216,8 @@ internal class NativeFileSelectorBehavior(
         super.uninstall(view)
 
         view.apply {
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
 
             focusChanged        -= this@NativeFileSelectorBehavior.focusChanged
             boundsChanged       -= this@NativeFileSelectorBehavior.boundsChanged

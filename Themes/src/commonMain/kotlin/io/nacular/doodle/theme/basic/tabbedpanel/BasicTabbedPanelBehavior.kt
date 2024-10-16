@@ -239,15 +239,15 @@ public open class BasicTabProducer<T>(override  val tabHeight          : Double 
 }
 
 private class TabLayout(private val minWidth: Double = 40.0, private val defaultWidth: Double = 200.0, private val spacing: Double = 0.0): Layout {
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
-        val children = views.toList()
-        val maxLineWidth = max(0.0, current.width - (children.size - 1) * spacing)
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
+        val children     = views.toList()
+        val maxLineWidth = max(0.0, current.width - insets.left - insets.right - (children.size - 1) * spacing)
 
-        var x     = 0.0
+        var x     = insets.left
         val width = max(minWidth, min(defaultWidth, maxLineWidth / children.size))
 
         children.filter { it.visible }.forEach { child ->
-            child.updateBounds(x, 0.0, Size(width, 0.0), Size(width, Double.POSITIVE_INFINITY))
+            child.updateBounds(x, insets.top, Size(width, 0.0), Size(width, Double.POSITIVE_INFINITY))
             x += width + spacing
         }
 
@@ -579,7 +579,7 @@ public open class BasicTabbedPanelBehavior<T>(
                 })
             }
 
-            layout = Layout.simpleLayout { items, min, current, max ->
+            layout = Layout.simpleLayout { items,_,current,_,_ ->
                 items.forEachIndexed { index, view ->
                     when (index) {
                         0    -> view.updateBounds(Rectangle(current.width, tabProducer.tabHeight + 10))

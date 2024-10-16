@@ -17,6 +17,7 @@ import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.times
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
@@ -244,7 +245,7 @@ class ConstraintLayoutTests {
         expect(400.0) { child1.height      }
     }
 
-    @Test fun `unconstrain works`() {
+    @Test fun `un-constrain works`() {
         val view1 = NamedView("view1")
         val view2 = NamedView("view2")
         val view3 = NamedView("view3")
@@ -278,17 +279,14 @@ class ConstraintLayoutTests {
 
         (container.layout as ConstraintLayout).unconstrain(view1, view2, view3, constraints)
 
-        view1.x      = 67.0
-        view1.height = 67.0
-        view2.y      = 67.0
-        view3.width  = 67.0
+        container.size *= 2
 
         container.doLayout_()
 
-        expect(67.0) { view1.x      }
-        expect(67.0) { view1.height }
-        expect(67.0) { view2.y      }
-        expect(67.0) { view3.width  }
+        expect( 23.0) { view1.x      }
+        expect(100.0) { view1.height }
+        expect(100.0) { view2.y      }
+        expect(100.0) { view3.width  }
     }
 
     @Test fun `edges with inset`() {
@@ -332,34 +330,39 @@ class ConstraintLayoutTests {
         )) { listOf(view1, view2, view3).map { it.bounds } }
     }
 
+
     @Test fun `non-required const updates`() {
-        val header = view {}.apply { height = 117.0 }
-        val main   = view {}.apply { height = 186.0 }
-        val footer = view {}.apply { height =  56.0 }
+        val headerStartHeight = 117.0
+        val mainStartHeight   = 186.0
+        val footerStartHeight =  56.0
+
+        val header       = NamedView("header").apply { height = 117.0 }
+        val main         = NamedView("main"  ).apply { height = 186.0 }
+        val footer       = NamedView("footer").apply { height =  56.0 }
+        val minHeight    = 106.0
         var targetHeight = 174
 
         val container = container {
-            this += listOf(header, main, footer)
+            + listOf(header, main, footer)
+
+            @Suppress("LocalVariableName")
+            layout = constrain(header, main, footer) { header_, main_, footer_ ->
+                listOf(header_, main_, footer_).forEach { it.centerX eq parent.centerX }
+                header_.top    eq       9
+                header_.height.preserve
+
+                main_.top     eq        header_.bottom + 5
+                main_.height  greaterEq minHeight
+                (main_.height eq        minHeight + targetHeight) .. Medium
+
+                footer_.top   eq        main_.bottom + 65
+                footer_.height.preserve
+                (footer_.bottom lessEq parent.bottom.readOnly) .. Strong
+            }
+
+            height = 9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight
         }
 
-        val minHeight = 106.0
-
-        @Suppress("LocalVariableName")
-        container.layout = constrain(header, main, footer) { header_, main_, footer_ ->
-            listOf(header_, main_, footer_).forEach { it.centerX eq parent.centerX }
-            header_.top    eq       9
-            header_.height.preserve
-
-            main_.top     eq        header_.bottom + 5
-            main_.height  greaterEq minHeight
-            (main_.height eq        minHeight + targetHeight) .. Medium
-
-            footer_.top   eq        main_.bottom + 65
-            footer_.height.preserve
-            (footer_.bottom lessEq parent.bottom) .. Strong
-        }
-
-        container.height = 9 + header.height + 5 + minHeight + targetHeight + 65 + footer.height
         container.doLayout_()
 
         expect(minHeight + targetHeight) { main.height }
@@ -368,7 +371,7 @@ class ConstraintLayoutTests {
 
         container.doLayout_()
 
-        expect(minHeight + targetHeight) { main.height }
+        expect(minHeight) { main.height }
 
         targetHeight = 174
         container.height -= 1

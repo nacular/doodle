@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.event.PointerEvent
@@ -217,8 +218,8 @@ internal class NativeSliderBehavior<T>(
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
             view.apply {
-                cursor    = Default
-                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                cursor        = Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
             }
 
             window.frameFor(view)?.add(nativePeer)
@@ -233,8 +234,8 @@ internal class NativeSliderBehavior<T>(
         super.uninstall(view)
 
         view.apply {
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
 
             focusChanged        -= this@NativeSliderBehavior.focusChanged
             boundsChanged       -= this@NativeSliderBehavior.boundsChanged

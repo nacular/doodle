@@ -4,7 +4,6 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 
@@ -12,7 +11,7 @@ import io.nacular.doodle.geometry.Size
  * Created by Nicholas Eddy on 3/29/19.
  */
 public class ZoomedLayout(private val index: Int, private val targetBounds: Rectangle? = null, private val layout: Layout? = null): Layout {
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
 
         // Need to first lay out the children
         layout?.layout(views, min, current, max)
@@ -21,9 +20,9 @@ public class ZoomedLayout(private val index: Int, private val targetBounds: Rect
 
         children.getOrNull(index)?.let { view ->
             // Then we can adjust their bounds using a transform
-            val targetBounds  = targetBounds ?: Rectangle(size = current)
+            val targetBounds  = targetBounds ?: Rectangle(size = current).inset(insets)
             val currentBounds = view.bounds
-            val around        = Origin
+            val around        = Point(insets.left, insets.top)
 
             val transform = Identity
                 .translate(around)

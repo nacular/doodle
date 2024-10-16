@@ -2,6 +2,7 @@ package io.nacular.doodle.theme
 
 import io.nacular.doodle.controls.ProgressIndicator
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -64,7 +65,7 @@ public class PathProgressIndicatorBehavior(
     override fun install(view: ProgressIndicator) {
         super.install(view)
 
-        view.idealSize = pathBounds.size
+        view.preferredSize = fixed(pathBounds.size)
     }
 
     override fun render(view: ProgressIndicator, canvas: Canvas) {

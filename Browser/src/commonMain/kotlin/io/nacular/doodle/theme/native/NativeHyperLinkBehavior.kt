@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory
@@ -60,11 +61,8 @@ internal class NativeHyperLinkBehavior(
     override fun install(view: HyperLink) {
         super.install(view)
 
-        view.idealSize = nativePeer.idealSize
-
-        view.idealSize?.let {
-            view.size = it
-        }
+        view.preferredSize = fixed(nativePeer.idealSize)
+        view.size          = view.idealSize
     }
 
     override fun uninstall(view: HyperLink) {

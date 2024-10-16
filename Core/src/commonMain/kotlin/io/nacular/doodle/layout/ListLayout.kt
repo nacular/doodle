@@ -6,6 +6,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.WidthSource.Children
 import io.nacular.doodle.layout.WidthSource.Parent
 import kotlin.Double.Companion.POSITIVE_INFINITY
+import kotlin.math.max
 
 
 public enum class WidthSource {
@@ -21,21 +22,23 @@ public class ListLayout(
 
     public constructor(spacing: Int, widthSource: WidthSource = Children): this(spacing.toDouble(), widthSource)
 
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
-        // TODO: Can this be cleaned up to use idealSize?
-        var y = 0.0
-
-        val width = when (widthSource) {
-            Parent -> current.width
-            else   -> views.filter { it.visible }.maxOf { it.updateBounds(0.0, 0.0, Size(0.0, minHeight), Size(POSITIVE_INFINITY, maxHeight)).width }
-        }.coerceIn(0.0, max.width)
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
+        var maxWidth         = 0.0
+        var y                = insets.top
+        val horizontalInsets = insets.run { left + right  }
 
         views.filter { it.visible }.forEach {
-            it.updateBounds(it.bounds.x, y, Size(width, minHeight), Size(width, maxHeight))
+            val widths = when (widthSource) {
+                Parent -> current.width - horizontalInsets to current.width     - horizontalInsets
+                else   -> 0.0                              to POSITIVE_INFINITY - horizontalInsets
+            }
 
-            y += it.bounds.height + spacing
+            it.updateBounds(insets.left, y, Size(widths.first, minHeight), Size(widths.second, maxHeight))
+
+            y        += it.bounds.height + spacing
+            maxWidth  = max(it.bounds.width, maxWidth)
         }
 
-        return Size(width, y - spacing)
+        return Size(maxWidth, y - spacing + insets.bottom)
     }
 }

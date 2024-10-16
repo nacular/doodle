@@ -6,6 +6,7 @@ import io.nacular.doodle.controls.text.TextFieldBehavior
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -438,8 +439,8 @@ internal open class NativeTextFieldBehavior(
             }
 
             view.apply {
-                cursor    = Default
-                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                cursor        = Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
             }
         }
     }
@@ -448,8 +449,8 @@ internal open class NativeTextFieldBehavior(
         super.uninstall(view)
 
         view.apply {
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
 
             maskChanged          -= this@NativeTextFieldBehavior.maskChanged
             textChanged          -= this@NativeTextFieldBehavior.textChanged

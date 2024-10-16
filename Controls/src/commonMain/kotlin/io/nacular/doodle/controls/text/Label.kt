@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.text
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
@@ -44,7 +45,9 @@ public open class Label(
      */
     public var text: String get() = styledText.text
         set(new) {
-            styledText = StyledText(new)
+            if (new != styledText.text) {
+                styledText = StyledText(new)
+            }
         }
 
     // this a clone of actualStyledText with the Label's styling applied
@@ -112,9 +115,9 @@ public open class Label(
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
     internal var textSize = Empty; private set(new) {
-        field     = new
-        idealSize = new
-        size      = new
+        field         = new
+        preferredSize = fixed(new)
+        size          = new
     }
 
     public var behavior: LabelBehavior? by behavior { _,new ->
@@ -125,8 +128,6 @@ public open class Label(
     private fun measureText(behavior: LabelBehavior? = this.behavior): Size {
         return behavior?.measureText(this)?.also { textSize = it } ?: Empty
     }
-
-    override fun preferredSize(min: Size, max: Size): Size = textSize
 
     init {
         styleChanged += {

@@ -151,9 +151,8 @@ public class TreeRow<T>(
             positioner(it.withOffset(top = { insetTop }, left = { indent }))
         }
 
-        println("[$content] $indent + ${it.right.readOnly}")
-
-        parent.width greaterEq indent + it.right.readOnly
+        // FIXME: This doesn't really make much sense
+        parent.width greaterEq it.right.readOnly
     }
 
     init {
@@ -211,8 +210,6 @@ public class TreeRow<T>(
     private fun update(content: View, tree: TreeLike, path: Path<Int>, index: Int) {
         val oldDepth   = depth
         val oldContent = this.content
-        val oldPath    = this.path
-        val oldIndex   = this.index
 
         this.path      = path
         this.index     = index
@@ -220,8 +217,6 @@ public class TreeRow<T>(
         this.content   = content
 
         if (oldDepth != depth || oldContent != content) {
-//            println("updateLayout $oldContent <$oldDepth, $oldPath, $oldIndex> -> $content <$depth, $path, $index>")
-
             if (oldContent != content) {
                 constraintLayout.unconstrain(oldContent, contentConstraints)
                 constraintLayout.constrain  (content,    contentConstraints)

@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.theme.CheckRadioButtonBehavior
 import io.nacular.doodle.core.Icon
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -133,6 +134,6 @@ public class BasicCheckBoxBehavior(
     override fun install(view: CheckBox) {
         super.install(view)
 
-        view.idealSize = view.idealSize.run { Size(max(16.0, width), max(16.0, height)) }
+        view.preferredSize = fixed(view.idealSize.run { Size(max(16.0, width), max(16.0, height)) })
     }
 }

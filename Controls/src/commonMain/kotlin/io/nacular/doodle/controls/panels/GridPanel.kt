@@ -188,7 +188,7 @@ public open class GridPanel: View() {
         private var idealWidth  = null as Double?
         private var idealHeight = null as Double?
 
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
             val rowLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
             val colLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
 

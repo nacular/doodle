@@ -18,6 +18,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -279,16 +280,16 @@ public open class Table<T, M: ListModel<T>>(
 
                 val delegate = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
 
-                layout = simpleLayout { items, min, current, max ->
+                layout = simpleLayout { items, min, current, max, _ ->
                     val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
 
                     // explicitly set ideal size of table-panel so the scroll panel layout will update it
-                    panel.content?.idealSize = Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0)
+                    panel.content?.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
 
                     val size = delegate.layout(items, min, current, max)
 
-                    idealSize   = Size(w, size.height)
-                    resizingCol = null
+                    preferredSize = fixed(Size(w, size.height))
+                    resizingCol   = null
 
                     idealSize
                 }

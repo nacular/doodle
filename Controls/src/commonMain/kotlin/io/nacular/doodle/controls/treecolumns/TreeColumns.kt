@@ -286,10 +286,10 @@ public open class TreeColumns<T, M: TreeModel<T>>(
 
         children.addAll(columns.map { createScrollPanel(it.list) })
 
-        layout = simpleLayout { views, _, current, _ ->
-            val y     = 0.0
-            var x     = 0.0
-            val h     = current.height
+        layout = simpleLayout { views,_,current,_,_ ->
+            val y     = insets.top
+            var x     = insets.left
+            val h     = current.height - insets.run { top + bottom }
             var width = 0.0
 
             views.forEach {
@@ -300,7 +300,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             }
 
             if (width > 0) {
-                this@TreeColumns.width = max(current.width, width)
+                this@TreeColumns.width = max(current.width, width + insets.run { left + right })
             }
 
             current

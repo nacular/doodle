@@ -145,7 +145,7 @@ class ViewTests {
         validateSetter(View::opacity,                          0.3f                           )
         validateSetter(View::position,                         Origin                         )
         validateSetter(View::focusable,                        false                          )
-        validateSetter(View::idealSize,                        Size(20.0, 37.6)               )
+        validateSetter(View::preferredSize,                    { _,_ -> Size(40, 67) }        )
         validateSetter(View::foregroundColor,                  Red                            )
         validateSetter(View::backgroundColor,                  Green                          )
         validateSetter(View::isFocusCycleRoot_,                true                           )

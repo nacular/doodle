@@ -12,6 +12,7 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.KeyCode.Companion.ArrowDown
@@ -98,7 +99,7 @@ public class Menu private constructor(
     init {
         isFocusCycleRoot   = true
         clipCanvasToBounds = false
-        layout             = simpleLayout { views, min, current, max ->
+        layout             = simpleLayout { views,_,_,_,_ ->
             var y        = insets.top
             val maxWidth = views.maxOf { it.idealSize.width }
 
@@ -305,20 +306,20 @@ public class Menu private constructor(
                 menu?.let { menu ->
                     popupTask = scheduler.after(renderer?.showDelay ?: zeroMillis) {
                         popups.show(menu, relativeTo = this) { menu, self ->
-                            (menu.top eq self.y - 5)..Strong
+                            menu.top eq self.y - 5 strength Strong
 
                             when {
-                                parent.width.readOnly - self.right > menu.width.readOnly - 2 -> (menu.left eq self.right - 2)..Strong
-                                else                                                         -> (menu.right eq self.x + 2)..Strong
+                                parent.width.readOnly - self.right > menu.width.readOnly - 2 -> menu.left  eq self.right - 2 strength Strong
+                                else                                                         -> menu.right eq self.x     + 2 strength Strong
                             }
 
-                            (menu.top greaterEq 5)..Strong
-                            (menu.left greaterEq 5)..Strong
+                            menu.top  greaterEq 5 strength Strong
+                            menu.left greaterEq 5 strength Strong
 
-                            menu.width.preserve
-                            menu.height.preserve
+                            menu.width  eq menu.preferredWidth
+                            menu.height eq menu.preferredHeight
 
-                            menu.right lessEq parent.right - 5
+                            menu.right  lessEq parent.right  - 5
                             menu.bottom lessEq parent.bottom - 5
                         }
                     }
@@ -357,8 +358,8 @@ public class Menu private constructor(
 
         override fun updateBounds() {
             renderer?.preferredSize(info)?.let {
-                height    = it.height
-                idealSize = it
+                height        = it.height
+                preferredSize = fixed(it)
             }
         }
     }
@@ -393,8 +394,8 @@ public class Menu private constructor(
 
         override fun updateBounds() {
             renderer?.preferredSize(this)?.let {
-                height    = it.height
-                idealSize = it
+                height        = it.height
+                preferredSize = fixed(it)
             }
         }
     }

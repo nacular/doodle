@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.CanvasImpl
@@ -43,8 +44,8 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
     protected abstract fun createPeer (button: T         ): P
     protected open     fun destroyPeer(button: T, peer: P) {}
 
-    private lateinit var nativePeer   : P
-    private          var oldCursor    : Cursor? = null
+    private lateinit var nativePeer       : P
+    private          var oldCursor        : Cursor? = null
     private          var oldIdealSize = Size.Empty
 
     private val focusChanged: (View, Boolean, Boolean) -> Unit = { _, _, new ->
@@ -103,8 +104,8 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
             view.apply {
-                cursor    = Cursor.Default
-                idealSize = nativePeer.preferredSize.run { Size(width, height) }
+                cursor        = Cursor.Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
             }
 
             window.frameFor(view)?.add(nativePeer)
@@ -119,8 +120,8 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         super.uninstall(view)
 
         view.apply {
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
 
             focusChanged        -= this@AbstractNativeButtonBehavior.focusChanged
             boundsChanged       -= this@AbstractNativeButtonBehavior.boundsChanged

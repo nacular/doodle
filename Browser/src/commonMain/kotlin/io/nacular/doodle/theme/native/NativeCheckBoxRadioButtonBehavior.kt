@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.ToggleButton
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeCheckBoxRadioButtonFactory
@@ -29,9 +30,9 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
     private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
 
-    private lateinit var oldSize     : Size
-    private          var oldCursor   : Cursor? = null
-    private          var oldIdealSize = button.idealSize
+    private lateinit var oldSize          : Size
+    private          var oldCursor        : Cursor? = null
+    private          var oldPreferredSize = button.preferredSize
 
     override fun mirrorWhenRightToLeft(view: ToggleButton) = false
 
@@ -43,13 +44,13 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
         super.install(view)
 
         view.apply {
-            oldSize      = size
-            oldCursor    = cursor
-            oldIdealSize = idealSize
+            oldSize          = size
+            oldCursor        = cursor
+            oldPreferredSize = preferredSize
 
-            cursor    = Default
-            idealSize = nativePeer.idealSize
-            idealSize?.let { size = it }
+            cursor        = Default
+            preferredSize = fixed(nativePeer.idealSize)
+            size          = idealSize
         }
     }
 
@@ -62,8 +63,8 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
             if (::oldSize.isInitialized) {
                 size = oldSize
             }
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = oldPreferredSize
         }
     }
 

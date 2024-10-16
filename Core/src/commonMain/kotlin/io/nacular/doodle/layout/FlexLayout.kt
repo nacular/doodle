@@ -39,13 +39,13 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         else       -> top  + bottom
     }
 
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
-        val x                      = 0.0
-        val y                      = 0.0
-        val w                      = current.width
-        val h                      = current.height
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
+        val x                      = insets.left
+        val y                      = insets.top
+        val w                      = max(0.0, current.width  - insets.run { left + right })
+        val h                      = max(0.0, current.height - insets.run { top + bottom })
         var offset                 = 0.0
-        val totalAvailableSpace    = current.extent
+        val totalAvailableSpace    = current.extent - insets.extent
         var remainingSpace         = totalAvailableSpace
         val visibleChildren        = views.filter { it.visible }.toList()
         var numCollapsedSpaces     = 0

@@ -311,7 +311,7 @@ public open class ScrollPanel(content: View? = null): View() {
             updateConstraints()
         }
 
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size): Size {
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
             val layoutSize = delegate?.layout(views, min, current, max)
 
             views.forEach  {

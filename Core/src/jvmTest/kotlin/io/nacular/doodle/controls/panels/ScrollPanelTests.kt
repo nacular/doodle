@@ -11,6 +11,7 @@ import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -243,11 +244,11 @@ class ScrollPanelTests {
 
         expect(Empty) { panel.idealSize }
 
-        content.idealSize = Size(435, 30)
+        content.preferredSize = fixed(Size(435, 30))
 
         expect(content.idealSize) { panel.idealSize }
 
-        content.idealSize = Empty
+        content.preferredSize = fixed(Empty)
 
         expect(Empty) { panel.idealSize }
     }

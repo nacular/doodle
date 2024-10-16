@@ -115,6 +115,7 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         accessibilityManager  = accessibilityManager,
         scheduler             = scheduler,
         borderSize            = sizeDifference,
+        defaultSize           = defaultSize,
         spellCheck            = spellCheck,
         autoComplete          = autoComplete,
         textField             = textField
@@ -133,6 +134,7 @@ internal class NativeTextField(
     private val accessibilityManager : AccessibilityManagerImpl?,
     private val scheduler            : Scheduler,
     private val borderSize           : Size,
+    private val defaultSize          : Size,
     private val spellCheck           : Boolean,
     private val autoComplete         : Boolean,
     private val textField            : TextField): NativeEventListener {
@@ -148,6 +150,8 @@ internal class NativeTextField(
     var text by inputElement::value
 
     var size = Empty
+
+    val preferredSize: Size get() = Size(defaultSize.width, (textField.font?.size?.toDouble() ?: defaultSize.height) + 2 * borderSize.height + 4)
 
     private val selection get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 

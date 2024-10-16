@@ -175,7 +175,7 @@ public class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    eq min(parent.right - handle.width, max(0.0, parent.width * this@Strip.ratio - handle.width / 2))
+                it.left    eq min(parent.right.readOnly - handle.width, max(0.0, parent.width.readOnly * this@Strip.ratio - handle.width / 2))
                 it.centerY eq parent.centerY
                 it.height  eq parent.height
             }
@@ -365,7 +365,7 @@ public class ColorPicker(color: Color): View() {
         }
     }
 
-    private val colorSquare = ColorSquare().apply { backgroundColor = colorRect.color.toRgb(); size = Size(hueStrip.height + opacityStrip.height + inset) }
+    private val colorSquare = ColorSquare().apply { backgroundColor = colorRect.color.toRgb(); size = Size(hueStrip.prospectiveBounds.height + opacityStrip.prospectiveBounds.height + inset) }
 
     init {
         children += colorRect
@@ -376,7 +376,7 @@ public class ColorPicker(color: Color): View() {
         layout = constrain(colorRect, hueStrip, opacityStrip, colorSquare) { colorRect, hueStrip, opacityStrip, colorSquare ->
             colorRect.top        eq inset
             colorRect.left       eq inset
-            colorRect.right      eq parent.right  - inset
+            colorRect.right      eq parent.right.readOnly  - inset
             colorRect.bottom     eq hueStrip.top  - inset
 
             hueStrip.left        eq inset
@@ -387,12 +387,12 @@ public class ColorPicker(color: Color): View() {
             opacityStrip.left    eq inset
             opacityStrip.height.preserve
             opacityStrip.right   eq colorSquare.left - inset
-            opacityStrip.bottom  eq parent.bottom    - inset
+            opacityStrip.bottom  eq parent.bottom.readOnly    - inset
 
             colorSquare.width.preserve
             colorSquare.height.preserve
-            colorSquare.right    eq parent.right  - inset
-            colorSquare.bottom   eq parent.bottom - inset
+            colorSquare.right    eq parent.right.readOnly  - inset
+            colorSquare.bottom   eq parent.bottom.readOnly - inset
         }
     }
 }

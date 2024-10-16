@@ -61,6 +61,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -73,10 +74,12 @@ import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.PassThroughEncoder
+import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.interpolator
 import io.nacular.doodle.utils.observable
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Units
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 
 // region String
@@ -196,7 +199,8 @@ public fun check(label: View): FieldVisualizer<Boolean> = field {
 
         focusable = false
 
-        this.layout = buttonItemLayout(children[1], children[0])
+        this.layout        = buttonItemLayout(button = children[1], label = children[0])
+        this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
     }
 }
 
@@ -238,12 +242,16 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
 
         focusable = false
 
-        this.layout = constrain(children[0], children[1]) { label, switch ->
-            switch.left    eq parent.right - switch.width.readOnly
+        layout = constrain(children[0], children[1]) { label, switch ->
+            switch.left    greaterEq 0
+            switch.right   eq parent.right strength Strong
             switch.centerY eq parent.centerY
+            switch.width.preserve
+            switch.height.preserve
 
             label.left     eq 0
             label.centerY  eq switch.centerY
+            label.height.preserve
 
             parent.height  eq max(label.bottom, switch.bottom)
         }
@@ -2521,7 +2529,7 @@ public class NamedConfig internal constructor(public val label: Label) {
      * @param spacing that determines the space between the label and field
      * @return the default layout
      */
-    public fun defaultLayout(spacing: Double = DEFAULT_SPACING, itemHeight: Double? = null): (container: View, field: View) -> Layout? = { container,_ ->
+    public fun defaultLayout(spacing: Double = DEFAULT_SPACING, itemHeight: Double? = null): (container: View, field: View) -> Layout? = { _,_ ->
         label.fitText = setOf(Width)
 
         expandingVerticalLayout(spacing, itemHeight)
@@ -2630,7 +2638,7 @@ public fun <T> labeled(
     container {
         lateinit var content: View
 
-        val label         = UninteractiveLabel(name)
+        val label         = NonInteractiveLabel(name)
         val builder       = NamedConfig(label)
         val visualization = visualizer(builder)
 
@@ -2642,7 +2650,7 @@ public fun <T> labeled(
 
         showRequired?.let { updateRequiredText(it, label, name, content) }
 
-        this.layout = builder.layout(this, children[1])
+        layout = builder.layout(this, children[1])
     }
 }
 
@@ -2701,8 +2709,8 @@ public fun <T> labeled(
     container {
         lateinit var content: View
 
-        val nameLabel     = UninteractiveLabel(name)
-        val helperLabel   = UninteractiveLabel(help)
+        val nameLabel     = NonInteractiveLabel(name)
+        val helperLabel   = NonInteractiveLabel(help)
         val builder       = LabeledConfig(nameLabel, helperLabel)
         val visualization = visualizer(builder)
 
@@ -2768,7 +2776,7 @@ public fun <T> framed(visualizer: ContainerBuilder.() -> FieldVisualizer<T>): Fi
     container {
         + visualizer(this)(this@field)
 
-        this.layout = verticalLayout(this, itemHeight = DEFAULT_HEIGHT)
+        layout    = verticalLayout()
         focusable = false
     }
 }
@@ -2898,7 +2906,7 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
     }
 }
 
-public fun verticalLayout(container: View, spacing: Double = 2.0, itemHeight: Double? = null): Layout = expandingVerticalLayout(spacing, itemHeight)
+public fun verticalLayout(spacing: Double = 2.0, itemHeight: Double? = null): Layout = expandingVerticalLayout(spacing, itemHeight)
 
 // endregion
 
@@ -2955,7 +2963,8 @@ private fun <T> buildToggleList(
                     accessibilityLabelProvider = visualizedValue
                 }
 
-                this.layout = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0]))
+                this.layout        = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0]))
+                this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
             }
         }
 
@@ -2969,16 +2978,17 @@ private fun <T> buildRadioList(
            optionListConfig: OptionListConfig<T>,
            initialValue    : T? = null,
            allowDeselectAll: Boolean = false,
-           config          : (T, RadioButton) -> Unit): Container = container {
-    val group  = ButtonGroup(allowDeselectAll = allowDeselectAll)
+           config          : (T, RadioButton) -> Unit
+) = container {
+    val group = ButtonGroup(allowDeselectAll = allowDeselectAll)
 
     + (listOf(first) + rest).map { value ->
         container {
             focusable = false
             val visualizedValue = optionListConfig.visualizer(value)
 
-            this += visualizedValue
-            this += RadioButton().apply {
+            + visualizedValue
+            + RadioButton().apply {
                 group += this
 
                 initialValue?.let {
@@ -2991,7 +3001,8 @@ private fun <T> buildRadioList(
                 accessibilityLabelProvider = visualizedValue
             }
 
-            this.layout = buttonItemLayout(button = children[1], label = children[0])
+            this.layout        = buttonItemLayout(button = children[1], label = children[0])
+            this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
         }
     }
 
@@ -3033,9 +3044,10 @@ private fun <T: Any, M: ListModel<T?>> buildSelectBox(
     }
 }
 
-private class UninteractiveLabel(text: StyledText): Label(text) {
+private class NonInteractiveLabel(text: StyledText): Label(text) {
     init {
-        focusable = false
+        focusable     = false
+        textAlignment = Start
     }
 
     override fun contains(point: Point) = false
@@ -3061,14 +3073,12 @@ private fun expandingVerticalLayout(spacing: Double, itemHeight: Double? = null)
     spacing     = spacing,
     widthSource = WidthSource.Parent,
     minHeight   = itemHeight ?: 0.0,
-    maxHeight   = itemHeight ?: Double.POSITIVE_INFINITY
+    maxHeight   = itemHeight ?: POSITIVE_INFINITY
 )
 
 @Suppress("LocalVariableName")
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
     button_.top    eq 0
-    button_.width  eq button_.preferredWidth
-    button_.height eq button_.preferredHeight
     button_.width  eq parent.width
     button_.height eq parent.height
     label_.left    eq labelOffset

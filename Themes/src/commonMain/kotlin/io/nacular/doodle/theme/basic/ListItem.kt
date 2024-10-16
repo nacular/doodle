@@ -6,6 +6,7 @@ import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.list.ListLike
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -154,7 +155,7 @@ public open class ListItem<T>(
             }
         }
 
-        idealSize = children[0].idealSize.let { Size(it.width + insetLeft, it.height + insetTop) }
+        preferredSize = fixed(children[0].idealSize.let { Size(it.width + insetLeft, it.height + insetTop) })
         this.list = list
     }
 

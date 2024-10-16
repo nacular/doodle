@@ -32,6 +32,7 @@ import io.nacular.doodle.event.KeyCode.Companion.Enter
 import io.nacular.doodle.event.KeyCode.Companion.Escape
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
+import io.nacular.doodle.event.KeyListener.Companion.released
 import io.nacular.doodle.event.KeyText.Companion.ArrowDown
 import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.event.PointerEvent
@@ -292,7 +293,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
                 }
             }
 
-            keyChanged += KeyListener.released { event ->
+            keyChanged += released { event ->
                 if (displayed) {
                     when (event.code) {
                         Enter  -> firstSelection?.let { index ->
@@ -337,6 +338,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         view.boundsChanged  += boundsChanged // FIXME: This is a hack b/c List doesn't behave well if row dimensions are changed dynamically. That will eventually be fixed.
         view.pointerChanged += this
         view.enabledChanged += enabledChanged
+        view.preferredSize   = { _,_ ->
+            val cIdeal = center.first().idealSize
+            val bIdeal = button.idealSize
+
+            Size(cIdeal.width + bIdeal.width + 2 * inset, max(cIdeal.height, bIdeal.height) + 2 * inset)
+        }
     }
 
     override fun uninstall(view: SelectBox<T, M>) {

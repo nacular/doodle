@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.files.FileSelectorBehavior
 import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeFileSelectorFactory
 import io.nacular.doodle.system.Cursor
@@ -43,8 +44,8 @@ internal class NativeFileSelectorBehavior(nativeFileSelectorFactory: NativeFileS
         }
     }
 
-    private var oldCursor    : Cursor? = null
-    private var oldIdealSize = fileSelector.idealSize
+    private var oldCursor        : Cursor? = null
+    private var oldPreferredSize = fileSelector.preferredSize
 
     override fun render(view: FileSelector, canvas: Canvas) {
         nativePeer.render(canvas)
@@ -56,8 +57,8 @@ internal class NativeFileSelectorBehavior(nativeFileSelectorFactory: NativeFileS
         super.install(view)
 
         view.apply {
-            cursor    = Cursor.Default
-            idealSize = nativePeer.idealSize
+            cursor        = Cursor.Default
+            preferredSize = fixed(nativePeer.idealSize)
 
             rerender()
         }
@@ -69,8 +70,8 @@ internal class NativeFileSelectorBehavior(nativeFileSelectorFactory: NativeFileS
         nativePeer.discard()
 
         view.apply {
-            cursor    = oldCursor
-            idealSize = oldIdealSize
+            cursor        = oldCursor
+            preferredSize = oldPreferredSize
         }
     }
 }
