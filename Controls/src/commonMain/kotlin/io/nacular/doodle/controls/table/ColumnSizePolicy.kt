@@ -1,5 +1,8 @@
 package io.nacular.doodle.controls.table
 
+import kotlin.math.max
+import kotlin.math.min
+
 /**
  * Defines how columns within [Table] and related controls are sized.
  */
@@ -75,7 +78,7 @@ public object ConstrainedSizePolicy: ColumnSizePolicy {
     }
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
-        columns[index].width = to
+        columns[index].width = max(0.0, min(tableWidth, to))
     }
 }
 
@@ -112,7 +115,11 @@ public object ProportionalSizePolicy: ColumnSizePolicy {
     }
 
     override fun changeColumnWidth(tableWidth: Double, columns: List<ColumnSizePolicy.Column>, index: Int, to: Double) {
-        columns[index].width = to
+        val delta = max(0.0, min(tableWidth, to)) - columns[index].width
+
+        columns.forEachIndexed { i, column ->
+            column.width += if (i == index) delta else -delta
+        }
 
         layout(tableWidth, columns)
     }
