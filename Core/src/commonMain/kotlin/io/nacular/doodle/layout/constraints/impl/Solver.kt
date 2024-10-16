@@ -18,10 +18,9 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.External
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Invalid
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
 import io.nacular.doodle.utils.fastMutableMapOf
-import io.nacular.doodle.utils.fastMutableSetOf
-import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.MAX_VALUE
 import kotlin.math.abs
+
 
 /**
  * Classes are derived works from [https://github.com/alexbirkett/kiwi-java/tree/master/src/main/java/no/birkett/kiwi],
@@ -86,13 +85,7 @@ internal class Solver {
     }
 
     private inner class Row {
-        var symbol: Symbol? by observable(null) {_,new ->
-            if (new == null) {
-                cells.keys.forEach {
-                    unregisterSymbol(it)
-                }
-            }
-        }
+        var symbol: Symbol? = null
         var cells   = fastMutableMapOf<Symbol, Double>(); private set
         var constant: Double
 
@@ -103,20 +96,6 @@ internal class Solver {
         constructor(other: Row) {
             cells.putAll(other.cells)
             constant = other.constant
-
-            cells.keys.forEach {
-                registerSymbol(it)
-            }
-        }
-
-        private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { fastMutableSetOf() }.add(this) }
-        private fun unregisterSymbol(symbol: Symbol) {
-            rowsWithSymbol[symbol]?.let {
-                it.remove(this)
-                if (it.isEmpty()) {
-                    rowsWithSymbol.remove(symbol)
-                }
-            }
         }
 
         /**
@@ -134,13 +113,10 @@ internal class Solver {
          * is zero, the symbol will be removed from the row
          */
         fun insert(symbol: Symbol, coefficient: Double = 1.0) {
-            val newCoefficient = cells.getOrPut(symbol) {
-                registerSymbol(symbol)
-                0.0
-            } + coefficient
+            val newCoefficient = cells.getOrPut(symbol) { 0.0 } + coefficient
 
             when {
-                nearZero(newCoefficient) -> cells.remove(symbol).also { unregisterSymbol(symbol) }
+                nearZero(newCoefficient) -> cells.remove(symbol)
                 else                     -> cells[symbol] = newCoefficient
             }
         }
@@ -185,7 +161,7 @@ internal class Solver {
          */
         fun solveFor(symbol: Symbol) {
             val coefficient = -1.0 / cells[symbol]!!
-            cells.remove(symbol).also { unregisterSymbol(symbol) }
+            cells.remove(symbol)
             constant *= coefficient
             for ((key, value) in cells) {
                 cells[key] = value * coefficient
@@ -229,7 +205,6 @@ internal class Solver {
          */
         fun substitute(symbol: Symbol, row: Row) {
             cells.remove(symbol)?.let { coefficient ->
-                unregisterSymbol(symbol)
                 insert(row, coefficient)
             }
         }
@@ -242,7 +217,6 @@ internal class Solver {
     private val infeasibleRows = mutableListOf<Symbol>()
     private val objective      = Row()
     private var artificial     = null as Row?
-    private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
 
     /**
      * Add a constraint to the solver.
@@ -340,18 +314,12 @@ internal class Solver {
     }
 
     fun updateConstant(old: Constraint, new: Constraint) {
-        if (old.strength < Required) {
-            // FIXME: Need to figure out how to do an update on such a constraint
-            removeConstraint(old)
-            addConstraint   (new)
-        } else {
-            val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
-            val delta = new.expression.constant - old.expression.constant
-            constraints[new] = tag
+        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
+        val delta = new.expression.constant - old.expression.constant
+        constraints[new] = tag
 
-            if (delta != 0.0) {
-                updateRow(rows[tag.marker], tag, delta)
-            }
+        if (delta != 0.0) {
+            updateRow(rows[tag.marker], tag, delta)
         }
     }
 
@@ -375,19 +343,10 @@ internal class Solver {
             return
         }
 
-        rowsWithSymbol[tag.marker]?.iterator()?.let {
-            while (it.hasNext()) {
-                val currentRow = it.next()
-
-                when {
-                    currentRow.symbol != null -> {
-                        val coefficient = currentRow.coefficientFor(tag.marker)
-                        if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && currentRow.symbol!!.type != External) {
-                            infeasibleRows.add(currentRow.symbol!!)
-                        }
-                    }
-                    else                      -> it.remove()
-                }
+        rows.forEach { (symbol, row) ->
+            val coefficient = row.coefficientFor(tag.marker)
+            if (coefficient != 0.0 && row.add(delta * coefficient) < 0.0 && symbol.type !== External) {
+                infeasibleRows.add(symbol)
             }
         }
 
@@ -603,10 +562,9 @@ internal class Solver {
      * in the tableau and the objective function with the given row.
      */
     private fun substitute(symbol: Symbol, row: Row) {
-        rowsWithSymbol[symbol]?.filter { it.symbol != null }?.forEach {
-            val key = it.symbol!!
-            it.substitute(symbol, row)
-            if (key.type != External && it.constant < 0.0) {
+        for ((key, value) in rows) {
+            value.substitute(symbol, row)
+            if (key.type !== External && value.constant < 0.0) {
                 infeasibleRows.add(key)
             }
         }
