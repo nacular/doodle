@@ -226,7 +226,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
     private inner class TableLikeWrapper: TableLike {
         val delegate get() = this@TreeTable
 
-        override val width            get() = this@TreeTable.width
+        override val width            get() = this@TreeTable.prospectiveBounds.width
         override val columns          get() = this@TreeTable.columns
         override val internalColumns  get() = this@TreeTable.internalColumns
         override val columnSizePolicy get() = this@TreeTable.columnSizePolicy

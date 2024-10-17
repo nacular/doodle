@@ -74,7 +74,7 @@ public open class Table<T, M: ListModel<T>>(
     internal inner class TableLikeWrapper: TableLike {
         val delegate get() = this@Table
 
-        override val width            get() = this@Table.width
+        override val width            get() = this@Table.prospectiveBounds.width
         override val columns          get() = this@Table.columns
         override val internalColumns  get() = this@Table.internalColumns
         override val columnSizePolicy get() = this@Table.columnSizePolicy

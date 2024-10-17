@@ -1,6 +1,7 @@
 package io.nacular.doodle.controls.carousel
 
 import io.nacular.doodle.controls.carousel.Carousel.PresentedItem
+import io.nacular.doodle.controls.carousel.SlicerPresenter.Anchor.Leading
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PolyClipPath
 import io.nacular.doodle.geometry.Rectangle
@@ -26,10 +27,13 @@ import kotlin.math.pow
  * @param itemConstraints that determine the bounds of each item relative to the Carousel
  */
 public class SlicerPresenter<T>(
-                numSlices      : Int = 5,
-    private val orientation    : Orientation = Vertical,
+                numSlices      : Int                                   = 5,
+    private val orientation    : Orientation                           = Vertical,
+    private val anchor         : Anchor                                = Leading,
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill,
 ): ConstraintBasedPresenter<T>(itemConstraints) {
+    public enum class Anchor { Leading, Trailing }
+
     private val numSlices = max(1, numSlices)
 
     override fun present(
@@ -57,12 +61,16 @@ public class SlicerPresenter<T>(
                         setBounds(this, carousel.size)
                     }
                     else -> {
-                        val sliceWidth  = (if (orientation == Vertical) carousel.width else carousel.height) / numSlices
+                        val sliceWidth  = (if (orientation == Vertical) carousel.width  else carousel.height) / numSlices
                         val sliceLength =  if (orientation == Vertical) carousel.height else carousel.width
 
                         repeat(abs(numSlices)) { slice ->
-                            val offset   = lerp(0.0, -sliceLength, sin(_90 * progressToNext.pow(numSlices - (slice - 1))).toFloat())
-//                            val offset = lerp(0.0, -carousel.height, sin(90 * degrees * progressToNext.pow(slice + 1)).toFloat())
+                            val exponent = when (anchor) {
+                                Leading ->              slice + 1
+                                else    -> numSlices - (slice - 1)
+                            }
+
+                            val offset   = lerp(0.0, -sliceLength, sin(_90 * progressToNext.pow(exponent)).toFloat())
 
                             val clipRect = when (orientation) {
                                 Vertical -> Rectangle(sliceWidth * slice - 1, offset,             sliceWidth + 1, sliceLength   )
@@ -79,7 +87,7 @@ public class SlicerPresenter<T>(
                                         }
                                     }
                                 }
-                                clipPath  = PolyClipPath(clipRect)
+                                clipPath = PolyClipPath(clipRect)
                             }
 
                             items(next)?.apply {
@@ -93,7 +101,10 @@ public class SlicerPresenter<T>(
                                     }
                                 }
                                 clipPath = PolyClipPath(
-                                    if (orientation == Vertical) clipRect.at(y = offset + sliceLength) else clipRect.at(x = offset + sliceLength)
+                                    when (orientation) {
+                                        Vertical -> clipRect.at(y = offset + sliceLength)
+                                        else     -> clipRect.at(x = offset + sliceLength)
+                                    }
                                 )
                             }
                         }

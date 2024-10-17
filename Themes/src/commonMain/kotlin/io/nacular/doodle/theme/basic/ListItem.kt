@@ -168,7 +168,7 @@ public open class ListItem<T>(
     }
 
     protected companion object {
-        public val defaultPositioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY }
+        public val defaultPositioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY; it.size eq it.preferredSize }
     }
 }
 

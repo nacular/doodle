@@ -3,6 +3,7 @@ package io.nacular.doodle.layout.constraints.impl
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.PositionableExtended
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.PositionableView
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
@@ -120,7 +121,7 @@ internal class ReflectionVariable(
 
     override fun toTerm(): Term = VariableTerm(this)
 
-    override fun toString() = "${(target as? View.PositionableView)?.let {
+    override fun toString() = "${(target as? PositionableView)?.let {
         it.view.toString().takeIf { it != "[object Object]" } ?: it.view::class.simpleName
     } ?: "parent"}.$name"
 

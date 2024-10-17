@@ -440,9 +440,7 @@ public open class RenderManagerImpl(
     }
 
     private fun releaseResources(parent: View?, view: View) {
-        // Check if this view was "revived" since being marked
-        // for cleanup. Clear cleanup state for this parent
-        // if so.
+        // Check if this view was "revived" since being marked for cleanup. Clear cleanup state for this parent if so.
         if (view in livingViews) {
             parent?.let {
                 pendingCleanup[parent]?.remove(view)
@@ -492,15 +490,12 @@ public open class RenderManagerImpl(
         val iterator = pendingCleanup.iterator()
 
         while (iterator.hasNext()) {
-            val it    = iterator.next()
-            val views = it.value
+            val (oldParent, views) = iterator.next()
 
             if (views.remove(child)) {
-                val oldParent = it.key
-
                 if (oldParent != parent) {
                     // The child is being moved to a different parent, so we force clean-up
-                    releaseResources(it.key, child)
+                    releaseResources(oldParent, child)
                 }
 
                 if (views.isEmpty()) {
@@ -544,7 +539,6 @@ public open class RenderManagerImpl(
                 }
 
                 performLayout(view)
-//                view.doLayout_()
             }
         }
     }
