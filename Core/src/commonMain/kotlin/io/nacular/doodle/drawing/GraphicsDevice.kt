@@ -23,11 +23,21 @@ public interface GraphicsDevice<T: GraphicsSurface> {
     public fun create(): T
 
     /**
-     * Releases the [GraphicsSurface] associated with [View] and its children if applicable.
+     * Releases the [GraphicsSurface] associated with [view] and its children if applicable.
      *
      * @param view
      */
     public fun release(view: View)
+
+    /**
+     * Removes the [GraphicsSurface] associated with [view] and its children if applicable.
+     * NOTE: This does NOT release the surface.
+     *
+     * @param view to remove
+     * @return [view]'s surface if it exists
+     * @see release
+     */
+    public fun remove(view: View): T?
 
     /**
      * Releases the given [GraphicsSurface] and its children if applicable.

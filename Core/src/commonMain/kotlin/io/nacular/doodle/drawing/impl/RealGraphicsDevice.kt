@@ -43,6 +43,13 @@ public class RealGraphicsDevice<T: GraphicsSurface>(private val surfaceFactory: 
         view.children_.forEach { release(it) }
     }
 
+    override fun remove(view: View): T? = viewSurfaceMap[view]?.also {
+        surfaceViewMap.remove(it  )
+        viewSurfaceMap.remove(view)
+    }.also {
+        view.children_.forEach { remove(it) }
+    }
+
     override fun release(surface: T) {
         surfaceViewMap[surface]?.let { release(it) }
     }

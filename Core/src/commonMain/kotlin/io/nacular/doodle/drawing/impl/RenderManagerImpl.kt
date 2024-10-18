@@ -73,6 +73,8 @@ public open class RenderManagerImpl(
     protected open val livingViews         : MutableSet<View>                   = fastMutableSetOf()
     protected open var displayPendingLayout: Boolean                            = false
 
+    private val orphanedSurfaces = mutableSetOf<GraphicsSurface>()
+
     init {
         display.childrenChanged += { _, diffs ->
             diffs.computeMoves().forEach {
@@ -277,6 +279,9 @@ public open class RenderManagerImpl(
             displayPendingLayout = false
         }
 
+        orphanedSurfaces.forEach { it.release() }
+        orphanedSurfaces.clear()
+
         // This loop is here because the process of laying out, rendering etc can generate new objects that need to be
         // handled. Therefore, the loop runs until these items are exhausted.
         // TODO: Should this loop be limited to avoid infinite spinning? That way we could defer things that happen beyond a point to run on the next animation frame
@@ -474,7 +479,11 @@ public open class RenderManagerImpl(
 
             unregisterDisplayRectMonitoring(view)
 
-            graphicsDevice.release(view)
+            if (view.parent == null) {
+                graphicsDevice.release(view)
+            } else {
+                graphicsDevice.remove(view)?.let { orphanedSurfaces += it }
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import io.nacular.doodle.controls.carousel.CarouselBehavior.Presenter.Position
 import io.nacular.doodle.controls.carousel.CarouselBehavior.Transitioner
 import io.nacular.doodle.core.Camera
 import io.nacular.doodle.core.Container
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.AffineTransform
@@ -342,6 +343,8 @@ public open class Carousel<T, M: ListModel<T>>(
         previousVirtualSelection = targetVirtualSelection
     }
 
+    private var updating = false
+
     init {
         // NOTE
         // +-----------------------------------------------------------------------------------------------------------+
@@ -351,10 +354,9 @@ public open class Carousel<T, M: ListModel<T>>(
         // because things like transform changes are immediate, while rendering and bounds changes are deferred.
         // The forced re-renders simplify Presenter implementations since they have fewer edge-cases to address.
 
-        boundsChanged += { _, old, new ->
-            if (old.size != new.size) {
-                update()
-            }
+        layout = simpleLayout { _,_,currentSize,_,_ ->
+            update()
+            currentSize
         }
 
         childrenChanged += { _,_ ->
@@ -630,6 +632,9 @@ public open class Carousel<T, M: ListModel<T>>(
     }
 
     internal fun update() {
+        if (updating) return
+        updating = true
+
         if (model.isEmpty) return
 
         ignoreChildBoundsChanges = true
@@ -775,7 +780,7 @@ public open class Carousel<T, M: ListModel<T>>(
             }
         }
 
-        ignoreChildBoundsChanges = false
+        updating = false
     }
 
     private fun nextIndex    (after : Int): Int? = index(after,  offset =  1, false)

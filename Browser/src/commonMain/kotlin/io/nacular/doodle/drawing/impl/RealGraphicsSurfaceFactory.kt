@@ -15,9 +15,38 @@ internal class RealGraphicsSurfaceFactory(
 
     private val nonPopupTopLevelSurfaces = mutableListOf<RealGraphicsSurface>()
 
-    operator fun invoke(element: HTMLElement) = RealGraphicsSurface(htmlFactory, canvasFactory, element, nonPopupTopLevelSurfaces) { 0 }
+    operator fun invoke(element: HTMLElement) = RealGraphicsSurface(
+        htmlFactory              = htmlFactory,
+        canvasFactory            = canvasFactory,
+        element                  = element,
+        nonPopupTopLevelSurfaces = nonPopupTopLevelSurfaces
+    ) {
+        0
+    }
 
-    override operator fun invoke(): RealGraphicsSurface = RealGraphicsSurface(htmlFactory, canvasFactory, htmlFactory.create(), nonPopupTopLevelSurfaces) { 0 }
+    override operator fun invoke(): RealGraphicsSurface = RealGraphicsSurface(
+        htmlFactory              = htmlFactory,
+        canvasFactory            = canvasFactory,
+        element                  = htmlFactory.create(),
+        nonPopupTopLevelSurfaces = nonPopupTopLevelSurfaces
+    ) {
+        0
+    }
 
-    override operator fun invoke(parent: RealGraphicsSurface?, view: View, isContainer: Boolean, addToRootIfNoParent: Boolean) = RealGraphicsSurface(htmlFactory, canvasFactory, nonPopupTopLevelSurfaces, parent, view, isContainer, addToRootIfNoParent) { displayImpl.renderOffset }
+    override operator fun invoke(
+        parent             : RealGraphicsSurface?,
+        view               : View,
+        isContainer        : Boolean,
+        addToRootIfNoParent: Boolean
+    ): RealGraphicsSurface = RealGraphicsSurface(
+        htmlFactory              = htmlFactory,
+        canvasFactory            = canvasFactory,
+        nonPopupTopLevelSurfaces = nonPopupTopLevelSurfaces,
+        parent                   = parent,
+        view                     = view,
+        isContainer              = isContainer,
+        addToRootIfNoParent      = addToRootIfNoParent
+    ) {
+        displayImpl.renderOffset
+    }
 }

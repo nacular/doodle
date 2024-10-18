@@ -45,7 +45,11 @@ public class LinearPresenter<T>(
         // FIXME: Handle under/over shooting better
 
         do {
-            results.add((nextItem ?: (items(currentPosition) ?: (items(currentPosition.next!!.also { currentPosition = it }))))!!.apply {
+            results += (
+                nextItem ?:
+                items(currentPosition) ?:
+                items(currentPosition.next!!.also { currentPosition = it })
+            )!!.apply {
                 bounds = boundsFromConstraint(this, carousel.size)
 
                 bounds = when (val b = currentBounds) {
@@ -57,6 +61,7 @@ public class LinearPresenter<T>(
                             else -> calcBounds(this, n, carousel.size, progressToNext, spacing)
                         }.also { firstBounds = it }
                     }
+
                     else -> {
                         nextItem = null
                         boundsFromConstraint(this, carousel.size).run {
@@ -69,7 +74,7 @@ public class LinearPresenter<T>(
                 }
 
                 currentBounds = bounds
-            })
+            }
         } while (
             currentBounds!!.farEdge + spacing < carousel.size.extent &&
             currentPosition.next?.let {

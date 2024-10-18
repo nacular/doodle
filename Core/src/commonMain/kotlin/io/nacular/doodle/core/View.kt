@@ -226,9 +226,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     public var bounds: Rectangle get() = actualBounds; set(new) {
-        if (new == actualBounds) return
-
         newBounds = new//.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+
+        if (new == actualBounds) return
 
         notifyAttemptedBoundsChange(new)
     }
@@ -244,7 +244,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val prospectiveBounds: Rectangle get() = newBounds
 
     private var newBounds: Rectangle by observable(Rectangle.Empty, { a, b -> a.fastEqual(b) }) { _, new ->
-        if (announceBoundsChanged) {
+        if (announceBoundsChanged && actualBounds != new) {
             renderManager?.boundsChanged(this, actualBounds, new) ?: run {
 //            if (!settingActualBounds) {
 //                actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
@@ -299,7 +299,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         when (val l = layout) {
             null -> newBounds.size
             else -> when {
-                preferredSizeCache.valid(min, max) -> preferredSizeCache.size//preferredSizeCalculated && min == allowedMinSize && max == allowedMaxSize -> newBounds.size
+                preferredSizeCache.valid(min, max) -> preferredSizeCache.size
                 else -> doLayout(l, min, newBounds.size, max).also {
                     preferredSizeCache.min  = min
                     preferredSizeCache.size = it
@@ -899,6 +899,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         current = current,
         insets  = insets
     ).let {
+        if (preferredSizeCache.valid(min, max)) {
+            preferredSizeCache.size = it
+        }
+
 //        if (it != newBounds.size) {
 //            notifyAttemptedBoundsChange(newBounds.with(it))
 //        }
