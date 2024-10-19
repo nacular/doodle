@@ -142,11 +142,7 @@ public class PopupManagerImpl(
                 calculateRelativeBounds()
             }
 
-            layout.layout(viewList, Size.Empty, display.size, Size.Infinite)
-
-//            viewList.constrain({ constraints(it, relativeBounds) }) { _,_ ->
-//                Rectangle(size = display.size)
-//            }
+            layout.layout(viewList, Size.Empty, display.size, display.size)
         }
 
         init {
