@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls.popupmenu
 
+import io.nacular.doodle.controls.Anchor
+import io.nacular.doodle.controls.Anchor.Trailing
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
@@ -87,6 +89,27 @@ public abstract class MenuBehavior: Behavior<Menu> {
          * Time to delay showing a sub-menu popup
          */
         public val showDelay: Measure<Time> get() = zeroMillis
+
+        /**
+         * Location of the sub-menu relative to the parent menu that
+         * displayed it.
+         */
+        public val anchor: Anchor get() = Trailing
+
+        /**
+         * The distance the menu should remain away from the display's edge.
+         */
+        public val displayInset: Double get() = 0.0
+
+        /**
+         * Vertical offset from parent menu's edge
+         */
+        public val parentVerticalOffset: Double get() = 0.0
+
+        /**
+         * Horizontal offset from parent menu's edge
+         */
+        public val parentHorizontalOffset: Double get() = 0.0
     }
 
     /**

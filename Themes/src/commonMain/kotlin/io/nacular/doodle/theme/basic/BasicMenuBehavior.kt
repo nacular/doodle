@@ -156,8 +156,11 @@ public class BasicMenuBehavior(
     }
 
     private inner class SubMenuItemConfig(adjustForIcon: Boolean): BaseItemConfig<SubMenuInfo>(adjustForIcon), SubMenuConfig {
-        private  val iconSize        = pathMetrics.size(config.subMenuIconPath)
-        override val showDelay get() = config.subMenuShowDelay
+        private  val iconSize                     = pathMetrics.size(config.subMenuIconPath)
+        override val showDelay              get() = config.subMenuShowDelay
+        override val displayInset           get() = 5.0
+        override val parentVerticalOffset   get() = MENU_INSETS.top
+        override val parentHorizontalOffset get() = 2.0
 
         override fun preferredSize(item: SubMenuInfo): Size = super.preferredSize(item).run {
             Size(width + iconSize.width + config.subMenuIconTextSpacing, height)

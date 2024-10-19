@@ -1,5 +1,7 @@
 package io.nacular.doodle.controls.popupmenu
 
+import io.nacular.doodle.controls.Anchor.Leading
+import io.nacular.doodle.controls.Anchor.Trailing
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ActionItemInfo
 import io.nacular.doodle.controls.popupmenu.MenuBehavior.ItemConfig
@@ -284,6 +286,21 @@ public class Menu private constructor(
 
         val menuVisible get() = menu != null && popups.active(menu)
 
+        override var selected: Boolean by renderProperty(false) { _,selected ->
+            if (!selected) {
+                hideSubMenu()
+            }
+        }
+
+        private val info = object: SubMenuInfo {
+            override val text        get() = this@SubMenu.text
+            override val font        get() = this@SubMenu.font
+            override val enabled     get() = this@SubMenu.enabled
+            override val selected    get() = this@SubMenu.selected
+            override val mirrored    get() = this@SubMenu.mirrored
+            override val hasChildren get() = menu != null
+        }
+
         init {
             styleChanged += {
                 menu?.font = font
@@ -306,21 +323,27 @@ public class Menu private constructor(
                 menu?.let { menu ->
                     popupTask = scheduler.after(renderer?.showDelay ?: zeroMillis) {
                         popups.show(menu, relativeTo = this) { menu, self ->
-                            menu.top eq self.y - 5 strength Strong
+                            val anchor           = renderer?.anchor                 ?: Trailing
+                            val parentInset      = renderer?.displayInset           ?: 0.0
+                            val verticalOffset   = renderer?.parentVerticalOffset   ?: 0.0
+                            val horizontalOffset = renderer?.parentHorizontalOffset ?: 0.0
+
+                            menu.top eq self.y - verticalOffset strength Strong
 
                             when {
-                                parent.width.readOnly - self.right > menu.width.readOnly - 2 -> menu.left  eq self.right - 2 strength Strong
-                                else                                                         -> menu.right eq self.x     + 2 strength Strong
+                                anchor == Trailing && parent.width.readOnly - self.right > menu.width.readOnly - horizontalOffset ||
+                                anchor == Leading  && self.x <= menu.width.readOnly - horizontalOffset -> menu.left  eq self.right - horizontalOffset strength Strong
+                                else                                                                   -> menu.right eq self.x     + horizontalOffset strength Strong
                             }
 
-                            menu.top  greaterEq 5 strength Strong
-                            menu.left greaterEq 5 strength Strong
+                            menu.top  greaterEq parentInset strength Strong
+                            menu.left greaterEq parentInset strength Strong
 
                             menu.width  eq menu.preferredWidth
                             menu.height eq menu.preferredHeight
 
-                            menu.right  lessEq parent.right  - 5
-                            menu.bottom lessEq parent.bottom - 5
+                            menu.right  lessEq parent.right  - parentInset
+                            menu.bottom lessEq parent.bottom - parentInset
                         }
                     }
                 }
@@ -333,23 +356,8 @@ public class Menu private constructor(
             super.removedFromDisplay()
         }
 
-        private val info = object: SubMenuInfo {
-            override val text        get() = this@SubMenu.text
-            override val font        get() = this@SubMenu.font
-            override val enabled     get() = this@SubMenu.enabled
-            override val selected    get() = this@SubMenu.selected
-            override val mirrored    get() = this@SubMenu.mirrored
-            override val hasChildren get() = menu != null
-        }
-
         override fun render(canvas: Canvas) {
             renderer?.render(info, canvas)
-        }
-
-        override var selected: Boolean by renderProperty(false) { _,selected ->
-            if (!selected) {
-                hideSubMenu()
-            }
         }
 
         override fun setRenderer(behavior: MenuBehavior?) {
