@@ -333,14 +333,12 @@ public open class Carousel<T, M: ListModel<T>>(
         field = new
     }
 
-    private val cleanUpSkipCompletable = { _: Completable ->
-        targetVirtualSelection   = index(offset = 0, stopAtEndsIfCannotWrap = true) ?: 0
-        previousVirtualSelection = targetVirtualSelection
-    }
+    private val cleanUpSkipCompletable = { _: Completable -> cleanUpSkip() }
 
     private val cleanUpSkip = {
         targetVirtualSelection   = index(offset = 0, stopAtEndsIfCannotWrap = true) ?: 0
         previousVirtualSelection = targetVirtualSelection
+        progressToTargetItem     = 0f
     }
 
     private var updating = false
@@ -452,7 +450,7 @@ public open class Carousel<T, M: ListModel<T>>(
                 offsetWithinFrame = moveOffset - previousFrameOffset
 
                 // TODO: Cache this and avoid calling pathToNext if insufficient movement has happened since the last call
-                val toNextFrame   = presenter.distanceToNext(this, PositionImpl(nearestItem), offsetWithinFrame) { position ->
+                val toNextFrame = presenter.distanceToNext(this, PositionImpl(nearestItem), offsetWithinFrame) { position ->
                     model[position.index].getOrNull()?.let {
                         val dataChild = getItem(position.index, it, progressToTargetItem)
                         PresentedItem(
@@ -491,8 +489,8 @@ public open class Carousel<T, M: ListModel<T>>(
                 }
 
                 if (firstManualMove && progressToNextFrame == 0.0 || toNextFrame.magnitude == 0.0 && progressToNextFrame >= 0.0) {
-                    progressToTargetItem  = 1f
-                    offsetWithinFrame = Origin
+                    progressToTargetItem = 1f
+                    offsetWithinFrame    = Origin
                     update()
                     break@loop
                 }

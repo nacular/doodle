@@ -1,7 +1,8 @@
 package io.nacular.doodle.controls.carousel
 
+import io.nacular.doodle.controls.Anchor
+import io.nacular.doodle.controls.Anchor.Leading
 import io.nacular.doodle.controls.carousel.Carousel.PresentedItem
-import io.nacular.doodle.controls.carousel.SlicerPresenter.Anchor.Leading
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PolyClipPath
 import io.nacular.doodle.geometry.Rectangle
@@ -32,8 +33,6 @@ public class SlicerPresenter<T>(
     private val anchor         : Anchor                                = Leading,
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill,
 ): ConstraintBasedPresenter<T>(itemConstraints) {
-    public enum class Anchor { Leading, Trailing }
-
     private val numSlices = max(1, numSlices)
 
     override fun present(
@@ -63,6 +62,7 @@ public class SlicerPresenter<T>(
                     else -> {
                         val sliceWidth  = (if (orientation == Vertical) carousel.width  else carousel.height) / numSlices
                         val sliceLength =  if (orientation == Vertical) carousel.height else carousel.width
+                        var bounds      = null as Rectangle?
 
                         repeat(abs(numSlices)) { slice ->
                             val exponent = when (anchor) {
@@ -79,8 +79,19 @@ public class SlicerPresenter<T>(
 
                             items(position)?.apply {
                                 results  += this
-                                setBounds(this, carousel.size) {
-                                    it.run {
+
+                                when (bounds) {
+                                    null -> setBounds(this, carousel.size) {
+                                        bounds = it
+
+                                        it.run {
+                                            when (orientation) {
+                                                Vertical -> at(y = y + offset)
+                                                else     -> at(x = x + offset)
+                                            }
+                                        }
+                                    }
+                                    else -> this.bounds = bounds!!.run {
                                         when (orientation) {
                                             Vertical -> at(y = y + offset)
                                             else     -> at(x = x + offset)
@@ -92,8 +103,18 @@ public class SlicerPresenter<T>(
 
                             items(next)?.apply {
                                 results  += this
-                                setBounds(this, carousel.size) {
-                                    it.run {
+                                when (bounds) {
+                                    null -> setBounds(this, carousel.size) {
+                                        bounds = it
+
+                                        it.run {
+                                            when (orientation) {
+                                                Vertical -> at(y = y + sliceLength + offset)
+                                                else     -> at(x = x + sliceLength + offset)
+                                            }
+                                        }
+                                    }
+                                    else -> this.bounds = bounds!!.run {
                                         when (orientation) {
                                             Vertical -> at(y = y + sliceLength + offset)
                                             else     -> at(x = x + sliceLength + offset)

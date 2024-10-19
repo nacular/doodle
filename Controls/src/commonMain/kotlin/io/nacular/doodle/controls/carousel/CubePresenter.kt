@@ -151,8 +151,8 @@ public class CubePresenter<T>(
 
                     it.camera    = globalCamera
                     it.transform = when (orientation) {
-                        Horizontal -> Identity.rotateY(around = it.bounds.position,  _90)
-                        else       -> Identity.rotateX(around = it.bounds.position, -_90)
+                        Horizontal -> Identity.rotateY(around = Point(x = currentItem.bounds.right ),  _90)
+                        else       -> Identity.rotateX(around = Point(y = currentItem.bounds.bottom), -_90)
                     }
                 }
 
