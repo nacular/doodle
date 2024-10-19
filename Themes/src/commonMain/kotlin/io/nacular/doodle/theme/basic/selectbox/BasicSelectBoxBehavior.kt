@@ -238,11 +238,13 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
                     val viewAbsolute = display.fromAbsolute(view.toAbsolute(Origin))
                     it.x     = viewAbsolute.x
                     it.y     = viewAbsolute.y - view.selection * (view.height - 2 * inset)
+                    it.size  = it.idealSize
                     display += it
                 }
                 else -> popupManager.show(it, view) { list, dropdown ->
                     list.top  eq dropdown.y - view.selection * (view.height - 2 * inset)
                     list.left eq dropdown.x
+                    list.size eq list.preferredSize
                 }
             }
         }
