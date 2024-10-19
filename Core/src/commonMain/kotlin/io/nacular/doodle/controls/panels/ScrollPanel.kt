@@ -186,6 +186,9 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
     private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+        it.top  eq -scroll.y
+        it.left eq -scroll.x
+
         contentWidthConstraints?.invoke (this, it.width )
         contentHeightConstraints?.invoke(this, it.height)
     }
@@ -311,15 +314,7 @@ public open class ScrollPanel(content: View? = null): View() {
             updateConstraints()
         }
 
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
-            val layoutSize = delegate?.layout(views, min, current, max)
-
-            views.forEach  {
-                it.position = Point(-scroll.x, -scroll.y)
-            }
-
-            return layoutSize ?: current
-        }
+        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size = delegate?.layout(views, min, current, max) ?: current
 
         fun clearConstrains() {
             content?.let { delegate?.unconstrain(it, contentConstraints) }
