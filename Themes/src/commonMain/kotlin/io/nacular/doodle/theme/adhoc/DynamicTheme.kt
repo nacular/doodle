@@ -16,7 +16,16 @@ public open class DynamicTheme protected constructor(internal val behaviors: Lis
     override fun toString(): String = this::class.simpleName ?: ""
 }
 
-// FIXME: Remove?
-public operator fun DynamicTheme.plus(other: DynamicTheme): DynamicTheme = object: DynamicTheme(behaviors + other.behaviors) {
-    override fun toString() = "${this@plus} + $other"
+private class CompositeDynamicTheme(private val first: DynamicTheme, private val second: DynamicTheme): DynamicTheme(first.behaviors + second.behaviors) {
+    override fun selected() {
+        first.selected ()
+        second.selected()
+
+        super.selected()
+    }
+
+    override fun toString() = "$first + $second"
 }
+
+// FIXME: Remove?
+public operator fun DynamicTheme.plus(other: DynamicTheme): DynamicTheme = CompositeDynamicTheme(this, other)

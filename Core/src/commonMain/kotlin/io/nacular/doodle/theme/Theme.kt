@@ -17,7 +17,17 @@ import io.nacular.doodle.utils.observable
  */
 public interface Theme {
     /**
-     * Called whenever a Theme is set as [ThemeManager.selected]. This allows the theme to update any of the [View]s and [Display]s within a [Scene].
+     * Called whenever a Theme is set as [ThemeManager.selected].
+     */
+    public fun selected() {}
+
+    /**
+     * Called whenever a Theme is removed from [ThemeManager.selected].
+     */
+    public fun deselected() {}
+
+    /**
+     * This allows the theme to update any of the [View]s and [Display]s within a [Scene].
      *
      * @param scene to apply the Theme to
      */
@@ -42,7 +52,7 @@ public abstract class Scene @Internal public constructor() {
      *
      * @param block called for each View
      */
-    public abstract fun forEachView(block: (View   ) -> Unit)
+    public abstract fun forEachView(block: (View) -> Unit)
 
     /**
      * Visit all Displays in the scene.
@@ -83,9 +93,12 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
     override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
 
     override var selected: Theme? by observable(null) { old,new ->
+        old?.deselected()
+
         new?.apply {
             themes += this
-            install(scene)
+            selected()
+            this.install(scene)
         }
 
         (selectionChanged as PropertyObserversImpl).forEach { it(this, old, new) }

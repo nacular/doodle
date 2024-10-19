@@ -71,7 +71,6 @@ import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior
 import io.nacular.doodle.theme.PathProgressIndicatorBehavior.Direction
-import io.nacular.doodle.theme.Scene
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.basic.BasicMenuBehavior.Config
 import io.nacular.doodle.theme.basic.date.BasicDaysOfTheWeekPanelBehavior
@@ -127,10 +126,10 @@ private typealias TabContainerFactory<T> = DirectDI.(TabbedPanel<T>, TabProducer
 
 @Suppress("UNCHECKED_CAST")
 public open class BasicTheme(private val configProvider: ConfigProvider, behaviors: kotlin.collections.List<BehaviorResolver>): DynamicTheme(behaviors.filter { it.theme == BTheme::class }) {
-    override fun install(scene: Scene) {
+    override fun selected() {
         configProvider.config = config
 
-        super.install(scene)
+        super.selected()
     }
 
     public open val config: BasicThemeConfig = object: BasicThemeConfig {}
