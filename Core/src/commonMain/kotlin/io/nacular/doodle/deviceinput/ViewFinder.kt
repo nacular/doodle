@@ -17,7 +17,7 @@ public sealed interface ViewFinder {
 /** @suppress */
 @Internal
 public data object ViewFinderImpl: ViewFinder {
-    override fun find(within: Display, at: Point, predicate: (View) -> Boolean): View? = findDescendant(within.child(at)?.takeIf(predicate), at)
+    override fun find(within: Display, at: Point, predicate: (View) -> Boolean): View? = findDescendant(within.child(at, predicate), at, predicate)
 
     override fun find(within: Display, at: Point, starting: View?, predicate: (View) -> Boolean): View? {
         var parent = starting
