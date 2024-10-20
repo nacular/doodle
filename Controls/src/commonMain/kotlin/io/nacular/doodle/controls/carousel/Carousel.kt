@@ -611,16 +611,19 @@ public open class Carousel<T, M: ListModel<T>>(
         if (!manuallyMoving || moveEndAnimating) return
 
         moveEndAnimating = true
-        moveEndAnimation = transitioner?.moveEnded(
-            this,
-            moveOffset,
-            ItemMarkers(previousFrameOffset, nextFrameOffset)
-        ) { offset ->
-            moveManually(-offset + offsetWithinFrameAtMoveStart)
-            ItemMarkers(previousFrameOffset, nextFrameOffset)
-        }?.apply {
-            completed += { cleanUpMove() }
-            canceled  += { cleanUpMove() }
+
+        if (informedBehaviorOfMove) {
+            moveEndAnimation = transitioner?.moveEnded(
+                this,
+                moveOffset,
+                ItemMarkers(previousFrameOffset, nextFrameOffset)
+            ) { offset ->
+                moveManually(-offset + offsetWithinFrameAtMoveStart)
+                ItemMarkers(previousFrameOffset, nextFrameOffset)
+            }?.apply {
+                completed += { cleanUpMove() }
+                canceled += { cleanUpMove() }
+            }
         }
 
         if (moveEndAnimation == null) {
@@ -842,13 +845,13 @@ public open class Carousel<T, M: ListModel<T>>(
                 value,
                 recycledChild?.view,
                 CarouselItemImpl(
-                    index            = itemIndex,
-                    numItems         = numItems,
-                    selected         = itemIndex == targetItem,
-                    targetItem      = targetItem,
-                    nearestItem     = nearestItem,
-                    previousSelectedItem    = previousSelectedItem,
+                    index                = itemIndex,
+                    numItems             = numItems,
+                    selected             = itemIndex == targetItem,
+                    targetItem           = targetItem,
+                    nearestItem          = nearestItem,
                     progressToNextItem   = progressToNextItem,
+                    previousSelectedItem = previousSelectedItem,
                     progressToTargetItem = progress,
                 )
             ),
