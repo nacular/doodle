@@ -29,11 +29,12 @@ import kotlin.math.abs
 @Internal
 @Suppress("NestedLambdaShadowedImplicitParameter")
 public open class RenderManagerImpl(
-        private val display             : InternalDisplay,
-        private val scheduler           : AnimationScheduler,
-        private val themeManager        : InternalThemeManager?,
-        private val accessibilityManager: AccessibilityManager?,
-        private val graphicsDevice      : GraphicsDevice<*>): RenderManager() {
+    private val display             : InternalDisplay,
+    private val scheduler           : AnimationScheduler,
+    private val themeManager        : InternalThemeManager?,
+    private val accessibilityManager: AccessibilityManager?,
+    private val graphicsDevice      : GraphicsDevice<*>
+): RenderManager() {
 
     private var painting  = false
     private var layingOut = null as View?
@@ -64,6 +65,7 @@ public open class RenderManagerImpl(
     protected open val displayTree         : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
     protected open val neverRendered       : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingLayout       : MutableSet<View>                   = MutableTreeSet(generationComparator)
+    protected open val layoutOverflow      : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingRender       : MutableSet<View>                   = LinkedHashSet()
     protected open val pendingCleanup      : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
     protected open val addedInvisible      : MutableSet<View>                   = fastMutableSetOf()
@@ -330,15 +332,28 @@ public open class RenderManagerImpl(
             newRenders.clear()
         }
 
+        pendingLayout += layoutOverflow
+        layoutOverflow.clear()
+
         painting  = false
         paintTask = null
+
+        if (pendingLayout.isNotEmpty()) {
+            schedulePaint()
+        }
     }
 
     private fun scheduleLayout(view: View) {
         // Only take reference identity into account
-        if (layingOut !== view) {
-            pendingLayout += view
-            schedulePaint()
+        when {
+            layingOut !== view -> {
+                pendingLayout += view
+                schedulePaint()
+            }
+            else -> {
+                layoutOverflow += view
+                println("scheduleLayout -> layoutOverflow += ${view::class.simpleName}")
+            }
         }
     }
 
@@ -404,9 +419,7 @@ public open class RenderManagerImpl(
             }
 
             if (visibleAndNotEmpty) {
-                val viewList = pendingCleanup[view]
-
-                viewList?.forEach {
+                pendingCleanup[view]?.forEach {
                     releaseResources(null, it)
                 }
 
@@ -543,7 +556,8 @@ public open class RenderManagerImpl(
         when {
             view.visible && !view.size.empty -> view.revalidate_()
             else                             -> {
-                pendingCleanup[view]?.forEach {
+                // remove list to avoid concurrent modification
+                pendingCleanup.remove(view)?.forEach {
                     releaseResources(view, it)
                 }
 
@@ -619,7 +633,8 @@ public open class RenderManagerImpl(
                 pendingBoundsChange += view // See above
 
                 if (!wasAddedInvisible) {
-                    render(view)
+                    // never rendered items may not have done a bounds sync, so ignore bounds in th
+                    render(view, ignoreEmptyBounds = !view.prospectiveBounds.empty && view in neverRendered)
                 }
             } else {
                 graphicsDevice[view].visible  = false
@@ -666,13 +681,18 @@ public open class RenderManagerImpl(
         if (!old.size.fastEquals(new.size)) {
             reRender = !new.size.empty
 
-            if (view.children_.isNotEmpty() && view.layout_ != null) {
+            if (view.layout_ != null && view.children_.isNotEmpty()) {
                 when {
                     layingOut !== view                       -> pendingLayout += view
 
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
-                    old.size sufficientlyDifferentTo new.size -> view.doLayout_()
+                    old.size sufficientlyDifferentTo new.size -> {
+//                        pendingLayout += view
+                        layoutOverflow += view
+//                        view.syncBounds()
+//                        view.doLayout_()
+                    }
 //                    else                                      -> return
                 }
             }
