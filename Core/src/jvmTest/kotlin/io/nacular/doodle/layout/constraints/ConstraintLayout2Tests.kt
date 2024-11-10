@@ -40,12 +40,12 @@ import kotlin.test.expect
  */
 class ConstraintLayoutTests {
     @Test fun foo() {
-        val child       = view {}.apply { width = 10.0 }
+        val child       = view {}.apply { suggestWidth(10.0) }
         val parent      = container { + child }
         val grandParent = container {
             + parent
 
-            layout = simpleLayout { items, _, _, _ ->
+            layout = simpleLayout { items,_,_,_,_ ->
                 items.forEach {
                     it.updateBounds(0.0, 0.0, Size(10), Size.Infinite)
                 }
@@ -64,7 +64,7 @@ class ConstraintLayoutTests {
     }
 
     @Test fun basic() {
-        val child1    = view {}.apply { height = 10.0 }
+        val child1    = view {}.apply { suggestHeight(10.0) }
         val child2    = view {}
         val container = container {
             this += listOf(child1, child2)
@@ -78,19 +78,18 @@ class ConstraintLayoutTests {
             b.centerX eq parent.centerX
         }
 
-        container.size = Size(200)
+        container.suggestSize(Size(200))
 
         container.doLayout_()
 
         expect(Size ( 50   )) { child2.size     }
         expect(Point( 75, 0)) { child2.position }
-        expect(Size (200   )) { container.size  }
 
         expect(Size(200 - 10)) { child1.size }
     }
 
     @Test fun `with updates`() {
-        val child1 = view {}.apply { width = 100.0 }
+        val child1 = view {}.apply { suggestWidth(100.0) }
         val child2 = view {}
 
         val container = container {
@@ -110,23 +109,21 @@ class ConstraintLayoutTests {
             a.width + b.width eq parent.width
         }
 
-        container.size = Size(1200)
+        container.suggestSize(Size(1200))
         container.doLayout_()
 
-        expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds    }
-        expect(Rectangle(        1200      )) { container.bounds }
-        expect(Rectangle(         100, 1200)) { child1.bounds    }
+        expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds }
+        expect(Rectangle(         100, 1200)) { child1.bounds }
 
-        child1.width = 200.0
+        child1.suggestWidth(200.0)
         container.doLayout_()
 
-        expect(Rectangle(200, 0, 1000, 1200)) { child2.bounds    }
-        expect(Rectangle(        1200      )) { container.bounds }
-        expect(Rectangle(         200, 1200)) { child1.bounds    }
+        expect(Rectangle(200, 0, 1000, 1200)) { child2.bounds }
+        expect(Rectangle(         200, 1200)) { child1.bounds }
     }
 
     @Test fun `widths sum`() {
-        val child1 = NamedView("child1").apply { width = 400.0 }
+        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
         val child2 = NamedView("child2")
         val child3 = NamedView("child3")
         val child4 = NamedView("child4")
@@ -152,17 +149,17 @@ class ConstraintLayoutTests {
             a.width + b.width + c.width eq parent.width
         }
 
-        container.size = Size(1200)
+        container.suggestSize(Size(1200))
         container.doLayout_()
 
         expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
 
-        child1.width = 200.0
+        child1.suggestWidth(200.0)
         container.doLayout_()
 
         expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
 
-        child3.x = 500.0
+        child3.suggestX(500.0)
         container.doLayout_()
 
         expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
@@ -197,8 +194,8 @@ class ConstraintLayoutTests {
     }
 
     @Test fun `layout using render manager`() {
-        val child1 = NamedView("child1").apply { width = 400.0 }
-        val child2 = NamedView("child2").apply { width = 400.0 }
+        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
+        val child2 = NamedView("child2").apply { suggestWidth(400.0) }
 
         val parent = container {
             this += listOf(child1, child2)
@@ -223,7 +220,7 @@ class ConstraintLayoutTests {
                 (it.height eq 500) .. Medium
             }
 
-            size = Size(1000)
+            suggestSize(Size(1000))
         }
 
         val scheduler = ManualAnimationScheduler()
@@ -236,13 +233,54 @@ class ConstraintLayoutTests {
         expect( 500.0) { parent.height      }
         expect( 500.0) { child1.height      }
 
-        grandParent.height = 400.0
+        grandParent.suggestHeight(400.0)
 
         scheduler.runJobs()
 
         expect(400.0) { grandParent.height }
         expect(400.0) { parent.height      }
         expect(400.0) { child1.height      }
+    }
+
+    @Test fun `adding constraint works`() {
+        val view1 = NamedView("view1")
+        val view2 = NamedView("view2")
+        val view3 = NamedView("view3")
+
+        val container = container {
+            this += listOf(view1, view2, view3)
+        }
+
+        container.layout = constrain(view1, view2) { v1, v2 ->
+            v1.left   eq 23
+            v1.height eq 100
+
+            v2.top eq v1.bottom
+        }
+
+        view1.suggestX     (67.0)
+        view1.suggestHeight(67.0)
+        view2.suggestY     (67.0)
+        view3.suggestWidth (67.0)
+
+        container.doLayout_()
+
+        expect( 23.0) { view1.x      }
+        expect(100.0) { view1.height }
+        expect(100.0) { view2.y      }
+
+        (container.layout as ConstraintLayout).constrain(view3) {
+            it.width eq parent.width
+        }
+
+        container.suggestWidth(211.0)
+
+        container.doLayout_()
+
+        expect( 23.0) { view1.x      }
+        expect(100.0) { view1.height }
+        expect(100.0) { view2.y      }
+        expect(211.0) { view3.width  }
     }
 
     @Test fun `un-constrain works`() {
@@ -265,10 +303,10 @@ class ConstraintLayoutTests {
 
         container.layout = constrain(view1, view2, view3, constraints)
 
-        view1.x      = 67.0
-        view1.height = 67.0
-        view2.y      = 67.0
-        view3.width  = 67.0
+        view1.suggestX     (67.0)
+        view1.suggestHeight(67.0)
+        view2.suggestY     (67.0)
+        view3.suggestWidth (67.0)
 
         container.doLayout_()
 
@@ -279,7 +317,7 @@ class ConstraintLayoutTests {
 
         (container.layout as ConstraintLayout).unconstrain(view1, view2, view3, constraints)
 
-        container.size *= 2
+        container.suggestSize(container.size * 2)
 
         container.doLayout_()
 
@@ -298,8 +336,7 @@ class ConstraintLayoutTests {
 
         val container = container {
             this   += view
-            width   = 100.0
-            height  = 100.0
+            suggestSize(Size(100))
             layout = constrain(view) {
                 align(it)
             }
@@ -336,9 +373,9 @@ class ConstraintLayoutTests {
         val mainStartHeight   = 186.0
         val footerStartHeight =  56.0
 
-        val header       = NamedView("header").apply { height = 117.0 }
-        val main         = NamedView("main"  ).apply { height = 186.0 }
-        val footer       = NamedView("footer").apply { height =  56.0 }
+        val header       = NamedView("header").apply { suggestHeight(117.0) }
+        val main         = NamedView("main"  ).apply { suggestHeight(186.0) }
+        val footer       = NamedView("footer").apply { suggestHeight( 56.0) }
         val minHeight    = 106.0
         var targetHeight = 174
 
@@ -360,7 +397,7 @@ class ConstraintLayoutTests {
                 (footer_.bottom lessEq parent.bottom.readOnly) .. Strong
             }
 
-            height = 9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight
+            suggestHeight(9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight)
         }
 
         container.doLayout_()
@@ -374,12 +411,12 @@ class ConstraintLayoutTests {
         expect(minHeight) { main.height }
 
         targetHeight = 174
-        container.height -= 1
+        container.suggestHeight(container.height - 1)
         container.doLayout_()
 
         expect(container.height - (main.y + footer.height + 65)) { main.height }
 
-        container.height = 100.0
+        container.suggestHeight(100.0)
         container.doLayout_()
 
         expect(minHeight) { main.height }
@@ -387,7 +424,7 @@ class ConstraintLayoutTests {
 
     @Test fun `center works`() {
         val childSize = Size(100)
-        val child     = view {}.apply { size = childSize }
+        val child     = view {}.apply { suggestSize(childSize) }
 
         val layout = constrain(child) {
             it.center eq parent.center
@@ -408,7 +445,7 @@ class ConstraintLayoutTests {
         doLayout()
         expect(expectedChildBounds) { child.bounds }
 
-        child.x -= 10
+        child.suggestX(child.x - 10)
 
         doLayout()
         expect(expectedChildBounds) { child.bounds }

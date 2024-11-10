@@ -176,6 +176,7 @@ internal class ConstTerm(val property: Property, override val coefficient: Doubl
 internal interface Variable {
     val name          : String
     val needsSynthetic: Boolean
+    var constrained   : Boolean
 
     operator fun invoke(             ): Double
     operator fun invoke(value: Double)

@@ -423,7 +423,10 @@ public open class ColorEditOperation<T>(
     override fun invoke(): View? = null.also {
         display.children += colorPicker
 
-        colorPicker.position = Point((display.size.width - colorPicker.width)/ 2.0, (display.size.height - colorPicker.height)/ 2.0)
+        colorPicker.suggestPosition(Point(
+            (display.size.width  - colorPicker.width ) / 2.0,
+            (display.size.height - colorPicker.height) / 2.0
+        ))
 
         focusManager.requestFocus(colorPicker)
 

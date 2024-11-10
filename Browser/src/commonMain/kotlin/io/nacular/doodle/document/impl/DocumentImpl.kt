@@ -45,11 +45,11 @@ internal class DocumentImpl(
     private var resizeTask = null as Task?
 
     init {
-        height = 1.0 // FIXME: Remove once a better solution exists to allow first render
+        suggestHeight(1.0) // FIXME: Remove once a better solution exists to allow first render
 
         layout = simpleLayout { _,_,current,_,_ ->
             children.forEach {
-                it.bounds = it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) })
+                it.suggestBounds(it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) }))
             }
 
             resizeTask = resizeTask ?: scheduler.now { resize() }
@@ -59,7 +59,7 @@ internal class DocumentImpl(
     }
 
     private fun resize() {
-        height    = root.offsetHeight.toDouble()
+        suggestHeight(root.offsetHeight.toDouble())
         resizeTask = null
     }
 
@@ -67,7 +67,7 @@ internal class DocumentImpl(
         if (canvas is NativeCanvas) {
             canvas.addData(listOf(root))
 
-            height = root.offsetHeight.toDouble()
+            suggestHeight(root.offsetHeight.toDouble())
 
             resizeTask = resizeTask ?: scheduler.now { resize() }
         }

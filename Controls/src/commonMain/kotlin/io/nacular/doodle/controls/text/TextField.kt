@@ -162,8 +162,8 @@ public open class TextField(text: String = ""): TextInput(text) {
         behavior?.let {
             val size = it.fitTextSize(this)
 
-            if (Width  in fitText) width  = size.width
-            if (Height in fitText) height = size.height
+            if (Width  in fitText) suggestWidth (size.width )
+            if (Height in fitText) suggestHeight(size.height)
         }
     }
 }

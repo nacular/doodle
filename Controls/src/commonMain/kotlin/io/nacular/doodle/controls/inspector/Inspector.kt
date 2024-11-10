@@ -28,7 +28,7 @@ public class NamedField<T, C>(private val name           : String,
 
             layout = when (val l = this@NamedField.layout) {
                 null -> HorizontalFlowLayout(horizontalSpacing = 5.0, verticalSpacing = 5.0).also {
-                    width  = children[0].width + 5.0 + children[1].width
+                    suggestWidth(children[0].width + 5.0 + children[1].width)
                 }
                 else -> layout /*{
                     object: Layout {

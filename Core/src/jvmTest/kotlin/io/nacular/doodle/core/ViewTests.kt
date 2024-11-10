@@ -131,19 +131,19 @@ class ViewTests {
             expect(value, "toolTipText set to $value") { it.toolTipText }
         }
 
-        validateSetter(View::x,                                -5.0                           )
-        validateSetter(View::y,                                6.0                            )
+//        validateSetter(View::x,                                -5.0                           )
+//        validateSetter(View::y,                                6.0                            )
         validateSetter(View::font,                             mockk()                        )
-        validateSetter(View::size,                             Size.Empty                     )
-        validateSetter(View::width,                            99.0                           )
+//        validateSetter(View::size,                             Size.Empty                     )
+//        validateSetter(View::width,                            99.0                           )
         validateSetter(View::zOrder,                           56                             )
-        validateSetter(View::height,                           45.0                           )
-        validateSetter(View::bounds,                           Rectangle(4.5, -3.0, 2.0, 45.5))
+//        validateSetter(View::height,                           45.0                           )
+//        validateSetter(View::bounds,                           Rectangle(4.5, -3.0, 2.0, 45.5))
         validateSetter(View::cursor,                           Crosshair                      )
         validateSetter(View::enabled,                          false                          )
         validateSetter(View::visible,                          false                          )
         validateSetter(View::opacity,                          0.3f                           )
-        validateSetter(View::position,                         Origin                         )
+//        validateSetter(View::position,                         Origin                         )
         validateSetter(View::focusable,                        false                          )
         validateSetter(View::preferredSize,                    { _,_ -> Size(40, 67) }        )
         validateSetter(View::foregroundColor,                  Red                            )
@@ -295,7 +295,7 @@ class ViewTests {
     }
 
     @Test fun `child at point inside clip poly`() {
-        val child  = view().apply { position = Point(5, 5) }
+        val child  = view().apply { suggestPosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_        += child
@@ -307,7 +307,7 @@ class ViewTests {
     }
 
     @Test fun `child at point layout returns Ignored`() {
-        val child  = view().apply { position = Point(5, 5) }
+        val child  = view().apply { suggestPosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_ += child
@@ -322,7 +322,7 @@ class ViewTests {
     }
 
     @Test fun `child at point layout returns Empty`() {
-        val child  = view().apply { position = Point(5, 5) }
+        val child  = view().apply { suggestPosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_ += child
@@ -337,7 +337,7 @@ class ViewTests {
 
     @Test fun `child at point layout returns value`() {
         val found  = view()
-        val child  = view().apply { position = Point(5, 5) }
+        val child  = view().apply { suggestPosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_ += child
@@ -351,7 +351,7 @@ class ViewTests {
     }
 
     @Test fun `child at point outside clip poly`() {
-        val child  = view().apply { position = Point(5, 5) }
+        val child  = view().apply { suggestPosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_        += child
@@ -363,7 +363,7 @@ class ViewTests {
     }
 
     @Test fun `child at point invisible`() {
-        val child  = view().apply { position = Point(5, 5); visible = false }
+        val child  = view().apply { suggestPosition(5.0, 5.0); visible = false }
         val parent = object: View() {
             init {
                 children_ += child
@@ -429,7 +429,7 @@ class ViewTests {
             Rectangle(        100, 100),
             Rectangle(12, 38,  10, 100)
         ).forEach {
-            view.bounds = it
+            view.suggestBounds(it)
             expect(view.center) { it.center }
         }
     }
@@ -647,14 +647,14 @@ class ViewTests {
 
     @Test fun `bounds changed same value ignored`() {
         val bounds   = Rectangle(5.6, 3.7, 900.0, 1.2)
-        val view     = object: View() {}.apply { this.bounds = bounds }
+        val view     = object: View() {}.apply { this.suggestBounds(bounds) }
         val observer = mockk<PropertyObserver<View, Rectangle>>()
 
         val renderManager = mockk<RenderManager>(relaxed = true)
 
         view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
-        view.bounds         = bounds
+        view.suggestBounds(bounds)
 
         verify (exactly = 0) {
             observer(any(), any(), any())
@@ -681,8 +681,8 @@ class ViewTests {
 
         view.addedToDisplay(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
-        view.bounds         = new
-        view.bounds         = new.at(x = 67.0)
+        view.suggestBounds(new.at(x = 67.0))
+        view.suggestBounds(new             )
 
         verifyOrder {
             renderManager.boundsChanged(view, old, new             )
@@ -940,11 +940,11 @@ class ViewTests {
 
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
 
-        view.bounds = bounds
+        view.suggestBounds(bounds)
 
         expect(true, "$view contains ${bounds.position}") { bounds.position in view }
 
-        view.size = Size.Empty
+        view.suggestSize(Size.Empty)
 
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
     }
@@ -982,8 +982,8 @@ class ViewTests {
 
     @Test fun `to absolute works`() {
         val root   = view()
-        val parent = view().apply { x += 10.0; y += 12.0 }
-        val child  = view().apply { x += 10.0; y += 12.0 }
+        val parent = view().apply { suggestPosition(10.0, 12.0) }
+        val child  = view().apply { suggestPosition(10.0, 12.0) }
 
         root.children_   += parent
         parent.children_ += child
@@ -996,8 +996,8 @@ class ViewTests {
 
     @Test fun `from absolute works`() {
         val root   = view()
-        val parent = view().apply { x += 10.0; y += 12.0 }
-        val child  = view().apply { x += 10.0; y += 12.0 }
+        val parent = view().apply { suggestPosition(10.0, 12.0) }
+        val child  = view().apply { suggestPosition(10.0, 12.0) }
 
         root.children_   += parent
         parent.children_ += child
@@ -1012,9 +1012,9 @@ class ViewTests {
 
     @Test fun `to local works`() {
         val root   = view()
-        val parent = view().apply { x += 10.0; y += 12.0 }
-        val child1 = view().apply { x += 10.0; y += 12.0 }
-        val child2 = view().apply { x += 20.0; y += 12.0 }
+        val parent = view().apply { suggestPosition(10.0, 12.0) }
+        val child1 = view().apply { suggestPosition(10.0, 12.0) }
+        val child2 = view().apply { suggestPosition(20.0, 12.0) }
 
         root.children_   += parent
         parent.children_ += child1
@@ -1027,10 +1027,10 @@ class ViewTests {
 
     @Test fun `child at works`() {
         val root   = view()
-        val child0 = view().apply { x += 10.0; y += 12.0 }
-        val child1 = view().apply { x += 10.0; y += 12.0 }
-        val child2 = view().apply { x += 20.0; y += 12.0 }
-        val child3 = view().apply { x += 10.0; y += 23.0; width = 0.0 }
+        val child0 = view().apply { suggestPosition(10.0, 12.0) }
+        val child1 = view().apply { suggestPosition(10.0, 12.0) }
+        val child2 = view().apply { suggestPosition(20.0, 12.0) }
+        val child3 = view().apply { suggestBounds(Rectangle(x = 10.0, y = 23.0, width = 0.0)) }
 
         root.children_ += child0
         root.children_ += child1
@@ -1080,10 +1080,10 @@ class ViewTests {
 
     @Test
     fun `scroll to works`() {
-        val view  = view { size = Size(100) }
+        val view  = view { suggestSize(Size(100)) }
 
         val panel = spyk<ScrollPanel>().apply {
-            size = Size(50)
+            suggestSize(Size(50))
         }
 
         panel.content = view
@@ -1104,8 +1104,8 @@ class ViewTests {
         val parent = container {
             + child
 
-            bounds  = Rectangle(100, 100)
-            layout = simpleLayout { items, min, current, max ->
+            suggestSize(Size(100))
+            layout = simpleLayout { items, min, _, max, _ ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
@@ -1120,12 +1120,12 @@ class ViewTests {
             }
         }
 
-        child.bounds = Rectangle(10, 10)
+        child.suggestSize(Size(10))
         parent.doLayout_()
 
         expect(Size(10)) { child.size }
 
-        child.bounds = Rectangle(23, 56, 110, 110)
+        child.suggestBounds(Rectangle(23, 56, 110, 110))
         parent.doLayout_()
 
         expect(Rectangle(23, 56, 110, 110)) { child.bounds  }
@@ -1273,5 +1273,5 @@ class ViewTests {
         }
     }
 
-    private fun view(): View = object: View() {}.apply { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun view(): View = object: View() {}.apply { suggestSize(10.0, 10.0) }
 }

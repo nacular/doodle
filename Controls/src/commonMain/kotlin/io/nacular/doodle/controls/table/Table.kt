@@ -248,8 +248,8 @@ public open class Table<T, M: ListModel<T>>(
                     children += header
 
                     behavior.headerPositioner(this@Table).apply {
-                        header.y      = insetTop
-                        header.height = height
+                        header.suggestY     (insetTop)
+                        header.suggestHeight(height  )
                     }
                 }
 
@@ -273,8 +273,8 @@ public open class Table<T, M: ListModel<T>>(
                     children += footer
 
                     behavior.footerPositioner(this@Table).apply {
-                        footer.y      = this@Table.height - insetTop
-                        footer.height = height
+                        footer.suggestY     (height - insetTop)
+                        footer.suggestHeight(height           )
                     }
                 }
 
@@ -338,8 +338,8 @@ public open class Table<T, M: ListModel<T>>(
             // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
-                    header.x = new.x
-                    footer.x = new.x
+                    header.suggestX(new.x)
+                    footer.suggestX(new.x)
                 }
             }
         }).apply {

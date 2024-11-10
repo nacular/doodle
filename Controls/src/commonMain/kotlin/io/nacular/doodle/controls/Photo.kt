@@ -11,7 +11,7 @@ import io.nacular.doodle.image.Image
  */
 public class Photo(private var image: Image): View(accessibilityRole = ImageRole()) {
     init {
-        size = image.size
+        suggestSize(image.size)
     }
 
     override fun render(canvas: Canvas) {

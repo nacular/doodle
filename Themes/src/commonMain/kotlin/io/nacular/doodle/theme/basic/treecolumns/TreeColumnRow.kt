@@ -185,7 +185,7 @@ public class TreeColumnRow<T>(
             icon = null
         } else  {
             icon = icon ?: iconFactory().apply {
-                size = Size(iconWidth, iconWidth)
+                suggestSize(Size(iconWidth, iconWidth))
 
                 this@TreeColumnRow.children += this
 

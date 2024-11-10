@@ -244,7 +244,7 @@ public open class GridPanel: View() {
                     heights.add(rowDim)
                 }
 
-                it.bounds = constrainer(
+                it.suggestBounds(constrainer(
                     it.bounds,
                     within = Rectangle(
                         (x ?: 0.0) + insets.left,
@@ -253,7 +253,7 @@ public open class GridPanel: View() {
                         heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
                     ),
                     using     = cellAlignment
-                )
+                ))
             }
 
             return Size(idealWidth!! + insets.run { left + right }, idealHeight!! + insets.run { top + bottom })

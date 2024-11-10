@@ -347,7 +347,7 @@ public open class List<T, out M: ListModel<T>>(
 
     protected fun layout(view: View, item: T, index: Int) {
         itemPositioner?.let {
-            view.bounds = it.itemBounds(this, item, index, view)
+            view.suggestBounds(it.itemBounds(this@List, item, index, view))
 
             maxRight    = max(maxRight,  view.bounds.right )
             maxBottom   = max(maxBottom, view.bounds.bottom)

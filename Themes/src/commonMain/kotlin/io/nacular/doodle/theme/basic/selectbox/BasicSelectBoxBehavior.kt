@@ -226,9 +226,9 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
 
     private fun showList(view: SelectBox<T, M>) {
         view.list?.let {
-            it.font  = view.font
-            it.width = view.width
+            it.font = view.font
 
+            it.suggestWidth(view.width           )
             it.setSelection(setOf(view.selection))
 
             focusManager?.requestFocus(it)
@@ -236,9 +236,9 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             when (popupManager) {
                 null -> {
                     val viewAbsolute = display.fromAbsolute(view.toAbsolute(Origin))
-                    it.x     = viewAbsolute.x
-                    it.y     = viewAbsolute.y - view.selection * (view.height - 2 * inset)
-                    it.size  = it.idealSize
+                    it.suggestX   (viewAbsolute.x                                             )
+                    it.suggestY   (viewAbsolute.y - view.selection * (view.height - 2 * inset))
+                    it.suggestSize(it.idealSize                                               )
                     display += it
                 }
                 else -> popupManager.show(it, view) { list, dropdown ->

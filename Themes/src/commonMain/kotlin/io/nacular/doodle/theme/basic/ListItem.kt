@@ -149,8 +149,8 @@ public open class ListItem<T>(
 
         children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, role.selected)).also { visualizer ->
             if (visualizer != oldChild) {
-                oldChild?.let { it.position -= offset }
-                visualizer.position += offset
+                oldChild?.suggestPosition (position - offset)
+                visualizer.suggestPosition(position + offset)
                 layout = constrainLayout(children[0])
             }
         }

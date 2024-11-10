@@ -30,7 +30,7 @@ import kotlin.test.expect
  */
 class ResizerTests {
     @Test fun move() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -45,7 +45,7 @@ class ResizerTests {
     }
 
     @Test fun `move multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -62,7 +62,7 @@ class ResizerTests {
     }
 
     @Test fun `n-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -82,7 +82,7 @@ class ResizerTests {
     }
 
     @Test fun `n-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -104,7 +104,7 @@ class ResizerTests {
     }
 
     @Test fun `ne-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -124,7 +124,7 @@ class ResizerTests {
     }
 
     @Test fun `ne-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -146,7 +146,7 @@ class ResizerTests {
     }
 
     @Test fun `e-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -166,7 +166,7 @@ class ResizerTests {
     }
 
     @Test fun `e-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -188,7 +188,7 @@ class ResizerTests {
     }
 
     @Test fun `se-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -208,7 +208,7 @@ class ResizerTests {
     }
 
     @Test fun `se-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -230,7 +230,7 @@ class ResizerTests {
     }
 
     @Test fun `s-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -250,7 +250,7 @@ class ResizerTests {
     }
 
     @Test fun `s-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -272,7 +272,7 @@ class ResizerTests {
     }
 
     @Test fun `sw-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -292,7 +292,7 @@ class ResizerTests {
     }
 
     @Test fun `sw-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -314,7 +314,7 @@ class ResizerTests {
     }
 
     @Test fun `w-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -334,7 +334,7 @@ class ResizerTests {
     }
 
     @Test fun `w-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)
@@ -356,7 +356,7 @@ class ResizerTests {
     }
 
     @Test fun `nw-resize`() {
-        val view    = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view    = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer = Resizer(view)
         val pointer = Pointer(0)
 
@@ -376,7 +376,7 @@ class ResizerTests {
     }
 
     @Test fun `nw-resize multi-touch`() {
-        val view              = view { bounds = Rectangle(10, 10, 100, 100) }
+        val view              = view { suggestBounds(Rectangle(10, 10, 100, 100)) }
         val resizer           = Resizer(view)
         val pointer1          = Pointer(0)
         val pointer2          = Pointer(1)

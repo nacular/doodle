@@ -28,11 +28,11 @@ public abstract class CommonSplitPanelBehavior(private val divider: View = objec
         when (it.orientation) {
             Vertical   -> {
                 divider.cursor = ColResize
-                divider.width  = size
+                divider.suggestWidth(size)
             }
             Horizontal -> {
                 divider.cursor = RowResize
-                divider.height = size
+                divider.suggestHeight(size)
             }
         }
     }

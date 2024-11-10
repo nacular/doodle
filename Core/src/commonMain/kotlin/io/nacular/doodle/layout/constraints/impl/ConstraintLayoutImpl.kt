@@ -47,10 +47,7 @@ internal interface BoundsAttemptObserver {
 }
 
 @Suppress("PrivatePropertyName")
-internal open class BoundsImpl(private val target: PositionableExtended, /*private val bounds: Rectangle,*/ private val context: ConstraintDslContext): Bounds {
-    private var widthConstrained  = false
-    private var heightConstrained = false
-
+internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext): Bounds {
     private var x__      = target.bounds.x
     private var y__      = target.bounds.y
     private var width__  = target.bounds.width  //by observable(target.bounds.width ) { _,_ -> widthChanged  = true }
@@ -60,8 +57,8 @@ internal open class BoundsImpl(private val target: PositionableExtended, /*priva
     // values. Essentially, it never does read, ..., write, ..., read; only read, ..., read, write
     private var x_      get() = target.bounds.x;      set(value) { x__      = value }
     private var y_      get() = target.bounds.y;      set(value) { y__      = value }
-    private var width_  get() = target.bounds.width;  set(value) { width__  = value; widthConstrained  = true }
-    private var height_ get() = target.bounds.height; set(value) { height__ = value; heightConstrained = true }
+    private var width_  get() = target.bounds.width;  set(value) { width__  = value }
+    private var height_ get() = target.bounds.height; set(value) { height__ = value }
 
     override val top     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
     override val left    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
@@ -80,19 +77,18 @@ internal open class BoundsImpl(private val target: PositionableExtended, /*priva
     override val preferredSize get() = target.idealSize
 
     fun commit() {
-        val minWidth  = if (widthConstrained ) width__  else 0.0
-        val maxWidth  = if (widthConstrained ) width__  else POSITIVE_INFINITY
-        val minHeight = if (heightConstrained) height__ else 0.0
-        val maxHeight = if (heightConstrained) height__ else POSITIVE_INFINITY
+        val minWidth  = if (width.constrained ) width__  else 0.0
+        val maxWidth  = if (width.constrained ) width__  else POSITIVE_INFINITY
+        val minHeight = if (height.constrained) height__ else 0.0
+        val maxHeight = if (height.constrained) height__ else POSITIVE_INFINITY
 
-        target.updateBounds(x__, y__, Size(minWidth, minHeight), Size(maxWidth, maxHeight)).let {
-            width__  = it.width
-            height__ = it.height
+        when {
+            !(width.constrained || height.constrained) -> target.updatePosition(x__, y__)
+            else                                       -> target.updateBounds  (x__, y__, Size(minWidth, minHeight), Size(maxWidth, maxHeight)).let {
+                width__  = it.width
+                height__ = it.height
+            }
         }
-
-        // update to new values so width/heightConstrained are valid for next round
-        widthConstrained  = false
-        heightConstrained = false
     }
 }
 
@@ -110,10 +106,11 @@ internal class ReflectionVariable(
         result
     }
 
-    override val name get() = delegate.name
-    override fun invoke() = delegate()
+    override val name     get() = delegate.name
+    override val readOnly get() = invoke()
+    override var constrained = false
 
-    override val readOnly: Double get() = invoke()
+    override fun invoke() = delegate()
 
     override fun invoke(value: Double) {
         delegate.set(mapper(value))
@@ -185,17 +182,17 @@ internal class ConstraintLayoutImpl(
     block: ConstraintDslContext.(List<Bounds>) -> Unit
 ): ConstraintLayout(), BoundsAttemptObserver {
     private var layingOut     = false
-    private val activeBounds  = mutableSetOf<ReflectionVariable>()
-    private val updatedBounds = mutableSetOf<ReflectionVariable>()
+    private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
+    private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
 
     override fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
         if (layingOut) return
 
         viewBounds[view]?.let {
-            updatedBounds += it.top
-            updatedBounds += it.left
-            updatedBounds += it.width
-            updatedBounds += it.height
+            updatedBounds[it.top   ] = new.y
+            updatedBounds[it.left  ] = new.x
+            updatedBounds[it.width ] = new.width
+            updatedBounds[it.height] = new.height
 
             if (old.size != new.size && relayout && view.displayed) {
                 when (val p = view.parent) {
@@ -229,8 +226,6 @@ internal class ConstraintLayoutImpl(
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
         solve      (solver, activeBounds, updatedBounds, ::notifyOfErrors)
-
-//        solver.printCounts()
 
         blockTracker.values.asSequence().flatMap { it.constraints }.forEach {
             it.commit()
@@ -291,10 +286,10 @@ internal class ConstraintLayoutImpl(
 
                 view.positionable.bounds.let {
                     if (it.y != 0.0 || it.x != 0.0 || it.width  != 0.0 || it.height != 0.0) {
-                        updatedBounds += bounds.top
-                        updatedBounds += bounds.left
-                        updatedBounds += bounds.width
-                        updatedBounds += bounds.height
+                        updatedBounds[bounds.top   ] = it.y
+                        updatedBounds[bounds.left  ] = it.x
+                        updatedBounds[bounds.width ] = it.width
+                        updatedBounds[bounds.height] = it.height
                     }
                 }
             }
@@ -305,15 +300,22 @@ internal class ConstraintLayoutImpl(
         (exceptionThrown as SetPool).forEach { it(this, exception) }
     }
 
+    private var variables: List<Variable> by observable(emptyList()) { old, new ->
+
+    }
+
     internal companion object {
         fun setupSolver(
             solver       : Solver,
             context      : ConstraintDslContext,
-            updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
+            updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
             blocks       : Collection<BlockInfo>,
             errorHandler : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
+
+            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = false } }
+
             context.constraints = mutableListOf()
 
             context.apply {
@@ -326,6 +328,8 @@ internal class ConstraintLayoutImpl(
             blocks.forEach {
                 it.block(context, it.constraints)
             }
+
+            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = true } }
 
             val failedInserts = mutableListOf<Constraint>()
 
@@ -379,49 +383,49 @@ internal class ConstraintLayoutImpl(
 
         fun solve(
             solver       : Solver,
-            activeBounds : MutableSet<ReflectionVariable> = mutableSetOf(),
-            updatedBounds: MutableSet<ReflectionVariable> = mutableSetOf(),
+            activeBounds : MutableMap<ReflectionVariable, Double> = mutableMapOf(),
+            updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
             errorHandler : (ConstraintException) -> Unit
         ) {
-            activeBounds._removeAll { it !in updatedBounds }.forEach {
+            activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
                 try {
-                    solver.removeEditVariable(it)
+                    solver.removeEditVariable(variable)
                 } catch (ignore: Exception) {}
 
                 try {
-                    solver.addEditVariable(it, Weak)
-                    solver.suggestValue(it, it())
-                } catch (ignore: Exception) {}
-            }
-
-            updatedBounds.filter { it !in activeBounds }.forEach {
-                try {
-                    solver.removeEditVariable(it)
-                } catch (ignore: Exception) {}
-
-                try {
-                    solver.addEditVariable(it, Strength(100))
+                    solver.addEditVariable(variable, Weak)
+                    solver.suggestValue(variable, value)
                 } catch (ignore: Exception) {}
             }
 
-            updatedBounds.forEach {
+            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable,_) ->
                 try {
-                    solver.suggestValue(it, it())
+                    solver.removeEditVariable(variable)
+                } catch (ignore: Exception) {}
+
+                try {
+                    solver.addEditVariable(variable, Strength(100))
+                } catch (ignore: Exception) {}
+            }
+
+            updatedBounds.forEach { (variable, value) ->
+                try {
+                    solver.suggestValue(variable, value)
                 } catch (exception: ConstraintException) {
                     errorHandler(exception)
                 } catch (ignore: UnknownEditVariableException) {}
             }
 
-            activeBounds.addAll(updatedBounds)
+            activeBounds.putAll(updatedBounds)
 
             updatedBounds.clear()
 
             solver.updateVariables()
 
             // Hold anything that changes. These should all have Weak strength
-            updatedBounds.filter { it !in activeBounds }.forEach {
+            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
                 try {
-                    solver.suggestValue(it, it())
+                    solver.suggestValue(variable, value)
                 } catch (ignore: Exception) {}
             }
 
@@ -432,7 +436,7 @@ internal class ConstraintLayoutImpl(
         private fun handleInsert(
             solver            : Solver,
             insertedConstraint: Constraint,
-            updatedBounds     : MutableSet<ReflectionVariable>,
+            updatedBounds     : MutableMap<ReflectionVariable, Double>,
             errorHandler      : (ConstraintException) -> Unit
         ): Boolean {
             try {

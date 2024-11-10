@@ -71,7 +71,7 @@ public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructo
         view.contentDirectionChanged += contentDirectionChanged
 
         Size(idealWidth, max(iconSize.height + 2 * iconInset, if (!textSize.empty) textSize.height else 0.0)).let {
-            view.size          = it
+            view.suggestSize(it)
             view.preferredSize = fixed(it)
         }
     }

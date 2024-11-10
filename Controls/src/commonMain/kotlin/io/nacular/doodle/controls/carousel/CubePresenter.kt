@@ -120,12 +120,13 @@ public class CubePresenter<T>(
 
                 StageVisualItem(previousItem)
             } ?: getExistingCap(newSupplementalViews, 1).also {
-                it.bounds = currentItem.bounds.run {
-                    when (orientation) {
-                        Horizontal -> at(x = currentItem.x - width )
-                        else       -> at(y = currentItem.y - height)
+                it.suggestBounds(currentItem.bounds.run {
+                        when (orientation) {
+                            Horizontal -> at(x = currentItem.x - width )
+                            else       -> at(y = currentItem.y - height)
+                        }
                     }
-                }
+                )
 
                 it.camera    = globalCamera
                 it.transform = when (orientation) {
@@ -142,12 +143,13 @@ public class CubePresenter<T>(
                 currentItem.transform = Identity
 
                 subsequentItem = getExistingCap(newSupplementalViews, 1).also {
-                    it.bounds = currentItem.bounds.run {
-                        when (orientation) {
-                            Horizontal -> at(x = currentItem.bounds.right )
-                            else       -> at(y = currentItem.bounds.bottom)
+                    it.suggestBounds(currentItem.bounds.run {
+                            when (orientation) {
+                                Horizontal -> at(x = right )
+                                else       -> at(y = bottom)
+                            }
                         }
-                    }
+                    )
 
                     it.camera    = globalCamera
                     it.transform = when (orientation) {
@@ -235,12 +237,13 @@ public class CubePresenter<T>(
 
                         StageVisualItem(subsequentItem)
                     } ?: getExistingCap(newSupplementalViews, 1).also {
-                        it.bounds = nextItem.bounds.run {
-                            when (orientation) {
-                                Horizontal -> at(x = nextItem.bounds.right )
-                                else       -> at(y = nextItem.bounds.bottom)
+                        it.suggestBounds(nextItem.bounds.run {
+                                when (orientation) {
+                                    Horizontal -> at(x = right )
+                                    else       -> at(y = bottom)
+                                }
                             }
-                        }
+                        )
 
                         it.camera    = globalCamera
                         it.transform = nextItem.transform * when (orientation) {
@@ -294,12 +297,12 @@ public class CubePresenter<T>(
     }
 
     private fun configureCap(cap: View, capLocation: BoxOrientation, currentItem: PresentedItem, nextItem: PresentedItem) {
-        cap.bounds = when (capLocation) {
+        cap.suggestBounds(when (capLocation) {
             Top    -> Rectangle(x = currentItem.x,                   y = currentItem.y - nextItem.width, width = currentItem.width, height = nextItem.width    )
             Bottom -> Rectangle(x = currentItem.x,                   y = currentItem.bounds.bottom,      width = currentItem.width, height = nextItem.width    )
             Left   -> Rectangle(x = currentItem.x - nextItem.height, y = currentItem.y,                  width = nextItem.height,   height = currentItem.height)
             Right  -> Rectangle(x = currentItem.bounds.right,        y = currentItem.y,                  width = nextItem.width,    height = currentItem.height)
-        }
+        })
     }
 
     private fun updateZOrder(camera: Camera, vararg items: VisualItem?) {

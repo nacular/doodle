@@ -366,7 +366,7 @@ public class Menu private constructor(
 
         override fun updateBounds() {
             renderer?.preferredSize(info)?.let {
-                height        = it.height
+                suggestHeight(it.height)
                 preferredSize = fixed(it)
             }
         }
@@ -402,7 +402,7 @@ public class Menu private constructor(
 
         override fun updateBounds() {
             renderer?.preferredSize(this)?.let {
-                height        = it.height
+                suggestHeight(it.height)
                 preferredSize = fixed(it)
             }
         }
@@ -420,7 +420,7 @@ public class Menu private constructor(
 
     private class Separator(private val parentMenu: Menu): Item() {
         private var renderer: SeparatorConfig? by renderProperty(null) { _,new ->
-            height = new?.preferredSize()?.height ?: height
+            suggestHeight(new?.preferredSize()?.height ?: height)
         }
 
         init {

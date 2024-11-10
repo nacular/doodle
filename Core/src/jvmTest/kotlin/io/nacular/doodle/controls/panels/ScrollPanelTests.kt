@@ -84,7 +84,7 @@ class ScrollPanelTests {
 
     @Test fun `delegates contains point to behavior`() {
         val behavior = behavior()
-        val panel    = panel(behavior).apply { size = Size(100, 100) }
+        val panel    = panel(behavior).apply { suggestSize(Size(100)) }
         val point    = Point(4, 78)
 
         panel.contains(point)
@@ -215,24 +215,24 @@ class ScrollPanelTests {
     }
 
     @Test fun `width constraints work`() {
-        val content = spyk(container { size = Size(100, 100) })
+        val content = spyk(container { suggestSize(Size(100)) })
         val panel   = ScrollPanel(content).apply {
             contentWidthConstraints = { it eq parent.width }
         }
 
-        panel.width = 300.0
+        panel.suggestWidth(300.0)
         panel.doLayout_()
 
         expect(300.0) { content.width }
     }
 
     @Test fun `height constraints work`() {
-        val content = spyk(container { size = Size(100, 100) })
+        val content = spyk(container { suggestSize(Size(100)) })
         val panel   = ScrollPanel(content).apply {
             contentHeightConstraints = { it eq parent.height / 2 }
         }
 
-        panel.height = 650.0
+        panel.suggestHeight(650.0)
         panel.doLayout_()
 
         expect(325.0) { content.height }
@@ -284,11 +284,11 @@ class ScrollPanelTests {
     }
 
     private fun panel(behavior: ScrollPanelBehavior = behavior()): ScrollPanel {
-        val content = container { size = Size(100, 100) }
+        val content = container { suggestSize(Size(100)) }
 
         return ScrollPanel(content).apply {
             this.behavior = behavior
-            size          = Size(10, 10)
+            suggestSize(Size(10))
         }
     }
 

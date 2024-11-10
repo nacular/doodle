@@ -24,6 +24,13 @@ private class CompositeDynamicTheme(private val first: DynamicTheme, private val
         super.selected()
     }
 
+    override fun deselected() {
+        second.deselected()
+        first.deselected ()
+
+        super.deselected()
+    }
+
     override fun toString() = "$first + $second"
 }
 

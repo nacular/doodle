@@ -62,7 +62,7 @@ internal class NativeHyperLinkBehavior(
         super.install(view)
 
         view.preferredSize = fixed(nativePeer.idealSize)
-        view.size          = view.idealSize
+        view.suggestSize(view.idealSize)
     }
 
     override fun uninstall(view: HyperLink) {

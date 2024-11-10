@@ -300,7 +300,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             }
 
             if (width > 0) {
-                this@TreeColumns.width = max(current.width, width + insets.run { left + right })
+                this@TreeColumns.suggestWidth(max(current.width, width + insets.run { left + right }))
             }
 
             current
@@ -376,12 +376,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         contentWidthConstraints  = { it eq width - verticalScrollBarWidth                   }
         contentHeightConstraints = { it eq height }
 
-//        sizePreferencesChanged += { _,_,_ ->
-//            idealSize?.let { width = it.width }
-//        }
-
         // FIXME: REMOVE
-        width = 200.0
+        suggestWidth(200.0)
         Resizer(this).apply {
             movable = false
             directions = setOf(East)

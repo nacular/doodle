@@ -4,14 +4,13 @@ import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Horiz
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
-import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constraint
@@ -112,7 +111,7 @@ public open class ScrollPanel(content: View? = null): View() {
         field?.let {
             it.parentChange -= parentChanged
             children -= it
-            (layout as? ViewLayout)?.clearConstrains()
+            (layout as? ConstraintLayout)?.also { clearConstrains(it) }
         }
 
         val old = field
@@ -121,7 +120,7 @@ public open class ScrollPanel(content: View? = null): View() {
         field?.let {
             children += it
             it.parentChange +=  parentChanged
-            (layout as? ViewLayout)?.updateConstraints()
+            (layout as? ConstraintLayout)?.also { updateConstraints(it) }
         }
 
         (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
@@ -134,14 +133,14 @@ public open class ScrollPanel(content: View? = null): View() {
     public var contentWidthConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
         field = new
 
-        (layout as? ViewLayout)?.updateConstraints()
+        (layout as? ConstraintLayout)?.also { updateConstraints(it) }
     }
 
     /** Determines how the [content] height changes as the panel resizes */
     public var contentHeightConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
         field = new
 
-        (layout as? ViewLayout)?.updateConstraints()
+        (layout as? ConstraintLayout)?.also { updateConstraints(it) }
     }
 
     /** The current scroll offset. */
@@ -200,7 +199,10 @@ public open class ScrollPanel(content: View? = null): View() {
 
         this.content = content
 
-        layout = ViewLayout()
+        layout = when (content) {
+            null -> constrain(view {}) {}
+            else -> constrain(content, contentConstraints)
+        }
     }
 
     public override var focusable: Boolean = false
@@ -302,28 +304,19 @@ public open class ScrollPanel(content: View? = null): View() {
 
                 ignoreLayout = true
                 scroll       =  newScroll
-                it.position  = -newScroll
+
+                it.suggestPosition(-newScroll)
             }
         }
     }
 
-    private inner class ViewLayout: Layout {
-        var delegate = null as ConstraintLayout?
+    private fun clearConstrains(layout: ConstraintLayout) {
+        content?.let { layout.unconstrain(it, contentConstraints) }
+    }
 
-        init {
-            updateConstraints()
-        }
-
-        override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size = delegate?.layout(views, min, current, max) ?: current
-
-        fun clearConstrains() {
-            content?.let { delegate?.unconstrain(it, contentConstraints) }
-        }
-
-        fun updateConstraints() {
-            delegate = content?.let { content ->
-                constrain(content, contentConstraints)
-            }
+    private fun updateConstraints(layout: ConstraintLayout) {
+        content?.let { content ->
+            layout.constrain(content, contentConstraints)
         }
     }
 }

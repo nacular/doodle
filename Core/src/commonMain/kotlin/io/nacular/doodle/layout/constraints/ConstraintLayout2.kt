@@ -714,6 +714,7 @@ internal class PropertyWrapper(internal val variable: ReflectionVariable, privat
 
     override val name           get() = variable.name
     override val readOnly       get() = invoke()
+    override var constrained    get() = variable.constrained; set(new) { variable.constrained = new}
     override val needsSynthetic get() = variable.needsSynthetic
 
     override fun toTerm() = when {
@@ -868,8 +869,8 @@ public fun <T: Positionable> Iterable<T>.constrain(
  */
 @Internal
 public class Constrainer {
-    private val activeBounds  = mutableSetOf<ReflectionVariable>()
-    private val updatedBounds = mutableSetOf<ReflectionVariable>()
+    private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
+    private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
 
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
@@ -898,16 +899,12 @@ public class Constrainer {
         using      : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
         if (fakeView.bounds != rectangle) {
-            fakeView.bounds = rectangle
-//            fakeBounds.x_      = rectangle.x
-//            fakeBounds.y_      = rectangle.y
-//            fakeBounds.width_  = rectangle.width
-//            fakeBounds.height_ = rectangle.height
+            fakeView.suggestBounds(rectangle)
 
-            updatedBounds += fakeBounds.top
-            updatedBounds += fakeBounds.left
-            updatedBounds += fakeBounds.width
-            updatedBounds += fakeBounds.height
+            updatedBounds[fakeBounds.top   ] = rectangle.y
+            updatedBounds[fakeBounds.left  ] = rectangle.x
+            updatedBounds[fakeBounds.width ] = rectangle.width
+            updatedBounds[fakeBounds.height] = rectangle.height
         }
 
         if (forceSetup || within.size != parentSize || this.using != using) {

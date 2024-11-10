@@ -183,35 +183,124 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // endregion
     // region Bounds
 
+    /**
+     * Request that the View's x value be updated.
+     *
+     * NOTE: this does not guarantee that [View.x] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see x
+     */
+    public fun suggestX(value: Double) { if (value != bounds.x) setBounds(value, newBounds.y, newBounds.width, newBounds.height) }
+
+    /**
+     * Request that the View's y value be updated.
+     *
+     * NOTE: this does not guarantee that [View.y] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see y
+     */
+    public fun suggestY(value: Double) { if (value != bounds.y) setBounds(newBounds.x, value, newBounds.width, newBounds.height) }
+
+    /**
+     * Request that the View's position value be updated.
+     *
+     * NOTE: this does not guarantee that [View.position] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see position
+     */
+    public fun suggestPosition(value: Point) { setBounds(value.x, value.y, newBounds.width, newBounds.height) }
+
+    /**
+     * Request that the View's position value be updated.
+     *
+     * NOTE: this does not guarantee that [View.position] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param x suggested
+     * @param y suggested
+     * @see suggestPosition
+     */
+    public fun suggestPosition(x: Double, y: Double): Unit = suggestPosition(Point(x, y))
+
+    /**
+     * Request that the View's width value be updated.
+     *
+     * NOTE: this does not guarantee that [View.width] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see width
+     */
+    public fun suggestWidth(value: Double) { if (value != bounds.width) setBounds(newBounds.x, newBounds.y, value, newBounds.height) }
+
+    /**
+     * Request that the View's height value be updated.
+     *
+     * NOTE: this does not guarantee that [View.height] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see height
+     */
+    public fun suggestHeight(value: Double) { if (value != bounds.height) setBounds(newBounds.x, newBounds.y, newBounds.width, value) }
+
+    /**
+     * Request that the View's size value be updated.
+     *
+     * NOTE: this does not guarantee that [View.size] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see size
+     */
+    public fun suggestSize(value: Size) { setBounds(newBounds.x, newBounds.y, value.width, value.height) }
+
+    /**
+     * Request that the View's size value be updated.
+     *
+     * NOTE: this does not guarantee that [View.size] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param width suggested
+     * @param height suggested
+     * @see suggestSize
+     */
+    public fun suggestSize(width: Double, height: Double): Unit = suggestSize(Size(width, height))
+
+    /**
+     * Request that the View's bounds value be updated.
+     *
+     * NOTE: this does not guarantee that [View.bounds] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param value suggested
+     * @see bounds
+     */
+    public fun suggestBounds(value: Rectangle) { bounds = value }
+
     /** Left edge of [bounds] */
-    public var x: Double
-        get( ) = bounds.x
-        set(x) { if (x != bounds.x) setBounds(x, newBounds.y, newBounds.width, newBounds.height) }
+    public val x: Double get() = bounds.x
 
     /** Top edge of [bounds] */
-    public var y: Double
-        get( ) = bounds.y
-        set(y) { if (y != bounds.y) setBounds(newBounds.x, y, newBounds.width, newBounds.height) }
+    public val y: Double get() = bounds.y
 
     /** Top-left corner of [bounds] */
-    public var position: Point
-        get(        ) = bounds.position
-        set(position) = setBounds(position.x, position.y, newBounds.width, newBounds.height)
+    public val position: Point get() = bounds.position
 
     /** Horizontal extent of [bounds] */
-    public var width: Double
-        get(     ) = bounds.width
-        set(width) { if (width != bounds.width) setBounds(newBounds.x, newBounds.y, width, newBounds.height) }
+    public val width: Double get() = bounds.width
 
     /** Vertical extent of [bounds] */
-    public var height: Double
-        get(      ) = bounds.height
-        set(height) { if (height != bounds.height) setBounds(newBounds.x, newBounds.y, newBounds.width, height) }
+    public val height: Double get() = bounds.height
 
     /** Width-height of [bounds]*/
-    final override var size: Size
-        get(    ) = bounds.size
-        set(size) = setBounds(newBounds.x, newBounds.y, size.width, size.height)
+    final override val size: Size get() = bounds.size
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
     public val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
@@ -225,8 +314,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
-    public var bounds: Rectangle get() = actualBounds; set(new) {
-        newBounds = new//.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+    public var bounds: Rectangle get() = actualBounds; private set(new) {
+        newBounds = new
 
         if (new == actualBounds) return
 
@@ -239,17 +328,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     internal val newBounds_ get() = newBounds
 
-    private var announceBoundsChanged = true
-
+    @Internal
     public val prospectiveBounds: Rectangle get() = newBounds
 
-    private var newBounds: Rectangle by observable(Rectangle.Empty, { a, b -> a.fastEqual(b) }) { _, new ->
-        if (announceBoundsChanged && actualBounds != new) {
-            renderManager?.boundsChanged(this, actualBounds, new) ?: run {
-//            if (!settingActualBounds) {
-//                actualBounds = new.with(preferredSize(allowedMinSize, allowedMaxSize))
-//            }
-            }
+    private var newBounds: Rectangle = Rectangle.Empty; set(new) {
+        if (field.fastEqual(new)) return
+
+        field = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+
+        if (actualBounds != field) {
+            renderManager?.boundsChanged(this, actualBounds, field)
         }
     }
 
@@ -257,10 +345,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private var actualBounds: Rectangle = Rectangle.Empty; set(new) {
         settingActualBounds = true
-
-//        announceBoundsChanged = false
-        newBounds             = new // ensure newBounds updated to match actualBounds
-//        announceBoundsChanged = true
+        newBounds           = new // ensure newBounds updated to match actualBounds
 
         if (field.fastEqual(new)) return
 
@@ -288,22 +373,21 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /**
-     * Requests the View's preferred size within the specified [min] and [max] constraints. This method usually delegates to [layout] if
-     * there is one.
+     * Requests the View's preferred size based on the specified [min] and [max] constraints.
      *
      * @param min the smallest size this View is allowed to be
      * @param max the largest size this View is allowed to be
-     * @return a value that respects min and max
+     * @return the View's preferred size
      */
     public var preferredSize: (min: Size, max: Size) -> Size = { min, max ->
         when (val l = layout) {
             null -> newBounds.size
             else -> when {
-                preferredSizeCache.valid(min, max) -> preferredSizeCache.size
+//                preferredSizeCache.valid(min, max) -> preferredSizeCache.size
                 else -> doLayout(l, min, newBounds.size, max).also {
-                    preferredSizeCache.min  = min
-                    preferredSizeCache.size = it
-                    preferredSizeCache.max  = max
+//                    preferredSizeCache.min  = min
+//                    preferredSizeCache.size = it
+//                    preferredSizeCache.max  = max
                 }
             }
         }
@@ -313,7 +397,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         fun valid(min: Size, max: Size) = this.min == min && this.max == max && newBounds.size == this@View.size
     }
 
-    private var preferredSizeCache = CachedPreferredSize(Empty, Empty, Empty)
+//    private var preferredSizeCache = CachedPreferredSize(Empty, Empty, Empty)
 
     /**
      * Called whenever the View's parent wishes to update it's size.
@@ -323,14 +407,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     internal fun preferredSize_(min: Size, max: Size): Size {
-        if (preferredSizeCache.valid(min, max)) return preferredSizeCache.size
+//        if (preferredSizeCache.valid(min, max)) return preferredSizeCache.size
 
         allowedMinSize = min.coerceIn(Empty,          Infinite)
         allowedMaxSize = max.coerceIn(allowedMinSize, Infinite)
 
         return when (min) {
             max  -> min
-            else -> preferredSize(min, max).coerceIn(allowedMinSize, allowedMaxSize)
+            else -> preferredSize(allowedMinSize, allowedMaxSize).coerceIn(allowedMinSize, allowedMaxSize)
         }
     }
 
@@ -759,10 +843,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal val layout_ get() = layout
 
     /** Layout responsible for positioning of this View's children */
-    protected open var layout: Layout? by observable(null) { _,_ ->
-        idealSizeDirty = true
+    protected open var layout: Layout? = null; set(new) {
+        if (field == new) return
 
-//        relayout()
+        field          = new
+        idealSizeDirty = true
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -782,7 +867,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                                 if (it.parent == this@View) {
                                     it.parent   = null
                                     it.zOrder   = 0
-                                    it.position = Origin
+                                    it.suggestPosition(Origin)
                                 }
                             }
                         }
@@ -899,9 +984,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         current = current,
         insets  = insets
     ).let {
-        if (preferredSizeCache.valid(min, max)) {
-            preferredSizeCache.size = it
-        }
+//        preferredSizeCache.min  = min
+//        preferredSizeCache.size = it
+//        preferredSizeCache.max  = max
+
+//        if (preferredSizeCache.valid(min, max)) {
+//            preferredSizeCache.size = it
+//        }
 
 //        if (it != newBounds.size) {
 //            notifyAttemptedBoundsChange(newBounds.with(it))
@@ -1342,25 +1431,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    internal inner class PositionableView: PositionableExtended {
+    internal inner class PositionableView: Positionable {
         val view get() = this@View
 
-        override val visible         by this@View::visible
-        override var position  get() =  this@View.newBounds.position; set(value) { this@View.bounds = newBounds.at(value) }
-        override val bounds          by this@View::newBounds
-        override val idealSize get() =  this@View.idealSize
+        override val visible   get() = this@View.visible
+        override var position  get() = this@View.newBounds.position; set(value) { this@View.bounds = newBounds.at(value) }
+        override val bounds    get() = this@View.newBounds
+        override val idealSize get() = this@View.idealSize
 
         override fun contains    (point: Point) = point in this@View
+
+        override fun updatePosition(x: Double, y: Double) {
+            actualBounds = Rectangle(x, y, newBounds.width, newBounds.height)
+        }
+
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
             return this@View.preferredSize_(min, max).also {
                 actualBounds = Rectangle(x, y, it.width, it.height)
             }
-        }
-
-        override fun updateBoundsWithFlex(x: Double, y: Double, min: Size, max: Size) {
-            updateBounds(x, y, min, max)
-            this@View.allowedMinSize = Empty
-            this@View.allowedMaxSize = Infinite
         }
 
         override fun toString() = view.toString()
@@ -1431,7 +1519,7 @@ public val View.center: Point get() = position + Point(width/2, height/2)
  *
  * @param at the point to center
  */
-public fun View.centered(at: Point) { bounds = bounds.centered(at) }
+public fun View.centered(at: Point) { suggestBounds(bounds.centered(at)) }
 
 /**
  * @param filter used in search

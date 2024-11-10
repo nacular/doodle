@@ -128,7 +128,7 @@ public class Resizer(
             val deltaInParent = view.toParent(view.toLocal(activeInteraction.location, event.target)) - view.toParent(initialPosition)
 
             if (dragMode.isEmpty() && movable) {
-                view.position += deltaInParent
+                view.suggestPosition(view.position + deltaInParent)
 
                 event.consume()
                 consumedDrag = true
@@ -165,7 +165,7 @@ public class Resizer(
                     }
                 }
 
-                view.bounds = Rectangle(x, y, width, height)
+                view.suggestBounds(Rectangle(x, y, width, height))
 
                 if (consume) {
                     event.consume()

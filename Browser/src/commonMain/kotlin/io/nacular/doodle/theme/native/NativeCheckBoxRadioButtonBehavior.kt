@@ -50,7 +50,8 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
             cursor        = Default
             preferredSize = fixed(nativePeer.idealSize)
-            size          = idealSize
+
+            suggestSize(idealSize)
         }
     }
 
@@ -61,7 +62,7 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
 
         view.apply {
             if (::oldSize.isInitialized) {
-                size = oldSize
+                suggestSize(oldSize)
             }
             cursor        = oldCursor
             preferredSize = oldPreferredSize

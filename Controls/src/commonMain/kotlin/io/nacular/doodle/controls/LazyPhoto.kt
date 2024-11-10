@@ -26,7 +26,7 @@ public class LazyPhoto(pendingImage: Deferred<Image>, initialized: (imageSize: S
             image = it
 
             if (size == Empty) {
-                size = image.size
+                suggestSize(image.size)
             }
             initialized(image.size)
             rerender()

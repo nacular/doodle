@@ -15,6 +15,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -31,7 +32,6 @@ import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
-import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 import kotlin.math.max
 import kotlin.math.min
@@ -147,8 +147,8 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   var maxVisiblePosition                   = Origin
     private   var minHeight                            = 0.0
         set(new) {
-            field  = new
-            height = field
+            field = new
+            suggestHeight(field)
         }
 
     private   var handlingRectChange   = false
@@ -180,30 +180,29 @@ public open class Tree<T, out M: TreeModel<T>>(
             var maxRight = 0.0
             var y        = 0.0
 
-            (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull { pathFromRow(it)?.run { it to this } }.forEach { (index, path) ->
+            (firstVisibleRow .. lastVisibleRow).asSequence().mapNotNull {
+                pathFromRow(it)?.run { it to this }
+            }.forEach { (index, path) ->
                 model[path].onSuccess { value ->
                     c.getOrNull(index % c.size)?.let { child ->
                         rowPositioner?.let {
                             val b = it.rowBounds(this, value, path, index)
-                            child.updateBounds(b.x, b.y, Size(0.0, b.height), Size(POSITIVE_INFINITY, b.height)).let {
-                                y += it.height
+                            child.updateBounds(it.rowBounds(this, value, path, index))
 
-                                if (y > minHeight) return@forEach
+                            y += b.height
+                            if (y > minHeight) return@forEach
 
-                                maxRight = max(maxRight, b.x + it.width)
-                            }
+                            maxRight = max(maxRight, b.right)
                         }
                     }
                 }
             }
 
-            c.forEach {
-                // set every row's min-width to maxRight
-                it.updateBounds(it.bounds.x, it.bounds.y, Size(maxRight, it.bounds.height), Size(POSITIVE_INFINITY, it.bounds.height))
-            }
-
             // FIXME: use maxWidth
-            Size(maxRight, minHeight)
+            Size(maxRight, minHeight).also {
+                preferredSize = fixed(it)
+                suggestSize(it)
+            }
         }
     }
 
@@ -227,7 +226,10 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         rowPositioner?.let { positioner ->
-            if (maxVisiblePosition.x > new.right && maxVisiblePosition.y > new.bottom && minVisiblePosition.x < new.x && minVisiblePosition.y < new.y) {
+            if (maxVisiblePosition.x > new.right  &&
+                maxVisiblePosition.y > new.bottom &&
+                minVisiblePosition.x < new.x      &&
+                minVisiblePosition.y < new.y) {
                 return
             }
 
@@ -494,7 +496,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
                         rowGenerator(this, value, path, index, children.getOrNull(i)).also { ui ->
                             children[i] = ui
-//                            relayout()
+                            relayout()
                             if (index + 1 < numRows - 1) {
                                 ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
                             }

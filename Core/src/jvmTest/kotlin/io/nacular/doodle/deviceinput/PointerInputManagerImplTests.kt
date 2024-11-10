@@ -271,7 +271,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -296,7 +296,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { child.shouldHandlePointerEvent_(any()) } returns false
@@ -323,7 +323,7 @@ class PointerInputManagerImplTests {
         val parent       = spyk(view())
         val child        = spyk(view())
 
-        parent.position = Point(9.0, 9.0)
+        parent.suggestPosition(9.0, 9.0)
 
         parent.children_ += child
 
@@ -354,7 +354,7 @@ class PointerInputManagerImplTests {
         val parent       = spyk(view(), name = "parent")
         val child        = spyk(view(), name = "child" )
 
-        parent.position  = Point(9.0, 9.0)
+        parent.suggestPosition(9.0, 9.0)
         parent.children_ += child
 
         every { child.shouldHandlePointerEvent_(any() ) } returns false
@@ -386,7 +386,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position   = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
 
         every { display.child(any()            ) } returns null
         every { display.child(Point(10.0, 10.0)) } returns child
@@ -411,7 +411,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position            = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged       += mockk()
         child.pointerMotionChanged += mockk()
 
@@ -437,7 +437,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position      = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -464,7 +464,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position      = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -491,7 +491,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -517,7 +517,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -540,7 +540,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.position = Point(9.0, 9.0)
+        child.suggestPosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { display.child(any()            ) } returns null
@@ -648,7 +648,7 @@ class PointerInputManagerImplTests {
     }
 
     private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View = view {
-        this.bounds = bounds
+        this.suggestBounds(bounds)
         this.cursor = cursor
     }
 

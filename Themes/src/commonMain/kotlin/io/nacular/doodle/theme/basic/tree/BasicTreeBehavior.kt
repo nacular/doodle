@@ -31,7 +31,6 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.theme.basic.SelectableTreeKeyHandler
@@ -194,17 +193,18 @@ public open class TextEditOperation<T>(
     private val _display = display
 
     private val positionChanged = { _:View, old: Rectangle, new: Rectangle ->
-        bounds = Rectangle(bounds.position + new.position - old.position, bounds.size)
+        suggestBounds(Rectangle(bounds.position + new.position - old.position, bounds.size))
     }
 
     init {
         text                = encoder.encode(node).getOrDefault("")
         fitText             = setOf(Width) // TODO: Relax this if text exceeding tree row width
-        bounds              = contentBounds.at(contentBounds.position + tree.toAbsolute(Origin))
         borderVisible       = false
         foregroundColor     = current.foregroundColor
         backgroundColor     = Transparent
         horizontalAlignment = Left
+
+        suggestBounds(contentBounds.at(contentBounds.position + tree.toAbsolute(Point.Origin)))
 
         styleChanged += { rerender() }
 

@@ -102,7 +102,7 @@ public open class BasicTab<T>(
 
     init {
         children += visualizer(panel[index]!!).also {
-            it.x = 2 * radius
+            it.suggestX(2 * radius)
         }
 
         layout = constrainLayout(children[0])
@@ -231,7 +231,7 @@ public open class BasicTabProducer<T>(override  val tabHeight          : Double 
             cancelMove,
             selectedColorMapper,
             hoverColorMapper
-    ).apply { size = Size(100.0, tabHeight) } // FIXME: use dynamic width
+    ).apply { suggestSize(Size(100.0, tabHeight)) } // FIXME: use dynamic width
 
     protected open val move: (TabbedPanel<T>, Int, Double) -> Unit = { _,_,_ -> }
 

@@ -152,7 +152,7 @@ public class TreeRow<T>(
         }
 
         // FIXME: This doesn't really make much sense
-        parent.width greaterEq it.right.readOnly
+        parent.width eq it.right + indent
     }
 
     init {
@@ -233,8 +233,7 @@ public class TreeRow<T>(
             icon = null
         } else  {
             icon = icon ?: iconFactory().apply {
-                width  = iconWidth
-                height = iconWidth
+                suggestSize(io.nacular.doodle.geometry.Size(iconWidth))
 
                 children += this
 

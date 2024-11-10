@@ -164,7 +164,7 @@ internal class NativeSlider<T> internal constructor(
             enabledChanged      -= this@NativeSlider.enabledChanged
             focusabilityChanged -= this@NativeSlider.focusableChanged
 
-            height = oldSliderHeight
+            suggestHeight(oldSliderHeight)
         }
     }
 

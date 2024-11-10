@@ -92,16 +92,16 @@ public open class Carousel<T, M: ListModel<T>>(
         internal val boundsChanged    get() = initialBounds    != view.prospectiveBounds
         internal val transformChanged get() = initialTransform != view.transform
 
-        public var x        : Double          get() = view.prospectiveBounds.x;      set(value) { view.x      = value } //by view::x
-        public var y        : Double          get() = view.prospectiveBounds.y;      set(value) { view.y      = value } //by view::y
-        public var size     : Size            get() = view.prospectiveBounds.size;   set(value) { view.size   = value } //by view::size
-        public var width    : Double          get() = view.prospectiveBounds.width;  set(value) { view.width  = value } //by view::width
-        public var height   : Double          get() = view.prospectiveBounds.height; set(value) { view.height = value } //by view::height
-        public var bounds   : Rectangle       get() = view.prospectiveBounds;        set(value) { view.bounds = value } //by view::bounds
+        public var x        : Double          get() = view.prospectiveBounds.x;      set(value) { view.suggestX     (value) }
+        public var y        : Double          get() = view.prospectiveBounds.y;      set(value) { view.suggestY     (value) }
+        public var size     : Size            get() = view.prospectiveBounds.size;   set(value) { view.suggestSize  (value) }
+        public var width    : Double          get() = view.prospectiveBounds.width;  set(value) { view.suggestWidth (value) }
+        public var height   : Double          get() = view.prospectiveBounds.height; set(value) { view.suggestHeight(value) }
+        public var bounds   : Rectangle       get() = view.prospectiveBounds;        set(value) { view.suggestBounds(value) }
         public var zOrder   : Int             by view::zOrder
         public var camera   : Camera          by view::camera
         public var opacity  : Float           by view::opacity
-        public var position : Point           get() = view.prospectiveBounds.position; set(value) { view.position = value } //by view::position
+        public var position : Point           get() = view.prospectiveBounds.position; set(value) { view.suggestPosition(value) }
         public var transform: AffineTransform by view::transform
 
         /**
@@ -761,7 +761,7 @@ public open class Carousel<T, M: ListModel<T>>(
                                     changedViews += dataChild.view
                                 }
                             }.apply {
-                                bounds = Rectangle(size = this@Carousel.size)
+                                suggestBounds(Rectangle(size = this@Carousel.size))
                             }
                         }
                     }
@@ -818,10 +818,10 @@ public open class Carousel<T, M: ListModel<T>>(
 
         dataChildrenInitialState.remove(view)?.apply {
             view.camera    = camera
-            view.bounds    = bounds
             view.zOrder    = zOrder
             view.opacity   = opacity
             view.transform = transform
+            view.suggestBounds(bounds)
         }
     }
 

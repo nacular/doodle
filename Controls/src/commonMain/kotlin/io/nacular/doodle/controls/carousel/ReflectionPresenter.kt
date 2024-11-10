@@ -97,9 +97,10 @@ public class ReflectionPresenter<T>(
 
                 getExistingFloor(supplementalViews, 0).apply {
                     floor    += this
-                    bounds    = Rectangle(0.0, carousel.height, carousel.width, carousel.width)
                     camera    = globalCamera
                     transform = globalTransform * Identity.rotateX(around = Point(0, carousel.height), _90)
+
+                    suggestBounds(Rectangle(0.0, carousel.height, carousel.width, carousel.width))
                 }
             }
         }

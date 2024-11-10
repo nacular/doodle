@@ -236,8 +236,9 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
                 }
             }
 
-            size  = Size(30, 20)
             state = Valid(selected)
+
+            suggestSize(Size(30, 20))
         }
 
         focusable = false
@@ -2368,7 +2369,7 @@ public fun <T> checkList(
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) {
     CheckBox().apply {
-        width = 16.0
+        suggestWidth(16.0)
         focusChanged += { _,_,focused ->
             if (focused) {
                 parent?.scrollTo(bounds)
@@ -2997,7 +2998,7 @@ private fun <T> buildRadioList(
 
                 config(value, this)
 
-                width                      = 16.0
+                suggestWidth(16.0)
                 accessibilityLabelProvider = visualizedValue
             }
 

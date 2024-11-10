@@ -155,7 +155,9 @@ public class ColorPicker(color: Color): View() {
             }
         }
 
-        private val handle: Handle = Handle().apply { width = 12.0 }
+        private val handle: Handle = Handle().apply {
+            suggestWidth(12.0)
+        }
 
         var ratio = ratio; set(new) {
             if (field == new) { return }
@@ -163,7 +165,7 @@ public class ColorPicker(color: Color): View() {
             val old = field
             field = new
 
-            handle.x = (width - handle.width) * field
+            handle.suggestX((width - handle.width) * field)
 
             changed_.forEach { it(this@Strip, old, field) }
         }
@@ -350,7 +352,7 @@ public class ColorPicker(color: Color): View() {
     }
 
     private val hueStrip = HueStrip(HsvColor(color).hue).apply {
-        height = 15.0
+        suggestHeight(15.0)
 
         changed += { _,_,hue ->
             colorRect.color = colorRect.color.run { HsvColor(hue, saturation, value, opacity) }
@@ -358,14 +360,18 @@ public class ColorPicker(color: Color): View() {
     }
 
     private val opacityStrip = OpacityStrip(color).apply {
-        height = 15.0
+        suggestHeight(15.0)
 
         changed += { _,_,opacity ->
             colorRect.color = colorRect.color.opacity(opacity)
         }
     }
 
-    private val colorSquare = ColorSquare().apply { backgroundColor = colorRect.color.toRgb(); size = Size(hueStrip.prospectiveBounds.height + opacityStrip.prospectiveBounds.height + inset) }
+    private val colorSquare = ColorSquare().apply {
+        backgroundColor = colorRect.color.toRgb()
+
+        suggestSize(Size(hueStrip.prospectiveBounds.height + opacityStrip.prospectiveBounds.height + inset))
+    }
 
     init {
         children += colorRect

@@ -52,7 +52,7 @@ internal class HyperLinkPeer(focusManager: FocusManager?, button: HyperLink): JL
         text                      = "<html><a href='${button.url}'>${button.text}</a></html>"
         focusTraversalKeysEnabled = false
 
-        button.size = preferredSize.run { Size(width, height) }
+        button.suggestSize(preferredSize.run { Size(width, height) })
 
         addFocusListener(object : FocusListener {
             override fun focusGained(e: FocusEvent?) {

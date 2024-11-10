@@ -117,7 +117,7 @@ public open class Label(
     internal var textSize = Empty; private set(new) {
         field         = new
         preferredSize = fixed(new)
-        size          = new
+        suggestSize(new)
     }
 
     public var behavior: LabelBehavior? by behavior { _,new ->
@@ -142,7 +142,7 @@ public open class Label(
         // force update
         actualStyledText = actualStyledText
 
-        size = textSize
+        suggestSize(textSize)
     }
 
     override var focusable: Boolean = false

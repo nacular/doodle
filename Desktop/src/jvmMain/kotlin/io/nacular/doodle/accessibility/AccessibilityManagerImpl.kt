@@ -570,19 +570,19 @@ internal class AccessibilityManagerImpl(
         override fun getLocation(): AwtPoint = bounds.location
 
         override fun setLocation(p: AwtPoint?) {
-            p?.toDoodle()?.let { view.position = it }
+            p?.toDoodle()?.let { view.suggestPosition(it) }
         }
 
         override fun getBounds() = view.boundingBox.toAwt()
 
         override fun setBounds(r: AwtRectangle) {
-            view.bounds = r.toDoodle()
+            view.suggestBounds(r.toDoodle())
         }
 
         override fun getSize() = view.size.toAwt()
 
         override fun setSize(d: Dimension) {
-            view.size = d.toDoodle()
+            view.suggestSize(d.toDoodle())
         }
 
         /**

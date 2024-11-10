@@ -67,7 +67,7 @@ public open class BooleanVisualizer(private val defaultSize: Size = Size(16)): I
     override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
         is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
         else        -> CheckBox().apply { enabled = true;  selected = item; enabled = false; }
-    }.apply { size = defaultSize }
+    }.apply { suggestSize(defaultSize) }
 }
 
 /**
