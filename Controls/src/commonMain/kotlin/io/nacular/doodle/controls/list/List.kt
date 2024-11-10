@@ -80,6 +80,7 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
          * @param item being rendered
          * @param index of the item
          * @param view being used to render that item
+         * @return bounds for the given item
          */
         public fun itemBounds(of: List<T, *>, item: T, index: Int, view: View? = null): Rectangle
 
@@ -88,6 +89,7 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
          *
          * @param of a specific list
          * @param at the offset in the list
+         * @return the item's index
          */
         public fun item(of: List<T, *>, at: Point): Int
 
@@ -95,6 +97,7 @@ public interface ListBehavior<T>: Behavior<List<T, *>> {
          * Returns the minimum size of the given List including all items.
          *
          * @param of a specific List
+         * @return the minimum size
          */
         public fun minimumSize(of: List<T, *>): Size
     }

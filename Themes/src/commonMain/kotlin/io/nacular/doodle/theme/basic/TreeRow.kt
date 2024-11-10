@@ -269,7 +269,6 @@ public class TreeRow<T>(
             }
         }
 
-//        idealSize       = Size(children.map { it.width }.reduce { a, b -> a + b  }, children.map { it.height }.reduce { a, b -> max(a, b) })
         backgroundColor = when {
             tree.selected(path) -> {
                 tree.focusChanged += treeFocusChanged

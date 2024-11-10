@@ -1,7 +1,6 @@
 package io.nacular.doodle.layout.constraints.impl
 
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.PositionableExtended
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PositionableView
 import io.nacular.doodle.geometry.Rectangle
@@ -34,11 +33,12 @@ import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.X_
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.Y_ID
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
-import io.nacular.doodle.utils._removeAll
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.diff.compare
 import io.nacular.doodle.utils.ifNull
+import io.nacular.doodle.utils.observable
+import io.nacular.doodle.utils.removeAll
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.reflect.KMutableProperty0
 
@@ -50,8 +50,8 @@ internal interface BoundsAttemptObserver {
 internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext): Bounds {
     private var x__      = target.bounds.x
     private var y__      = target.bounds.y
-    private var width__  = target.bounds.width  //by observable(target.bounds.width ) { _,_ -> widthChanged  = true }
-    private var height__ = target.bounds.height //by observable(target.bounds.height) { _,_ -> heightChanged = true }
+    private var width__  = target.bounds.width
+    private var height__ = target.bounds.height
 
     // This looks strange, cut it works b/c the Solver reads variables and only updates them after computing their new
     // values. Essentially, it never does read, ..., write, ..., read; only read, ..., read, write
@@ -93,7 +93,7 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 }
 
 internal class ReflectionVariable(
-             val target        : PositionableExtended? = null,
+             val target        : Positionable? = null,
     private  val delegate      : KMutableProperty0<Double>,
     private  val id            : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
     override val needsSynthetic: Boolean = false,
@@ -320,8 +320,7 @@ internal class ConstraintLayoutImpl(
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
-                    constrainParent(width,  min.width,  max.width )
-                    constrainParent(height, min.height, max.height)
+                    constrainParent(width, height, min, max)
                 }
             }
 
@@ -355,13 +354,13 @@ internal class ConstraintLayoutImpl(
                                     // handle delete
                                     handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
                                     // handle insert
-                                    if (!handleInsert(solver, insertedConstraint, updatedBounds, errorHandler)) {
+                                    if (!handleInsert(solver, insertedConstraint, updatedBounds) {}) {
                                         failedInserts += insertedConstraint
                                     }
                                 }
                             }.ifNull {
                                 // handle insert
-                                if (!handleInsert(solver, insertedConstraint, updatedBounds, errorHandler)) {
+                                if (!handleInsert(solver, insertedConstraint, updatedBounds) {}) {
                                     failedInserts += insertedConstraint
                                 }
                             }
@@ -500,7 +499,12 @@ internal class ConstraintLayoutImpl(
             }
         }
 
-        private fun ConstraintDslContext.constrainParent(property: Property, minExtent: Double, maxExtent: Double) {
+        private fun ConstraintDslContext.constrainParent(width: Property, height: Property, min: Size, max: Size) {
+            constrainSide(width,  min.width,  max.width )
+            constrainSide(height, min.height, max.height)
+        }
+
+        private fun ConstraintDslContext.constrainSide(property: Property, minExtent: Double, maxExtent: Double) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {

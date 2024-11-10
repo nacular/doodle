@@ -32,13 +32,11 @@ public interface Positionable {
 
     public fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
 
+    public fun updatePosition(x: Double, y: Double)
+
     public fun updateBounds(rectangle: Rectangle) {
         updateBounds(rectangle.x, rectangle.y, rectangle.size, rectangle.size)
     }
-}
-
-internal interface PositionableExtended: Positionable {
-    fun updateBoundsWithFlex(x: Double, y: Double, min: Size, max: Size)
 }
 
 /**

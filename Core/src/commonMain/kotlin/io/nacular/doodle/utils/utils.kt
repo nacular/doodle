@@ -65,6 +65,22 @@ internal fun <E> MutableIterable<E>._removeAll(predicate: (E) -> Boolean): List<
     return result
 }
 
+internal fun <K,V> MutableMap<K,V>.removeAll(predicate: (K, V) -> Boolean): Iterable<Pair<K, V>> {
+    val result = mutableListOf<Pair<K, V>>()
+    val it = this.iterator()
+
+    while (it.hasNext()) {
+        val entry = it.next()
+
+        if (predicate(entry.key, entry.value)) {
+            result += entry.key to entry.value
+            it.remove()
+        }
+    }
+
+    return result
+}
+
 /**
  * Splits the character sequence based on a regex into a set of [MatchedChunk]s,
  * which indicates the match and the delimiter that separates it from its neighbor

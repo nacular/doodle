@@ -20,10 +20,44 @@ public interface TreeBehavior<T>: Behavior<Tree<T, *>> {
     public abstract class RowPositioner<T> {
         public fun Tree<T, *>.rowsBelow(path: Path<Int>): Int = this.rowsBelow(path)
 
-        public abstract fun rowBounds    (tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
-        public abstract fun contentBounds(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
+        /**
+         * Indicates where to place a row in the Tree.
+         *
+         * @param of the tree where the row is
+         * @param node data in question
+         * @param path of the row
+         * @param index of the row
+         * @return row bounds relative to the tree
+         */
+        public abstract fun rowBounds(of: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
 
+        /**
+         * Specifies the bounds of content within a Tree's row.
+         *
+         * @param of the tree where the row is
+         * @param node data in question
+         * @param path of the row
+         * @param index of the row
+         * @return content bounds relative to the row
+         */
+        public abstract fun contentBounds(of: Tree<T, *>, node: T, path: Path<Int>, index: Int): Rectangle
+
+        /**
+         * Indicates which row would be located at the given y offset.
+         *
+         * @param of the tree where the row is
+         * @param at position
+         * @return index of the row
+         */
         public abstract fun row(of: Tree<T, *>, at: Point): Int
+
+        /**
+         * Indicates the minimum size needed to display content under [below].
+         *
+         * @param of the tree where the row is
+         * @param below this given node
+         * @return size of contents below node
+         */
         public abstract fun minimumSize(of: Tree<T, *>, below: Path<Int>): Size
     }
 
