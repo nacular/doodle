@@ -315,6 +315,7 @@ public open class Carousel<T, M: ListModel<T>>(
 
     private var manuallyMoving               = false; set(new) {
         if (new) {
+            moveOffset                   = offsetWithinFrame
             firstManualMove              = true
             moveEndAnimating             = false
             neverMovedForward            = true
@@ -421,7 +422,15 @@ public open class Carousel<T, M: ListModel<T>>(
     public fun startManualMove() {
         if (model.isEmpty) return
 
-        manuallyMoving = true
+        manuallyMoving   = true
+
+        moveEndAnimation?.cancel()
+        moveEndAnimation = null
+
+        if (!informedBehaviorOfMove) {
+            informedBehaviorOfMove = true
+            transitioner?.moveStarted(this, moveOffset)
+        }
     }
 
     /**
@@ -433,12 +442,8 @@ public open class Carousel<T, M: ListModel<T>>(
 
         moveOffset = -to + offsetWithinFrameAtMoveStart
 
-        when {
-            !informedBehaviorOfMove -> {
-                informedBehaviorOfMove = true
-                transitioner?.moveStarted(this, moveOffset)
-            }
-            !moveEndAnimating -> transitioner?.moveUpdated(this, moveOffset)
+        if (!moveEndAnimating) {
+            transitioner?.moveUpdated(this, moveOffset)
         }
 
         presenter?.let { presenter ->
@@ -578,9 +583,9 @@ public open class Carousel<T, M: ListModel<T>>(
 
                         progressToTargetItem = when (targetVirtualSelection) {
                             previousSelectedItem -> 1f
-                            else              -> abs(
+                            else                 -> abs(
                                 (currentFrameOffsetDuringMove - previousSelectedItem + fractionToNextFrame) /
-                                (targetVirtualSelection - previousSelectedItem)
+                                (targetVirtualSelection       - previousSelectedItem)
                             ).toFloat()
                         }
 
@@ -619,7 +624,7 @@ public open class Carousel<T, M: ListModel<T>>(
                 ItemMarkers(previousFrameOffset, nextFrameOffset)
             }?.apply {
                 completed += { cleanUpMove() }
-                canceled += { cleanUpMove() }
+                canceled  += { cleanUpMove() }
             }
         }
 
@@ -800,8 +805,8 @@ public open class Carousel<T, M: ListModel<T>>(
         if (ignoreCleanup) return
 
         stopManualMove()
-        progressToNextItem         = 0f
-        progressToTargetItem       = 1f
+        progressToNextItem     = 0f
+        progressToTargetItem   = 1f
         targetVirtualSelection = round(trueVirtualIndex).toInt()
 
         update()

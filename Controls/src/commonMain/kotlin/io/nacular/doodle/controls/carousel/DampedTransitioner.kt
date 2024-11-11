@@ -131,6 +131,7 @@ public open class DampedTransitioner<T>(
     ): Completable {
         endTime      = decelerationTime
         acceleration = -velocity / endTime
+        lastTime     = timer.now
         lastPosition = position
         this.markers = markers
 
@@ -185,7 +186,7 @@ public open class DampedTransitioner<T>(
             endChosen = true
         } else {
             motionFunction = constantAccelerationMotion
-            endAnimation = endAfterTime
+            endAnimation   = endAfterTime
         }
     }
 

@@ -44,17 +44,19 @@ public class CubePresenter<T>(
         override fun render(canvas: Canvas) {
             canvas.rect(bounds.atOrigin, fill = Black.paint)
         }
+
+        override var bounds_ : Rectangle get() = prospectiveBounds; set(value) { suggestBounds(value) }
     }
 
     private interface VisualItem {
         var zOrder   : Int
-        var bounds   : Rectangle
+        var bounds_  : Rectangle
         var transform: AffineTransform
     }
 
     private class StageVisualItem(presentedItem: PresentedItem): VisualItem {
         override var zOrder    by presentedItem::zOrder
-        override var bounds    by presentedItem::bounds
+        override var bounds_   by presentedItem::bounds
         override var transform by presentedItem::transform
     }
 
@@ -67,7 +69,7 @@ public class CubePresenter<T>(
     ): Presentation {
         val results              = mutableListOf<PresentedItem>()
         val globalCamera         = camera(carousel.size)
-        val newSupplementalViews = mutableListOf<View>().apply { this += supplementalViews }
+        val newSupplementalViews = mutableListOf<View>()
 
         val currentItem = (items(position) ?: position.next?.let(items))?.apply {
             setBounds(this, carousel.size)
@@ -88,10 +90,10 @@ public class CubePresenter<T>(
                 camera    = globalCamera
                 zOrder    = 3 // cap is always rendered above all other views
                 transform = when (capLocation) {
-                    Top    -> Identity.rotateX(around = currentItem.position, _90)
+                    Top    -> Identity.rotateX(around = currentItem.position,                             _90)
                     Bottom -> Identity.rotateX(around = Point(currentItem.x, currentItem.bounds.bottom), -_90)
-                    Left   -> Identity.rotateY(around = currentItem.position, -_90)
-                    Right  -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), _90)
+                    Left   -> Identity.rotateY(around = currentItem.position,                            -_90)
+                    Right  -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y),   _90)
                 }
             }
         }
@@ -114,7 +116,7 @@ public class CubePresenter<T>(
 
                 previousItem.camera    = globalCamera
                 previousItem.transform = when (orientation) {
-                    Horizontal -> Identity.rotateY(around = currentItem.position, -_90)
+                    Horizontal -> Identity.rotateY(around = currentItem.position,                           -_90)
                     else       -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), -_90)
                 }
 
@@ -130,7 +132,7 @@ public class CubePresenter<T>(
 
                 it.camera    = globalCamera
                 it.transform = when (orientation) {
-                    Horizontal -> Identity.rotateY(around = currentItem.position, -_90)
+                    Horizontal -> Identity.rotateY(around = currentItem.position,                           -_90)
                     else       -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), -_90)
                 }
             }
@@ -309,8 +311,8 @@ public class CubePresenter<T>(
         // FIXME: This doesn't give the right answer sometimes
         items.mapNotNull {
             it?.let { getDepthPoint(camera, it) }
-        }.sortedBy { it.first.z }.forEachIndexed { index, pair ->
-            pair.second.zOrder = index
+        }.sortedBy { it.first.z }.forEachIndexed { index, (_,item) ->
+            item.zOrder = index
         }
     }
 
@@ -318,7 +320,7 @@ public class CubePresenter<T>(
         if (it is CubeCap) it else CubeCap()
     } ?: CubeCap()
 
-    private fun getDepthPoint(camera: Camera, item: VisualItem?) = item?.let {
-        (camera.projection * it.transform)(item.bounds.center) to it
+    private fun getDepthPoint(camera: Camera, item: VisualItem) = item.let {
+        (camera.projection * it.transform)(item.bounds_.center) to it
     }
 }
