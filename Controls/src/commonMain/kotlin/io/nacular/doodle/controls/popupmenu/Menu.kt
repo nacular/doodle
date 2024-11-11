@@ -211,13 +211,13 @@ public class Menu private constructor(
 
         var possibleSelection = initialNext
 
-        do {
-            if (selectables[possibleSelection].enabled) break
-
-            possibleSelection = (offset(possibleSelection) % selectables.size).let {
-                if (it < 0) selectables.size - 1 else it
-            }
-        } while (possibleSelection != initialNext)
+        if (!selectables[possibleSelection].enabled) {
+            do {
+                possibleSelection = (offset(possibleSelection) % selectables.size).let {
+                    if (it < 0) selectables.size - 1 else it
+                }
+            } while (possibleSelection != initialNext && !selectables[possibleSelection].enabled)
+        }
 
         requestSelection(selectables[possibleSelection])
     }
@@ -227,6 +227,8 @@ public class Menu private constructor(
     }
 
     private fun requestSelection(item: InteractiveMenu): Boolean {
+        if (!item.enabled) return false
+
         selectionIndex = selectables.indexOf(item)
 
         return item.selected
