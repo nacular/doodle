@@ -284,7 +284,10 @@ public open class Table<T, M: ListModel<T>>(
                     val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
 
                     // explicitly set ideal size of table-panel so the scroll panel layout will update it
-                    panel.content?.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
+                    panel.content?.let {
+                        it.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
+                        it.suggestSize(it.idealSize)
+                    }
 
                     val size = delegate.layout(items, min, current, max)
 

@@ -334,9 +334,9 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     }
 
                     override val positioner get() = object: TreeBehavior.RowPositioner<R>() {
-                        override fun rowBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path].getOrNull()!!, index).run { Rectangle(0.0, y, tree.width, height) }
+                        override fun rowBounds(of: Tree<R, *>, node: R, path: Path<Int>, index: Int) = it.rowPositioner.rowBounds(this@TreeTable, path, model[path].getOrNull()!!, index).run { Rectangle(0.0, y, of.width, height) }
 
-                        override fun contentBounds(tree: Tree<R, *>, node: R, path: Path<Int>, index: Int) = rowBounds(tree, node, path, index) // FIXME
+                        override fun contentBounds(of: Tree<R, *>, node: R, path: Path<Int>, index: Int) = rowBounds(of, node, path, index) // FIXME
 
                         override fun row(of: Tree<R, *>, at: Point) = it.rowPositioner.row(this@TreeTable, at)
 
@@ -535,8 +535,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     children += header
 
                     behavior.headerPositioner.invoke(this@TreeTable).apply {
-                        header.y      = insetTop
-                        header.height = height
+                        header.suggestY     (insetTop)
+                        header.suggestHeight(height  )
                     }
                 }
 
@@ -560,8 +560,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     children += footer
 
                     behavior.footerPositioner(this@TreeTable).apply {
-                        footer.y      = this@TreeTable.height - insetTop
-                        footer.height = height
+                        footer.suggestY     (height - insetTop)
+                        footer.suggestHeight(height           )
                     }
                 }
 
@@ -571,7 +571,10 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
 
                     // explicitly set ideal size of table-panel so the scroll panel layout will update it
-                    panel.content?.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
+                    panel.content?.let {
+                        it.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
+                        it.suggestSize(it.idealSize)
+                    }
 
                     val size = delegate.layout(items, min, current, max)
 
@@ -623,13 +626,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
             // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
-                    header.x = new.x
-                    footer.x = new.x
+                    header.suggestX(new.x)
+                    footer.suggestX(new.x)
                 }
             }
         }).apply {
-            contentWidthConstraints  = { it eq max(content?.idealSize?.width  ?: it.readOnly, width ) - verticalScrollBarWidth }
-            contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
+            contentWidthConstraints  = { it eq max(content?.idealSize?.width  ?: it.readOnly, width ) - verticalScrollBarWidth    }
+            contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height) - horizontalScrollBarHeight }
 
             scrollBarDimensionsChanged += {
                 columnSizeChanged()

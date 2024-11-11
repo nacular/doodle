@@ -101,6 +101,7 @@ import io.nacular.doodle.theme.basic.tree.BasicTreeBehavior
 import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
 import io.nacular.doodle.theme.basic.treecolumns.SimpleTreeColumnRowIcon
 import io.nacular.doodle.theme.basic.treecolumns.TreeColumnRowIcon
+import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.RotationDirection
 import io.nacular.doodle.utils.RotationDirection.Clockwise
 import io.nacular.measured.units.Angle
@@ -326,23 +327,32 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
 
         public fun basicTreeTableBehavior(
             rowHeight            : Double?              = null,
+            headerColor          : Color?               = null,
             evenRowColor         : Color?               = null,
             oddRowColor          : Color?               = null,
             selectionColor       : Color?               = null,
             selectionBlurredColor: Color?               = null,
-            iconFactory          : (() -> TreeRowIcon)? = null
+            iconFactory          : (() -> TreeRowIcon)? = null,
+            columnAnimation      : ((table: TreeTable<*,*>, distance: Double, block: (progress: Float) -> Unit) -> Completable)? = null
         ): Module = basicThemeModule(name = "BasicTreeTableBehavior") {
             bindBehavior<TreeTable<Any, TreeModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    BasicTreeTableBehavior(
+                    object: BasicTreeTableBehavior<Any>(
                         focusManager          = instanceOrNull(),
                         rowHeight             = rowHeight             ?: 20.0,
+                        headerColor           = headerColor           ?: this.backgroundColor,
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
                         selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
                         iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
-                    ) }
+                    ) {
+                        override fun moveColumn(table: TreeTable<Any, *>, distance: Double, block: (progress: Float) -> Unit): Completable = when (columnAnimation) {
+                            null -> super.moveColumn(table, distance, block)
+                            else -> columnAnimation (table, distance, block)
+                        }
+                    }
+                }
             }
         }
 
@@ -357,13 +367,14 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicTableBehavior(
-                rowHeight            : Double? = null,
-                headerColor          : Color?  = null,
-                footerColor          : Color?  = null,
-                evenRowColor         : Color?  = null,
-                oddRowColor          : Color?  = null,
-                selectionColor       : Color?  = null,
-                selectionBlurredColor: Color?  = null): Module = basicThemeModule(name = "BasicTableBehavior") {
+            rowHeight            : Double? = null,
+            headerColor          : Color?  = null,
+            footerColor          : Color?  = null,
+            evenRowColor         : Color?  = null,
+            oddRowColor          : Color?  = null,
+            selectionColor       : Color?  = null,
+            selectionBlurredColor: Color?  = null
+        ): Module = basicThemeModule(name = "BasicTableBehavior") {
             bindBehavior<Table<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run { BasicTableBehavior(
                         focusManager          = instanceOrNull(),
@@ -973,6 +984,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicDaysOfTheWeekPanelBehavior(),
             basicGridPanelBehavior(),
             basicMenuBehavior(),
+            basicTreeTableBehavior(),
         )
     }
 }

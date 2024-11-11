@@ -2,7 +2,6 @@ package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.table.MetaRowVisibility.Always
 import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
-import io.nacular.doodle.controls.table.MetaRowVisibility.Never
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
@@ -78,17 +77,19 @@ internal class TablePanel(
                     x          += it.width
                     totalWidth += it.width
 
-                    if (index == columns.size - 2 && col !is LastColumn) {
-                        height = max(height, it.height)
+                    if (index == 0) {
+                        height = it.height
                     }
                 }
             }
 
             preferredSize = fixed(Size(totalWidth, height))
 
-            views.forEach {
+            views.drop(1).forEach {
                 it.updateBounds(it.bounds.with(height = max(current.height, idealSize.height)))
             }
+
+            suggestSize(idealSize)
 
             idealSize
         }
