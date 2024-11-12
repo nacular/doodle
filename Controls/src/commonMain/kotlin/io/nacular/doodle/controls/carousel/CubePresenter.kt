@@ -67,7 +67,7 @@ public class CubePresenter<T>(
     ): Presentation {
         val results              = mutableListOf<PresentedItem>()
         val globalCamera         = camera(carousel.size)
-        val newSupplementalViews = mutableListOf<View>().apply { this += supplementalViews }
+        val newSupplementalViews = mutableListOf<View>()
 
         val currentItem = (items(position) ?: position.next?.let(items))?.apply {
             setBounds(this, carousel.size)
@@ -88,10 +88,10 @@ public class CubePresenter<T>(
                 camera    = globalCamera
                 zOrder    = 3 // cap is always rendered above all other views
                 transform = when (capLocation) {
-                    Top    -> Identity.rotateX(around = currentItem.position, _90)
+                    Top    -> Identity.rotateX(around = currentItem.position,                             _90)
                     Bottom -> Identity.rotateX(around = Point(currentItem.x, currentItem.bounds.bottom), -_90)
-                    Left   -> Identity.rotateY(around = currentItem.position, -_90)
-                    Right  -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), _90)
+                    Left   -> Identity.rotateY(around = currentItem.position,                            -_90)
+                    Right  -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y),   _90)
                 }
             }
         }
@@ -114,7 +114,7 @@ public class CubePresenter<T>(
 
                 previousItem.camera    = globalCamera
                 previousItem.transform = when (orientation) {
-                    Horizontal -> Identity.rotateY(around = currentItem.position, -_90)
+                    Horizontal -> Identity.rotateY(around = currentItem.position,                           -_90)
                     else       -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), -_90)
                 }
 
@@ -129,7 +129,7 @@ public class CubePresenter<T>(
 
                 it.camera    = globalCamera
                 it.transform = when (orientation) {
-                    Horizontal -> Identity.rotateY(around = currentItem.position, -_90)
+                    Horizontal -> Identity.rotateY(around = currentItem.position,                           -_90)
                     else       -> Identity.rotateY(around = Point(currentItem.bounds.right, currentItem.y), -_90)
                 }
             }
@@ -151,8 +151,8 @@ public class CubePresenter<T>(
 
                     it.camera    = globalCamera
                     it.transform = when (orientation) {
-                        Horizontal -> Identity.rotateY(around = it.bounds.position,  _90)
-                        else       -> Identity.rotateX(around = it.bounds.position, -_90)
+                        Horizontal -> Identity.rotateY(around = Point(x = it.bounds.right ),  _90)
+                        else       -> Identity.rotateX(around = Point(y = it.bounds.bottom), -_90)
                     }
                 }
 
@@ -237,8 +237,8 @@ public class CubePresenter<T>(
                     } ?: getExistingCap(newSupplementalViews, 1).also {
                         it.bounds = nextItem.bounds.run {
                             when (orientation) {
-                                Horizontal -> at(x = nextItem.bounds.right )
-                                else       -> at(y = nextItem.bounds.bottom)
+                                Horizontal -> at(x = right )
+                                else       -> at(y = bottom)
                             }
                         }
 
@@ -306,8 +306,8 @@ public class CubePresenter<T>(
         // FIXME: This doesn't give the right answer sometimes
         items.mapNotNull {
             it?.let { getDepthPoint(camera, it) }
-        }.sortedBy { it.first.z }.forEachIndexed { index, pair ->
-            pair.second.zOrder = index
+        }.sortedBy { it.first.z }.forEachIndexed { index, (_,item) ->
+            item.zOrder = index
         }
     }
 
