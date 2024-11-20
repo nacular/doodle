@@ -24,7 +24,8 @@ internal class TextMetricsImpl(
     private val htmlFactory   : HtmlFactory,
     private val elementRuler  : ElementRuler,
     private val fontSerializer: FontSerializer,
-                cacheLength   : Int
+                cacheLength   : Int,
+    private val noFontSupport : Boolean = false,
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
     private data class StyledTextInfo  (val text: StyledText,                    val textSpacing: TextSpacing = default)
@@ -108,7 +109,8 @@ internal class TextMetricsImpl(
     ))
 
     private fun textWidth(text: String, font: Font?, textSpacing: TextSpacing): Double {
-        val notSupported = (textSpacing.wordSpacing   != 0.0 && noWordSpacingSupport  ) ||
+        val notSupported = noFontSupport                                                ||
+                           (textSpacing.wordSpacing   != 0.0 && noWordSpacingSupport  ) ||
                            (textSpacing.letterSpacing != 0.0 && noLetterSpacingSupport)
 
         return when {
