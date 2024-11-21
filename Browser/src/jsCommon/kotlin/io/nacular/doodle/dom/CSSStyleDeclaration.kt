@@ -84,10 +84,12 @@ internal actual var CSSStyleDeclaration.clipPath               : String by Dynam
 internal actual var CSSStyleDeclaration.willChange             : String by DynamicProperty("will-change"              ) { "" }
 internal actual var CSSStyleDeclaration.scrollBehavior         : String by DynamicProperty("scroll-behavior"          ) { "" }
 internal actual var CSSStyleDeclaration.textDecorationThickness: String by DynamicProperty("text-decoration-thickness") { "" }
-internal actual var CSSStyleDeclaration.touchAction            : String by DynamicProperty("touch-action"             ) { "" }
-internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
 internal actual var CSSStyleDeclaration.caretColor             : String by DynamicProperty("caret-color"              ) { "" }
 internal actual var CSSStyleDeclaration.userSelect             : String by DynamicProperty("user-select"              ) { "" }
+//internal actual var CSSStyleDeclaration.touchAction            : String by DynamicProperty("touch-action"             ) { "" }
+
+internal actual var CSSStyleDeclaration._webkit_text_stroke    : String by DynamicProperty("-webkit-text-stroke"      ) { "" }
+internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
 
 internal actual var CSSStyleDeclaration._ms_user_select            : String by DynamicProperty("-ms-user-select"            ) { "" }
 internal actual var CSSStyleDeclaration._moz_user_select           : String by DynamicProperty("-moz-user-select"           ) { "" }

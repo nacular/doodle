@@ -15,7 +15,6 @@ import io.nacular.doodle.dom.SVGPolygonElement
 import io.nacular.doodle.dom.SVGRadialGradientElement
 import io.nacular.doodle.dom.SVGRectElement
 import io.nacular.doodle.dom.SVGTSpanElement
-import io.nacular.doodle.dom.SVGTextElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.addIfNotPresent
@@ -114,7 +113,9 @@ import io.nacular.measured.units.Angle.Companion.sin
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.min
+import io.nacular.doodle.dom.SVGTextElement as SVGTextElement1
 
 internal open class VectorRendererSvg(
     protected var context       : CanvasContext,
@@ -123,7 +124,8 @@ internal open class VectorRendererSvg(
     private   val aligner       : TextVerticalAligner,
     private   val textMetrics   : TextMetrics,
     private   val idGenerator   : IdGenerator,
-                  rootSvgElement: SVGElement? = null): VectorRenderer {
+                  rootSvgElement: SVGElement? = null
+): VectorRenderer {
 
     private inner class PatternCanvas(
         context       : CanvasContext,
@@ -219,12 +221,19 @@ internal open class VectorRendererSvg(
         }
     }
 
+    private class ContextWrapper(delegate: CanvasContext): CanvasContext by delegate {
+        override val shadows: MutableList<Shadow> = mutableListOf()
+    }
+
     protected var svgElement    : SVGElement? = null
     private   var rootSvgElement: SVGElement? = null
 
     private val region get() = context.renderRegion
 
     private var renderPosition: Node? = null
+
+    private val previousElementCache = mutableMapOf<Any, SVGElement>()
+    private val elementCache         = mutableMapOf<Any, SVGElement>()
 
     init {
         rootSvgElement?.let {
@@ -265,12 +274,30 @@ internal open class VectorRendererSvg(
     override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = drawEllipse(ellipse, null,   fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = drawEllipse(ellipse, stroke, fill)
 
-    override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
-        var textElement: SVGTextElement? = null
+    override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) = text_(
+        text,
+        font,
+        at,
+        stroke = null,
+        fill,
+        textSpacing
+    )
 
-        present(stroke = null, fill = fill) {
+    override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) = text_(
+        text,
+        font,
+        at,
+        stroke,
+        fill,
+        textSpacing
+    )
+
+    private fun text_(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) {
+        var textElement: SVGTextElement1? = null
+
+        present(stroke = stroke, fill = fill) {
             when {
-                text.isNotBlank() -> makeText(text, font, at, fill, textSpacing).also { textElement = it }
+                text.isNotBlank() -> makeText(text, font, at, stroke, fill, textSpacing).also { textElement = it }
                 else              -> null
             }
         }
@@ -287,9 +314,22 @@ internal open class VectorRendererSvg(
             text.count > 0 -> {
                 syncShadows  ()
                 updateRootSvg() // Done here since present normally does this
-                val textElement = makeStyledText(text, at, textSpacing)
-                completeOperation(textElement)
-                adjustTextAfterDisplay(textElement, yOffset)
+
+                val texts = makeStyledText(text, at, textSpacing)
+
+                texts.text.let {
+                    completeOperation(it)
+                    adjustTextAfterDisplay(it, yOffset)
+                }
+
+                texts.backgrounds.forEach { (element, paint) ->
+                    val bbox = element.getBBox_(BoundingBoxOptions())
+
+                    makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height)).also {
+                        fillElement(it, paint)
+                        texts.text.parent?.insertBefore(it, texts.text)
+                    }
+                }
             }
         }
     }
@@ -297,20 +337,55 @@ internal open class VectorRendererSvg(
     private val StyledText.maxFont    : Font? get() = filter { it.first.isNotBlank() }.mapNotNull  { it.second.font }.maxByOrNull { it.size }
     private val StyledText.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
 
-    private fun adjustTextAfterDisplay(textElement: SVGTextElement, yOffset: Double) {
+    private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
         // shift text down since no other way to get baseline alignment to work
         textElement.setY(
-            (textElement.getAttribute("y")?.toDouble() ?: 0.0) + yOffset
+            ceil((textElement.getAttribute("y")?.toDouble() ?: 0.0) + yOffset)
         )
     }
 
-    override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        fill       : Paint,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
         syncShadows()
 
         wrappedText(StyledText(text, font, foreground = fill), at, indent, width, alignment, lineSpacing, textSpacing)
     }
 
-    override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        stroke     : Stroke,
+        fill       : Paint?,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
+        syncShadows()
+
+        wrappedText(StyledText(text, font, foreground = fill, stroke = stroke), at, indent, width, alignment, lineSpacing, textSpacing)
+    }
+
+    override fun wrapped(
+        text       : StyledText,
+        at         : Point,
+        width      : Double,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
         syncShadows()
 
         wrappedText(text, at, indent, width, alignment, lineSpacing, textSpacing)
@@ -364,6 +439,10 @@ internal open class VectorRendererSvg(
                 this.renderPosition = it.firstChild
             }
         }
+
+        previousElementCache.clear()
+        previousElementCache += elementCache
+        elementCache.clear()
     }
 
     private var internalFlush = false
@@ -504,7 +583,7 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private fun makeText(text: String, font: Font?, at: Point, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement>("text").apply {
+    private fun makeText(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement1>("text").apply {
         if (textContent != text) {
             textContent = text
         }
@@ -523,23 +602,25 @@ internal open class VectorRendererSvg(
             else -> setFill       (null)
         }
 
-        setStroke(null)
+        setStroke(stroke)
     }
 
-    private fun makeStyledText(text: StyledText, at: Point, textSpacing: TextSpacing) = createOrUse<SVGTextElement>("text").apply {
-        setPosition(at)
+    private class StyledTextInfo(val text: SVGTextElement1, val backgrounds: Map<SVGTSpanElement, Paint>)
 
-        text.forEach { (text, style) ->
-            val background: SVGElement? = (style.background?.takeIf { it is ColorPaint } as? ColorPaint?)?.let { textBackground(it) }?.also {
-                completeOperation(it)
+    private fun makeStyledText(text: StyledText, at: Point, textSpacing: TextSpacing): StyledTextInfo {
+        val backgrounds = mutableMapOf<SVGTSpanElement, Paint>()
+
+        val textElement = createOrUse<SVGTextElement1>("text").apply {
+            setPosition(at)
+
+            text.forEach { (text, style) ->
+                add(makeTextSegment(text, style, textSpacing).apply {
+                    style.background?.let { backgrounds[this] = it }
+                })
             }
-
-            add(makeTextSegment(text, style, textSpacing).also { segment ->
-                background?.let {
-                    segment.style.filter = "url(#${it.id})"
-                }
-            })
         }
+
+        return StyledTextInfo(textElement, backgrounds)
     }
 
     private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
@@ -547,21 +628,21 @@ internal open class VectorRendererSvg(
             textContent = text
         }
 
-        setFill  (null)
-        setStroke(null)
-
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
+        this.style.setTextDecoration(style.decoration)
 
         style.font?.let {
             this.style.setFont(it)
         }
 
-        this.style.setTextDecoration(style.decoration)
-
         style.foreground?.let {
             fillElement(this, it, true)
         } ?: setDefaultFill()
+
+        style.stroke?.let {
+            strokeElement(this, it)
+        } ?: setStroke(null)
     }
 
     private data class LineInfo(val text: StyledText, val position: Point, val wordSpacing: Double)
@@ -678,7 +759,7 @@ internal open class VectorRendererSvg(
                 at,
                 TextSpacing(
                     letterSpacing = textSpacing.letterSpacing,
-                    wordSpacing = wordSpacing + textSpacing.wordSpacing
+                    wordSpacing   = wordSpacing + textSpacing.wordSpacing
                 ),
                 verticalOffset
             )
@@ -906,6 +987,8 @@ internal open class VectorRendererSvg(
 
         internalFlush()
         renderPosition = if (parentNode != null) this else oldRenderPosition
+
+        completeOperation(this)
     }
 
     private val shadowFinalizers = mutableListOf<() -> Unit>()
@@ -1074,8 +1157,9 @@ internal open class VectorRendererSvg(
     private class SVGPath: Path("M", "L", "Z")
 
     private interface FillHandler<B: Paint> {
-        fun fill  (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B)
-        fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke)
+        fun fill              (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B                )
+        fun stroke            (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke)
+        fun textBackgroundFill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B                )
     }
 
     private object SolidFillHandler: FillHandler<ColorPaint> {
@@ -1086,12 +1170,18 @@ internal open class VectorRendererSvg(
         override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint, stroke: Stroke) {
             element.setStrokeColor(paint.color)
         }
+
+        override fun textBackgroundFill(
+            renderer: VectorRendererSvg,
+            element : SVGGraphicsElement,
+            paint   : ColorPaint
+        ) { element.style.filter = "url(#${renderer.textBackground(paint).id})" }
     }
 
     // TODO: Explore using a filter for this instead: https://www.smashingmagazine.com/2015/05/why-the-svg-filter-is-awesome/#image-fill
     private val canvasFillHandler: FillHandler<PatternPaint> by lazy {
         object: FillHandler<PatternPaint> {
-            private fun makeFill(renderer: VectorRendererSvg, paint: PatternPaint): SVGElement {
+            private fun makeFill(renderer: VectorRendererSvg, paint: PatternPaint): String {
                 // FIXME: Re-use elements when possible
                 val pattern = createOrUse<SVGPatternElement>("pattern").apply {
                     if (id.isBlank()) { setId(nextId()) }
@@ -1123,7 +1213,7 @@ internal open class VectorRendererSvg(
                     canvas.finalizeShadows()
                 }
 
-                return pattern
+                return pattern.id
             }
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint) {
@@ -1133,12 +1223,18 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint), paint.opacity)
             }
+
+            override fun textBackgroundFill(
+                renderer: VectorRendererSvg,
+                element : SVGGraphicsElement,
+                paint   : PatternPaint
+            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
     private val imageFillHandler: FillHandler<ImagePaint> by lazy {
         object: FillHandler<ImagePaint> {
-            private fun makeFill(renderer: VectorRendererSvg, paint: ImagePaint): SVGElement {
+            private fun makeFill(renderer: VectorRendererSvg, paint: ImagePaint): String {
                 // FIXME: Re-use elements when possible
                 val pattern = createOrUse<SVGPatternElement>("pattern").apply {
                     if (id.isBlank()) { setId(nextId()) }
@@ -1155,7 +1251,7 @@ internal open class VectorRendererSvg(
 
                 renderer.completeOperation(pattern)
 
-                return pattern
+                return pattern.id
             }
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint) {
@@ -1165,28 +1261,34 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
+
+            override fun textBackgroundFill(
+                renderer: VectorRendererSvg,
+                element: SVGGraphicsElement,
+                paint: ImagePaint
+            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
     private val linearGradientFillHandler by lazy {
         object: FillHandler<LinearGradientPaint> {
-            private fun makeFill(renderer: VectorRendererSvg, paint: LinearGradientPaint): SVGLinearGradientElement {
+            private fun makeFill(renderer: VectorRendererSvg, paint: LinearGradientPaint) = getSharedElement(paint) {
                 val gradient = createOrUse<SVGLinearGradientElement>("linearGradient").apply {
                     if (id.isBlank()) { setId(nextId()) }
 
                     setGradientUnits("userSpaceOnUse")
-                    setX1(paint.start.x              )
-                    setY1(paint.start.y              )
-                    setX2(paint.end.x                )
-                    setY2(paint.end.y                )
+                    setX1           (paint.start.x   )
+                    setY1           (paint.start.y   )
+                    setX2           (paint.end.x     )
+                    setY2           (paint.end.y     )
 
-                    updateStops(paint.colors    )
+                    updateStops(paint.colors)
                 }
 
                 renderer.completeOperation(gradient)
 
-                return gradient
-            }
+                gradient
+            }.id
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint) {
                 element.setFillPattern(makeFill(renderer, paint))
@@ -1195,12 +1297,18 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
+
+            override fun textBackgroundFill(
+                renderer: VectorRendererSvg,
+                element: SVGGraphicsElement,
+                paint: LinearGradientPaint
+            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
     private val radialGradientFillHandler by lazy {
         object: FillHandler<RadialGradientPaint> {
-            private fun makeFill(renderer: VectorRendererSvg, paint: RadialGradientPaint): SVGRadialGradientElement {
+            private fun makeFill(renderer: VectorRendererSvg, paint: RadialGradientPaint) = getSharedElement(paint) {
                 val gradient = createOrUse<SVGRadialGradientElement>("radialGradient").apply {
                     if (id.isBlank()) { setId(nextId()) }
 
@@ -1212,8 +1320,8 @@ internal open class VectorRendererSvg(
 
                 renderer.completeOperation(gradient)
 
-                return gradient
-            }
+                gradient
+            }.id
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint) {
                 element.setFillPattern(makeFill(renderer, paint))
@@ -1222,23 +1330,33 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
+
+            override fun textBackgroundFill(
+                renderer: VectorRendererSvg,
+                element: SVGGraphicsElement,
+                paint: RadialGradientPaint
+            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
     private val sweepGradientFillHandler by lazy {
         object: FillHandler<SweepGradientPaint> {
-            private fun makeForeign(mask: SVGElement, paint: SweepGradientPaint) = createOrUse<SVGElement>("foreignObject").apply {
-                setAttribute("mask", "url(#${mask.id})")
+            private fun makeForeign(mask: SVGElement, paint: SweepGradientPaint) = getSharedElement(paint) {
+                val gradient = createOrUse<SVGElement>("foreignObject").apply {
+                    setAttribute("mask", "url(#${mask.id})")
 
-                appendChild(htmlFactory.create<HTMLElement>().apply {
-                    val colors = paint.colors.joinToString(",") {
-                        "${it.color.rgbaString} ${it.offset * 360 * degrees `in` degrees}deg"
-                    }
+                    appendChild(htmlFactory.create<HTMLElement>().apply {
+                        val colors = paint.colors.joinToString(",") {
+                            "${it.color.rgbaString} ${it.offset * 360 * degrees `in` degrees}deg"
+                        }
 
-                    style.background = "conic-gradient(from ${(paint.rotation `in` degrees) + 90.0}deg at ${paint.center.x}px ${paint.center.y}px, $colors)"
-                    style.setWidthPercent (100.0)
-                    style.setHeightPercent(100.0)
-                })
+                        style.background = "conic-gradient(from ${(paint.rotation `in` degrees) + 90.0}deg at ${paint.center.x}px ${paint.center.y}px, $colors)"
+                        style.setWidthPercent (100.0)
+                        style.setHeightPercent(100.0)
+                    })
+                }
+
+                gradient
             }
 
             private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
@@ -1289,11 +1407,21 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint, stroke: Stroke) {
                 makeStroke(renderer, paint, element, stroke)
             }
+
+            override fun textBackgroundFill(
+                renderer: VectorRendererSvg,
+                element: SVGGraphicsElement,
+                paint: SweepGradientPaint
+            ) { makeFill(renderer, paint, element) }
         }
     }
 
-    private class ContextWrapper(delegate: CanvasContext): CanvasContext by delegate {
-        override val shadows: MutableList<Shadow> = mutableListOf()
+    private fun getSharedElement(key: Any, block: () -> SVGElement): SVGElement {
+        return previousElementCache.getOrPut(key) {
+            block().also {
+                elementCache[key] = it
+            }
+        }
     }
 
     private fun createImage(image: Image, destination: Rectangle, radius: Double, opacity: Float) = createOrUse<SVGElement>("image").apply {

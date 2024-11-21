@@ -43,18 +43,18 @@ public class Stroke(
 
     public companion object {
         public operator fun invoke(
-                color     : Color  = Black,
-                thickness : Double = 1.0,
-                dashOffset: Double = 0.0,
-                dashes    : DoubleArray
+            color     : Color  = Black,
+            thickness : Double = 1.0,
+            dashOffset: Double = 0.0,
+            dashes    : DoubleArray
         ): Stroke = Stroke(ColorPaint(color), thickness, dashes, dashOffset)
 
         public operator fun invoke(
-                color     : Color  = Black,
-                thickness : Double = 1.0,
-                dashOffset: Double = 0.0,
-                dash      : Double,
-                vararg remainingDashes: Double
+            color     : Color  = Black,
+            thickness : Double = 1.0,
+            dashOffset: Double = 0.0,
+            dash      : Double,
+            vararg remainingDashes: Double
         ): Stroke = Stroke(ColorPaint(color), thickness, doubleArrayOf(dash) + remainingDashes, dashOffset)
 
         public operator fun invoke(color: Color, thickness: Double = 1.0): Stroke = Stroke(ColorPaint(color), thickness, null)

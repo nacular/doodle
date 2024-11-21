@@ -108,6 +108,14 @@ internal inline fun Style.setColor  (value: Color? ) { color   = value?.let { rg
 internal inline fun Style.setCursor (value: Cursor?) { cursor  = value?.let { "$it" } ?: "" }
 internal inline fun Style.setOpacity(value: Float  ) { opacity = if (value != 1f) "$value" else "" }
 
+internal inline fun Style.setStroke (width: Double, color: Color) {
+    _webkit_text_stroke = "${width}px ${rgba(color)}"
+}
+
+internal inline fun Style.clearStroke () {
+    _webkit_text_stroke = ""
+}
+
 internal fun Style.setTextDecoration(value: TextDecoration?) {
     when (value) {
         null -> {

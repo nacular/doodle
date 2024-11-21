@@ -6,6 +6,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
@@ -118,6 +119,8 @@ public open class CommonLabelBehavior(
                                     d.thickness
                             )
                         }
+
+                        override val stroke: Stroke? get() = it.stroke
                     }
                 }
             }

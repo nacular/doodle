@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.CommonCanvas
 import io.nacular.doodle.drawing.Font
@@ -312,6 +313,43 @@ internal class CanvasImpl(
         }
     }
 
+    override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {
+        val shadowParagraph by lazy {
+            paragraph(
+                text,
+                font,
+                fill        = Transparent.paint,
+                alignment   = Start,
+                lineHeight  = 1f,
+                textSpacing = textSpacing
+            )
+        }
+
+        withShadows(operation = {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            paragraph(
+                text,
+                font,
+                stroke      = stroke,
+                alignment   = Start,
+                lineHeight  = 1f,
+                textSpacing = textSpacing
+            ).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+
+            fill?.let {
+                paragraph(
+                    text,
+                    font,
+                    fill       = it,
+                    alignment  = Start,
+                    lineHeight = 1f,
+                    textSpacing = textSpacing
+                ).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+            }
+        }
+    }
+
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
         val shadowParagraph by lazy { text.paragraph(textSpacing = textSpacing).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat()) }
 
@@ -343,6 +381,39 @@ internal class CanvasImpl(
                 at.x.toFloat(),
                 at.y.toFloat()
             )
+        }
+    }
+
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        stroke     : Stroke,
+        fill       : Paint?,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
+        val shadowParagraph by lazy { paragraph(text, font, indent, width, Transparent.paint, alignment, lineSpacing, textSpacing) }
+
+        this.withShadows(operation = {
+            shadowParagraph.updateForegroundPaint(0, shadowParagraph.getText().length, it).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
+        }) {
+            paragraph(text, font, indent, width, stroke, alignment, lineSpacing, textSpacing).paint(
+                skiaCanvas,
+                at.x.toFloat(),
+                at.y.toFloat()
+            )
+
+            fill?.let {
+                paragraph(text, font, indent, width, it, alignment, lineSpacing, textSpacing).paint(
+                    skiaCanvas,
+                    at.x.toFloat(),
+                    at.y.toFloat()
+                )
+            }
         }
     }
 
@@ -576,6 +647,28 @@ internal class CanvasImpl(
         font       : Font?,
         indent     : Double? = null,
         width      : Double? = null,
+        stroke     : Stroke,
+        alignment  : TextAlignment,
+        lineHeight : Float  = 1f,
+        textSpacing: TextSpacing
+    ) = paragraph(
+        text        = text,
+        font        = font,
+        indent      = indent,
+        width       = width,
+        paint       = stroke.fill.skia().apply {
+            strokeWidth = stroke.thickness.toFloat()
+        },
+        alignment   = alignment,
+        lineHeight  = lineHeight,
+        textSpacing = textSpacing
+    )
+
+    private fun paragraph(
+        text       : String,
+        font       : Font?,
+        indent     : Double? = null,
+        width      : Double? = null,
         fill       : Paint,
         alignment  : TextAlignment,
         lineHeight : Float  = 1f,
@@ -596,7 +689,7 @@ internal class CanvasImpl(
         font       : Font?,
         indent     : Double? = null,
         width      : Double? = null,
-        paint      : SkiaPaint,
+        paint      : SkiaPaint?,
         alignment  : TextAlignment,
         lineHeight : Float  = 1f,
         textSpacing: TextSpacing
@@ -604,6 +697,7 @@ internal class CanvasImpl(
         val style = ParagraphStyle().apply {
             textStyle = font.newTextStyle.apply {
                 foreground = paint
+
                 if (lineHeight                != 1f ) height        = lineHeight
                 if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
                 if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()

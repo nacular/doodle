@@ -93,12 +93,12 @@ internal expect var CSSStyleDeclaration.clipPath               : String
 internal expect var CSSStyleDeclaration.willChange             : String
 internal expect var CSSStyleDeclaration.scrollBehavior         : String
 internal expect var CSSStyleDeclaration.textDecorationThickness: String
-
-internal expect var CSSStyleDeclaration.touchAction            : String
-internal expect var CSSStyleDeclaration._webkit_appearance     : String
 internal expect var CSSStyleDeclaration.caretColor             : String
-internal expect var CSSStyleDeclaration.userSelect             : String
 
+internal expect var CSSStyleDeclaration._webkit_appearance     : String
+internal expect var CSSStyleDeclaration._webkit_text_stroke    : String
+
+internal expect var CSSStyleDeclaration.userSelect                 : String
 internal expect var CSSStyleDeclaration._ms_user_select            : String
 internal expect var CSSStyleDeclaration._moz_user_select           : String
 internal expect var CSSStyleDeclaration._khtml_user_select         : String

@@ -191,10 +191,10 @@ internal fun SVGElement.setFloodColor(color: Color?) = convert(color) {
     setAttribute("flood-color",  it)
 }
 
-internal fun SVGElement.setFillPattern(pattern: SVGElement?, opacity: Float = 1f) {
-    setAttribute("fill", when (pattern) {
+internal fun SVGElement.setFillPattern(id: String?, opacity: Float = 1f) {
+    setAttribute("fill", when (id) {
         null -> none
-        else -> "url(#${pattern.id})"
+        else -> "url(#$id)"
     })
 
     if (opacity != 1f) {
@@ -236,10 +236,10 @@ internal fun SVGElement.setStroke(stroke: Stroke?) {
     }
 }
 
-internal fun SVGElement.setStrokePattern(pattern: SVGElement?, opacity: Float = 1f) {
-    setAttribute("stroke", when (pattern) {
+internal fun SVGElement.setStrokePattern(id: String?, opacity: Float = 1f) {
+    setAttribute("stroke", when (id) {
         null -> none
-        else -> "url(#${pattern.id})"
+        else -> "url(#$id)"
     })
 
     setAttribute("stroke-opacity", "$opacity")

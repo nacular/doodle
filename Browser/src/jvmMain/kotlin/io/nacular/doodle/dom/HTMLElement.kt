@@ -94,6 +94,7 @@ internal actual abstract class CSSStyleDeclaration: JsAny {
     internal var _webkit_appearance_     : String = ""
     internal var caretColor_             : String = ""
     internal var userSelect_             : String = ""
+    internal var textStroke_             : String = ""
 
     internal var _ms_user_select_            : String = ""
     internal var _moz_user_select_           : String = ""
@@ -111,9 +112,11 @@ internal actual var CSSStyleDeclaration.clipPath               : String get() = 
 internal actual var CSSStyleDeclaration.willChange             : String get() = willChange_;              set(new) { willChange_              = new }
 internal actual var CSSStyleDeclaration.scrollBehavior         : String get() = scrollBehavior_;          set(new) { scrollBehavior_          = new }
 internal actual var CSSStyleDeclaration.textDecorationThickness: String get() = textDecorationThickness_; set(new) { textDecorationThickness_ = new }
-internal actual var CSSStyleDeclaration.touchAction            : String get() = touchAction_;             set(new) { touchAction_             = new }
-internal actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_      = new }
 internal actual var CSSStyleDeclaration.caretColor             : String get() = caretColor_;              set(new) { caretColor_              = new }
+
+internal actual var CSSStyleDeclaration._webkit_text_stroke    : String get() = textStroke_;              set(new) { textStroke_              = new }
+internal actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_      = new }
+
 internal actual var CSSStyleDeclaration.userSelect             : String get() = userSelect_;              set(new) { userSelect_              = new }
 
 internal actual var CSSStyleDeclaration._ms_user_select            : String get() = _ms_user_select_;             set(new) { _ms_user_select_             = new }

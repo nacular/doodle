@@ -5,11 +5,14 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.text.Target.Background
 import io.nacular.doodle.text.Target.Foreground
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
 import io.nacular.doodle.text.TextDecoration.Style.Solid
+import kotlin.experimental.ExperimentalTypeInference
+import kotlin.jvm.JvmName
 import kotlin.math.min
 
 /**
@@ -56,11 +59,21 @@ public class TextDecoration(
     }
 }
 
+/**
+ * Style for a segment of [StyledText].
+ *
+ * @property font for that segment
+ * @property foreground for that segment
+ * @property background for that segment
+ * @property decoration for that segment
+ * @property stroke for that segment
+ */
 public interface Style {
     public val font      : Font?
     public val foreground: Paint?
     public val background: Paint?
     public val decoration: TextDecoration?
+    public val stroke    : Stroke?
 }
 
 public class StyledText private constructor(internal val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
@@ -68,7 +81,8 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         font       = style.font,
         foreground = style.foreground,
         background = style.background,
-        decoration = style.decoration
+        decoration = style.decoration,
+        stroke     = style.stroke,
     ))))
 
     public constructor(
@@ -76,11 +90,13 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         font      : Font?           = null,
         foreground: Paint?          = null,
         background: Paint?          = null,
-        decoration: TextDecoration? = null): this(mutableListOf(MutablePair(text, StyleImpl(
-            font,
+        decoration: TextDecoration? = null,
+        stroke    : Stroke?         = null): this(mutableListOf(MutablePair(text, StyleImpl(
+            font       = font,
             foreground = foreground,
             background = background,
-            decoration = decoration
+            decoration = decoration,
+            stroke     = stroke
     ))))
 
     public data class MutablePair<A, B>(var first: A, var second: B) {
@@ -100,9 +116,10 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     override fun iterator(): Iterator<Pair<String, Style>> = IteratorMapper(data.iterator()) { it.first to it.second }
 
     public operator fun plus(other: StyledText): StyledText = this.also { other.data.forEach { style -> add(style) } }
+    public operator fun plus(text : String    ): StyledText = this .. text
 
-    public operator fun rangeTo(font : Font      ): StyledText = this.also { add(MutablePair("",   StyleImpl(font))) }
-    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorPaint(color)))) }
+//    public operator fun rangeTo(font : Font      ): StyledText = this.also { add(MutablePair("",   StyleImpl(font))) }
+//    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorPaint(color)))) }
     public operator fun rangeTo(text : String    ): StyledText = this.also { add(MutablePair(text, StyleImpl())) }
     public operator fun rangeTo(text : StyledText): StyledText = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 
@@ -172,28 +189,43 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         return true
     }
 
-    public operator fun Font.invoke(text: StyledText): StyledText {
-        text.data.forEach { (_, style) ->
-            if (style.font == null) {
-                style.font = this
-            }
-        }
-
-        return text
-    }
-
     internal data class StyleImpl(
-            override var font      : Font?           = null,
-            override var foreground: Paint?          = null,
-            override var background: Paint?          = null,
-            override var decoration: TextDecoration? = null
+        override var font      : Font?           = null,
+        override var foreground: Paint?          = null,
+        override var background: Paint?          = null,
+        override var decoration: TextDecoration? = null,
+        override var stroke    : Stroke?         = null,
     ): Style {
-        constructor(other: Style): this(other.font, other.foreground, other.background, other.decoration)
+        constructor(other: Style): this(
+            font       = other.font,
+            foreground = other.foreground,
+            background = other.background,
+            decoration = other.decoration,
+            stroke     = other.stroke
+        )
     }
 }
 
-// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun Font?.invoke(text: String          ): StyledText = StyledText(text = text, font = this)
+/**
+ * Indicates whether a [Paint] is applied to the foreground or background
+ *
+ * @property Background for the [Style.background] property
+ * @property Foreground for the [Style.foreground] property
+ */
+public enum class Target {
+    Background,
+    Foreground
+}
+
+// region Font
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun Font?.invoke(text: () -> String    ): StyledText = StyledText(text = text(), font = this)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.font == null) {
@@ -202,40 +234,33 @@ public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().ap
     }
 }
 
-//operator fun Font.get(text: String    ) = StyledText(text = text, font = this)
-//operator fun Font.get(text: StyledText) = text.apply {
-//    data.forEach { (_, style) ->
-//        if (style.font == null) {
-//            style.font = this@get
-//        }
-//    }
-//}
+// endregion
+
+// region Color
 
 
-public enum class Target {
-    Background,
-    Foreground
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun Color?.invoke(target: Target = Foreground, text: () -> String): StyledText = this?.let { ColorPaint(it) }(target, text)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }(target, text)
+
+// endregion
+
+// region Paint
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun Paint?.invoke(target: Target = Foreground, text:() -> String): StyledText = this.let {
+    StyledText(text = text(), background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
 
-// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun Color?.invoke(text: String, target: Target = Foreground): StyledText = this?.let { ColorPaint(it) }.invoke(text, target)
-public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
-
-//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorFill(this).let {
-//    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
-//}
-//operator fun Color.get(text: StyledText) = text.apply {
-//    data.forEach { (_, style) ->
-//        if (style.foreground == null) {
-//            style.foreground = ColorFill(this@get)
-//        }
-//    }
-//}
-
-// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun Paint?.invoke(text: String, target: Target = Foreground): StyledText = this.let {
-    StyledText(text = text, background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
-}
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public operator fun Paint?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         when {
@@ -245,19 +270,17 @@ public operator fun Paint?.invoke(target: Target = Foreground, text: () -> Style
     }
 }
 
-//operator fun Color.get(text: String, fill: Fill = Foreground) = ColorFill(this).let {
-//    StyledText(text = text, background = if (fill == Background) it else null, foreground = if (fill == Foreground) it else null)
-//}
-//operator fun Color.get(text: StyledText) = text.apply {
-//    data.forEach { (_, style) ->
-//        if (style.foreground == null) {
-//            style.foreground = ColorFill(this@get)
-//        }
-//    }
-//}
+// endregion
 
-// TODO: Change to invoke(text: () -> String) when fixed (https://youtrack.jetbrains.com/issue/KT-22119)
-public operator fun TextDecoration?.invoke(text: String          ): StyledText = StyledText(text = text, decoration = this)
+// region TextDecoration
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun TextDecoration?.invoke(text: () -> String): StyledText = StyledText(text = text(), decoration = this)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public operator fun TextDecoration?.invoke(text: () -> StyledText): StyledText = text().apply {
     data.forEach { (_, style) ->
         if (style.decoration == null) {
@@ -266,7 +289,27 @@ public operator fun TextDecoration?.invoke(text: () -> StyledText): StyledText =
     }
 }
 
+// endregion
+
+// region Stroke
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun Stroke?.invoke(text:() -> String): StyledText = this.let {
+    StyledText(text = text(), stroke = this)
+}
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public operator fun Stroke?.invoke(text: () -> StyledText): StyledText = text().apply {
+    data.forEach { (_, style) ->
+        if (style.stroke == null) {
+            style.stroke = this@invoke
+        }
+    }
+}
+
+// endregion
 
 public operator fun String.rangeTo(styled: StyledText): StyledText = StyledText(this) + styled
-
-// "foo" .. font {  } + color { }

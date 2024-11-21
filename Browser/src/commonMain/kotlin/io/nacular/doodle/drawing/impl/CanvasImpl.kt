@@ -10,6 +10,7 @@ import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.clear
+import io.nacular.doodle.dom.clearStroke
 import io.nacular.doodle.dom.index
 import io.nacular.doodle.dom.left
 import io.nacular.doodle.dom.numChildren
@@ -26,6 +27,7 @@ import io.nacular.doodle.dom.setOpacity
 import io.nacular.doodle.dom.setOverflow
 import io.nacular.doodle.dom.setPerspectiveTransform
 import io.nacular.doodle.dom.setSize
+import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTop
 import io.nacular.doodle.dom.setTransform
@@ -142,18 +144,37 @@ internal open class CanvasImpl(
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
         when {
             text.isEmpty() || !fill.visible -> return
-            isSimpleText(fill)              -> { updateRenderPosition(); completeOperation(createTextGlyph(fill, text, font, at, textSpacing)) }
+            isSimpleText(fill)              -> { updateRenderPosition(); completeOperation(createTextGlyph(null, fill, text, font, at, textSpacing)) }
             else                            -> vectorRenderer.text(text, font, at, fill, textSpacing)
         }
     }
 
-    override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {
+        when {
+            text.isEmpty() || (!stroke.visible && !(fill?.visible ?: false)) -> return
+            isSimpleText(fill, stroke) -> { updateRenderPosition(); completeOperation(createTextGlyph(stroke, fill, text, font, at, textSpacing)) }
+            else                       -> vectorRenderer.text(text, font, at, stroke, fill, textSpacing)
+        }
+    }
+
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        fill       : Paint,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
         when {
             text.isEmpty() || !fill.visible -> return
             isSimpleText(fill)              -> {
                 updateRenderPosition()
                 completeOperation(
                     createWrappedTextGlyph(
+                        stroke      = null,
                         fill        = fill,
                         text        = text,
                         font        = font,
@@ -167,6 +188,42 @@ internal open class CanvasImpl(
                 )
             }
             else                            -> vectorRenderer.wrapped(text, at, width, fill, font, indent, alignment, lineSpacing, textSpacing)
+        }
+    }
+
+
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        stroke     : Stroke,
+        fill       : Paint?,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
+        when {
+            text.isEmpty() || (!stroke.visible && !(fill?.visible ?: false)) -> return
+            isSimpleText(fill, stroke) -> {
+                updateRenderPosition()
+                completeOperation(
+                    createWrappedTextGlyph(
+                        stroke      = stroke,
+                        fill        = fill,
+                        text        = text,
+                        font        = font,
+                        at          = at,
+                        width       = width,
+                        indent      = indent,
+                        alignment   = alignment,
+                        lineSpacing = lineSpacing,
+                        textSpacing = textSpacing
+                    )
+                )
+            }
+            else                            -> vectorRenderer.wrapped(text, at, width, stroke, fill, font, indent, alignment, lineSpacing, textSpacing)
         }
     }
 
@@ -314,20 +371,28 @@ internal open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    private fun isSimple(fill: Paint): Boolean = when {
-        !fill.visible                               -> true
-        fill is ColorPaint && innerShadowCount == 0 -> true
-        else                                        -> false
-    }
-
-
     @OptIn(ExperimentalContracts::class)
-    private fun isSimpleText(fill: Paint): Boolean {
+    private fun isSimple(fill: Paint): Boolean {
         contract {
             returns(true) implies (fill is ColorPaint)
         }
 
-        return fill is ColorPaint && innerShadowCount <= 0
+        return when {
+            !fill.visible                               -> true
+            fill is ColorPaint && innerShadowCount <= 0 -> true
+            else -> false
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    private fun isSimpleText(fill: Paint?, stroke: Stroke? = null): Boolean {
+        contract {
+            returns(true) implies (fill is ColorPaint)
+        }
+
+        return (stroke?.let {
+            !it.visible || (isSimple(it.fill) && it.dashes?.isEmpty() == true && it.lineCap == Stroke.LineCap.Square)
+        } == true) && fill?.let { isSimple(it) } == true
     }
 
     private fun isSimple(text: StyledText): Boolean {
@@ -485,12 +550,40 @@ internal open class CanvasImpl(
         return element
     }
 
-    private fun createTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, textSpacing: TextSpacing) = configure(textFactory.create(text, font, textSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null), fill, at)
+    private fun createTextGlyph(
+        stroke     : Stroke?,
+        fill       : ColorPaint?,
+        text       : String,
+        font       : Font?,
+        at         : Point,
+        textSpacing: TextSpacing
+    ) = configure(
+        textFactory.create(
+            text,
+            font,
+            textSpacing,
+            if (renderPosition is HTMLElement) renderPosition as HTMLElement else null
+        ),
+        fill,
+        stroke,
+        at,
+    )
 
     private fun String.firstWord    (): String     = splitMatches("""\s""".toRegex()).matches.firstOrNull()?.match ?: ""
     private fun StyledText.firstWord(): StyledText = this.subString(0 .. text.firstWord().length)
 
-    private fun createWrappedTextGlyph(fill: ColorPaint, text: String, font: Font?, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
+    private fun createWrappedTextGlyph(
+        stroke     : Stroke?,
+        fill       : ColorPaint?,
+        text       : String,
+        font       : Font?,
+        at         : Point,
+        width      : Double,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ): HTMLElement {
         val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), font, textSpacing) else 0.0
 
         val element = textFactory.wrapped(
@@ -504,7 +597,7 @@ internal open class CanvasImpl(
             textSpacing = textSpacing
         )
 
-        return configure(element, fill, at)
+        return configure(element, fill, stroke, at)
     }
 
     private fun createStyledTextGlyph(text: StyledText, at: Point, textSpacing: TextSpacing) = textFactory.create(text, textSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null).apply {
@@ -529,11 +622,17 @@ internal open class CanvasImpl(
         return element
     }
 
-    private fun configure(element: HTMLElement, fill: ColorPaint, position: Point): HTMLElement = element.also {
+    private fun configure(element: HTMLElement, fill: ColorPaint?, stroke: Stroke?, position: Point): HTMLElement = element.also {
         it.style.apply {
-            translate (position          )
-            setColor  (fill.color        )
-            setOpacity(fill.color.opacity)
+            translate(position)
+
+            setColor(fill?.color)
+
+            stroke?.let { s ->
+                setStroke(s.thickness, (s.fill as ColorPaint).color)
+            } ?: kotlin.run {
+                clearStroke()
+            }
         }
     }
 

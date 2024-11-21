@@ -40,6 +40,8 @@ public interface CommonCanvas: Renderer {
      */
     public var size: Size
 
+    // region Rect
+
     /**
      * Fills a rectangle.
      *
@@ -76,6 +78,10 @@ public interface CommonCanvas: Renderer {
      */
     public fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint? = null)
 
+    // endregion
+
+    // region Circle/Ellipse
+
     /**
      * Fills a circle.
      *
@@ -110,13 +116,9 @@ public interface CommonCanvas: Renderer {
      */
     public fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint? = null)
 
-    /**
-     * Draws styled text.
-     *
-     * @param text to draw
-     * @param at this point
-     */
-    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
+    // endregion
+
+    // region Text
 
     /**
      * Draws unwrapped plain text in the default [Font].
@@ -125,7 +127,28 @@ public interface CommonCanvas: Renderer {
      * @param at this point
      * @param fill to fill with
      */
-    public fun text(text: String, at: Point = Origin, fill: Paint, textSpacing: TextSpacing = default): Unit = text(text, null, at, fill, textSpacing)
+    public fun text(
+        text       : String,
+        at         : Point       = Origin,
+        fill       : Paint,
+        textSpacing: TextSpacing = default
+    ): Unit = text(text, null, at, fill, textSpacing)
+
+    /**
+     * Draws unwrapped plain text in the default [Font].
+     *
+     * @param text to draw
+     * @param at this point
+     * @param stroke to outline with
+     * @param fill to fill with
+     */
+    public fun text(
+        text       : String,
+        at         : Point       = Origin,
+        stroke     : Stroke,
+        fill       : Paint?      = null,
+        textSpacing: TextSpacing = default
+    ): Unit = text(text, null, at, stroke, fill, textSpacing)
 
     /**
      * Draws unwrapped plain text.
@@ -136,6 +159,25 @@ public interface CommonCanvas: Renderer {
      * @param fill to fill with
      */
     public fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing = default)
+
+    /**
+     * Draws unwrapped plain text.
+     *
+     * @param text to draw
+     * @param font to use
+     * @param at this point
+     * @param stroke to outline with
+     * @param fill to fill with
+     */
+    public fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint? = null, textSpacing: TextSpacing = default)
+
+    /**
+     * Draws styled text.
+     *
+     * @param text to draw
+     * @param at this point
+     */
+    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
 
     /**
      * Draws wrapped plain text.
@@ -155,6 +197,34 @@ public interface CommonCanvas: Renderer {
         at         : Point         = Origin,
         width      : Double,
         fill       : Paint,
+        font       : Font?         = null,
+        indent     : Double        = 0.0,
+        alignment  : TextAlignment = Start,
+        lineSpacing: Float         = 1f,
+        textSpacing: TextSpacing   = default,
+    )
+
+
+    /**
+     * Draws wrapped plain text.
+     *
+     * @param text to draw
+     * @param at this point
+     * @param width of text, beyond which it wraps
+     * @param stroke to outline with
+     * @param fill to fill with
+     * @param font to use
+     * @param indent of first line
+     * @param alignment of text
+     * @param lineSpacing of text in % (1 = spacing for this font)
+     * @param textSpacing of text
+     */
+    public fun wrapped(
+        text       : String,
+        at         : Point         = Origin,
+        width      : Double,
+        stroke     : Stroke,
+        fill       : Paint?        = null,
         font       : Font?         = null,
         indent     : Double        = 0.0,
         alignment  : TextAlignment = Start,
@@ -183,6 +253,10 @@ public interface CommonCanvas: Renderer {
         textSpacing: TextSpacing   = default,
     )
 
+    // endregion
+
+    // region Image
+
     /**
      * Draws an image.
      *
@@ -192,7 +266,13 @@ public interface CommonCanvas: Renderer {
      * @param radius of image corners if rounding
      * @param source rectangle within the image to draw into destination
      */
-    public fun image(image: Image, destination: Rectangle = Rectangle(size = image.size), opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size))
+    public fun image(
+        image      : Image,
+        destination: Rectangle = Rectangle(size = image.size),
+        opacity    : Float     = 1f,
+        radius     : Double    = 0.0,
+        source     : Rectangle = Rectangle(size = image.size)
+    )
 
     /**
      * Draws an image.
@@ -203,7 +283,15 @@ public interface CommonCanvas: Renderer {
      * @param radius of image corners if rounding
      * @param source rectangle within the image to draw into destination
      */
-    public fun image(image: Image, at: Point, opacity: Float = 1f, radius: Double = 0.0, source: Rectangle = Rectangle(size = image.size)): Unit = image(image, Rectangle(position = at, size = image.size), opacity, radius, source)
+    public fun image(
+        image  : Image,
+        at     : Point,
+        opacity: Float     = 1f,
+        radius : Double    = 0.0,
+        source : Rectangle = Rectangle(size = image.size)
+    ): Unit = image(image, Rectangle(position = at, size = image.size), opacity, radius, source)
+
+    // endregion
 }
 
 /**
@@ -217,6 +305,8 @@ public interface CommonCanvas: Renderer {
  * @author Nicholas Eddy
  */
 public interface Canvas: CommonCanvas {
+    // region Transforms
+
     /**
      * Linearly scales the operations within [block].
      *
@@ -313,8 +403,10 @@ public interface Canvas: CommonCanvas {
      * @param around this x coordinate
      * @param block being transformed
      */
-    public fun flipHorizontally(around: Double, block: Canvas.() -> Unit): Unit = transform(Identity.translate(x = around ).scale    (-1.0, 1.0  ).translate(x = -around),
-        block)
+    public fun flipHorizontally(around: Double, block: Canvas.() -> Unit): Unit = transform(
+        Identity.translate(x = around ).scale(-1.0, 1.0  ).translate(x = -around),
+        block
+    )
 
     /**
      * Transforms the operations within [block].
@@ -332,6 +424,10 @@ public interface Canvas: CommonCanvas {
      * @param block being transformed
      */
     public fun transform(transform: AffineTransform, camera: Camera, block: Canvas.() -> Unit)
+
+    // endregion
+
+    // region Clip
 
     /**
      * Clips the operations within [block] within the given rectangle.
@@ -365,6 +461,10 @@ public interface Canvas: CommonCanvas {
      */
     public fun clip(path: Path, block: Canvas.() -> Unit)
 
+    // endregion
+
+    // region Shadow
+
     /**
      * Adds a shadow to the operations within [block].
      *
@@ -394,6 +494,8 @@ public interface Canvas: CommonCanvas {
      * @param block shadow applied to
      */
     public fun outerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 1.0, color: Color = Black, block: Canvas.() -> Unit): Unit = shadow(OuterShadow(horizontal, vertical, blurRadius, color), block)
+
+    // endregion
 }
 
 /**

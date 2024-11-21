@@ -205,6 +205,10 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         text(StyledText(text, font, foreground = fill), at, textSpacing)
     }
 
+    override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {
+        text(StyledText(text, font, foreground = fill), at, textSpacing)
+    }
+
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
         graphics.drawString(text.attributedString().iterator, at.x.toInt(), at.y.toInt())
     }
@@ -214,6 +218,21 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         at         : Point,
         width      : Double,
         fill       : Paint,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing
+    ) {
+        drawWrappedText(graphics, StyledText(text, font), Rectangle(at.x, at.y, width, height))
+    }
+
+    override fun wrapped(
+        text       : String,
+        at         : Point,
+        width      : Double,
+        stroke     : Stroke,
+        fill       : Paint?,
         font       : Font?,
         indent     : Double,
         alignment  : TextAlignment,
