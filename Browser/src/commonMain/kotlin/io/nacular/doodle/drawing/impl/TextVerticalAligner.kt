@@ -28,7 +28,7 @@ internal class TextVerticalAlignerImpl(
         var offsetY = (font?.size ?: defaultFontSize).toDouble()
 
         textFactoryImpl.createBoxed(StyledText(text, font), TextSpacing(), null).also {
-            it.style.setLineHeight(lineSpacing * 0.8f)
+            it.style.setLineHeight(lineSpacing * 0.85f)
             elementRuler.measure(it) {
                 (it.firstChild as? HTMLElement)?.let {
                     offsetY += it.offsetTop.toDouble()

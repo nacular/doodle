@@ -126,16 +126,46 @@ internal class TextMetricsImpl(
     }
 
     private fun textWidth(text: StyledText, textSpacing: TextSpacing): Double {
-        var width    = 0.0
-        var numItems = 0
+        var width       = 0.0
+        var font        = null as Font?
+        var runningText = ""
 
-        text.forEach { (string, style) ->
-            if (string.isNotBlank()) {
-                ++numItems
-                width += textWidth(string, style.font, textSpacing)
+        text.filter { it.first.isNotBlank() }.forEach { (string, style) ->
+            if (style.font != font) {
+                if (runningText.isNotBlank()) {
+                    width += textWidth(runningText, font, textSpacing)
+                }
+
+                font        = style.font
+                runningText = string
+            } else {
+                runningText += string
             }
         }
 
-        return width + (numItems - 1) * textSpacing.wordSpacing
+        if (runningText.isNotBlank()) {
+            width += textWidth(runningText, font, textSpacing)
+        }
+
+        return width
+
+//        text.forEach { (string, style) ->
+//            if (string.isNotBlank()) {
+//                ++numItems
+//                width += textWidth(string, style.font, textSpacing)
+//            }
+//        }
+
+//        var width    = 0.0
+//        var numItems = 0
+//
+//        text.forEach { (string, style) ->
+//            if (string.isNotBlank()) {
+//                ++numItems
+//                width += textWidth(string, style.font, textSpacing)
+//            }
+//        }
+//
+//        return width //+ (numItems - 1) * textSpacing.wordSpacing
     }
 }

@@ -391,21 +391,16 @@ internal open class CanvasImpl(
         }
 
         return (stroke?.let {
-            !it.visible || (isSimple(it.fill) && it.dashes?.isEmpty() == true && it.lineCap == Stroke.LineCap.Square)
-        } == true) && fill?.let { isSimple(it) } == true
+            !it.visible
+            || (isSimple(it.fill) && (it.dashes?.size ?: 0) <= 1 && (it.lineCap == null || it.lineCap == Stroke.LineCap.Square))
+        } ?: true) && fill?.let { isSimple(it) } == true
     }
 
-    private fun isSimple(text: StyledText): Boolean {
-        text.forEach { (_, style) ->
-            val simpleForeground = style.foreground?.let { isSimple(it) } ?: true
-            val simpleBackground = style.background?.let { isSimple(it) } ?: true
+    private fun isSimple(text: StyledText): Boolean = text.all { (_,style) ->
+        val simpleForeground = isSimpleText(style.foreground, style.stroke)
+        val simpleBackground = style.background?.let { isSimple(it) } ?: true
 
-            if (!(simpleForeground && simpleBackground)) {
-                return false
-            }
-        }
-
-        return true
+        simpleForeground && simpleBackground
     }
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {

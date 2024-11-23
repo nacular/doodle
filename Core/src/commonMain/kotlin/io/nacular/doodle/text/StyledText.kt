@@ -118,8 +118,6 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
     public operator fun plus(other: StyledText): StyledText = this.also { other.data.forEach { style -> add(style) } }
     public operator fun plus(text : String    ): StyledText = this .. text
 
-//    public operator fun rangeTo(font : Font      ): StyledText = this.also { add(MutablePair("",   StyleImpl(font))) }
-//    public operator fun rangeTo(color: Color     ): StyledText = this.also { add(MutablePair("",   StyleImpl(foreground = ColorPaint(color)))) }
     public operator fun rangeTo(text : String    ): StyledText = this.also { add(MutablePair(text, StyleImpl())) }
     public operator fun rangeTo(text : StyledText): StyledText = this.also { text.data.forEach { add(MutablePair(it.first, it.second)) } }
 

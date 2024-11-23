@@ -656,9 +656,7 @@ internal class CanvasImpl(
         font        = font,
         indent      = indent,
         width       = width,
-        paint       = stroke.fill.skia().apply {
-            strokeWidth = stroke.thickness.toFloat()
-        },
+        paint       = stroke.skia(),
         alignment   = alignment,
         lineHeight  = lineHeight,
         textSpacing = textSpacing
@@ -694,21 +692,20 @@ internal class CanvasImpl(
         lineHeight : Float  = 1f,
         textSpacing: TextSpacing
     ): Paragraph {
-        val style = ParagraphStyle().apply {
-            textStyle = font.newTextStyle.apply {
+        val builder = ParagraphBuilder(ParagraphStyle().apply {
+            this.alignment = alignment.skia
+        }, fontCollection).run {
+            if (indent != null && indent != 0.0) {
+                addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
+            }
+
+            pushStyle(font.newTextStyle.apply {
                 foreground = paint
 
                 if (lineHeight                != 1f ) height        = lineHeight
                 if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
                 if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
-            }
-            this.alignment = alignment.skia
-        }
-
-        val builder = ParagraphBuilder(style, fontCollection).run {
-            if (indent != null) {
-                addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
-            }
+            })
             addText(text)
         }
 
