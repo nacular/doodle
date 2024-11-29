@@ -28,6 +28,7 @@ import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.event.PointerListener.Companion.entered
 import io.nacular.doodle.event.PointerListener.Companion.on
+import io.nacular.doodle.event.PointerMotionListener.Companion.moved
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
@@ -122,7 +123,7 @@ public class Menu private constructor(
             entered = {
                 clearSelection()
             },
-            exited = {
+            exited  = {
                 if (hasFocus) {
                     clearSelection()
                 }
@@ -214,13 +215,13 @@ public class Menu private constructor(
 
         var possibleSelection = initialNext
 
-        do {
-            if (selectables[possibleSelection].enabled) break
-
-            possibleSelection = (offset(possibleSelection) % selectables.size).let {
-                if (it < 0) selectables.size - 1 else it
-            }
-        } while (possibleSelection != initialNext)
+        if (!selectables[possibleSelection].enabled) {
+            do {
+                possibleSelection = (offset(possibleSelection) % selectables.size).let {
+                    if (it < 0) selectables.size - 1 else it
+                }
+            } while (possibleSelection != initialNext && !selectables[possibleSelection].enabled)
+        }
 
         requestSelection(selectables[possibleSelection])
     }
@@ -230,6 +231,8 @@ public class Menu private constructor(
     }
 
     private fun requestSelection(item: InteractiveMenu): Boolean {
+        if (!item.enabled) return false
+
         selectionIndex = selectables.indexOf(item)
 
         return item.selected
@@ -260,6 +263,14 @@ public class Menu private constructor(
             pointerChanged += entered {
                 parentMenu.requestSelection(this)
                 it.consume()
+            }
+
+            pointerMotionChanged += moved {
+                if (!selected) {
+                    parentMenu.requestSelection(this)
+                    it.consume()
+                    trigger()
+                }
             }
         }
 

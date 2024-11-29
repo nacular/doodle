@@ -624,7 +624,7 @@ public open class Carousel<T, M: ListModel<T>>(
                 ItemMarkers(previousFrameOffset, nextFrameOffset)
             }?.apply {
                 completed += { cleanUpMove() }
-                canceled  += { cleanUpMove() }
+                canceled += { cleanUpMove() }
             }
         }
 

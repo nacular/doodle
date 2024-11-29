@@ -137,6 +137,14 @@ public open class MonthPanel(
     public var showAdjacentMonths: Boolean by renderProperty(false) { _,_ -> update() }
 
     /**
+     * Indicates whether the month should always show 6 rows. This will avoid cases where months in a calendar
+     * have different row counts and therefore aren't aligned uniformly.
+     *
+     * Default: `false`
+     */
+    public var showMaxRows: Boolean by renderProperty(false) { _,_ -> update() }
+
+    /**
      * Defines how the View representing each day should be aligned within its cell.
      * The default is to have the View fill the cell.
      */
@@ -159,8 +167,8 @@ public open class MonthPanel(
         val visualizer = behavior?.itemVisualizer(this) ?: itemVisualizer ?: return
 
         numRows = when {
-            showAdjacentMonths -> 6
-            else               -> ceil((shiftDay(weekStart, startDate.dayOfWeek) + numDays).toDouble() / numColumns).toInt()
+            showMaxRows -> 6
+            else        -> ceil((shiftDay(weekStart, startDate.dayOfWeek) + numDays).toDouble() / numColumns).toInt()
         }
 
         var sequence: Sequence<Int> = (0 until numDays).asSequence()

@@ -187,6 +187,8 @@ internal open class PointerInputServiceStrategyWebkit(
     }
 
     private fun pointerExit(event: PointerEvent) {
+        if (event.pointerId == lastUpId) return // ignore this exit since it only comes for pointer devices after pointer up
+
         eventHandler?.invoke(createPointerEvent(
             event,
             Move, //if (event.target == htmlFactory.root) Exit else Move,
@@ -208,7 +210,7 @@ internal open class PointerInputServiceStrategyWebkit(
     private fun pointerUp(event: PointerEvent): Boolean {
         lastUpId         = event.pointerId
         preventScroll   -= event.pointerId
-        lastUpIsPointer  = (event as? PointerEvent)?.pointerType == "touch"
+        lastUpIsPointer  = event.pointerType == "touch"
 
         eventHandler?.invoke(createPointerEvent(event, Up, 1))
 
