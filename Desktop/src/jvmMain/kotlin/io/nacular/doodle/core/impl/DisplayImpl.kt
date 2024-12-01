@@ -216,15 +216,14 @@ internal class DisplayImpl(
     }
 
     init {
-        skiaLayer.attachTo(targetWindow.contentPane)
-//
-//        targetWindow.add(skiaLayer)
-
-        skiaLayer.addComponentListener(object: ComponentAdapter() {
-            override fun componentResized(e: ComponentEvent) {
-                syncSize()
-            }
-        })
+        skiaLayer.apply {
+            attachTo(targetWindow.contentPane)
+            addComponentListener(object: ComponentAdapter() {
+                override fun componentResized(e: ComponentEvent) {
+                    syncSize()
+                }
+            })
+        }
 
         syncSize()
     }

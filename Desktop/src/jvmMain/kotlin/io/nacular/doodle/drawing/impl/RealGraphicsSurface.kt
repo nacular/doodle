@@ -93,8 +93,7 @@ internal class RealGraphicsSurface(
 
     internal fun onRender(skiaCanvas: SkiaCanvas) {
         if (picture == null) {
-            val canvas = pictureRecorder.beginRecording(bounds.atOrigin.skia())
-            drawToCanvas(canvas)
+            drawToCanvas(pictureRecorder.beginRecording(bounds.atOrigin.skia()))
             picture = pictureRecorder.finishRecordingAsPicture()
         }
 

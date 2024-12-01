@@ -28,7 +28,7 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
          * Provides an abstract current position of the [Carousel] that lets the manager
          * "iterate" back and forward.
          */
-        public abstract class Position internal constructor(internal val index: Int): Comparable<Position> {
+        public abstract class Position internal constructor(internal val index: Int, internal val displayIndex: Int): Comparable<Position> {
             /**
              * Provides a new position if one is available before this one.
              *
