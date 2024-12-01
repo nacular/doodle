@@ -204,7 +204,7 @@ class ButtonTests {
 
     @Test @JsName("delegatesContainsPointToBehavior")
     fun `delegates contains point to behavior`() {
-        val button   = TestButton(model = mockk(relaxed = true)).apply { size = Size(100) }
+        val button   = TestButton(model = mockk(relaxed = true)).apply { suggestSize(Size(100)) }
         val behavior = mockk<Behavior<Button>>(relaxed = true)
         val point    = Point(4, 5)
 

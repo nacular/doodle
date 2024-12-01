@@ -29,7 +29,7 @@ class PhotoTests {
 
         verify(exactly = 1) { canvas.image(image = image, source = Rectangle(size = image.size), destination = photo.bounds.atOrigin) }
 
-        photo.size = Size(49, 56)
+        photo.suggestSize(Size(49, 56))
 
         photo.render(canvas)
 

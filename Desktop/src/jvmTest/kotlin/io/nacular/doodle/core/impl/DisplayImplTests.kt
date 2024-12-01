@@ -5,11 +5,13 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
-import io.nacular.doodle.application.CustomSkikoView
 import io.nacular.doodle.core.ChildObserver
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.LookupResult.Found
+import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.height
@@ -38,6 +40,8 @@ import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.paragraph.FontCollection
 import org.jetbrains.skiko.SkiaLayer
+import org.jetbrains.skiko.SkikoRenderDelegate
+import javax.swing.JFrame
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.reflect.KProperty1
@@ -82,7 +86,7 @@ class DisplayImplTests {
 
         val display = display().apply { childrenChanged += observer }
 
-        val view = view().apply { x += 10.0; y += 12.0 }
+        val view = realView().apply { suggestPosition(x + 10.0, y + 12.0) }
         display += view
 
         verify (exactly = 1) {
@@ -95,7 +99,7 @@ class DisplayImplTests {
 
         val display = display()
 
-        val view = view().apply { x += 10.0; y += 12.0 }
+        val view = realView().apply { suggestPosition(x + 10.0, y + 12.0) }
         display += view
 
         display.childrenChanged += observer
@@ -112,9 +116,9 @@ class DisplayImplTests {
 
         val display = display()
 
-        val view1 = view().apply { x += 10.0; y += 12.0 }
-        val view2 = view().apply { x += 10.0; y += 12.0 }
-        val view3 = view().apply { x += 10.0; y += 12.0 }
+        val view1 = realView().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val view2 = realView().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val view3 = realView().apply { suggestPosition(x + 10.0, y + 12.0) }
 
         display += listOf(view1, view2, view3)
 
@@ -129,10 +133,10 @@ class DisplayImplTests {
 
     @Test fun `child at (no layout) works`() {
         val display = display()
-        val child0  = view().apply { x += 10.0; y += 12.0 }
-        val child1  = view().apply { x += 10.0; y += 12.0 }
-        val child2  = view().apply { x += 20.0; y += 12.0 }
-        val child3  = view().apply { x += 10.0; y += 23.0; width = 0.0 }
+        val child0  = mockView("child0", Rectangle(10, 12, 10, 10))
+        val child1  = mockView("child1", Rectangle(10, 12, 10, 10))
+        val child2  = mockView("child2", Rectangle(20, 12, 10, 10))
+        val child3  = mockView("child3", Rectangle(10, 23,  0, 10))
 
         display += child0
         display += child1
@@ -148,25 +152,31 @@ class DisplayImplTests {
         expect(child0) { display.child(at = Point(11.0, 13.0)) }
     }
 
-//    @Test fun `child at works`() {
-//        val at     = Point(11.0, 13.0)
-//        val result = mockk<View>()
-//        val layout = mockk<Layout>().apply {
-//            every { item(any(), at = at) } returns Found(result)
-//        }
-//
-//        display().apply {
-//            this.layout = layout
-//
-//            expect(result) { child(at) }
-//
-//            every { layout.child(any(), at = at) } returns Ignored
-//
-//            expect(null) { child(at) }
-//
-//            verify(exactly = 2) { layout.child(any(), at) }
-//        }
-//    }
+    @Test fun `child at works`() {
+        val at            = Point(11.0, 13.0)
+        val child         = realView()
+        val positionables = slot<Sequence<Positionable>>()
+
+        val layout = mockk<Layout>().apply {
+            every { item(capture(positionables), at = at) } answers {
+                Found(positionables.captured.first())
+            }
+        }
+
+        display().apply {
+            this += child
+
+            this.layout = layout
+
+            expect(child) { child(at) }
+
+            every { layout.item(any(), at = at) } returns Ignored
+
+            expect(null) { child(at) }
+
+            verify(exactly = 2) { layout.item(any(), at) }
+        }
+    }
 
     @Test fun `is-ancestor works`() {
         val display = display()
@@ -201,9 +211,9 @@ class DisplayImplTests {
 
     @Test fun `plus equal child multiple times works`() {
         val display = display()
-        val child0  = view()
-        val child1  = view()
-        val child2  = view()
+        val child0  = realView()
+        val child1  = realView()
+        val child2  = realView()
 
         display += child0
         display += child1
@@ -215,9 +225,9 @@ class DisplayImplTests {
 
     @Test fun `repeated child add works`() {
         val display = display()
-        val child0  = view()
-        val child1  = view()
-        val child2  = view()
+        val child0  = realView()
+        val child1  = realView()
+        val child2  = realView()
 
         display.children.addAll(listOf(
             child0,
@@ -276,17 +286,12 @@ class DisplayImplTests {
     }
 
     @Test fun `fill works`() {
-        var onRender        = slot<(Canvas, Int, Int, Long) -> Unit>()
-        val customSkikoView = mockk<CustomSkikoView>().apply {
-            every { this@apply.onRender = captureLambda() } answers {
-                onRender = lambda()
+        val renderDelegate = slot<SkikoRenderDelegate>()
+        val skiaLayer = mockk<SkiaLayer> {
+            every { this@mockk.renderDelegate = capture(renderDelegate) } answers {
+                renderDelegate.captured
             }
         }
-
-        val skiaLayer = mockk<SkiaLayer>().apply {
-            every { this@apply.skikoView } returns customSkikoView
-        }
-
         val display   = display(skiaLayer = skiaLayer)
         val paint     = mockk<Paint>()
 
@@ -302,7 +307,7 @@ class DisplayImplTests {
 
         val canvas = mockk<Canvas>()
 
-        onRender.captured(canvas, 400, 500, 1000L)
+        renderDelegate.captured.onRender(canvas, 400, 500, 1000L)
 
         verify(exactly = 1) {
             canvas.drawRect(any(), any())
@@ -310,15 +315,11 @@ class DisplayImplTests {
     }
 
     @Test fun `renders correctly`() {
-        var onRender        = slot<(Canvas, Int, Int, Long) -> Unit>()
-        val customSkikoView = mockk<CustomSkikoView>().apply {
-            every { this@apply.onRender = captureLambda() } answers {
-                onRender = lambda()
+        val renderDelegate = slot<SkikoRenderDelegate>()
+        val skiaLayer      = mockk<SkiaLayer> {
+            every { this@mockk.renderDelegate = capture(renderDelegate) } answers {
+                renderDelegate.captured
             }
-        }
-
-        val skiaLayer = mockk<SkiaLayer>().apply {
-            every { this@apply.skikoView } returns customSkikoView
         }
 
         val child = mockk<View>()
@@ -333,14 +334,14 @@ class DisplayImplTests {
             }
         }
 
-        val display = display(skiaLayer = skiaLayer, device = device)
+        val display = display(device = device, skiaLayer = skiaLayer)
 
         display += child
         display.showPopup(popup)
 
         val canvas = mockk<Canvas>()
 
-        onRender.captured(canvas, 400, 500, 1000L)
+        renderDelegate.captured.onRender(canvas, 400, 500, 1000L)
 
         verify(exactly = 1) {
             surfaces.values.forEach {
@@ -349,17 +350,31 @@ class DisplayImplTests {
         }
     }
 
-    private fun view(): View = view { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun realView(): View = view { suggestBounds(Rectangle(size = Size(10.0, 10.0))) }
+
+    private fun mockView(name: String? = null, bounds: Rectangle = Rectangle(Size(10))) = mockk<View>(name) {
+        val point      = slot<Point>()
+        var visible    = true
+        val visibleSet = slot<Boolean>()
+
+        every { zOrder                                   } returns 0
+        every { this@mockk.visible                       } answers { visible }
+        every { this@mockk.bounds                        } returns bounds
+        every { contains(capture(point))                 } answers { point.captured in bounds }
+        every { this@mockk.visible = capture(visibleSet) } answers { visible = visibleSet.captured }
+    }
 
     private fun display(
         appScope      : CoroutineScope                      = CoroutineScope(SupervisorJob() + Dispatchers.Default),
         uiDispatcher  : CoroutineContext                    = EmptyCoroutineContext,
-        skiaLayer     : SkiaLayer                           = skiaLayer(),
+        targetWindow  : JFrame                              = targetWindow(),
         defaultFont   : Font                                = mockk(),
         fontCollection: FontCollection                      = mockk(),
-        device        : GraphicsDevice<RealGraphicsSurface> = mockk()) = DisplayImpl(appScope, uiDispatcher, skiaLayer, defaultFont, fontCollection, device)
+        device        : GraphicsDevice<RealGraphicsSurface> = mockk(),
+        skiaLayer     : SkiaLayer                           = mockk(),
+    ) = DisplayImpl(appScope, uiDispatcher, defaultFont, fontCollection, device, targetWindow) { skiaLayer }
 
-    private fun skiaLayer() = mockk<SkiaLayer>().apply { every { skikoView } returns mockk<CustomSkikoView>() }
+    private fun targetWindow() = mockk<JFrame>().apply { every { contentPane } returns mockk<java.awt.Container>() }
 
     private fun <T> validateDefault(p: KProperty1<DisplayImpl, T>, default: T?) {
         expect(default, "$p defaults to $default") { p.get(display()) }

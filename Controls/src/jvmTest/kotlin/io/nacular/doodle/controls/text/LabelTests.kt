@@ -2,6 +2,7 @@
 
 package io.nacular.doodle.controls.text
 
+import JsName
 import io.mockk.every
 import io.mockk.mockk
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -12,7 +13,6 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.text.rangeTo
-import JsName
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.expect
@@ -74,7 +74,7 @@ class LabelTests {
         Label().let {
             it.behavior   = createBehavior(textSize)
             it.styledText = styledText()
-            it.size       = Empty
+            it.suggestSize(Empty)
 
             assertEquals(textSize, it.size)
         }
@@ -88,7 +88,7 @@ class LabelTests {
             it.behavior   = createBehavior(wrappedSize)
             it.styledText = styledText()
             it.wrapsWords = true
-            it.size       = Empty
+            it.suggestSize(Empty)
 
             assertEquals(wrappedSize, it.size)
         }
@@ -103,7 +103,7 @@ class LabelTests {
             it.styledText = styledText()
             it.fitText    = emptySet()
             it.wrapsWords = true
-            it.size       = Empty
+            it.suggestSize(Empty)
 
             assertEquals(Empty, it.size)
         }
@@ -112,7 +112,7 @@ class LabelTests {
     @Test @JsName("foregroundColorFillsStyledTextMissingColor")
     fun `foreground color fills in styled text missing color`() {
         Label().apply {
-            val rawStyledText = "blank ".. Red ("red") .. " blank"
+            val rawStyledText = "blank ".. Red { "red" } .. " blank"
 
             styledText = rawStyledText
 
@@ -134,7 +134,7 @@ class LabelTests {
             val font1         = mockk<Font>()
             val font2         = mockk<Font>()
             val font3         = mockk<Font>()
-            val rawStyledText = "blank ".. font1 ("font1") .. " blank"
+            val rawStyledText = "blank ".. font1 { "font1" } .. " blank"
 
             styledText = rawStyledText
 
@@ -153,7 +153,7 @@ class LabelTests {
     private fun styledText(): StyledText {
         val font = mockk<Font>()
 
-        return "foo bar "..font("some simple").." text"
+        return "foo bar "..font {"some simple" }.." text"
     }
 
     private fun createBehavior(size: Size = Empty) = mockk<LabelBehavior>(relaxed = true).apply {

@@ -54,7 +54,11 @@ private class TestCanvas: Canvas {
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {}
 
+    override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {}
+
     override fun wrapped(text: String, at: Point, width: Double, fill: Paint, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
+
+    override fun wrapped(text: String, at: Point, width: Double, stroke: Stroke, fill: Paint?, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
 
     override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
 

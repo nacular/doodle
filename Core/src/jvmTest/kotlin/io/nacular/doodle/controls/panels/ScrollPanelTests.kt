@@ -177,8 +177,8 @@ class ScrollPanelTests {
         val start    = Point(5.0, 5.0)
 
         mapOf(
-                90.0 .. 100.0 to Point(90, 5),
-                 0.0 .. 100.0 to Point(90, 5)
+            90.0 .. 100.0 to Point(90, 5),
+             0.0 .. 100.0 to Point(90, 5)
         ).forEach { (target, result) ->
             val panel = panel(behavior).apply {
                 scrollTo(start)

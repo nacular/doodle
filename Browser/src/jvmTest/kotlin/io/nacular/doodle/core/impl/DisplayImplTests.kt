@@ -131,7 +131,7 @@ class DisplayImplTests {
 
         val display = display().apply { childrenChanged += observer }
 
-        val view = view().apply { x += 10.0; y += 12.0 }
+        val view = view().apply { suggestPosition(x + 10.0, y + 12.0) }
         display += view
 
         verify (exactly = 1) {
@@ -144,7 +144,7 @@ class DisplayImplTests {
 
         val display = display()
 
-        val view = view().apply { x += 10.0; y += 12.0 }
+        val view = view().apply { suggestPosition(x + 10.0, y + 12.0) }
         display += view
 
         display.childrenChanged += observer
@@ -161,9 +161,9 @@ class DisplayImplTests {
 
         val display = display()
 
-        val view1 = view().apply { x += 10.0; y += 12.0 }
-        val view2 = view().apply { x += 10.0; y += 12.0 }
-        val view3 = view().apply { x += 10.0; y += 12.0 }
+        val view1 = view().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val view2 = view().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val view3 = view().apply { suggestPosition(x + 10.0, y + 12.0) }
 
         display += listOf(view1, view2, view3)
 
@@ -178,10 +178,10 @@ class DisplayImplTests {
 
     @Test fun `child at (no layout) works`() {
         val display = display()
-        val child0  = view().apply { x += 10.0; y += 12.0 }
-        val child1  = view().apply { x += 10.0; y += 12.0 }
-        val child2  = view().apply { x += 20.0; y += 12.0 }
-        val child3  = view().apply { x += 10.0; y += 23.0; width = 0.0 }
+        val child0  = view().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val child1  = view().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val child2  = view().apply { suggestPosition(x + 10.0, y + 12.0) }
+        val child3  = view().apply { suggestBounds(Rectangle(x + 10.0, y + 23.0, width = 0.0, height = height)) }
 
         display += child0
         display += child1
@@ -438,7 +438,7 @@ class DisplayImplTests {
         }
     }
 
-    private fun view(): View = view { bounds = Rectangle(size = Size(10.0, 10.0)) }
+    private fun view(): View = view { suggestBounds(Rectangle(size = Size(10, 10))) }
 
     private fun display(htmlFactory  : HtmlFactory   = mockk(),
                         canvasFactory: CanvasFactory = mockk(),

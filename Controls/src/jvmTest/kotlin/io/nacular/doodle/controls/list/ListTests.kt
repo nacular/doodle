@@ -59,7 +59,7 @@ class ListTests {
         val model = IntProgressionModel(1 .. 10)
 
         val list = CustomList(model, 0).apply {
-            size          = Size(100, 0)
+            suggestSize(Size(100, 0))
             this.behavior = behavior
         }
 

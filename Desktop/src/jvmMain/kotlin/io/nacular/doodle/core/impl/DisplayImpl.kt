@@ -47,7 +47,6 @@ import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkikoRenderDelegate
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import javax.accessibility.Accessible
 import javax.swing.JFrame
 import javax.swing.JPanel
 import kotlin.coroutines.CoroutineContext
@@ -62,11 +61,11 @@ import org.jetbrains.skia.Canvas as SkiaCanvas
 internal class DisplayImpl(
     private  val appScope      : CoroutineScope,
     private  val uiDispatcher  : CoroutineContext,
-    private  val accessible    : Accessible,
     private  val defaultFont   : Font,
     private  val fontCollection: FontCollection,
     internal val device        : GraphicsDevice<RealGraphicsSurface>,
                  targetWindow  : JFrame,
+                 skiaLayers    : () -> SkiaLayer
 ): DisplaySkiko, SkikoRenderDelegate {
     override var insets = Insets.None
 
@@ -76,7 +75,7 @@ internal class DisplayImpl(
 
     override val panel: JPanel get() = skiaLayer
 
-    private val skiaLayer = SkiaLayer(externalAccessibleFactory = { accessible }).apply {
+    private val skiaLayer = skiaLayers().apply {
         renderDelegate     = this@DisplayImpl
         canvas.isFocusable = false // FIXME: This is currently needed b/c the canvas steals focus from native controls. Need to fix.
     }
