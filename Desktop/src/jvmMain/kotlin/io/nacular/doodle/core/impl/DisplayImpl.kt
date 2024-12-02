@@ -175,6 +175,8 @@ internal class DisplayImpl(
         paintNeeded()
     }
 
+    private var fillCanvas: CanvasImpl? = null
+
     private var fill: Paint? by Delegates.observable(null) { _,_,_ ->
         paintNeeded()
     }
@@ -186,7 +188,7 @@ internal class DisplayImpl(
     }
 
     override fun onRender(canvas: SkiaCanvas, width: Int, height: Int, nanoTime: Long) {
-        canvas.save ()
+        canvas.save()
 
         panel.graphicsConfiguration.defaultTransform.scaleX.toFloat().let {
             canvas.scale(it, it)
@@ -198,7 +200,9 @@ internal class DisplayImpl(
         }
 
         fill?.let {
-            CanvasImpl(canvas, defaultFont, fontCollection).apply {
+            fillCanvas = fillCanvas?.also { it.skiaCanvas = canvas } ?: CanvasImpl(canvas, defaultFont, fontCollection)
+
+            fillCanvas!!.apply {
                 size = this@DisplayImpl.size
                 rect(Rectangle(width, height), it)
             }

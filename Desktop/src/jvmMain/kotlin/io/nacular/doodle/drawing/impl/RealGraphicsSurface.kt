@@ -100,16 +100,7 @@ internal class RealGraphicsSurface(
         skiaCanvas.save()
 
         when {
-            finalTransform.is3d -> {
-                val matrix = (camera.projection * finalTransform).matrix
-
-                skiaCanvas.concat(Matrix44(
-                    matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
-                    matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
-                    matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
-                    matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat(),
-                ))
-            }
+            finalTransform.is3d -> skiaCanvas.concat(finalTransformMatrix!! )
             else                -> skiaCanvas.concat(finalTransform.skia33())
         }
 
@@ -190,11 +181,24 @@ internal class RealGraphicsSurface(
         }
     }
 
+    private var finalTransformMatrix: Matrix44? = null
+
     private fun updateTransform(new: Point) {
         finalTransform = when {
-            !mirrored && transform.isIdentity -> Identity.translate(new)
-            mirrored -> (transform translate new).flipHorizontally(at = size.width / 2)
-            else     ->  transform translate new
+            !mirrored &&  transform.isIdentity -> Identity.translate(new)
+             mirrored -> (transform translate new).flipHorizontally(at = size.width / 2)
+             else     ->  transform translate new
+        }
+
+        if (finalTransform.is3d) {
+            val matrix = (camera.projection * finalTransform).matrix
+
+            finalTransformMatrix = Matrix44(
+                matrix[0,0].toFloat(), matrix[0,1].toFloat(), matrix[0,2].toFloat(), matrix[0,3].toFloat(),
+                matrix[1,0].toFloat(), matrix[1,1].toFloat(), matrix[1,2].toFloat(), matrix[1,3].toFloat(),
+                matrix[2,0].toFloat(), matrix[2,1].toFloat(), matrix[2,2].toFloat(), matrix[2,3].toFloat(),
+                matrix[3,0].toFloat(), matrix[3,1].toFloat(), matrix[3,2].toFloat(), matrix[3,3].toFloat(),
+            )
         }
     }
 

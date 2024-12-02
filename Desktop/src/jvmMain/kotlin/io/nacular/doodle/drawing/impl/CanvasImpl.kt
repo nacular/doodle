@@ -122,80 +122,14 @@ internal class PatternCanvasWrapper(private val canvas: Canvas): PatternCanvas, 
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class CanvasImpl(
-    internal val skiaCanvas    : SkiaCanvas,
+    internal var skiaCanvas    : SkiaCanvas,
     private  val defaultFont   : SkiaFont,
     private  val fontCollection: FontCollection
 ): Canvas {
-    private fun Paint.skia(): SkiaPaint {
-        val result = SkiaPaint()
-
-        when (this) {
-            is ColorPaint          -> result.color  = color.skia()
-            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skia(), end.skia(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skia(), start.radius.toFloat(), end.center.skia(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT, Matrix33.Companion.makeScale((size.width / image.width).toFloat(), (size.height / image.height).toFloat())) }
-            is PatternPaint        -> {
-                // FIXME: Reuse bitmaps?
-                val bitmap = Bitmap().apply {
-                    allocN32Pixels(size.width.toInt(), size.height.toInt())
-                }
-
-                val bitmapCanvas = SkiaCanvas(bitmap)
-
-                paint(PatternCanvasWrapper(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size }))
-
-                val matrix = (Identity.translate(bounds.x, bounds.y) * transform).skia33()
-
-                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, matrix)
-            }
-            is SweepGradientPaint -> {
-                result.shader = Shader.makeSweepGradient(
-                    center     = center.skia(),
-                    startAngle = 0f,
-                    endAngle   = 360f,
-                    colors     = colors.map { it.color.skia() }.toIntArray(),
-                    positions  = colors.map { it.offset }.toFloatArray(),
-                    style      = GradientStyle(DECAL, isPremul = true, Identity.rotate(around = center, rotation).skia33())
-                )
-            }
-        }
-
-        result.imageFilter = imageFilter
-
-        return result
-    }
-
-    private fun Stroke.skia(): SkiaPaint = fill.skia().also {
-        it.setStroke(true)
-        it.strokeWidth = thickness.toFloat()
-        dashes?.let { dashes ->
-            val fixedDashes = when {
-                dashes.size.isOdd -> { doubleArrayOf(*dashes, dashes.last()) }
-                else              -> dashes
-            }
-
-            it.pathEffect = PathEffect.makeDash(fixedDashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
-        }
-
-        it.strokeCap = when (lineCap) {
-            LineCap.Square -> SQUARE
-            LineCap.Round  -> ROUND
-            else           -> BUTT
-        }
-
-        it.strokeJoin = when (lineJoint) {
-            LineJoint.Round -> PaintStrokeJoin.ROUND
-            LineJoint.Bevel -> PaintStrokeJoin.BEVEL
-            else            -> PaintStrokeJoin.MITER
-        }
-    }
-
-    private fun Renderer.FillRule.skia() = when (this) {
-        EvenOdd -> EVEN_ODD
-        else    -> WINDING
-    }
-
     override var size: Size = Size.Empty
+
+    private val shadows = mutableListOf<Shadow>()
+    private var imageFilter: ImageFilter? = null
 
     override fun transform(transform: AffineTransform, block: Canvas.() -> Unit) {
         val oldMatrix = skiaCanvas.localToDevice
@@ -570,9 +504,6 @@ internal class CanvasImpl(
         skiaCanvas.restore()
     }
 
-    private val shadows = mutableListOf<Shadow>()
-    private var imageFilter: ImageFilter? = null
-
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
         shadows += shadow
         skiaCanvas.save()
@@ -592,6 +523,75 @@ internal class CanvasImpl(
     private val Font?.newTextStyle get() = when (this) {
         is FontImpl -> this.textStyle()
         else        -> defaultFont.textStyle()
+    }
+
+    private fun Paint.skia(): SkiaPaint {
+        val result = SkiaPaint()
+
+        when (this) {
+            is ColorPaint          -> result.color  = color.skia()
+            is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skia(), end.skia(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skia(), start.radius.toFloat(), end.center.skia(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
+            is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT, Matrix33.Companion.makeScale((size.width / image.width).toFloat(), (size.height / image.height).toFloat())) }
+            is PatternPaint        -> {
+                // FIXME: Reuse bitmaps?
+                val bitmap = Bitmap().apply {
+                    allocN32Pixels(size.width.toInt(), size.height.toInt())
+                }
+
+                val bitmapCanvas = SkiaCanvas(bitmap)
+
+                paint(PatternCanvasWrapper(CanvasImpl(bitmapCanvas, defaultFont, fontCollection).apply { size = this@skia.size }))
+
+                val matrix = (Identity.translate(bounds.x, bounds.y) * transform).skia33()
+
+                result.shader = bitmap.makeShader(REPEAT, REPEAT, MITCHELL, matrix)
+            }
+            is SweepGradientPaint -> {
+                result.shader = Shader.makeSweepGradient(
+                    center     = center.skia(),
+                    startAngle = 0f,
+                    endAngle   = 360f,
+                    colors     = colors.map { it.color.skia() }.toIntArray(),
+                    positions  = colors.map { it.offset }.toFloatArray(),
+                    style      = GradientStyle(DECAL, isPremul = true, Identity.rotate(around = center, rotation).skia33())
+                )
+            }
+        }
+
+        result.imageFilter = imageFilter
+
+        return result
+    }
+
+    private fun Stroke.skia(): SkiaPaint = fill.skia().also {
+        it.setStroke(true)
+        it.strokeWidth = thickness.toFloat()
+        dashes?.let { dashes ->
+            val fixedDashes = when {
+                dashes.size.isOdd -> { doubleArrayOf(*dashes, dashes.last()) }
+                else              -> dashes
+            }
+
+            it.pathEffect = PathEffect.makeDash(fixedDashes.map { it.toFloat() }.toFloatArray(), dashOffset.toFloat())
+        }
+
+        it.strokeCap = when (lineCap) {
+            LineCap.Square -> SQUARE
+            LineCap.Round  -> ROUND
+            else           -> BUTT
+        }
+
+        it.strokeJoin = when (lineJoint) {
+            LineJoint.Round -> PaintStrokeJoin.ROUND
+            LineJoint.Bevel -> PaintStrokeJoin.BEVEL
+            else            -> PaintStrokeJoin.MITER
+        }
+    }
+
+    private fun Renderer.FillRule.skia() = when (this) {
+        EvenOdd -> EVEN_ODD
+        else    -> WINDING
     }
 
     private fun drawOuterShadows(operation: (SkiaPaint) -> Unit) {
