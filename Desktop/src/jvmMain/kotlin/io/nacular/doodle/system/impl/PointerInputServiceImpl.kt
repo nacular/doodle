@@ -1,21 +1,5 @@
 package io.nacular.doodle.system.impl
 
-//import org.jetbrains.skiko.SkikoGestureEvent
-//import org.jetbrains.skiko.SkikoInputModifiers.Companion.ALT
-//import org.jetbrains.skiko.SkikoInputModifiers.Companion.CONTROL
-//import org.jetbrains.skiko.SkikoInputModifiers.Companion.META
-//import org.jetbrains.skiko.SkikoInputModifiers.Companion.SHIFT
-//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_1
-//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_2
-//import org.jetbrains.skiko.SkikoMouseButtons.Companion.BUTTON_3
-//import org.jetbrains.skiko.SkikoPointerEvent
-//import org.jetbrains.skiko.SkikoPointerEventKind
-//import org.jetbrains.skiko.SkikoPointerEventKind.DOWN
-//import org.jetbrains.skiko.SkikoPointerEventKind.DRAG
-//import org.jetbrains.skiko.SkikoPointerEventKind.ENTER
-//import org.jetbrains.skiko.SkikoPointerEventKind.EXIT
-//import org.jetbrains.skiko.SkikoPointerEventKind.MOVE
-//import org.jetbrains.skiko.SkikoPointerEventKind.UP
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.WindowGroupImpl
@@ -190,6 +174,7 @@ internal class PointerInputServiceImpl(
             displayListeners[display] = it
 
             display.panel.addMouseListener      (it)
+            display.panel.addMouseWheelListener (it)
             display.panel.addMouseMotionListener(it)
         }
     }
@@ -197,6 +182,7 @@ internal class PointerInputServiceImpl(
     private fun teardownDisplay(display: DisplayImpl) {
         displayListeners.remove(display)?.let {
             display.panel.removeMouseListener      (it)
+            display.panel.removeMouseWheelListener (it)
             display.panel.removeMouseMotionListener(it)
         }
     }
