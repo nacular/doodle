@@ -66,7 +66,7 @@ import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.BlendMode
 import org.jetbrains.skia.BlendMode.SRC_OUT
 import org.jetbrains.skia.ColorFilter
-import org.jetbrains.skia.FilterBlurMode.OUTER
+import org.jetbrains.skia.FilterBlurMode.NORMAL
 import org.jetbrains.skia.FilterTileMode.DECAL
 import org.jetbrains.skia.FilterTileMode.REPEAT
 import org.jetbrains.skia.GradientStyle
@@ -600,7 +600,7 @@ internal class CanvasImpl(
                 color       = it.color.forShadow().skia()
                 isAntiAlias = true
                 if (it.blurRadius > 0f) {
-                    maskFilter = MaskFilter.makeBlur(OUTER, it.blurRadius.toFloat())
+                    maskFilter = MaskFilter.makeBlur(NORMAL, it.blurRadius.toFloat())
                 }
             }
 
