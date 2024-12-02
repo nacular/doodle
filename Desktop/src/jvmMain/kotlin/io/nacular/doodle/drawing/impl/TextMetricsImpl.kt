@@ -53,11 +53,8 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
         }
 
         return builder.build().apply {
-            layout(width?.toFloat() ?: POSITIVE_INFINITY)
-
-            if (indent > 0.0) {
-                layout(max(minIntrinsicWidth + 1, indent.toFloat()))
-            }
+            layout(POSITIVE_INFINITY)
+            layout(maxOf(minIntrinsicWidth + 1, width?.toFloat() ?: POSITIVE_INFINITY, indent.toFloat()))
         }
     }
 
@@ -74,11 +71,8 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
         }
 
         return builder.build().apply {
-            layout(width?.toFloat() ?: POSITIVE_INFINITY)
-
-            if (indent > 0.0) {
-                layout(max(minIntrinsicWidth + 1, indent.toFloat()))
-            }
+            layout(POSITIVE_INFINITY)
+            layout(maxOf(minIntrinsicWidth + 1, width?.toFloat() ?: POSITIVE_INFINITY, indent.toFloat()))
         }
     }
 
