@@ -121,7 +121,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {
             applyWrap(it, indent)
         } else {
-            (0 until it.numChildren).map { i -> it.childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, indent) }
+            it.style.setTextIndent(indent)
+            (0 until it.numChildren).map { i -> it.childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, null) }
         }
     }
 
@@ -147,7 +148,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    private fun applyWrap(element: HTMLElement, indent: Double) {
+    private fun applyWrap(element: HTMLElement, indent: Double?) {
         with(element.style) {
             whiteSpace = "pre-wrap"
             setTextIndent(indent)

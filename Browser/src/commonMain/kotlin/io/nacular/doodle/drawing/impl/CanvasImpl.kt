@@ -191,7 +191,6 @@ internal open class CanvasImpl(
         }
     }
 
-
     override fun wrapped(
         text       : String,
         at         : Point,

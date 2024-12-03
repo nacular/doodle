@@ -114,6 +114,7 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.min
 import io.nacular.doodle.dom.SVGTextElement as SVGTextElement1
 
@@ -306,29 +307,30 @@ internal open class VectorRendererSvg(
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
-        textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont))
+        textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont), line = 0)
     }
 
-    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double) {
-        when {
-            text.count > 0 -> {
-                syncShadows  ()
-                updateRootSvg() // Done here since present normally does this
+    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double, line: Int) {
+        if (text.count > 0) {
+            syncShadows  ()
+            updateRootSvg() // Done here since present normally does this
 
-                val texts = makeStyledText(text, at, textSpacing)
+            val textInfo = makeStyledText(text, at, textSpacing)
 
-                texts.text.let {
-                    completeOperation(it)
-                    adjustTextAfterDisplay(it, yOffset)
-                }
+            textInfo.text.let {
+                completeOperation(it)
+                adjustTextAfterDisplay(it, yOffset)
+            }
 
-                texts.backgrounds.forEach { (element, paint) ->
-                    val bbox = element.getBBox_(BoundingBoxOptions())
+            textInfo.backgrounds.forEach { (element, paint) ->
+                val bbox     = element.getBBox_(BoundingBoxOptions())
+                val fontSize = textInfo.maxFontSize.toDouble()
 
-                    makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height)).also {
-                        fillElement(it, paint)
-                        texts.text.parent?.insertBefore(it, texts.text)
-                    }
+                /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
+
+                makeRect(Rectangle(bbox.x, line * fontSize, bbox.width, fontSize), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
+                    fillElement(it, paint)
+                    textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                 }
             }
         }
@@ -473,7 +475,7 @@ internal open class VectorRendererSvg(
 
     protected fun nextId() = idGenerator.nextId()
 
-    protected fun makeRect(rectangle: Rectangle, radius: Double = 0.0): SVGRectElement = createOrUse<SVGRectElement>("rect").apply {
+    protected fun makeRect(rectangle: Rectangle, radius: Double = 0.0, possible: Node? = null): SVGRectElement = createOrUse<SVGRectElement>("rect", possible).apply {
         setBounds(rectangle)
 
         setRadius(radius)
@@ -605,22 +607,24 @@ internal open class VectorRendererSvg(
         setStroke(stroke)
     }
 
-    private class StyledTextInfo(val text: SVGTextElement1, val backgrounds: Map<SVGTSpanElement, Paint>)
+    private class StyledTextInfo(val text: SVGTextElement1, val backgrounds: Map<SVGTSpanElement, Paint>, val maxFontSize: Int)
 
     private fun makeStyledText(text: StyledText, at: Point, textSpacing: TextSpacing): StyledTextInfo {
+        var maxFontSize = defaultFontSize
         val backgrounds = mutableMapOf<SVGTSpanElement, Paint>()
 
         val textElement = createOrUse<SVGTextElement1>("text").apply {
             setPosition(at)
 
             text.forEach { (text, style) ->
+                maxFontSize = max(maxFontSize, style.font?.size ?: defaultFontSize)
                 add(makeTextSegment(text, style, textSpacing).apply {
                     style.background?.let { backgrounds[this] = it }
                 })
             }
         }
 
-        return StyledTextInfo(textElement, backgrounds)
+        return StyledTextInfo(textElement, backgrounds, maxFontSize)
     }
 
     private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
@@ -729,7 +733,7 @@ internal open class VectorRendererSvg(
         var startCharIndex    = 0
         var previousDelimiter = StyledText("")
 
-        words.forEach { chunk ->
+        for (chunk in words) {
             val word        = text.subString(startCharIndex until startCharIndex + chunk.match.length)
             startCharIndex += chunk.match.length
 
@@ -737,6 +741,9 @@ internal open class VectorRendererSvg(
 
             previousDelimiter = text.subString(startCharIndex until startCharIndex + chunk.delimiter.length)
             startCharIndex += chunk.delimiter.length
+
+            // avoid processing words that won't be visible
+            if (offsetY > this.context.size.height) break
         }
 
         handleWord(previousDelimiter, text.subString(startCharIndex until startCharIndex + remaining.length))
@@ -753,7 +760,7 @@ internal open class VectorRendererSvg(
             aligner.verticalOffset(l.text, l.maxFont, lineSpacing)
         } ?: 0.0
 
-        lines.filter { it.text.isNotBlank() }.forEach { (text, at, wordSpacing) ->
+        lines.filter { it.text.isNotBlank() }.forEachIndexed { index, (text, at, wordSpacing) ->
             textInternal(
                 text,
                 at,
@@ -761,7 +768,8 @@ internal open class VectorRendererSvg(
                     letterSpacing = textSpacing.letterSpacing,
                     wordSpacing   = wordSpacing + textSpacing.wordSpacing
                 ),
-                verticalOffset
+                verticalOffset,
+                line = index
             )
         }
 
@@ -1159,7 +1167,6 @@ internal open class VectorRendererSvg(
     private interface FillHandler<B: Paint> {
         fun fill              (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B                )
         fun stroke            (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke)
-        fun textBackgroundFill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B                )
     }
 
     private object SolidFillHandler: FillHandler<ColorPaint> {
@@ -1170,12 +1177,6 @@ internal open class VectorRendererSvg(
         override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint, stroke: Stroke) {
             element.setStrokeColor(paint.color)
         }
-
-        override fun textBackgroundFill(
-            renderer: VectorRendererSvg,
-            element : SVGGraphicsElement,
-            paint   : ColorPaint
-        ) { element.style.filter = "url(#${renderer.textBackground(paint).id})" }
     }
 
     // TODO: Explore using a filter for this instead: https://www.smashingmagazine.com/2015/05/why-the-svg-filter-is-awesome/#image-fill
@@ -1223,12 +1224,6 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint), paint.opacity)
             }
-
-            override fun textBackgroundFill(
-                renderer: VectorRendererSvg,
-                element : SVGGraphicsElement,
-                paint   : PatternPaint
-            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
@@ -1261,12 +1256,6 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
-
-            override fun textBackgroundFill(
-                renderer: VectorRendererSvg,
-                element: SVGGraphicsElement,
-                paint: ImagePaint
-            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
@@ -1297,12 +1286,6 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
-
-            override fun textBackgroundFill(
-                renderer: VectorRendererSvg,
-                element: SVGGraphicsElement,
-                paint: LinearGradientPaint
-            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
@@ -1330,12 +1313,6 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint, stroke: Stroke) {
                 element.setStrokePattern(makeFill(renderer, paint))
             }
-
-            override fun textBackgroundFill(
-                renderer: VectorRendererSvg,
-                element: SVGGraphicsElement,
-                paint: RadialGradientPaint
-            ) { element.style.filter = "url(#${makeFill(renderer, paint)})" }
         }
     }
 
@@ -1407,12 +1384,6 @@ internal open class VectorRendererSvg(
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint, stroke: Stroke) {
                 makeStroke(renderer, paint, element, stroke)
             }
-
-            override fun textBackgroundFill(
-                renderer: VectorRendererSvg,
-                element: SVGGraphicsElement,
-                paint: SweepGradientPaint
-            ) { makeFill(renderer, paint, element) }
         }
     }
 

@@ -107,7 +107,8 @@ internal expect var CSSStyleDeclaration._webkit_touch_callout      : String
 internal expect var CSSStyleDeclaration._webkit_tap_highlight_color: String
 
 internal expect external class TextMetrics: JsAny {
-    val width: Double
+    val width                 : Double
+    val fontBoundingBoxDescent: Double
 }
 
 internal expect abstract external class CanvasRenderingContext2D: JsAny {

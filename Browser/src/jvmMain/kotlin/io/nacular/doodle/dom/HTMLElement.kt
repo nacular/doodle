@@ -127,7 +127,8 @@ internal actual var CSSStyleDeclaration._webkit_touch_callout      : String get(
 internal actual var CSSStyleDeclaration._webkit_tap_highlight_color: String get() = _webkit_tap_highlight_color_; set(new) { _webkit_tap_highlight_color_ = new }
 
 internal actual class TextMetrics: JsAny {
-    actual val width: Double = 0.0
+    actual val width                 : Double = 0.0
+    actual val fontBoundingBoxDescent: Double = 0.0
 }
 
 internal actual abstract class CanvasRenderingContext2D: JsAny {

@@ -235,7 +235,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<AnimationScheduler>                         () with singleton { AnimationSchedulerImpl    (window                                                                                   ) } // FIXME: Provide fallback in case not supported
         bind<GraphicsDevice<RealGraphicsSurface>>        () with singleton { RealGraphicsDevice        (instance()                                                                               ) }
         bind<GraphicsSurfaceFactory<RealGraphicsSurface>>() with singleton { RealGraphicsSurfaceFactory(instance(), instance(), instance()                                                       ) }
-        bind<TextVerticalAligner>                        () with singleton { TextVerticalAlignerImpl   (defaultFontSize, instance(), instance(), cacheLength = 100                               ) }
+        bind<TextVerticalAligner>                        () with singleton { TextVerticalAlignerImpl   (defaultFontSize, instance(), instance(), instance(), instance(), cacheLength = 100                               ) }
 
         // TODO: Can this be handled better?
         bind<DisplayImpl>     () with singleton { instance<Display>     () as DisplayImpl      }

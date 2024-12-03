@@ -37,6 +37,7 @@ internal actual abstract class Node: JsAny {
     actual var textContent : String? = ""
     actual val parentElement: Element? = null
     actual fun hasChildNodes(): Boolean = false
+    actual val previousSibling: Node? = null
 }
 
 internal actual fun Node.clear() {}

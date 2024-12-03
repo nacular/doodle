@@ -41,7 +41,7 @@ internal val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
 internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
-internal inline fun Style.setTextIndent(value: Double) { textIndent = em(value, true) }
+internal inline fun Style.setTextIndent(value: Double?) { textIndent = value?.let { em(it, true) } ?: "" }
 
 internal fun Style.setTextAlignment(alignment: TextAlignment?) {
     textAlign = when (alignment) {

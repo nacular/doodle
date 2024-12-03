@@ -19,13 +19,14 @@ internal actual abstract external class Node: JsAny {
     actual fun contains     (other: Node?             ): Boolean
     actual fun hasChildNodes(                         ): Boolean
 
-    actual val nodeName     : String
-    actual val firstChild   : Node?
-    actual val parentNode   : Node?
-    actual val childNodes   : NodeList
-    actual val nextSibling  : Node?
-    actual var textContent  : String?
-    actual val parentElement: Element?
+    actual val nodeName       : String
+    actual val firstChild     : Node?
+    actual val parentNode     : Node?
+    actual val childNodes     : NodeList
+    actual val nextSibling    : Node?
+    actual var textContent    : String?
+    actual val parentElement  : Element?
+    actual val previousSibling: Node?
 }
 
 internal actual fun Node.clear() {

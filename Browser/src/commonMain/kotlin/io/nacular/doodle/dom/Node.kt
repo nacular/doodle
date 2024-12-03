@@ -19,13 +19,14 @@ internal expect abstract external class Node: JsAny {
     fun contains     (other: Node?             ): Boolean
     fun hasChildNodes(                         ): Boolean
 
-    val nodeName     : String
-    val firstChild   : Node?
-    val parentNode   : Node?
-    val childNodes   : NodeList
-    val nextSibling  : Node?
-    var textContent  : String?
-    val parentElement: Element?
+    val nodeName       : String
+    val firstChild     : Node?
+    val parentNode     : Node?
+    val childNodes     : NodeList
+    val nextSibling    : Node?
+    var textContent    : String?
+    val parentElement  : Element?
+    val previousSibling: Node?
 }
 
 internal expect fun Node.clear()

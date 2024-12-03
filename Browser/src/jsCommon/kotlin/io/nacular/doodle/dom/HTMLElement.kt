@@ -70,7 +70,8 @@ internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) {
 }
 
 internal actual external class TextMetrics: JsAny {
-    actual val width: Double
+    actual val width                 : Double
+    actual val fontBoundingBoxDescent: Double
 }
 
 internal actual abstract external class CanvasRenderingContext2D: JsAny {
