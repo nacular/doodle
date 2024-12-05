@@ -97,6 +97,8 @@ internal expect var CSSStyleDeclaration.caretColor             : String
 
 internal expect var CSSStyleDeclaration._webkit_appearance     : String
 internal expect var CSSStyleDeclaration._webkit_text_stroke    : String
+internal expect var CSSStyleDeclaration.backDropFilter         : String
+internal expect var CSSStyleDeclaration.maskImage              : String
 
 internal expect var CSSStyleDeclaration.userSelect                 : String
 internal expect var CSSStyleDeclaration._ms_user_select            : String

@@ -90,6 +90,15 @@ internal actual var CSSStyleDeclaration.userSelect             : String by Dynam
 
 internal actual var CSSStyleDeclaration._webkit_text_stroke    : String by DynamicProperty("-webkit-text-stroke"      ) { "" }
 internal actual var CSSStyleDeclaration._webkit_appearance     : String by DynamicProperty("-webkit-appearance"       ) { "" }
+internal actual var CSSStyleDeclaration.backDropFilter: String get() = _backdropFilter; set(new) {
+    _webkit_backdropFilter = new
+    _backdropFilter        = new
+}
+internal actual var CSSStyleDeclaration.maskImage              : String by DynamicProperty("mask-image"            ) { "" }
+
+
+private var CSSStyleDeclaration._backdropFilter          : String by DynamicProperty("backdrop-filter"        ) { "" }
+private var CSSStyleDeclaration._webkit_backdropFilter   : String by DynamicProperty("-webkit-backdrop-filter") { "" }
 
 internal actual var CSSStyleDeclaration._ms_user_select            : String by DynamicProperty("-ms-user-select"            ) { "" }
 internal actual var CSSStyleDeclaration._moz_user_select           : String by DynamicProperty("-moz-user-select"           ) { "" }

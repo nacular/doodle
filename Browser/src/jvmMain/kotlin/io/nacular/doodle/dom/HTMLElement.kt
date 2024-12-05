@@ -95,6 +95,8 @@ internal actual abstract class CSSStyleDeclaration: JsAny {
     internal var caretColor_             : String = ""
     internal var userSelect_             : String = ""
     internal var textStroke_             : String = ""
+    internal var backDropFilter_         : String = ""
+    internal var maskImage_              : String = ""
 
     internal var _ms_user_select_            : String = ""
     internal var _moz_user_select_           : String = ""
@@ -116,6 +118,8 @@ internal actual var CSSStyleDeclaration.caretColor             : String get() = 
 
 internal actual var CSSStyleDeclaration._webkit_text_stroke    : String get() = textStroke_;              set(new) { textStroke_              = new }
 internal actual var CSSStyleDeclaration._webkit_appearance     : String get() = _webkit_appearance_;      set(new) { _webkit_appearance_      = new }
+internal actual var CSSStyleDeclaration.backDropFilter         : String get() = backDropFilter_;          set(new) { backDropFilter_          = new }
+internal actual var CSSStyleDeclaration.maskImage              : String get() = maskImage_;               set(new) { maskImage_               = new }
 
 internal actual var CSSStyleDeclaration.userSelect             : String get() = userSelect_;              set(new) { userSelect_              = new }
 

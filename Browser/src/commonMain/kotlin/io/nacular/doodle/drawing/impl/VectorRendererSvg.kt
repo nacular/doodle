@@ -18,16 +18,19 @@ import io.nacular.doodle.dom.SVGTSpanElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.addIfNotPresent
+import io.nacular.doodle.dom.backDropFilter
 import io.nacular.doodle.dom.childAt
 import io.nacular.doodle.dom.clear
 import io.nacular.doodle.dom.clipPath
 import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.getBBox_
+import io.nacular.doodle.dom.maskImage
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
 import io.nacular.doodle.dom.rgbaString
+import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setBorderRadius
 import io.nacular.doodle.dom.setBounds
 import io.nacular.doodle.dom.setCircle
@@ -73,6 +76,7 @@ import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
+import io.nacular.doodle.drawing.FrostedGlassPaint
 import io.nacular.doodle.drawing.GradientPaint
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
@@ -92,7 +96,6 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
@@ -294,16 +297,12 @@ internal open class VectorRendererSvg(
     )
 
     private fun text_(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) {
-        var textElement: SVGTextElement1? = null
-
         present(stroke = stroke, fill = fill) {
             when {
-                text.isNotBlank() -> makeText(text, font, at, stroke, fill, textSpacing).also { textElement = it }
+                text.isNotBlank() -> makeText(text, font, at, stroke, fill, textSpacing)
                 else              -> null
             }
         }
-
-        textElement?.let { adjustTextAfterDisplay(it, aligner.verticalOffset(text, font)) }
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
@@ -322,15 +321,25 @@ internal open class VectorRendererSvg(
                 adjustTextAfterDisplay(it, yOffset)
             }
 
-            textInfo.backgrounds.forEach { (element, paint) ->
-                val bbox     = element.getBBox_(BoundingBoxOptions())
-                val fontSize = textInfo.maxFontSize.toDouble()
+            textInfo.segments.forEach { (element, style) ->
+                style.foreground?.let {
+                    fillElement(element, it, true)
+                } ?: element.setDefaultFill()
 
-                /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
+                style.stroke?.let {
+                    strokeElement(element, it)
+                } ?: element.setStroke(null)
 
-                makeRect(Rectangle(bbox.x, line * fontSize, bbox.width, fontSize), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
-                    fillElement(it, paint)
-                    textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
+                style.background?.let { paint ->
+                    val bbox     = element.getBBox_(BoundingBoxOptions())
+                    val fontSize = textInfo.maxFontSize.toDouble()
+
+                    /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
+
+                    makeRect(Rectangle(bbox.x, line * fontSize, bbox.width, fontSize), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
+                        fillElement(it, paint)
+                        textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
+                    }
                 }
             }
         }
@@ -599,6 +608,8 @@ internal open class VectorRendererSvg(
             style.setFont(it)
         }
 
+        adjustTextAfterDisplay(this, aligner.verticalOffset(text, font))
+
         when (fill) {
             null -> setDefaultFill(    )
             else -> setFill       (null)
@@ -607,11 +618,15 @@ internal open class VectorRendererSvg(
         setStroke(stroke)
     }
 
-    private class StyledTextInfo(val text: SVGTextElement1, val backgrounds: Map<SVGTSpanElement, Paint>, val maxFontSize: Int)
+    private class StyledTextInfo(
+        val text: SVGTextElement1,
+        val segments: Map<SVGTSpanElement, Style>,
+        val maxFontSize: Int
+    )
 
     private fun makeStyledText(text: StyledText, at: Point, textSpacing: TextSpacing): StyledTextInfo {
         var maxFontSize = defaultFontSize
-        val backgrounds = mutableMapOf<SVGTSpanElement, Paint>()
+        val segments = mutableMapOf<SVGTSpanElement, Style>()
 
         val textElement = createOrUse<SVGTextElement1>("text").apply {
             setPosition(at)
@@ -619,12 +634,12 @@ internal open class VectorRendererSvg(
             text.forEach { (text, style) ->
                 maxFontSize = max(maxFontSize, style.font?.size ?: defaultFontSize)
                 add(makeTextSegment(text, style, textSpacing).apply {
-                    style.background?.let { backgrounds[this] = it }
+                    segments[this] = style
                 })
             }
         }
 
-        return StyledTextInfo(textElement, backgrounds, maxFontSize)
+        return StyledTextInfo(textElement, segments, maxFontSize)
     }
 
     private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
@@ -640,13 +655,13 @@ internal open class VectorRendererSvg(
             this.style.setFont(it)
         }
 
-        style.foreground?.let {
-            fillElement(this, it, true)
-        } ?: setDefaultFill()
-
-        style.stroke?.let {
-            strokeElement(this, it)
-        } ?: setStroke(null)
+//        style.foreground?.let {
+//            fillElement(this, it, true)
+//        } ?: setDefaultFill()
+//
+//        style.stroke?.let {
+//            strokeElement(this, it)
+//        } ?: setStroke(null)
     }
 
     private data class LineInfo(val text: StyledText, val position: Point, val wordSpacing: Double)
@@ -947,6 +962,7 @@ internal open class VectorRendererSvg(
             is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill)
             is ImagePaint          -> imageFillHandler.fill         (this, element, fill)
             is SweepGradientPaint  -> sweepGradientFillHandler.fill (this, element, fill)
+            is FrostedGlassPaint   -> frostedGlassFillHandler.fill  (this, element, fill)
         }
 
         if (clearOutline) {
@@ -962,41 +978,10 @@ internal open class VectorRendererSvg(
             is RadialGradientPaint -> radialGradientFillHandler.stroke(this, element, fill, stroke)
             is ImagePaint          -> imageFillHandler.stroke         (this, element, fill, stroke)
             is SweepGradientPaint  -> sweepGradientFillHandler.stroke (this, element, fill, stroke)
+            is FrostedGlassPaint   -> frostedGlassFillHandler.stroke  (this, element, fill, stroke)
         }
 
         element.setStroke(stroke)
-    }
-
-    private fun textBackground(fill: ColorPaint) = createOrUse<SVGElement>("filter").apply {
-        if (id.isBlank()) { setId(nextId()) }
-
-        setBounds(Rectangle(size = Size(1)))
-
-        var index = 0
-        val `in`  = "in"
-
-        val oldRenderPosition = renderPosition
-
-        renderPosition = firstChild
-
-        addIfNotPresent(createOrUse<SVGElement>("feFlood").apply {
-            setFloodColor(fill.color)
-            setAttribute("flood-opacity", "${fill.color.opacity}")
-        }, index++)
-
-        renderPosition = renderPosition?.nextSibling
-
-        addIfNotPresent(createOrUse<SVGElement>("feComposite").apply {
-            setAttribute(`in`,       "SourceGraphic")
-            setAttribute("operator", "over"         )
-        }, index)
-
-        renderPosition = renderPosition?.nextSibling
-
-        internalFlush()
-        renderPosition = if (parentNode != null) this else oldRenderPosition
-
-        completeOperation(this)
     }
 
     private val shadowFinalizers = mutableListOf<() -> Unit>()
@@ -1382,6 +1367,81 @@ internal open class VectorRendererSvg(
             }
 
             override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint, stroke: Stroke) {
+                makeStroke(renderer, paint, element, stroke)
+            }
+        }
+    }
+
+    private val frostedGlassFillHandler by lazy {
+        object: FillHandler<FrostedGlassPaint> {
+            private fun makeForeign(mask: SVGElement, paint: FrostedGlassPaint) = getSharedElement(paint) {
+                val gradient = createOrUse<SVGElement>("foreignObject").apply {
+                    appendChild(htmlFactory.create<HTMLElement>().apply {
+                        style.backDropFilter = "blur(${paint.blurRadius}px)"
+                        style.maskImage = "url(#${mask.id})"
+                        style.setBackgroundColor(paint.color)
+                        style.setWidthPercent (100.0)
+                        style.setHeightPercent(100.0)
+                    })
+                }
+
+                gradient
+            }
+
+            private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
+                if (id.isBlank()) {
+                    setId(nextId())
+                }
+
+                element.setFill(null)
+                appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
+            }
+
+            private fun makeFill(renderer: VectorRendererSvg, paint: FrostedGlassPaint, element: SVGGraphicsElement) {
+                val mask = makeMask(element) {
+                    setFill  (White)
+                    setStroke(null )
+                }
+
+                renderer.completeOperation(mask                   )
+                renderer.completeOperation(makeForeign(mask, paint).apply {
+                    val bbox = element.getBBox_(BoundingBoxOptions())
+
+                    setAttribute("width",  "${bbox.x + bbox.width }")
+                    setAttribute("height", "${bbox.y + bbox.height}")
+                })
+            }
+
+            private fun makeStroke(renderer: VectorRendererSvg, paint: FrostedGlassPaint, element: SVGGraphicsElement, stroke: Stroke) {
+                val mask = makeMask(element) {
+                    element.getAttribute("y")?.let { setAttribute("y", it) }
+                    element.getAttribute("x")?.let { setAttribute("x", it) }
+
+                    setFill  (null  )
+                    setStroke(Stroke(
+                        dashes     = stroke.dashes,
+                        lineCap    = stroke.lineCap,
+                        lineJoint  = stroke.lineJoint,
+                        thickness  = stroke.thickness,
+                        dashOffset = stroke.dashOffset,
+                    ))
+                    setStrokeColor(White)
+                }
+
+                renderer.completeOperation(mask                   )
+                renderer.completeOperation(makeForeign(mask, paint).apply {
+                    val bbox = element.getBBox_(BoundingBoxOptions())
+
+                    setAttribute("width",  "${bbox.x + bbox.width  + stroke.thickness / 2}")
+                    setAttribute("height", "${bbox.y + bbox.height + stroke.thickness / 2}")
+                })
+            }
+
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: FrostedGlassPaint) {
+                makeFill(renderer, paint, element)
+            }
+
+            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: FrostedGlassPaint, stroke: Stroke) {
                 makeStroke(renderer, paint, element, stroke)
             }
         }
