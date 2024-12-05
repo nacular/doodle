@@ -32,15 +32,12 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.swing.Swing
 import kotlinx.datetime.Clock
-import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.FontMgr
 import org.jetbrains.skia.FontSlant.UPRIGHT
 import org.jetbrains.skia.FontStyle
 import org.jetbrains.skia.PathMeasure
 import org.jetbrains.skia.paragraph.FontCollection
-import org.jetbrains.skiko.ExperimentalSkikoApi
-import org.jetbrains.skiko.SkikoRenderDelegate
 import org.kodein.di.Copy.All
 import org.kodein.di.DI.Companion.direct
 import org.kodein.di.DI.Module
@@ -58,27 +55,24 @@ import org.kodein.di.singleton
 import java.awt.Toolkit
 import javax.swing.UIManager
 
-
 /**
  * Created by Nicholas Eddy on 5/14/21.
  */
 public inline fun <reified T: Application> application(
-        allowDefaultDarkMode: Boolean     = false,
         modules             : List<Module> = emptyList(),
         noinline creator    : NoArgBindingDI<*>.() -> T): Application = createApplication(direct {
     bind<Application> { singleton(creator = creator) }
-}, allowDefaultDarkMode, modules)
+}, modules)
 
 /** @suppress */
 @Internal
 public fun createApplication(
         injector            : DirectDI,
-        allowDefaultDarkMode: Boolean,
-        modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
+        modules             : List<Module>
+): Application = ApplicationHolderImpl(injector, modules = modules)
 
 private open class ApplicationHolderImpl protected constructor(
     previousInjector    : DirectDI,
-    allowDefaultDarkMode: Boolean      = false,
     modules             : List<Module> = emptyList()
 ): Application {
 
@@ -90,11 +84,28 @@ private open class ApplicationHolderImpl protected constructor(
         }
     }
 
+    init {
+        // Set Skiko properties before any Skiko components are initialized
+
+        System.setProperty("apple.awt.application.appearance", "system")
+
+        System.setProperty("skiko.rendering.laf.global",        "true")
+        System.setProperty("skiko.rendering.useScreenMenuBar",  "true")
+        System.setProperty("skiko.linux.autodpi",               "true")
+
+//        System.setProperty("skiko.vsync.enabled",              "false")
+//        System.setProperty("skiko.fps.enabled",                "true" )
+
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+
+        Runtime.getRuntime().addShutdownHook(ShutdownHook())
+    }
+
     private val defaultFontName = UIManager.getDefaults().getFont("defaultFont")?.fontName ?: "Courier"
 
     private val appScope       = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val fontManager    = FontMgr.default
-    private val defaultFont    = Font(fontManager.legacyMakeTypeface(defaultFontName, FontStyle(300, 5, UPRIGHT)), 13f)
+    private val defaultFont    = Font(fontManager.matchFamilyStyle(defaultFontName, FontStyle(300, 5, UPRIGHT)), 13f)
     private val fontCollection = FontCollection().apply {
         setDefaultFontManager(FontMgr.default)
     }
@@ -156,16 +167,6 @@ private open class ApplicationHolderImpl protected constructor(
     private var isShutdown  = false
     private var application = null as Application?
 
-    init {
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-
-        System.setProperty("skiko.vsync.enabled", "false")
-//        System.setProperty("skiko.fps.enabled",   "true" )
-//        System.setProperty("skiko.renderApi", "OPENGL")
-
-        Runtime.getRuntime().addShutdownHook(ShutdownHook())
-    }
-
     protected fun run() {
         injector.instanceOrNull<DesktopPointerInputManagers>()
         injector.instanceOrNull<KeyboardFocusManager>       ()
@@ -199,11 +200,8 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     companion object {
-        operator fun invoke(previousInjector    : DirectDI,
-                            allowDefaultDarkMode: Boolean      = false,
-                            modules             : List<Module> = emptyList()) = ApplicationHolderImpl(
+        operator fun invoke(previousInjector: DirectDI, modules: List<Module> = emptyList()) = ApplicationHolderImpl(
             previousInjector,
-            allowDefaultDarkMode,
             modules
         ).apply {
             appScope.launch(Dispatchers.Swing) {
