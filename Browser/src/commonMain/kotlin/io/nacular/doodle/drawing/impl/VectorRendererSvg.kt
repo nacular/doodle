@@ -1302,148 +1302,91 @@ internal open class VectorRendererSvg(
     }
 
     private val sweepGradientFillHandler by lazy {
-        object: FillHandler<SweepGradientPaint> {
-            private fun makeForeign(mask: SVGElement, paint: SweepGradientPaint) = getSharedElement(paint) {
-                val gradient = createOrUse<SVGElement>("foreignObject").apply {
-                    setAttribute("mask", "url(#${mask.id})")
-
-                    appendChild(htmlFactory.create<HTMLElement>().apply {
-                        val colors = paint.colors.joinToString(",") {
-                            "${it.color.rgbaString} ${it.offset * 360 * degrees `in` degrees}deg"
-                        }
-
-                        style.background = "conic-gradient(from ${(paint.rotation `in` degrees) + 90.0}deg at ${paint.center.x}px ${paint.center.y}px, $colors)"
-                        style.setWidthPercent (100.0)
-                        style.setHeightPercent(100.0)
-                    })
-                }
-
-                gradient
+        ForeignObjectFillHandler<SweepGradientPaint> { paint ->
+            val colors = paint.colors.joinToString(",") {
+                "${it.color.rgbaString} ${it.offset * 360 * degrees `in` degrees}deg"
             }
 
-            private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
-                if (id.isBlank()) {
-                    setId(nextId())
-                }
-
-                element.setFill(null)
-                appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
-            }
-
-            private fun makeFill(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGGraphicsElement) {
-                val mask = makeMask(element) {
-                    setFill  (White)
-                    setStroke(null )
-                }
-
-                renderer.completeOperation(mask)
-                renderer.completeOperation(makeForeign(mask, paint).apply {
-                    val bbox = element.getBBox_(BoundingBoxOptions())
-
-                    setAttribute("width",  "${bbox.x + bbox.width }")
-                    setAttribute("height", "${bbox.y + bbox.height}")
-                })
-            }
-
-            private fun makeStroke(renderer: VectorRendererSvg, paint: SweepGradientPaint, element: SVGGraphicsElement, stroke: Stroke) {
-                val mask = makeMask(element) {
-                    setFill  (null  )
-                    setStroke(Stroke(
-                        dashes     = stroke.dashes,
-                        lineCap    = stroke.lineCap,
-                        lineJoint  = stroke.lineJoint,
-                        thickness  = stroke.thickness,
-                        dashOffset = stroke.dashOffset,
-                    ))
-                    setStrokeColor(White)
-                }
-
-                renderer.completeOperation(mask                   )
-                renderer.completeOperation(makeForeign(mask, paint))
-            }
-
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint) {
-                makeFill(renderer, paint, element)
-            }
-
-            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: SweepGradientPaint, stroke: Stroke) {
-                makeStroke(renderer, paint, element, stroke)
-            }
+            style.background = "conic-gradient(from ${(paint.rotation `in` degrees) + 90.0}deg at ${paint.center.x}px ${paint.center.y}px, $colors)"
         }
     }
 
     private val frostedGlassFillHandler by lazy {
-        object: FillHandler<FrostedGlassPaint> {
-            private fun makeForeign(mask: SVGElement, paint: FrostedGlassPaint) = getSharedElement(paint) {
-                val gradient = createOrUse<SVGElement>("foreignObject").apply {
-                    appendChild(htmlFactory.create<HTMLElement>().apply {
-                        style.backDropFilter = "blur(${paint.blurRadius}px)"
-                        style.maskImage = "url(#${mask.id})"
-                        style.setBackgroundColor(paint.color)
-                        style.setWidthPercent (100.0)
-                        style.setHeightPercent(100.0)
-                    })
-                }
+        ForeignObjectFillHandler<FrostedGlassPaint> { paint ->
+            style.backDropFilter = "blur(${paint.blurRadius}px)"
+            style.setBackgroundColor(paint.color)
+        }
+    }
 
-                gradient
-            }
-
-            private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
-                if (id.isBlank()) {
-                    setId(nextId())
-                }
-
-                element.setFill(null)
-                appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
-            }
-
-            private fun makeFill(renderer: VectorRendererSvg, paint: FrostedGlassPaint, element: SVGGraphicsElement) {
-                val mask = makeMask(element) {
-                    setFill  (White)
-                    setStroke(null )
-                }
-
-                renderer.completeOperation(mask                   )
-                renderer.completeOperation(makeForeign(mask, paint).apply {
-                    val bbox = element.getBBox_(BoundingBoxOptions())
-
-                    setAttribute("width",  "${bbox.x + bbox.width }")
-                    setAttribute("height", "${bbox.y + bbox.height}")
+    private inner class ForeignObjectFillHandler<T: Paint>(private val configure: HTMLElement.(T) -> Unit): FillHandler<T> {
+        private fun makeForeign(mask: SVGElement, paint: T) = getSharedElement(paint) {
+            val gradient = createOrUse<SVGElement>("foreignObject").apply {
+                appendChild(htmlFactory.create<HTMLElement>().apply {
+                    configure(paint)
+                    style.maskImage  = "url(#${mask.id})"
+                    style.setWidthPercent (100.0)
+                    style.setHeightPercent(100.0)
                 })
             }
 
-            private fun makeStroke(renderer: VectorRendererSvg, paint: FrostedGlassPaint, element: SVGGraphicsElement, stroke: Stroke) {
-                val mask = makeMask(element) {
-                    element.getAttribute("y")?.let { setAttribute("y", it) }
-                    element.getAttribute("x")?.let { setAttribute("x", it) }
+            gradient
+        }
 
-                    setFill  (null  )
-                    setStroke(Stroke(
-                        dashes     = stroke.dashes,
-                        lineCap    = stroke.lineCap,
-                        lineJoint  = stroke.lineJoint,
-                        thickness  = stroke.thickness,
-                        dashOffset = stroke.dashOffset,
-                    ))
-                    setStrokeColor(White)
-                }
-
-                renderer.completeOperation(mask                   )
-                renderer.completeOperation(makeForeign(mask, paint).apply {
-                    val bbox = element.getBBox_(BoundingBoxOptions())
-
-                    setAttribute("width",  "${bbox.x + bbox.width  + stroke.thickness / 2}")
-                    setAttribute("height", "${bbox.y + bbox.height + stroke.thickness / 2}")
-                })
+        private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
+            if (id.isBlank()) {
+                setId(nextId())
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: FrostedGlassPaint) {
-                makeFill(renderer, paint, element)
+            element.setFill(null)
+            appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
+        }
+
+        private fun makeFill(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement) {
+            val mask = makeMask(element) {
+                setFill  (White)
+                setStroke(null )
             }
 
-            override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: FrostedGlassPaint, stroke: Stroke) {
-                makeStroke(renderer, paint, element, stroke)
+            renderer.completeOperation(mask                   )
+            renderer.completeOperation(makeForeign(mask, paint).apply {
+                val bbox = element.getBBox_(BoundingBoxOptions())
+
+                setAttribute("width",  "${bbox.x + bbox.width }")
+                setAttribute("height", "${bbox.y + bbox.height}")
+            })
+        }
+
+        private fun makeStroke(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement, stroke: Stroke) {
+            val mask = makeMask(element) {
+                element.getAttribute("y")?.let { setAttribute("y", it) }
+                element.getAttribute("x")?.let { setAttribute("x", it) }
+
+                setFill  (null  )
+                setStroke(Stroke(
+                    dashes     = stroke.dashes,
+                    lineCap    = stroke.lineCap,
+                    lineJoint  = stroke.lineJoint,
+                    thickness  = stroke.thickness,
+                    dashOffset = stroke.dashOffset,
+                ))
+                setStrokeColor(White)
             }
+
+            renderer.completeOperation(mask                   )
+            renderer.completeOperation(makeForeign(mask, paint).apply {
+                val bbox = element.getBBox_(BoundingBoxOptions())
+
+                setAttribute("width",  "${bbox.x + bbox.width  + stroke.thickness / 2}")
+                setAttribute("height", "${bbox.y + bbox.height + stroke.thickness / 2}")
+            })
+        }
+
+        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T) {
+            makeFill(renderer, paint, element)
+        }
+
+        override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke) {
+            makeStroke(renderer, paint, element, stroke)
         }
     }
 
