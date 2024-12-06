@@ -25,6 +25,7 @@ import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Stroke.LineCap
 import io.nacular.doodle.drawing.Stroke.LineJoint
 import io.nacular.doodle.drawing.SweepGradientPaint
+import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
@@ -332,7 +333,7 @@ internal class CanvasImpl(
                 } else {
                     skiaCanvas.clipRect(rect)
                 }
-                skiaCanvas.drawImageRect(image.skiaImage, source.skia(), destination.skia())
+                skiaCanvas.drawImageRect(image.skiaImage, source.skia(), destination.skia(), (Black opacity opacity).paint.skia())
                 skiaCanvas.restore()
             }
         } else if (image is SvgImage) {
@@ -480,7 +481,10 @@ internal class CanvasImpl(
             is ColorPaint          -> result.color  = color.skia()
             is LinearGradientPaint -> result.shader = Shader.makeLinearGradient(start.skia(), end.skia(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
             is RadialGradientPaint -> result.shader = Shader.makeTwoPointConicalGradient(start.center.skia(), start.radius.toFloat(), end.center.skia(), end.radius.toFloat(), colors.map { it.color.skia() }.toIntArray(), colors.map { it.offset }.toFloatArray())
-            is ImagePaint          -> (image as? ImageImpl)?.let { result.shader = it.skiaImage.makeShader(REPEAT, REPEAT, Matrix33.Companion.makeScale((size.width / image.width).toFloat(), (size.height / image.height).toFloat())) }
+            is ImagePaint          -> (image as? ImageImpl)?.let {
+                result.color  = (Black opacity opacity).skia()
+                result.shader = it.skiaImage.makeShader(REPEAT, REPEAT, Matrix33.Companion.makeScale((size.width / image.width).toFloat(), (size.height / image.height).toFloat()))
+            }
             is PatternPaint        -> {
                 // FIXME: Reuse bitmaps?
                 val bitmap = Bitmap().apply {

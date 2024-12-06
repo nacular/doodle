@@ -810,8 +810,8 @@ internal open class VectorRendererSvg(
             updateRootSvg()
 
             block()?.let {
-                // make sure element is in dom first since some fills add new elements to the dom
-                // this means we get better re-use of nodes since the order in the dom is the element creation order
+                // make sure element is in dom first since some fills add new elements to the dom and rely on the bounds
+                // of this one. this means we get better re-use of nodes since the order in the dom is the element creation order
                 completeOperation(it)
 
                 if (fill != null) {
@@ -1319,7 +1319,7 @@ internal open class VectorRendererSvg(
     }
 
     private inner class ForeignObjectFillHandler<T: Paint>(private val configure: HTMLElement.(T) -> Unit): FillHandler<T> {
-        private fun makeForeign(mask: SVGElement, paint: T) = getSharedElement(paint) {
+        private fun makeForeign(mask: SVGElement, paint: T) = getSharedElement(paint to mask.id) {
             val gradient = createOrUse<SVGElement>("foreignObject").apply {
                 appendChild(htmlFactory.create<HTMLElement>().apply {
                     configure(paint)
@@ -1337,7 +1337,6 @@ internal open class VectorRendererSvg(
                 setId(nextId())
             }
 
-            element.setFill(null)
             appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
         }
 
@@ -1348,12 +1347,12 @@ internal open class VectorRendererSvg(
             }
 
             renderer.completeOperation(mask                   )
-            renderer.completeOperation(makeForeign(mask, paint).apply {
+            element.parent!!.insertBefore(makeForeign(mask, paint).apply {
                 val bbox = element.getBBox_(BoundingBoxOptions())
 
                 setAttribute("width",  "${bbox.x + bbox.width }")
                 setAttribute("height", "${bbox.y + bbox.height}")
-            })
+            }, element)
         }
 
         private fun makeStroke(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement, stroke: Stroke) {
