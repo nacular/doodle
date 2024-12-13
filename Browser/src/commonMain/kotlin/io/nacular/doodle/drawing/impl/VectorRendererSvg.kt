@@ -26,6 +26,7 @@ import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.getBBox_
 import io.nacular.doodle.dom.maskImage
+import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.remove
 import io.nacular.doodle.dom.removeTransform
@@ -61,6 +62,7 @@ import io.nacular.doodle.dom.setStopOffset
 import io.nacular.doodle.dom.setStroke
 import io.nacular.doodle.dom.setStrokeColor
 import io.nacular.doodle.dom.setStrokePattern
+import io.nacular.doodle.dom.setStrokeWidth
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextSpacing
 import io.nacular.doodle.dom.setTransform
@@ -73,6 +75,7 @@ import io.nacular.doodle.dom.setY
 import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
@@ -323,7 +326,7 @@ internal open class VectorRendererSvg(
 
             textInfo.segments.forEach { (element, style) ->
                 style.foreground?.let {
-                    fillElement(element, it, true)
+                    fillElement(element, it, style.stroke)
                 } ?: element.setDefaultFill()
 
                 style.stroke?.let {
@@ -337,7 +340,7 @@ internal open class VectorRendererSvg(
                     /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
 
                     makeRect(Rectangle(bbox.x, line * fontSize, bbox.width, fontSize), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
-                        fillElement(it, paint)
+                        fillElement(it, paint, style.stroke)
                         textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                     }
                 }
@@ -815,7 +818,7 @@ internal open class VectorRendererSvg(
                 completeOperation(it)
 
                 if (fill != null) {
-                    fillElement(it, fill, stroke == null || !stroke.visible)
+                    fillElement(it, fill, stroke, stroke == null || !stroke.visible)
                 }
                 if (stroke != null) {
                     outlineElement(it, stroke, fill == null || !fill.visible)
@@ -954,15 +957,15 @@ internal open class VectorRendererSvg(
         strokeElement(element, stroke)
     }
 
-    private fun fillElement(element: SVGGraphicsElement, fill: Paint, clearOutline: Boolean = true) {
+    private fun fillElement(element: SVGGraphicsElement, fill: Paint, stroke: Stroke?, clearOutline: Boolean = true) {
         when (fill) {
-            is ColorPaint          -> SolidFillHandler.fill         (this, element, fill)
-            is PatternPaint        -> canvasFillHandler.fill        (this, element, fill)
-            is LinearGradientPaint -> linearGradientFillHandler.fill(this, element, fill)
-            is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill)
-            is ImagePaint          -> imageFillHandler.fill         (this, element, fill)
-            is SweepGradientPaint  -> sweepGradientFillHandler.fill (this, element, fill)
-            is FrostedGlassPaint   -> frostedGlassFillHandler.fill  (this, element, fill)
+            is ColorPaint          -> SolidFillHandler.fill         (this, element, fill, stroke)
+            is PatternPaint        -> canvasFillHandler.fill        (this, element, fill, stroke)
+            is LinearGradientPaint -> linearGradientFillHandler.fill(this, element, fill, stroke)
+            is RadialGradientPaint -> radialGradientFillHandler.fill(this, element, fill, stroke)
+            is ImagePaint          -> imageFillHandler.fill         (this, element, fill, stroke)
+            is SweepGradientPaint  -> sweepGradientFillHandler.fill (this, element, fill, stroke)
+            is FrostedGlassPaint   -> frostedGlassFillHandler.fill  (this, element, fill, stroke)
         }
 
         if (clearOutline) {
@@ -1150,12 +1153,12 @@ internal open class VectorRendererSvg(
     private class SVGPath: Path("M", "L", "Z")
 
     private interface FillHandler<B: Paint> {
-        fun fill              (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B                )
-        fun stroke            (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke)
+        fun fill  (renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke? = null)
+        fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: B, stroke: Stroke        )
     }
 
     private object SolidFillHandler: FillHandler<ColorPaint> {
-        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint) {
+        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ColorPaint, stroke: Stroke?) {
             element.setFill(paint.color)
         }
 
@@ -1202,7 +1205,7 @@ internal open class VectorRendererSvg(
                 return pattern.id
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: PatternPaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint), paint.opacity)
             }
 
@@ -1234,7 +1237,7 @@ internal open class VectorRendererSvg(
                 return pattern.id
             }
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: ImagePaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
@@ -1264,7 +1267,7 @@ internal open class VectorRendererSvg(
                 gradient
             }.id
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
@@ -1291,7 +1294,7 @@ internal open class VectorRendererSvg(
                 gradient
             }.id
 
-            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint) {
+            override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint))
             }
 
@@ -1323,7 +1326,7 @@ internal open class VectorRendererSvg(
             val gradient = createOrUse<SVGElement>("foreignObject").apply {
                 appendChild(htmlFactory.create<HTMLElement>().apply {
                     configure(paint)
-                    style.maskImage  = "url(#${mask.id})"
+                    style.maskImage = "url(#${mask.id})"
                     style.setWidthPercent (100.0)
                     style.setHeightPercent(100.0)
                 })
@@ -1337,22 +1340,55 @@ internal open class VectorRendererSvg(
                 setId(nextId())
             }
 
-            appendChild(element.cloneNode(deep = true).also { (it as SVGElement).config() })
-        }
+            var child = element.cloneNode(deep = true).also { (it as SVGElement).config() }
 
-        private fun makeFill(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement) {
-            val mask = makeMask(element) {
-                setFill  (White)
-                setStroke(null )
+            (element as? SVGTSpanElement)?.parent?.let { parent ->
+                child = parent.cloneNode(deep = false).also { parentClone ->
+                    var index = 0
+
+                    // need to include all siblings that came before the TSpan to ensure proper placement of the
+                    // mask
+                    while (index < parent.numChildren) {
+                        (parent.childAt(index++) as? SVGElement)?.let {
+                            parentClone.appendChild(
+                                when {
+                                    it != element -> (it.cloneNode(deep = true) as SVGElement).apply {
+                                        setFill  (null)
+                                        setStroke(null)
+                                    }
+                                    else          -> child
+                                })
+                        } ?: break
+                    }
+                }
             }
 
+            appendChild(child)
+        }
+
+        private fun makeFill(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement, stroke: Stroke?) {
+            val mask = makeMask(element) {
+                setFill(White) // ensure fill is masked in
+
+                when (stroke) {
+                    null -> setStroke(null)
+                    else -> {
+                        // mask stroke out
+                        setStrokeColor(Black           )
+                        setStrokeWidth(stroke.thickness)
+                    }
+                }
+            }
+
+            element.setFill(null)
+
             renderer.completeOperation(mask                   )
-            element.parent!!.insertBefore(makeForeign(mask, paint).apply {
+            renderer.completeOperation(makeForeign(mask, paint).apply {
                 val bbox = element.getBBox_(BoundingBoxOptions())
 
-                setAttribute("width",  "${bbox.x + bbox.width }")
+                setAttribute("width",  "${bbox.x + bbox.width}" )
                 setAttribute("height", "${bbox.y + bbox.height}")
-            }, element)
+            })
         }
 
         private fun makeStroke(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement, stroke: Stroke) {
@@ -1380,8 +1416,8 @@ internal open class VectorRendererSvg(
             })
         }
 
-        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T) {
-            makeFill(renderer, paint, element)
+        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke?) {
+            makeFill(renderer, paint, element, stroke)
         }
 
         override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke) {

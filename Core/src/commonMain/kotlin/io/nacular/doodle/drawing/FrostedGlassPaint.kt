@@ -1,7 +1,7 @@
 package io.nacular.doodle.drawing
 
 public class FrostedGlassPaint(public val color: Color, public val blurRadius: Double): Paint() {
-    override val visible: Boolean get() = color.visible
+    override val visible: Boolean get() = blurRadius > 0.0 || color.visible
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

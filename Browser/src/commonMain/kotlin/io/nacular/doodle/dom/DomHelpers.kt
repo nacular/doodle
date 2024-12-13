@@ -250,8 +250,8 @@ private fun dashArray(dashes: DoubleArray?) = dashes?.map { max(0.0, it) }?.join
 internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
     setAttribute("stroke", it)
     when (color) {
-        null -> removeAttribute("stroke-opacity")
-        else -> setAttribute("stroke-opacity", "${color.opacity}")
+        null -> removeAttribute("stroke-opacity"                    )
+        else -> setAttribute   ("stroke-opacity", "${color.opacity}")
     }
 }
 

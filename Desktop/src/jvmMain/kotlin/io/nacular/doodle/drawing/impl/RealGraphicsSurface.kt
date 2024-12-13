@@ -147,13 +147,16 @@ internal class RealGraphicsSurface(
                 })
             }
 
-            if (clipCanvasToBounds) {
-                skiaCanvas.clipRect(bounds.atOrigin.skia(), INTERSECT)
-            }
+            val clip = if (clipCanvasToBounds) {
+                bounds.atOrigin.skia().also { skiaCanvas.clipRect(it, INTERSECT) }
+            } else null
 
             skiaCanvas.save()
 
-            val canvas = CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply { size = this@RealGraphicsSurface.size }
+            val canvas = CanvasImpl(skiaCanvas, defaultFont, fontCollection).apply {
+                size       = this@RealGraphicsSurface.size
+                canvasClip = clip
+            }
 
             renderBlock?.invoke(canvas)
 

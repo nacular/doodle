@@ -41,6 +41,9 @@ public class Stroke(
     /** `true` IFF [thickness] > 0 and [color] visible */
     public val visible: Boolean = thickness > 0 && fill.visible
 
+    /** how much overlap the stroke would have with a shape's edge */
+    public val inset: Double by lazy { thickness / 2 }
+
     public companion object {
         public operator fun invoke(
             color     : Color  = Black,

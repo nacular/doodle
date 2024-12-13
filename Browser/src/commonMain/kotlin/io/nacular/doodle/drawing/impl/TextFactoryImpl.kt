@@ -42,6 +42,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         element.style.setTextSpacing(textSpacing)
+        element.style.setLineHeight (1f         )
 
         if (element == possible) {
             element.style.setTextDecoration(null)
