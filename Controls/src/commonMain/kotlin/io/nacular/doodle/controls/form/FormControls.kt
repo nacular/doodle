@@ -61,6 +61,8 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
@@ -2343,10 +2345,8 @@ private fun <T, M: ListModel<T>> singleChoiceList(
  *
  * @param builder used to construct the form
  */
-public fun <T> form(builder: FormControlBuildContext<T>.() -> FieldVisualizer<T>): FieldVisualizer<T> {
-    return field {
-        builder(FormControlBuildContext(field, initial))(this)
-    }
+public fun <T> form(builder: FormControlBuildContext<T>.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    builder(FormControlBuildContext(field, initial))(this)
 }
 
 // endregion
@@ -2819,12 +2819,25 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
     public operator fun <T, A> invoke(
         a        : Field<A>,
         onInvalid: ( ) -> Unit = {},
+        onReady  : (A) -> T): FieldVisualizer<T> = invokeInternal(a, layout = null, onInvalid, onReady)
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T, A> invoke(
+        a        : Field<A>,
+        layout   : ConstraintDslContext.(Bounds) -> Unit,
+        onInvalid: ( ) -> Unit = {},
+        onReady  : (A) -> T): FieldVisualizer<T> = invokeInternal(a, layout, onInvalid, onReady)
+
+    private fun <T, A> invokeInternal(
+        a        : Field<A>,
+        layout   : (ConstraintDslContext.(Bounds) -> Unit)?,
+        onInvalid: ( ) -> Unit = {},
         onReady  : (A) -> T): FieldVisualizer<T> = field {
         Form {
-            this(a, onInvalid = { field.state = Invalid(); onInvalid() }) { a ->
+            invokeInternal(a, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a ->
                 state = Valid(onReady(a))
             }
-        }.apply { configure(this) }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -2832,12 +2845,27 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         a        : Field<A>,
         b        : Field<B>,
         onInvalid: (    ) -> Unit = {},
+        onReady  : (A, B) -> T): FieldVisualizer<T> = invokeInternal(a, b, layout = null, onInvalid, onReady)
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T, A, B> invoke(
+        a        : Field<A>,
+        b        : Field<B>,
+        layout   : ConstraintDslContext.(Bounds, Bounds) -> Unit,
+        onInvalid: (    ) -> Unit = {},
+        onReady  : (A, B) -> T): FieldVisualizer<T> = invokeInternal(a, b, layout, onInvalid, onReady)
+
+    private fun <T, A, B> invokeInternal(
+        a        : Field<A>,
+        b        : Field<B>,
+        layout   : (ConstraintDslContext.(Bounds, Bounds) -> Unit)?,
+        onInvalid: (    ) -> Unit = {},
         onReady  : (A, B) -> T): FieldVisualizer<T> = field {
         Form {
-            this(a, b, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b ->
+            invokeInternal(a, b, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b ->
                 state = Valid(onReady(a, b))
             }
-        }.apply { configure(this) }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -2846,12 +2874,29 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         b        : Field<B>,
         c        : Field<C>,
         onInvalid: (       ) -> Unit = {},
+        onReady  : (A, B, C) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, layout = null, onInvalid, onReady)
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T, A, B, C> invoke(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        layout   : ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit,
+        onInvalid: (       ) -> Unit = {},
+        onReady  : (A, B, C) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, layout, onInvalid, onReady)
+
+    public fun <T, A, B, C> invokeInternal(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit)?,
+        onInvalid: (       ) -> Unit = {},
         onReady  : (A, B, C) -> T): FieldVisualizer<T> = field {
         Form {
-            this(a, b, c, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c ->
+            invokeInternal(a, b, c, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c ->
                 state = Valid(onReady(a, b, c))
             }
-        }.apply { configure(this) }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -2861,12 +2906,31 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         c        : Field<C>,
         d        : Field<D>,
         onInvalid: (          ) -> Unit = {},
+        onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout = null, onInvalid, onReady)
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T, A, B, C, D> invoke(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        d        : Field<D>,
+        layout   : ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit,
+        onInvalid: (          ) -> Unit = {},
+        onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout, onInvalid, onReady)
+
+    private fun <T, A, B, C, D> invokeInternal(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        d        : Field<D>,
+        layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit)?,
+        onInvalid: (          ) -> Unit = {},
         onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = field {
         Form {
-            this(a, b, c, d, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d ->
+            invokeInternal(a, b, c, d, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d ->
                 state = Valid(onReady(a, b, c, d))
             }
-        }.apply { configure(this) }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -2877,12 +2941,33 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         d        : Field<D>,
         e        : Field<E>,
         onInvalid: (             ) -> Unit = {},
+        onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout = null, onInvalid, onReady)
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T, A, B, C, D, E> invoke(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        d        : Field<D>,
+        e        : Field<E>,
+        layout   : ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit,
+        onInvalid: (             ) -> Unit = {},
+        onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout, onInvalid, onReady)
+
+    private fun <T, A, B, C, D, E> invokeInternal(
+        a        : Field<A>,
+        b        : Field<B>,
+        c        : Field<C>,
+        d        : Field<D>,
+        e        : Field<E>,
+        layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit)?,
+        onInvalid: (             ) -> Unit = {},
         onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = field {
         Form {
-            this(a, b, c, d, e, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d, e ->
+            invokeInternal(a, b, c, d, e, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d, e ->
                 state = Valid(onReady(a, b, c, d, e))
             }
-        }.apply { configure(this) }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     /** @see Form.Companion.FormBuildContext.invoke */
@@ -2897,6 +2982,36 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
                 state = Valid(onReady(fields))
             }
         }.apply { configure(this) }
+    }
+
+    /** @see Form.Companion.FormBuildContext.invoke */
+    public operator fun <T> invoke(
+               first    : Field<*>,
+               second   : Field<*>,
+        vararg rest     : Field<*>,
+               layout   : ConstraintDslContext.(List<Bounds>) -> Unit,
+               onInvalid: (       ) -> Unit = {},
+               onReady  : (List<*>) -> T): FieldVisualizer<T> = invokeInternal(
+        first     = first,
+        second    = second,
+        rest      = rest,
+        layout    = layout,
+        onInvalid = onInvalid,
+        onReady   = onReady
+    )
+
+    private fun <T> invokeInternal(
+               first    : Field<*>,
+               second   : Field<*>,
+        vararg rest     : Field<*>,
+               layout   : (ConstraintDslContext.(List<Bounds>) -> Unit)?,
+               onInvalid: (       ) -> Unit = {},
+               onReady  : (List<*>) -> T): FieldVisualizer<T> = field {
+        Form {
+            invokeInternal(first, second, *rest, layout = layout, onInvalid = { field.state = Invalid(); onInvalid() }) { fields ->
+                state = Valid(onReady(fields))
+            }
+        }.apply { layout?.let { this@FormControlBuildContext.layout = { it.layout } }; configure(this) }
     }
 
     private fun configure(form: Form) {

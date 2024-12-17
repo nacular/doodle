@@ -11,6 +11,9 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.PropertyObserver
@@ -245,72 +248,153 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             /**
              * Defines a [Form] with a single [Field].
              *
-             * @param a the form's only field
+             * @param a         the form's only field
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun <A> invoke(
                     a        : Field<A>,
                     onInvalid: ( ) -> Unit,
-                    onReady  : (A) -> Unit): FormDefinition = FormDefinition(Form(a) { _,_,state ->
+                    onReady  : (A) -> Unit): FormDefinition = invokeInternal(a, layout = null, onInvalid, onReady)
+
+            /**
+             * Defines a [Form] with a single [Field].
+             *
+             * @param a         the form's only field
+             * @param layout    to position field
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun <A> invoke(
+                a        : Field<A>,
+                layout   : ConstraintDslContext.(Bounds) -> Unit,
+                onInvalid: ( ) -> Unit,
+                onReady  : (A) -> Unit): FormDefinition = invokeInternal(a, layout = layout, onInvalid, onReady)
+
+            internal fun <A> invokeInternal(
+                a        : Field<A>,
+                layout   : (ConstraintDslContext.(Bounds) -> Unit)?,
+                onInvalid: ( ) -> Unit,
+                onReady  : (A) -> Unit): FormDefinition = FormDefinition(Form(a) { _,_,state ->
                 when (state) {
                     is Ready -> onReady  (state.values[0] as A)
                     else     -> onInvalid()
+                }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], it)
                 }
             })
 
             /**
              * Defines a [Form] with 2 [Field]s.
              *
-             * @param a the form's first field
-             * @param b the form's second field
+             * @param a         the form's first field
+             * @param b         the form's second field
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun <A, B> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
                     onInvalid: (   ) -> Unit,
-                    onReady  : (A,B) -> Unit): FormDefinition = FormDefinition(Form(a, b) { _,_,state ->
+                    onReady  : (A,B) -> Unit): FormDefinition = invokeInternal(a, b, layout = null, onInvalid, onReady)
+
+            /**
+             * Defines a [Form] with 2 [Field]s.
+             *
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param layout    to position fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun <A, B> invoke(
+                a        : Field<A>,
+                b        : Field<B>,
+                layout   : ConstraintDslContext.(Bounds, Bounds) -> Unit,
+                onInvalid: (   ) -> Unit,
+                onReady  : (A,B) -> Unit): FormDefinition = invokeInternal(a, b, layout, onInvalid, onReady)
+
+            internal fun <A, B> invokeInternal(
+                a        : Field<A>,
+                b        : Field<B>,
+                layout   : (ConstraintDslContext.(Bounds, Bounds) -> Unit)?,
+                onInvalid: (   ) -> Unit,
+                onReady  : (A,B) -> Unit): FormDefinition = FormDefinition(Form(a, b) { _,_,state ->
                 var i = 0
 
                 when (state) {
                     is Ready -> onReady  (state.values[i++] as A, state.values[i] as B)
                     else     -> onInvalid()
                 }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], form.children[1], it)
+                }
             })
 
             /**
              * Defines a [Form] with 3 [Field]s.
              *
-             * @param a the form's first field
-             * @param b the form's second field
-             * @param c the form's third field
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun <A, B, C> invoke(
                     a        : Field<A>,
                     b        : Field<B>,
                     c        : Field<C>,
                     onInvalid: (     ) -> Unit,
-                    onReady  : (A,B,C) -> Unit): FormDefinition = FormDefinition(Form(a, b, c) { _,_,state ->
+                    onReady  : (A,B,C) -> Unit): FormDefinition = invokeInternal(a, b, c, layout = null, onInvalid, onReady)
+
+            /**
+             * Defines a [Form] with 3 [Field]s.
+             *
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
+             * @param layout    to position fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun <A, B, C> invoke(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                layout   : ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit,
+                onInvalid: (     ) -> Unit,
+                onReady  : (A,B,C) -> Unit): FormDefinition = invokeInternal(a, b, c, layout, onInvalid, onReady)
+
+            internal fun <A, B, C> invokeInternal(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit)?,
+                onInvalid: (     ) -> Unit,
+                onReady  : (A,B,C) -> Unit): FormDefinition = FormDefinition(Form(a, b, c) { _,_,state ->
                 var i = 0
                 when (state) {
                     is Ready -> onReady(state.values[i++] as A, state.values[i++] as B, state.values[i] as C)
                     else     -> onInvalid()
+                }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], form.children[1], form.children[2], it)
                 }
             })
 
             /**
              * Defines a [Form] with 4 [Field]s.
              *
-             * @param a the form's first field
-             * @param b the form's second field
-             * @param c the form's third field
-             * @param d the form's fourth field
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
+             * @param d         the form's fourth field
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun <A, B, C, D> invoke(
                     a        : Field<A>,
@@ -318,24 +402,57 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                     c        : Field<C>,
                     d        : Field<D>,
                     onInvalid: (          ) -> Unit = {            },
-                    onReady  : (A, B, C, D) -> Unit = { _,_,_,_ -> }): FormDefinition = FormDefinition(Form(a, b, c, d) { _,_,state ->
+                    onReady  : (A, B, C, D) -> Unit = { _,_,_,_ -> }): FormDefinition = invokeInternal(a, b, c, d, layout = null, onInvalid, onReady)
+
+            /**
+             * Defines a [Form] with 4 [Field]s.
+             *
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
+             * @param d         the form's fourth field
+             * @param layout    to position fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun <A, B, C, D> invoke(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                d        : Field<D>,
+                layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit)? = null,
+                onInvalid: (          ) -> Unit = {            },
+                onReady  : (A, B, C, D) -> Unit = { _,_,_,_ -> }): FormDefinition = invokeInternal(a, b, c, d, layout, onInvalid, onReady)
+
+            internal fun <A, B, C, D> invokeInternal(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                d        : Field<D>,
+                layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit)?,
+                onInvalid: (          ) -> Unit = {            },
+                onReady  : (A, B, C, D) -> Unit = { _,_,_,_ -> }): FormDefinition = FormDefinition(Form(a, b, c, d) { _,_,state ->
                 var i = 0
                 when (state) {
                     is Ready -> onReady(state.values[i++] as A, state.values[i++] as B, state.values[i++] as C, state.values[i] as D)
                     else     -> onInvalid()
+                }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], form.children[1], form.children[2], form.children[3], it)
                 }
             })
 
             /**
              * Defines a [Form] with 5 [Field]s.
              *
-             * @param a the form's first field
-             * @param b the form's second field
-             * @param c the form's third field
-             * @param d the form's fourth field
-             * @param e the form's fifth field
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
+             * @param d         the form's fourth field
+             * @param e         the form's fifth field
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun <A, B, C, D, E> invoke(
                     a        : Field<A>,
@@ -344,11 +461,47 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
                     d        : Field<D>,
                     e        : Field<E>,
                     onInvalid: (             ) -> Unit,
-                    onReady  : (A, B, C, D, E) -> Unit): FormDefinition = FormDefinition(Form(a, b, c, d, e) { _,_,state ->
+                    onReady  : (A, B, C, D, E) -> Unit): FormDefinition = invokeInternal(a, b, c, d, e, layout = null, onInvalid, onReady)
+
+            /**
+             * Defines a [Form] with a 5 [Field]s.
+             *
+             * @param a         the form's first field
+             * @param b         the form's second field
+             * @param c         the form's third field
+             * @param d         the form's fourth field
+             * @param e         the form's fifth field
+             * @param layout    to position fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun <A, B, C, D, E> invoke(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                d        : Field<D>,
+                e        : Field<E>,
+                layout   : ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit,
+                onInvalid: (             ) -> Unit,
+                onReady  : (A, B, C, D, E) -> Unit): FormDefinition = invokeInternal(a, b, c, d, e, layout, onInvalid, onReady)
+
+            internal fun <A, B, C, D, E> invokeInternal(
+                a        : Field<A>,
+                b        : Field<B>,
+                c        : Field<C>,
+                d        : Field<D>,
+                e        : Field<E>,
+                layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit)?,
+                onInvalid: (             ) -> Unit,
+                onReady  : (A, B, C, D, E) -> Unit): FormDefinition = FormDefinition(Form(a, b, c, d, e) { _,_,state ->
                 var i = 0
                 when (state) {
                     is Ready -> onReady(state.values[i++] as A, state.values[i++] as B, state.values[i++] as C, state.values[i++] as D, state.values[i] as E)
                     else     -> onInvalid()
+                }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], form.children[1], form.children[2], form.children[3], form.children[4], it)
                 }
             })
 
@@ -357,21 +510,68 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
              * are in the definition order within invoke. This allows the consumer to cast them to the expected
              * types.
              *
-             * @param first the form's first field
-             * @param second the form's second field
-             * @param rest the form's remaining fields
+             * @param first     the form's first field
+             * @param second    the form's second field
+             * @param rest      the form's remaining fields
              * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
-             * @param onReady called whenever the form has new input and all its fields are [Valid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
              */
             public operator fun invoke(
                            first    : Field<*>,
                            second   : Field<*>,
                     vararg rest     : Field<*>,
                            onInvalid: (       ) -> Unit,
-                           onReady  : (List<*>) -> Unit): FormDefinition = FormDefinition(Form(first, second, *rest) { _,_,state ->
+                           onReady  : (List<*>) -> Unit): FormDefinition = invokeInternal(
+                first     = first,
+                second    = second,
+                rest      = rest,
+                layout    = null,
+                onInvalid = onInvalid,
+                onReady   = onReady
+            )
+
+            /**
+             * Defines a [Form] with at least 2 [Field]s. The values provided to [onReady], though untyped,
+             * are in the definition order within invoke. This allows the consumer to cast them to the expected
+             * types.
+             *
+             * @param first     the form's first field
+             * @param second    the form's second field
+             * @param rest      the form's remaining fields
+             * @param layout    to position fields
+             * @param onInvalid called whenever the form has new input and any of its fields are [Invalid]
+             * @param onReady   called whenever the form has new input and all its fields are [Valid]
+             */
+            public operator fun invoke(
+                       first    : Field<*>,
+                       second   : Field<*>,
+                vararg rest     : Field<*>,
+                       layout   : ConstraintDslContext.(List<Bounds>) -> Unit,
+                       onInvalid: (       ) -> Unit,
+                       onReady  : (List<*>) -> Unit): FormDefinition = invokeInternal(
+                first     = first,
+                second    = second,
+                rest      = rest,
+                layout    = layout,
+                onInvalid = onInvalid,
+                onReady   = onReady
+            )
+
+            internal fun invokeInternal(
+                       first    : Field<*>,
+                       second   : Field<*>,
+                vararg rest     : Field<*>,
+                       layout   : (ConstraintDslContext.(List<Bounds>) -> Unit)?,
+                       onInvalid: (       ) -> Unit,
+                       onReady  : (List<*>) -> Unit
+            ): FormDefinition = FormDefinition(Form(first, second, *rest) { _,_,state ->
                 when (state) {
                     is Ready -> onReady(state.values)
                     else     -> onInvalid()
+                }
+            }.also { form ->
+                layout?.let {
+                    form.layout = constrain(form.children[0], form.children[1], others = form.children.drop(2).toTypedArray(), it)
                 }
             })
         }
