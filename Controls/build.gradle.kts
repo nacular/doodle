@@ -15,7 +15,7 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api(project(":core"))
+            api(projects.core)
 
             implementation(kotlin("reflect")   )
             implementation(libs.datetime       )

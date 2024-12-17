@@ -17,10 +17,10 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api(project(":core"    ))
-            api(project(":controls"))
-            api(project(":themes"  ))
-            api(libs.kodein.di)
+            api(projects.core    )
+            api(projects.controls)
+            api(projects.themes  )
+            api(libs.kodein.di   )
 
             implementation(libs.coroutines.core)
         }

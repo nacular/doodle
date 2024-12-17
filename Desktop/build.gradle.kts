@@ -30,9 +30,9 @@ kotlin {
         }
 
         commonMain.dependencies {
-            api(project(":core"    ))
-            api(project(":controls"))
-            api(project(":themes"  ))
+            api(projects.core    )
+            api(projects.controls)
+            api(projects.themes  )
 
             implementation(libs.datetime        )
             implementation(libs.coroutines.core )

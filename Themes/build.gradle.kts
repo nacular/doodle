@@ -15,8 +15,8 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(project(":controls" ))
-            implementation(project(":animation"))
+            implementation(projects.controls )
+            implementation(projects.animation)
 
             implementation(libs.datetime       )
             implementation(libs.kodein.di      )

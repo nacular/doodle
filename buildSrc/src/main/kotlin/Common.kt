@@ -1,3 +1,4 @@
+
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
@@ -6,58 +7,44 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.SigningExtension
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind.MODULE_UMD
+import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.HasProject
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.ir.JsIrBinary
 
 fun KotlinMultiplatformExtension.jsTargets() {
     compilerOptions()
 
     js {
-        val isRelease = releaseBuild
-
-        compilations.all {
-            kotlinOptions {
-                moduleKind = "umd"
-                sourceMap  = !isRelease
-                if (sourceMap) {
-                    sourceMapEmbedSources = "always"
-                }
+        compilerOptions {
+            moduleKind.set(MODULE_UMD)
+            sourceMap.set(!releaseBuild)
+            if (sourceMap.get()) {
+                sourceMapEmbedSources.set(SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
             }
         }
 
         browser {
             testTask { enabled = false }
         }
-
-        binaries.withType<JsIrBinary>().all {
-            linkTask.configure {
-                kotlinOptions {
-                    sourceMap = !isRelease
-                    if (sourceMap) {
-                        sourceMapEmbedSources = "always"
-                    }
-                }
-            }
-        }
     }
 }
 
-@OptIn(ExperimentalWasmDsl::class)
+@OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 fun KotlinMultiplatformExtension.wasmJsTargets() {
     compilerOptions()
 
     wasmJs {
-        compilations.all {
-            kotlinOptions {
-                moduleKind = "umd"
-                sourceMap  = !releaseBuild
-                if (sourceMap) {
-                    sourceMapEmbedSources = "always"
-                }
+        compilerOptions {
+            moduleKind.set(MODULE_UMD)
+            sourceMap.set(!releaseBuild)
+            if (sourceMap.get()) {
+                sourceMapEmbedSources.set(SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
             }
         }
+
         browser {
             testTask { enabled = false }
         }
