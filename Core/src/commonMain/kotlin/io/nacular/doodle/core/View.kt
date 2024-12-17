@@ -141,14 +141,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // region Accessibility
 
     /** indicates the View's role for assistive technologies */
-    public var accessibilityRole: AccessibilityRole? = accessibilityRole
-        internal set(new) {
-            if (field != new) {
-                accessibilityManager?.roleAbandoned(this)
-                field = new
-                accessibilityManager?.roleAdopted(this)
-            }
+    public var accessibilityRole: AccessibilityRole? = accessibilityRole; internal set(new) {
+        if (field != new) {
+            accessibilityManager?.roleAbandoned(this)
+            field = new
+            accessibilityManager?.roleAdopted(this)
         }
+    }
 
     /** Provides a recognizable name for assistive technologies. */
     public var accessibilityLabel: String? by observable(null) { _,_ ->

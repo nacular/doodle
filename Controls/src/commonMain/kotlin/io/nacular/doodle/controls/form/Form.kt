@@ -260,7 +260,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
 
             /**
-             * Defines a [Form] with a 2 [Field]s.
+             * Defines a [Form] with 2 [Field]s.
              *
              * @param a the form's first field
              * @param b the form's second field
@@ -281,7 +281,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
 
             /**
-             * Defines a [Form] with a 3 [Field]s.
+             * Defines a [Form] with 3 [Field]s.
              *
              * @param a the form's first field
              * @param b the form's second field
@@ -303,7 +303,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
 
             /**
-             * Defines a [Form] with a 4 [Field]s.
+             * Defines a [Form] with 4 [Field]s.
              *
              * @param a the form's first field
              * @param b the form's second field
@@ -327,7 +327,7 @@ public class Form private constructor(first: Field<*>, vararg rest: Field<*>, st
             })
 
             /**
-             * Defines a [Form] with a 5 [Field]s.
+             * Defines a [Form] with 5 [Field]s.
              *
              * @param a the form's first field
              * @param b the form's second field
