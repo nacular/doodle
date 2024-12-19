@@ -82,6 +82,13 @@ public sealed interface PathBuilder {
             point, radius, radius, rotation, largeArch, sweep
     )
 
+    /**
+     * Adds [path] to the existing path data
+     *
+     * @param path to be added
+     */
+    public fun append(path: Path): PathBuilder
+
     /** Closes the path. */
     public fun close(): Path
 
@@ -134,6 +141,12 @@ public fun path(from: Point): PathBuilder = PathBuilderImpl(from)
  * @return a builder to continue defining the path
  */
 public fun path(x: Double, y: Double): PathBuilder = path(Point(x, y))
+
+/**
+ * Creates a builder that is initialized with the current path and allows further modifications. The
+ * resulting path from that builder is different from the one [then] was called on.
+ */
+public val Path.extend: PathBuilder get() = PathBuilderImpl(data)
 
 /**
  * Converts a [Polygon] to a [Path].
@@ -302,8 +315,8 @@ public fun semicircle(
     sweep     = (end - start).sign > 0
 ).finish()
 
-private class PathBuilderImpl(start: Point): PathBuilder {
-    private var data = "M${start.x},${start.y}"
+private class PathBuilderImpl(private var data: String): PathBuilder {
+    constructor(start: Point): this("M${start.x},${start.y}")
 
     override fun moveTo(point: Point) = this.also {
         data += "M${point.x},${point.y}"
@@ -323,6 +336,10 @@ private class PathBuilderImpl(start: Point): PathBuilder {
 
     override fun arcTo(point: Point, xRadius: Double, yRadius: Double, rotation: Measure<Angle>, largeArch: Boolean, sweep: Boolean) = this.also {
         data += "A$xRadius $yRadius ${rotation `in` degrees} ${if (largeArch) 1 else 0} ${if (sweep) 1 else 0} ${point.x},${point.y}"
+    }
+
+    override fun append(path: Path): PathBuilder = this.also {
+        data += path.data
     }
 
     override fun close(): Path = Path(data + "Z")

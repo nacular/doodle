@@ -2,6 +2,7 @@ package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.table.MetaRowVisibility.Always
 import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
+import io.nacular.doodle.controls.table.MetaRowVisibility.Never
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
@@ -11,6 +12,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 
@@ -33,22 +35,23 @@ public enum class MetaRowVisibility {
 }
 
 internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val renderBlock: (Canvas) -> Unit): Container() {
-    var hasContent: Boolean = false
+    var hasContent   = false
+    var scrollOffset by observable(0.0) { _,_ -> relayout() }
 
     init {
         focusable = false
         layout = simpleLayout { views,_,current,_,_ ->
-            var totalWidth = 0.0
+            var x = scrollOffset
 
             views.forEachIndexed { index, view ->
                 val size = Size(columns[index].width, current.height)
 
-                view.updateBounds(totalWidth, 0.0, size, size).let {
-                    totalWidth += it.width
+                view.updateBounds(x, 0.0, size, size).let {
+                    x += it.width
                 }
             }
 
-            Size(totalWidth, current.height)
+            Size(x, current.height)
         }
     }
 

@@ -28,15 +28,11 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.addOrAppend
-import io.nacular.doodle.utils.dimensionSetProperty
 import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
@@ -128,7 +124,6 @@ public inline fun <T> itemGenerator(crossinline block: (list: List<T, *>, item: 
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its items' width or total height
  * @param scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
  * only visible items are rendered, but quick scrolling is more likely to show blank areas.
  *
@@ -142,12 +137,9 @@ public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Int>?            = null,
-                           fitContent    : Set<Dimension>                  = setOf(Width, Height),
         private        val scrollCache   : Int                             = 0): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
-        scrollToSelection() // FIXME: Avoid scrolling on selectAll, move to Behavior
-
         (selectionChanged as SetPool).forEach {
             it(this, removed, added)
         }
@@ -158,8 +150,6 @@ public open class List<T, out M: ListModel<T>>(
             }
         }
     }
-
-    private val fitContent: Set<Dimension> by dimensionSetProperty(fitContent)
 
     private   var itemGenerator : ItemGenerator <T>? = null
     private   var itemPositioner: ItemPositioner<T>? = null
@@ -174,7 +164,7 @@ public open class List<T, out M: ListModel<T>>(
     protected var lastVisibleItem : Int = -1
 
     override val numItems: Int     get() = model.size
-    public val isEmpty: Boolean get() = model.isEmpty
+    public   val isEmpty : Boolean get() = model.isEmpty
 
     /**
      * Notifies of changes to the List's selection.
@@ -342,12 +332,6 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private fun maxWithNull(first: Double?, second: Double?): Double? = when {
-        first != null && second != null -> max(first, second)
-        first == null -> second
-        else          -> first
-    }
-
     protected fun layout(view: View, item: T, index: Int) {
         itemPositioner?.let {
             view.suggestBounds(it.itemBounds(this@List, item, index, view))
@@ -419,32 +403,28 @@ public open class List<T, out M: ListModel<T>>(
             progression   : IntProgression,
             itemVisualizer: ItemVisualizer<Int, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): List<Int, ListModel<Int>> =
-            List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, scrollCache)
+            List<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, scrollCache)
 
         public operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): List<T, ListModel<T>> =
-            List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, scrollCache)
+            List<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, scrollCache)
 
         public operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): List<View, ListModel<View>> =
-            List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            List<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, scrollCache)
 
         public operator fun <T, M: ListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             scrollCache   : Int                             = 0): List<T, M> =
-            List(model, itemGenerator, selectionModel, fitContent, scrollCache)
+            List(model, itemGenerator, selectionModel, scrollCache)
     }
 }
 

@@ -45,6 +45,7 @@ import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.drawing.Shadow
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap.Square
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Circle
@@ -101,16 +102,16 @@ internal open class CanvasImpl(
     private var innerShadowCount  = 0
     private var vectorRenderDirty = false
 
-    override fun rect(rectangle: Rectangle,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
+    override fun rect(rectangle: Rectangle,                 fill: Paint ) = if (fill.isSimple) present(fill = fill) { getRect(rectangle) } else vectorRenderer.rect(rectangle, fill)
     override fun rect(rectangle: Rectangle, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, stroke, fill)
 
-    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
+    override fun rect(rectangle: Rectangle, radius: Double,                 fill: Paint ) = if (fill.isSimple) present(fill = fill) { roundedRect(rectangle, radius) } else vectorRenderer.rect(rectangle, radius, fill)
     override fun rect(rectangle: Rectangle, radius: Double, stroke: Stroke, fill: Paint?) = vectorRenderer.rect(rectangle, radius, stroke, fill)
 
-    override fun circle(circle: Circle,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
+    override fun circle(circle: Circle,                 fill: Paint ) = if (fill.isSimple) present(fill = fill) { roundedRect(circle.boundingRectangle, circle.radius) } else vectorRenderer.circle(circle, fill)
     override fun circle(circle: Circle, stroke: Stroke, fill: Paint?) = vectorRenderer.circle(circle, stroke, fill)
 
-    override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = if (isSimple(fill)) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
+    override fun ellipse(ellipse: Ellipse,                 fill: Paint ) = if (fill.isSimple) present(fill = fill) { roundedRect(ellipse.boundingRectangle, ellipse.xRadius, ellipse.yRadius) } else vectorRenderer.ellipse(ellipse, fill)
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = vectorRenderer.ellipse(ellipse, stroke, fill)
 
     // =============== Complex =============== //
@@ -144,16 +145,16 @@ internal open class CanvasImpl(
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
         when {
             text.isEmpty() || !fill.visible -> return
-            isSimpleText(fill)              -> { updateRenderPosition(); completeOperation(createTextGlyph(null, fill, text, font, at, textSpacing)) }
+            fill is ColorPaint              -> { updateRenderPosition(); completeOperation(createTextGlyph(null, fill, text, font, at, textSpacing)) }
             else                            -> vectorRenderer.text(text, font, at, fill, textSpacing)
         }
     }
 
     override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {
         when {
-            text.isEmpty() || (!stroke.visible && !(fill?.visible ?: false)) -> return
-            isSimpleText(fill, stroke) -> { updateRenderPosition(); completeOperation(createTextGlyph(stroke, fill, text, font, at, textSpacing)) }
-            else                       -> vectorRenderer.text(text, font, at, stroke, fill, textSpacing)
+            text.isEmpty() || (!stroke.visible && fill?.visible != true) -> return
+            isSimpleText(fill, stroke)                                   -> { updateRenderPosition(); completeOperation(createTextGlyph(stroke, fill, text, font, at, textSpacing)) }
+            else                                                         -> vectorRenderer.text(text, font, at, stroke, fill, textSpacing)
         }
     }
 
@@ -370,18 +371,7 @@ internal open class CanvasImpl(
         vectorRenderer.flush()
     }
 
-    @OptIn(ExperimentalContracts::class)
-    private fun isSimple(fill: Paint): Boolean {
-        contract {
-            returns(true) implies (fill is ColorPaint)
-        }
-
-        return when {
-            !fill.visible                               -> true
-            fill is ColorPaint && innerShadowCount <= 0 -> true
-            else -> false
-        }
-    }
+    private val Paint.isSimple: Boolean get() = !visible || this is ColorPaint && innerShadowCount <= 0
 
     @OptIn(ExperimentalContracts::class)
     private fun isSimpleText(fill: Paint?, stroke: Stroke? = null): Boolean {
@@ -389,15 +379,14 @@ internal open class CanvasImpl(
             returns(true) implies (fill is ColorPaint)
         }
 
-        return (stroke?.let {
-            !it.visible
-            || (isSimple(it.fill) && (it.dashes?.size ?: 0) <= 1 && (it.lineCap == null || it.lineCap == Stroke.LineCap.Square))
-        } ?: true) && fill?.let { isSimple(it) } == true
+        return (stroke?.isSimple != false) && fill?.isSimple != false
     }
+
+    private val Stroke.isSimple: Boolean get() = !visible || (fill.isSimple && (dashes?.size ?: 0) <= 1 && (lineCap == null || lineCap == Square))
 
     private fun isSimple(text: StyledText): Boolean = text.all { (_,style) ->
         val simpleForeground = isSimpleText(style.foreground, style.stroke)
-        val simpleBackground = style.background?.let { isSimple(it) } ?: true
+        val simpleBackground = style.background?.isSimple != false
 
         simpleForeground && simpleBackground
     }

@@ -24,6 +24,7 @@ import io.nacular.doodle.theme.basic.HorizontalListPositioner
 import io.nacular.doodle.theme.basic.ListItem
 import io.nacular.doodle.theme.basic.SelectableListKeyHandler
 import io.nacular.doodle.theme.basic.VerticalListPositioner
+import io.nacular.doodle.utils.SetObserver
 
 /**
  * Created by Nicholas Eddy on 3/20/18.
@@ -63,14 +64,21 @@ public open class BasicListBehavior<T>(
     override val positioner  : ItemPositioner<T>,
     private  val fill        : Paint? = null
 ): ListBehavior<T>, KeyListener, PointerListener, SelectableListKeyHandler {
+
+    private val selectionListener: SetObserver<List<T, *>, Int> = { list,_,_ ->
+        list.scrollToSelection()
+    }
+
     override fun install(view: List<T, *>) {
-        view.keyChanged    += this
-        view.pointerFilter += this
+        view.keyChanged       += this
+        view.pointerFilter    += this
+        view.selectionChanged += selectionListener
     }
 
     override fun uninstall(view: List<T, *>) {
-        view.keyChanged    -= this
-        view.pointerFilter -= this
+        view.keyChanged       -= this
+        view.pointerFilter    -= this
+        view.selectionChanged -= selectionListener
     }
 
     override fun render(view: List<T, *>, canvas: Canvas) {

@@ -19,6 +19,7 @@ import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -157,7 +158,6 @@ public open class Table<T, M: ListModel<T>>(
                 itemVisualizer { _,_,_ -> object : View() {} },
                 selectionModel,
                 scrollCache = scrollCache,
-                fitContent = emptySet()
             ).apply {
                 acceptsThemes = false
             }
@@ -341,8 +341,8 @@ public open class Table<T, M: ListModel<T>>(
             // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
-                    header.suggestX(new.x)
-                    footer.suggestX(new.x)
+                    header.scrollOffset = new.x
+                    footer.scrollOffset = new.x
                 }
             }
         }).apply {
@@ -390,6 +390,25 @@ public open class Table<T, M: ListModel<T>>(
     }
 
     public operator fun get(index: Int): Result<T> = model[index]
+
+    /**
+     * Scrolls [item] into view if the Table is within a [ScrollPanel].
+     */
+    public fun scrollTo(item: Int) {
+        this[item].onSuccess {
+            behavior?.rowPositioner?.rowBounds(this, it, item)?.let { bounds ->
+                scrollTo(bounds.at(y = bounds.y + panel.y))
+                panel.scrollToVisible(bounds)
+            }
+        }
+    }
+
+    /**
+     * Scrolls the last selected item into view if the Table is within a [ScrollPanel].
+     */
+    public fun scrollToSelection() {
+        lastSelection?.let { scrollTo(it) }
+    }
 
     override fun addedToDisplay() {
         selectionModel?.let { it.changed += selectionChanged_ }

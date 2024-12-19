@@ -2,7 +2,6 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.HorizontalAlignment.Center
@@ -83,7 +82,7 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
             }
 
             it.bounds.at(startX, y).apply {
-                it.position = Point(x, y)
+                it.updatePosition(x, y)
             }
 
             startX += it.bounds.width + horizontalSpacing

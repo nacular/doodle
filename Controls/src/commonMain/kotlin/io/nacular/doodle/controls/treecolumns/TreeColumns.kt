@@ -16,9 +16,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.Insets
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.PropertyObservers
@@ -153,8 +150,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             model              : SimpleMutableListModel<T>,
             itemGenerator      : ItemVisualizer<T, IndexedItem>? = null,
         val localSelectionModel: LocalSelectionModel?            = null,
-            fitContent         : Set<Dimension>                  = setOf(Width, Height)
-    ): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel, fitContent) {
+    ): MutableList<T, SimpleMutableListModel<T>>(model, itemGenerator, localSelectionModel) {
         public override val model = super.model
 
         fun enable() {
@@ -373,8 +369,8 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
-        contentWidthConstraints  = { it eq width - verticalScrollBarWidth                   }
-        contentHeightConstraints = { it eq height }
+        contentWidthConstraints  = { it eq width - verticalScrollBarWidth }
+        contentHeightConstraints = { it eq height                         }
 
         // FIXME: REMOVE
         suggestWidth(200.0)
@@ -390,7 +386,6 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             SimpleMutableListModel(model.children(node).asSequence().toList()),
             itemVisualizer,
             selectionModel?.let { LocalSelectionModel(node, it) },
-            fitContent  = setOf(Height)
         ).apply {
             acceptsThemes = false
         }

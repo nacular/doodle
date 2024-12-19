@@ -14,6 +14,7 @@ internal actual abstract class SVGGraphicsElement      : SVGElement()
 internal actual abstract class SVGLinearGradientElement: SVGGradientElement()
 internal actual abstract class SVGRadialGradientElement: SVGGradientElement()
 
+@Suppress("FunctionName")
 internal actual fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect = getBBox(object: SVGBoundingBoxOptions {
     override var fill    = options.fill
     override var stroke  = options.stroke

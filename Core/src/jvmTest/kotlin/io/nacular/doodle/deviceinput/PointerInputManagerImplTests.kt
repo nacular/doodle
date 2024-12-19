@@ -13,6 +13,8 @@ import io.mockk.verify
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.forceBounds
+import io.nacular.doodle.core.forcePosition
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.event.Interaction
@@ -101,8 +103,10 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -124,8 +128,10 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -155,8 +161,10 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = view(Move)
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -232,13 +240,14 @@ class PointerInputManagerImplTests {
         val parent       = spyk(Container())
         val child        = spyk(view())
 
-        every { display.child     (any()) } returns grandParent
-        every { grandParent.child (any()) } returns parent
-        every { parent.child      (any()) } returns child
-        every { parent.parent             } returns grandParent
-        every { child.parent              } returns parent
-        every { parent.enabled            } returns false
-        every { child.enabled             } returns false
+        every { display.child     (any()       ) } returns grandParent
+        every { display.child     (any(), any()) } returns grandParent
+        every { grandParent.child (any()       ) } returns parent
+        every { parent.child      (any()       ) } returns child
+        every { parent.parent                    } returns grandParent
+        every { child.parent                     } returns parent
+        every { parent.enabled                   } returns false
+        every { child.enabled                    } returns false
 
         parent.children      += child
         grandParent.children += parent
@@ -271,11 +280,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -296,7 +307,7 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
         every { child.shouldHandlePointerEvent_(any()) } returns false
@@ -323,13 +334,15 @@ class PointerInputManagerImplTests {
         val parent       = spyk(view())
         val child        = spyk(view())
 
-        parent.suggestPosition(9.0, 9.0)
+        parent.forcePosition(9.0, 9.0)
 
         parent.children_ += child
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns parent
-        every { child.parent                     } returns parent
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns parent
+        every { display.child(Point(10.0, 10.0), any()) } returns parent
+        every { child.parent                            } returns parent
 
         display.children += parent
 
@@ -354,7 +367,7 @@ class PointerInputManagerImplTests {
         val parent       = spyk(view(), name = "parent")
         val child        = spyk(view(), name = "child" )
 
-        parent.suggestPosition(9.0, 9.0)
+        parent.forcePosition(9.0, 9.0)
         parent.children_ += child
 
         every { child.shouldHandlePointerEvent_(any() ) } returns false
@@ -386,10 +399,12 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -411,13 +426,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged       += mockk()
         child.pointerMotionChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
-        every { display.child(Point(20.0, 20.0)) } returns child
+        every { display.child(any(), any()            ) } returns null
+        every { display.child(Point(10.0, 10.0), any()) } returns child
+        every { display.child(Point(20.0, 20.0), any()) } returns child
 
         display.children += child
 
@@ -437,11 +452,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -464,11 +481,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -491,11 +510,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -517,11 +538,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -540,11 +563,13 @@ class PointerInputManagerImplTests {
         val inputService = mockk<PointerInputService>()
         val child        = spyk(view())
 
-        child.suggestPosition(9.0, 9.0)
+        child.forcePosition(9.0, 9.0)
         child.pointerChanged += mockk()
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -566,8 +591,10 @@ class PointerInputManagerImplTests {
             every { this@apply.enabledChanged += capture(enabledChanged) } just Runs
         }
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -605,8 +632,10 @@ class PointerInputManagerImplTests {
             every { this@apply.transformChanged += capture(transformChanged) } just Runs
         }
 
-        every { display.child(any()            ) } returns null
-        every { display.child(Point(10.0, 10.0)) } returns child
+        every { display.child(any()                   ) } returns null
+        every { display.child(any(),             any()) } returns null
+        every { display.child(Point(10.0, 10.0))        } returns child
+        every { display.child(Point(10.0, 10.0), any()) } returns child
 
         display.children += child
 
@@ -648,7 +677,7 @@ class PointerInputManagerImplTests {
     }
 
     private fun view(cursor: Cursor? = null, bounds: Rectangle = Rectangle(size = Size(100.0, 100.0))): View = view {
-        this.suggestBounds(bounds)
+        this.forceBounds(bounds)
         this.cursor = cursor
     }
 

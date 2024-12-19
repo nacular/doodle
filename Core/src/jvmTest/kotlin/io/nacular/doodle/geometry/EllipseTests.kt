@@ -2,7 +2,7 @@ package io.nacular.doodle.geometry
 
 import kotlin.math.PI
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.test.expect
 
 /**
@@ -12,17 +12,20 @@ class EllipseTests {
     @Test
     fun `defaults to origin`() = expect(Point.Origin) { Ellipse(xRadius = 2.4, yRadius = 4.0).center }
 
+    private fun Ellipse.equal(other: Ellipse) = center == other.center && xRadius == other.xRadius && yRadius == other.yRadius
+
     @Test
-    fun `negative radius fails`() {
-        assertFailsWith(IllegalArgumentException::class) { Ellipse(xRadius = -20.0, yRadius = 1.0) }
-        assertFailsWith(IllegalArgumentException::class) { Ellipse(xRadius = 1.0, yRadius = -20.0) }
+    fun `negative radius works`() {
+        assertTrue { Ellipse(xRadius = -20.0, yRadius =   1.0).equal(Ellipse(0.0, 1.0)) }
+        assertTrue { Ellipse(xRadius =   1.0, yRadius = -20.0).equal(Ellipse(1.0, 0.0)) }
+        assertTrue { Ellipse(xRadius =  -1.0, yRadius = -20.0).equal(Ellipse.Empty    ) }
     }
 
     @Test
     fun `empty has area 0`() = expect(0.0) { Ellipse.Empty.area }
 
     @Test
-    fun `zero xradius has area 0`() {
+    fun `zero xRadius has area 0`() {
         Ellipse(xRadius = 0.0, yRadius = 100.0).apply {
             expect(0.0) { area }
             expect(true) { empty }
@@ -30,7 +33,7 @@ class EllipseTests {
     }
 
     @Test
-    fun `zero yradius has area 0`() {
+    fun `zero yRadius has area 0`() {
         Ellipse(xRadius = 100.0, yRadius = 0.0).apply {
             expect(0.0) { area }
             expect(true) { empty }

@@ -11,6 +11,8 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.forceHeight
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.RenderManagerImpl
@@ -64,7 +66,7 @@ class ConstraintLayoutTests {
     }
 
     @Test fun basic() {
-        val child1    = view {}.apply { suggestHeight(10.0) }
+        val child1    = view {}.apply { forceHeight(10.0) }
         val child2    = view {}
         val container = container {
             this += listOf(child1, child2)
@@ -78,7 +80,7 @@ class ConstraintLayoutTests {
             b.centerX eq parent.centerX
         }
 
-        container.suggestSize(Size(200))
+        container.forceSize(Size(200))
 
         container.doLayout_()
 
@@ -109,7 +111,7 @@ class ConstraintLayoutTests {
             a.width + b.width eq parent.width
         }
 
-        container.suggestSize(Size(1200))
+        container.forceSize(Size(1200))
         container.doLayout_()
 
         expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds }
@@ -149,7 +151,7 @@ class ConstraintLayoutTests {
             a.width + b.width + c.width eq parent.width
         }
 
-        container.suggestSize(Size(1200))
+        container.forceSize(Size(1200))
         container.doLayout_()
 
         expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
@@ -220,7 +222,7 @@ class ConstraintLayoutTests {
                 (it.height eq 500) .. Medium
             }
 
-            suggestSize(Size(1000))
+            forceSize(Size(1000))
         }
 
         val scheduler = ManualAnimationScheduler()
@@ -233,7 +235,7 @@ class ConstraintLayoutTests {
         expect( 500.0) { parent.height      }
         expect( 500.0) { child1.height      }
 
-        grandParent.suggestHeight(400.0)
+        grandParent.forceHeight(400.0)
 
         scheduler.runJobs()
 
@@ -259,7 +261,7 @@ class ConstraintLayoutTests {
         }
 
         view1.suggestX     (67.0)
-        view1.suggestHeight(67.0)
+        view1.forceHeight(67.0)
         view2.suggestY     (67.0)
         view3.suggestWidth (67.0)
 
@@ -304,7 +306,7 @@ class ConstraintLayoutTests {
         container.layout = constrain(view1, view2, view3, constraints)
 
         view1.suggestX     (67.0)
-        view1.suggestHeight(67.0)
+        view1.forceHeight(67.0)
         view2.suggestY     (67.0)
         view3.suggestWidth (67.0)
 
@@ -317,7 +319,7 @@ class ConstraintLayoutTests {
 
         (container.layout as ConstraintLayout).unconstrain(view1, view2, view3, constraints)
 
-        container.suggestSize(container.size * 2)
+        container.forceSize(container.size * 2)
 
         container.doLayout_()
 
@@ -336,7 +338,7 @@ class ConstraintLayoutTests {
 
         val container = container {
             this   += view
-            suggestSize(Size(100))
+            forceSize(Size(100))
             layout = constrain(view) {
                 align(it)
             }
@@ -373,9 +375,9 @@ class ConstraintLayoutTests {
         val mainStartHeight   = 186.0
         val footerStartHeight =  56.0
 
-        val header       = NamedView("header").apply { suggestHeight(117.0) }
-        val main         = NamedView("main"  ).apply { suggestHeight(186.0) }
-        val footer       = NamedView("footer").apply { suggestHeight( 56.0) }
+        val header       = NamedView("header").apply { forceHeight(117.0) }
+        val main         = NamedView("main"  ).apply { forceHeight(186.0) }
+        val footer       = NamedView("footer").apply { forceHeight( 56.0) }
         val minHeight    = 106.0
         var targetHeight = 174
 
@@ -397,7 +399,7 @@ class ConstraintLayoutTests {
                 (footer_.bottom lessEq parent.bottom.readOnly) .. Strong
             }
 
-            suggestHeight(9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight)
+            forceHeight(9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight)
         }
 
         container.doLayout_()
@@ -411,12 +413,12 @@ class ConstraintLayoutTests {
         expect(minHeight) { main.height }
 
         targetHeight = 174
-        container.suggestHeight(container.height - 1)
+        container.forceHeight(container.height - 1)
         container.doLayout_()
 
         expect(container.height - (main.y + footer.height + 65)) { main.height }
 
-        container.suggestHeight(100.0)
+        container.forceHeight(100.0)
         container.doLayout_()
 
         expect(minHeight) { main.height }
@@ -424,7 +426,7 @@ class ConstraintLayoutTests {
 
     @Test fun `center works`() {
         val childSize = Size(100)
-        val child     = view {}.apply { suggestSize(childSize) }
+        val child     = view {}.apply { forceSize(childSize) }
 
         val layout = constrain(child) {
             it.center eq parent.center

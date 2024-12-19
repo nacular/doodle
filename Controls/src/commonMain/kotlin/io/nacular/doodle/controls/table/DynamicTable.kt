@@ -133,7 +133,6 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
                     override fun invoke(item: R, previous: View?, context: IndexedItem) = object : View() {}
                 },
                 selectionModelWrapper,
-                fitContent = emptySet()
             ).apply {
                 acceptsThemes = false
             }

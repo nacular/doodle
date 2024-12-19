@@ -37,7 +37,6 @@ import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.diff.compare
 import io.nacular.doodle.utils.ifNull
-import io.nacular.doodle.utils.observable
 import io.nacular.doodle.utils.removeAll
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.reflect.KMutableProperty0
@@ -220,8 +219,6 @@ internal class ConstraintLayoutImpl(
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         layingOut = true
 
-//        solver.resetCounts()
-
         context.updateParent(current, min = min, max = max)
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
@@ -265,7 +262,8 @@ internal class ConstraintLayoutImpl(
     @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
         views.forEach {
-            --it.numBoundsAttemptObservers
+            it.boundsChangeAttempted -= this
+            viewBounds -= it
 
             it.resetConstraints()
         }
@@ -278,14 +276,14 @@ internal class ConstraintLayoutImpl(
     }
 
     private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
-        ++view.numBoundsAttemptObservers
+        view.boundsChangeAttempted += this
 
         viewBounds.getOrPut(view) {
             BoundsImpl(view.positionable, context).also { bounds ->
                 viewBounds[view] = bounds
 
                 view.positionable.bounds.let {
-                    if (it.y != 0.0 || it.x != 0.0 || it.width  != 0.0 || it.height != 0.0) {
+                    if (it.y != 0.0 || it.x != 0.0 || it.width != 0.0 || it.height != 0.0) {
                         updatedBounds[bounds.top   ] = it.y
                         updatedBounds[bounds.left  ] = it.x
                         updatedBounds[bounds.width ] = it.width
@@ -298,10 +296,6 @@ internal class ConstraintLayoutImpl(
 
     private fun notifyOfErrors(exception: ConstraintException) {
         (exceptionThrown as SetPool).forEach { it(this, exception) }
-    }
-
-    private var variables: List<Variable> by observable(emptyList()) { old, new ->
-
     }
 
     internal companion object {
@@ -349,7 +343,7 @@ internal class ConstraintLayoutImpl(
                                         solver.updateConstant(it.items[index], insertedConstraint)
                                     } catch (exception: ConstraintException) {
                                         errorHandler(exception)
-                                    } catch (ignore: UnknownConstraintException) {}
+                                    } catch (_: UnknownConstraintException) {}
                                 } else {
                                     // handle delete
                                     handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
@@ -389,22 +383,22 @@ internal class ConstraintLayoutImpl(
             activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
                 try {
                     solver.removeEditVariable(variable)
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
 
                 try {
                     solver.addEditVariable(variable, Weak)
                     solver.suggestValue(variable, value)
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
             }
 
             updatedBounds.filter { it.key !in activeBounds }.forEach { (variable,_) ->
                 try {
                     solver.removeEditVariable(variable)
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
 
                 try {
                     solver.addEditVariable(variable, Strength(100))
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
             }
 
             updatedBounds.forEach { (variable, value) ->
@@ -412,7 +406,7 @@ internal class ConstraintLayoutImpl(
                     solver.suggestValue(variable, value)
                 } catch (exception: ConstraintException) {
                     errorHandler(exception)
-                } catch (ignore: UnknownEditVariableException) {}
+                } catch (_: UnknownEditVariableException) {}
             }
 
             activeBounds.putAll(updatedBounds)
@@ -425,7 +419,7 @@ internal class ConstraintLayoutImpl(
             updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
                 try {
                     solver.suggestValue(variable, value)
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
             }
 
             // Cleanup holds
@@ -446,7 +440,7 @@ internal class ConstraintLayoutImpl(
                         // Add synthetic constraints that keep width and height positive
                         try {
                             solver.addConstraint(ensureNonNegative(variable))
-                        } catch (ignore: Exception) { }
+                        } catch (_: Exception) { }
                     }
 
                     val strength = when {
@@ -456,14 +450,14 @@ internal class ConstraintLayoutImpl(
 
                     try {
                         solver.addEditVariable(variable, strength)
-                    } catch (ignore: Exception) { }
+                    } catch (_: Exception) { }
 
                     if (variable() != 0.0) {
                         try {
                             solver.suggestValue(variable, variable())
                         } catch (exception: ConstraintException) {
                             errorHandler(exception)
-                        } catch (ignore: UnknownEditVariableException) { }
+                        } catch (_: UnknownEditVariableException) { }
                     }
                 }
             } catch (exception: UnsatisfiableConstraintException) {
@@ -479,13 +473,13 @@ internal class ConstraintLayoutImpl(
         private fun handleDelete(solver: Solver, constraint: Constraint) {
             try {
                 solver.removeConstraint(constraint)
-            } catch (ignore: Exception) {}
+            } catch (_: Exception) {}
 
             constraint.expression.terms.asSequence().map { it.variable }.filter { it.needsSynthetic }.forEach { variable ->
                 // Remove synthetic constraints that keep width and height positive
                 try {
                     solver.removeConstraint(ensureNonNegative(variable))
-                } catch (ignore: Exception) {}
+                } catch (_: Exception) {}
             }
         }
 

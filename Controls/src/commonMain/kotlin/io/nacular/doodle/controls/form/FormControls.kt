@@ -68,8 +68,6 @@ import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.CharInterpolator
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.Interpolator
@@ -2124,19 +2122,16 @@ public fun spinButton(
  * @param T is the type of the items in the bounded field
  * @param model for the list
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T, M: ListModel<T>> optionalSingleChoiceList(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<T?> = field {
     io.nacular.doodle.controls.list.List(
         model,
         itemVisualizer,
         selectionModel = SingleItemSelectionModel(),
-        fitContent     = fitContents
     ).apply {
         var itemIndex = 0
         val items     = model.asIterable().iterator()
@@ -2174,18 +2169,15 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
  * @param first item in the list
  * @param rest of the items in the list
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T> optionalSingleChoiceList(
     first: T,
     vararg rest : T,
     itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSingleChoiceList(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
-    fitContents,
     config
 )
 
@@ -2196,17 +2188,14 @@ public fun <T> optionalSingleChoiceList(
  *
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun optionalSingleChoiceList(
     progression   : IntProgression,
     itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int?> = optionalSingleChoiceList(
     IntProgressionModel(progression),
     itemVisualizer,
-    fitContents,
     config
 )
 
@@ -2218,18 +2207,15 @@ public fun optionalSingleChoiceList(
  * @param first item in the list
  * @param rest of the items in the list
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T, M: ListModel<T>> singleChoiceList(
     first: T,
     vararg rest : T,
     itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = singleChoiceList(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
-    fitContents,
     config
 )
 
@@ -2239,23 +2225,19 @@ public fun <T, M: ListModel<T>> singleChoiceList(
  *
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun singleChoiceList(
     progression: IntProgression,
     itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int> = singleChoiceList(
     IntProgressionModel(progression),
     itemVisualizer,
-    fitContents,
     config
 )
 private fun <T, M: ListModel<T>> singleChoiceList(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
 
     class ForcedSingleItemSelectionModel<T>: MultiSelectionModel<T>() {
@@ -2305,7 +2287,6 @@ private fun <T, M: ListModel<T>> singleChoiceList(
         model,
         itemVisualizer,
         selectionModel = ForcedSingleItemSelectionModel(),
-        fitContent     = fitContents
     ).apply {
         val items = model.asIterable().iterator()
 
@@ -2426,19 +2407,16 @@ public fun <T> switchList(
  * @param T is the type of the items in the bounded field
  * @param model for the list
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T, M: ListModel<T>> list(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
         model,
         itemVisualizer,
         selectionModel = MultiSelectionModel(),
-        fitContent     = fitContents
     ).apply {
         var itemIndex = 0
         val items            = model.asIterable().iterator()
@@ -2483,18 +2461,15 @@ public fun <T, M: ListModel<T>> list(
  * @param first item in the list
  * @param rest of the items in the list
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun <T> list(
            first         : T,
     vararg rest          : T,
            itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-           fitContents   : Set<Dimension> = setOf(Height),
            config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
-    fitContents,
     config
 )
 
@@ -2505,17 +2480,14 @@ public fun <T> list(
  *
  * @param progression to use for values
  * @param itemVisualizer used to render items in the list
- * @param fitContents signaling whether the list should scale with its contents
  * @param config used to control the resulting component
  */
 public fun list(
     progression   : IntProgression,
     itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    fitContents   : Set<Dimension> = setOf(Height),
     config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
     IntProgressionModel(progression),
     itemVisualizer,
-    fitContents,
     config
 )
 

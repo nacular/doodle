@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package io.nacular.doodle.dom
 
 internal actual fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect = this.getBBox(jsObject {

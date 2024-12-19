@@ -371,8 +371,6 @@ internal class CanvasImpl(
     }
 
     override fun path(path: Path, fill: Paint, fillRule: Renderer.FillRule?) {
-        path(path, fill, fillRule)
-
         val skiaPath = path.skia()
 
         if (fillRule != null) {

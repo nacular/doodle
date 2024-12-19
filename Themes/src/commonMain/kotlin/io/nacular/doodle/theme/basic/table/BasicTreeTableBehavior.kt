@@ -23,6 +23,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.width
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
@@ -30,6 +31,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -85,6 +87,7 @@ public open class BasicTreeTableBehavior<T>(
 
     private val selectionChanged: SetObserver<TreeTable<T, *>, Path<Int>> = { treeTable ,_,_ ->
         treeTable.bodyDirty()
+        treeTable.scrollToSelection()
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -209,7 +212,7 @@ public open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row.onSuccess {
-                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(Insets(top = 1.0)), ColorPaint(color))
+                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(Insets(top = 1.0)).with(width = canvas.width), ColorPaint(color))
                 }
             }
         }

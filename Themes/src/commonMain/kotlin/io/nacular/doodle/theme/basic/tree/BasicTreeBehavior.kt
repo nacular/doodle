@@ -43,6 +43,7 @@ import io.nacular.doodle.utils.HorizontalAlignment.Left
 import io.nacular.doodle.utils.PassThroughEncoder
 import io.nacular.doodle.utils.Path
 import io.nacular.doodle.utils.RelativePositionMonitor
+import io.nacular.doodle.utils.SetObserver
 import kotlin.math.max
 
 private class BasicTreeRowPositioner<T>(private val height: Double): RowPositioner<T>() {
@@ -126,6 +127,10 @@ public open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T
 
     private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor) else null
 
+    private val selectionListener: SetObserver<Tree<T, *>, Path<Int>> = { tree, _, _ ->
+        tree.scrollToSelection()
+    }
+
     override val positioner: RowPositioner<T> = BasicTreeRowPositioner(rowHeight)
 
     override fun render(view: Tree<T, *>, canvas: Canvas) {
@@ -133,11 +138,13 @@ public open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T
     }
 
     override fun install(view: Tree<T, *>) {
-        view.keyChanged += this
+        view.keyChanged       += this
+        view.selectionChanged += selectionListener
     }
 
     override fun uninstall(view: Tree<T, *>) {
-        view.keyChanged -= this
+        view.keyChanged       -= this
+        view.selectionChanged -= selectionListener
     }
 
     override fun pressed(event: KeyEvent) {

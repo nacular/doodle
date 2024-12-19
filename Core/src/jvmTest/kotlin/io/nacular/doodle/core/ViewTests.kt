@@ -295,7 +295,7 @@ class ViewTests {
     }
 
     @Test fun `child at point inside clip poly`() {
-        val child  = view().apply { suggestPosition(5.0, 5.0) }
+        val child  = view().apply { forcePosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_        += child
@@ -307,7 +307,7 @@ class ViewTests {
     }
 
     @Test fun `child at point layout returns Ignored`() {
-        val child  = view().apply { suggestPosition(5.0, 5.0) }
+        val child  = view().apply { forcePosition(5.0, 5.0) }
         val parent = object: View() {
             init {
                 children_ += child
@@ -429,7 +429,7 @@ class ViewTests {
             Rectangle(        100, 100),
             Rectangle(12, 38,  10, 100)
         ).forEach {
-            view.suggestBounds(it)
+            view.forceBounds(it)
             expect(view.center) { it.center }
         }
     }
@@ -670,8 +670,8 @@ class ViewTests {
         val new      = Rectangle(5.6, 3.7, 900.0, 1.2)
         val old      = view.bounds
         val newValue = slot<Rectangle>()
-        val observer = mockk<PropertyObserver<View, Rectangle>>().apply {
-            every { this@apply.invoke(view, any<Rectangle>(), capture(newValue)) } answers {
+        val observer = mockk<PropertyObserver<View, Rectangle>> {
+            every { this@mockk.invoke(view, any<Rectangle>(), capture(newValue)) } answers {
                 expect(newValue.captured) { view.boundingBox }
             }
         }
@@ -681,12 +681,12 @@ class ViewTests {
 
         view.addedToDisplay(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
-        view.suggestBounds(new.at(x = 67.0))
-        view.suggestBounds(new             )
+        view.forceBounds(new             )
+        view.forceBounds(new.at(x = 67.0))
 
         verifyOrder {
             renderManager.boundsChanged(view, old, new             )
-            renderManager.boundsChanged(view, old, new.at(x = 67.0))
+            renderManager.boundsChanged(view, new, new.at(x = 67.0))
         }
     }
 
@@ -940,11 +940,11 @@ class ViewTests {
 
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
 
-        view.suggestBounds(bounds)
+        view.forceBounds(bounds)
 
         expect(true, "$view contains ${bounds.position}") { bounds.position in view }
 
-        view.suggestSize(Size.Empty)
+        view.forceSize(Size.Empty)
 
         expect(false, "$view contains ${bounds.position}") { bounds.position in view }
     }
@@ -1027,10 +1027,10 @@ class ViewTests {
 
     @Test fun `child at works`() {
         val root   = view()
-        val child0 = view().apply { suggestPosition(10.0, 12.0) }
-        val child1 = view().apply { suggestPosition(10.0, 12.0) }
-        val child2 = view().apply { suggestPosition(20.0, 12.0) }
-        val child3 = view().apply { suggestBounds(Rectangle(x = 10.0, y = 23.0, width = 0.0)) }
+        val child0 = view().apply { forcePosition(10.0, 12.0) }
+        val child1 = view().apply { forcePosition(10.0, 12.0) }
+        val child2 = view().apply { forcePosition(20.0, 12.0) }
+        val child3 = view().apply { forceBounds(Rectangle(x = 10.0, y = 23.0, width = 0.0)) }
 
         root.children_ += child0
         root.children_ += child1
@@ -1128,15 +1128,15 @@ class ViewTests {
         child.suggestBounds(Rectangle(23, 56, 110, 110))
         parent.doLayout_()
 
-        expect(Rectangle(23, 56, 110, 110)) { child.bounds  }
-        expect(Rectangle(child.bounds.right, child.bounds.bottom)) { parent.bounds }
+        expect(Rectangle(23, 56, 110, 110)) { child.bounds }
+        expect(Size(child.bounds.right, child.bounds.bottom)) { parent.idealSize }
     }
 
     private class SubView: View() {
-        public override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent(old, new) }
-        public override fun handlePointerEvent(event: PointerEvent) { super.handlePointerEvent(event) }
-        public override fun handleKeyEvent(event: KeyEvent) { super.handleKeyEvent(event) }
-        public override fun handlePointerMotionEvent(event: PointerEvent) { super.handlePointerMotionEvent(event) }
+        public override fun handleKeyEvent          (event: KeyEvent               ) { super.handleKeyEvent          (event   ) }
+        public override fun handlePointerEvent      (event: PointerEvent           ) { super.handlePointerEvent      (event   ) }
+        public override fun handleDisplayRectEvent  (old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent  (old, new) }
+        public override fun handlePointerMotionEvent(event: PointerEvent           ) { super.handlePointerMotionEvent(event   ) }
     }
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {

@@ -21,6 +21,7 @@ import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -435,7 +436,6 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 itemVisualizer = itemVisualizer { _: R, _: View?, _: Any -> object : View() {} },
                 selectionModel = selectionModel?.map({ rowFromPath(it) }, { pathFromRow(it) }),
                 scrollCache    = scrollCache,
-                fitContent     = emptySet()
             ).apply {
                 acceptsThemes = false
             }
@@ -626,8 +626,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
             // FIXME: Use two scroll-panels instead since async scrolling makes this look bad
             boundsChanged += { _, old, new ->
                 if (old.x != new.x) {
-                    header.suggestX(new.x)
-                    footer.suggestX(new.x)
+                    header.scrollOffset = new.x
+                    footer.scrollOffset = new.x
                 }
             }
         }).apply {
@@ -677,6 +677,25 @@ public open class TreeTable<T, M: TreeModel<T>>(
         selectionModel?.let { it.changed -= selectionChanged_ }
 
         super.removedFromDisplay()
+    }
+
+    /**
+     * Scrolls [item] into view if the Table is within a [ScrollPanel].
+     */
+    public fun scrollTo(item: Path<Int>) {
+        this[item].onSuccess {
+            behavior?.rowPositioner?.rowBounds(this, item, it, rowFromPath(item)!!)?.let { bounds ->
+                scrollTo(bounds.at(y = bounds.y + panel.y))
+                panel.scrollToVisible(bounds)
+            }
+        }
+    }
+
+    /**
+     * Scrolls the last selected item into view if the Table is within a [ScrollPanel].
+     */
+    public fun scrollToSelection() {
+        lastSelection?.let { scrollTo(it) }
     }
 
     public override var insets: Insets; get() = super.insets; set(new) { super.insets = new }

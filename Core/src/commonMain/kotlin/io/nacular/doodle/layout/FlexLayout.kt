@@ -3,7 +3,6 @@ package io.nacular.doodle.layout
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
@@ -17,8 +16,8 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         else       -> position.y
     }; set(new) {
         when (orientation) {
-            Horizontal -> position = Point(new, position.y)
-            else       -> position = Point(position.x, new)
+            Horizontal -> updatePosition(new, position.y)
+            else       -> updatePosition(position.x, new)
         }
     }
 

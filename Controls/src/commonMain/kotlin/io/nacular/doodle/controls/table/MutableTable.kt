@@ -162,7 +162,6 @@ public class MutableTable<T, M: MutableListModel<T>>(
                 },
                 selectionModelWrapper,
                 scrollCache = scrollCache,
-                fitContent = emptySet()
             ).apply {
                 acceptsThemes = false
 

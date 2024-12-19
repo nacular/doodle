@@ -68,6 +68,7 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.SquareMatrix
+import io.nacular.doodle.utils.WeakReference
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
@@ -136,6 +137,23 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     private inner class ChildObserversImpl: SetPool<ChildObserver<View>>() {
         operator fun invoke(differences: Differences<View>) = this.forEach { it(this@View, differences) }
+    }
+
+    private class BoundsAttemptObserverPool: Pool<BoundsAttemptObserver>, Iterable<BoundsAttemptObserver> {
+        private val observers = mutableSetOf<WeakReference<BoundsAttemptObserver>>()
+
+        override fun plusAssign(item: BoundsAttemptObserver) {
+            observers += WeakReference(item)
+        }
+
+        override fun minusAssign(item: BoundsAttemptObserver) {
+            // no-op
+        }
+
+        override fun iterator(): Iterator<BoundsAttemptObserver> = observers
+            .asSequence()
+            .mapNotNull { reference -> reference.invoke() }
+            .iterator()
     }
 
     // region Accessibility
@@ -307,7 +325,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Work-around to support ConstraintLayout
      */
-    internal var numBoundsAttemptObservers = 0
+    internal val boundsChangeAttempted: Pool<BoundsAttemptObserver> by lazy { BoundsAttemptObserverPool() }
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
@@ -325,8 +343,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     public val idealSize: Size get() = preferredSize(Empty, Infinite)
 
-    internal val newBounds_ get() = newBounds
-
     @Internal
     public val prospectiveBounds: Rectangle get() = newBounds
 
@@ -337,6 +353,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)
+
+            // FIXME: Remove once Text Fixtures work for MPP
+            // only here to make testing easier since there's no easy way
+            // to force bounds outside the common library
+            if (parent == null) {
+                syncBounds()
+            }
         }
     }
 
@@ -1420,8 +1443,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     private fun notifyAttemptedBoundsChange(new: Rectangle) {
-        if (numBoundsAttemptObservers > 0) {
-            ((parent?.layout ?: display?.layout) as? BoundsAttemptObserver)?.boundsChangeAttempted(
+        (boundsChangeAttempted as BoundsAttemptObserverPool).forEach {
+            it.boundsChangeAttempted(
                 this,
                 actualBounds,
                 new,
@@ -1434,20 +1457,18 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         val view get() = this@View
 
         override val visible   get() = this@View.visible
-        override var position  get() = this@View.newBounds.position; set(value) { this@View.bounds = newBounds.at(value) }
+        override val position  get() = this@View.newBounds.position
         override val bounds    get() = this@View.newBounds
         override val idealSize get() = this@View.idealSize
 
-        override fun contains    (point: Point) = point in this@View
+        override fun contains(point: Point) = point in this@View
 
         override fun updatePosition(x: Double, y: Double) {
-            actualBounds = Rectangle(x, y, newBounds.width, newBounds.height)
+            actualBounds = Rectangle(x, y, actualBounds.width, actualBounds.height)
         }
 
-        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
-            return this@View.preferredSize_(min, max).also {
-                actualBounds = Rectangle(x, y, it.width, it.height)
-            }
+        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = this@View.preferredSize_(min, max).also {
+            actualBounds = Rectangle(x, y, it.width, it.height)
         }
 
         override fun toString() = view.toString()

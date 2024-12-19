@@ -8,9 +8,6 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.diff.Delete
@@ -32,7 +29,6 @@ public typealias ItemsObserver<T> = (source: List<T, *>, differences: Difference
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit it's rows width and total height
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * only visible rows are rendered, but quick scrolling is more likely to show blank areas.
  */
@@ -40,8 +36,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         selectionModel: SelectionModel<Int>?            = null,
-        fitContent    : Set<Dimension>                  = setOf(Width, Height),
-        scrollCache   : Int                             = 0): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+        scrollCache   : Int                             = 0): List<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
 
     private var previousListSize = model.size
 
@@ -157,31 +152,27 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
             progression   : IntProgression,
             itemVisualizer: ItemVisualizer<Int, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): DynamicList<Int, DynamicListModel<Int>> =
-            DynamicList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
+            DynamicList(progression.toMutableList(), itemVisualizer, selectionModel, scrollCache)
 
         public inline operator fun <reified T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): DynamicList<T, DynamicListModel<T>> =
-            DynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
+            DynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, scrollCache)
 
         public operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): DynamicList<View, DynamicListModel<View>> =
-            DynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            DynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, scrollCache)
 
         public operator fun <T, M: DynamicListModel<T>> invoke(
             model         : M,
             itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             scrollCache   : Int                             = 0): DynamicList<T, M> =
-            DynamicList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
+            DynamicList(model, itemVisualizer, selectionModel, scrollCache)
     }
 }

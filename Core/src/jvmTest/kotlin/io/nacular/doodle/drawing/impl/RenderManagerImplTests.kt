@@ -1128,7 +1128,7 @@ class RenderManagerImplTests {
                 handleDisplayRectEvent(old, new)
             }
         }.apply {
-            suggestSize(Size(100))
+            suggestSize(Size(10))
             monitorsDisplayRect = true
         }
 
@@ -1140,8 +1140,6 @@ class RenderManagerImplTests {
         val oldRect = child.bounds.atOrigin
 
         child.suggestWidth(100.0)
-
-        scheduler.runJobs()
 
         val newRect = child.bounds.atOrigin.with(width = 100.0)
 

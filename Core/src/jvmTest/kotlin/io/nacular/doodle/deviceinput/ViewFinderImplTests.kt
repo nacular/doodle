@@ -50,7 +50,7 @@ class ViewFinderImplTests {
 
         expect(child) { finder.find(within = display, at = point) }
 
-        verify(exactly = 1) { display.child(point) }
+        verify(exactly = 1) { display.child(point, any()) }
         verify(exactly = 1) { parent.child_(parent.toLocal(point, null), any()) }
     }
 
@@ -67,7 +67,7 @@ class ViewFinderImplTests {
 
         expect(null) { finder.find(within = display, at = point) }
 
-        verify(exactly = 1) { display.child(point) }
+        verify(exactly = 1) { display.child(point, any()) }
     }
 
     @Test fun `returns parent if disabled item at point`() {
@@ -76,19 +76,20 @@ class ViewFinderImplTests {
             every { enabled } returns false
         }
         val parent  = mockk<View> {
-            every { parent       } returns null
-            every { enabled      } returns true
-            every { child_(any())} returns child
+            every { parent        } returns null
+            every { enabled       } returns true
+            every { child_(any()) } returns child
         }
         val display = mockk<Display> {
-            every { child(any()) } returns parent
+            every { child(any()       ) } returns parent
+            every { child(any(), any()) } returns parent
         }
 
         val point = Point(104, 567)
 
         expect(parent) { finder.find(within = display, at = point) }
 
-        verify(exactly = 1) { display.child(point) }
+        verify(exactly = 1) { display.child(point, any()) }
         verify(exactly = 1) { parent.child_(parent.toLocal(point, null), any()) }
     }
 

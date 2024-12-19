@@ -58,7 +58,6 @@ import io.nacular.doodle.theme.basic.list.BasicListBehavior
 import io.nacular.doodle.theme.basic.list.BasicVerticalListPositioner
 import io.nacular.doodle.utils.Anchor.Right
 import io.nacular.doodle.utils.ChangeObserver
-import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.SetPool
@@ -283,7 +282,6 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             view.model,
             selectionModel = SingleItemSelectionModel(),
             itemVisualizer = view.listItemVisualizer,
-            fitContent     = setOf(Height)
         ).apply {
             insets        = Insets(inset)
             behavior      = listBehavior(view)

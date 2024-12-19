@@ -306,9 +306,8 @@ class CanvasImplTests {
 
             val style = t.style
 
-            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
-            verify (exactly = 1) { style.setColor  (fill.color        ) }
-            verify (exactly = 1) { style.translate (at                ) }
+            verify (exactly = 1) { style.setColor (fill.color) }
+            verify (exactly = 1) { style.translate(at        ) }
 
             verify (exactly = 1) { renderParent.appendChild(t) }
         }
@@ -383,7 +382,6 @@ class CanvasImplTests {
 
             val style = t.style
 
-            verify (exactly = 1) { style.setOpacity(fill.color.opacity) }
             verify (exactly = 1) { style.setColor  (fill.color        ) }
             verify (exactly = 1) { style.translate (at                ) }
 

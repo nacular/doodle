@@ -5,7 +5,6 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.nacular.doodle.dom.DOMRect
 import io.nacular.doodle.dom.SVGElement
-import io.nacular.doodle.dom.SVGGraphicsElement
 import io.nacular.doodle.dom.SVGPathElement
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.geometry.Rectangle
@@ -15,7 +14,7 @@ import kotlin.test.expect
 
 class PathMetricsImplTests {
     init {
-        mockkStatic(SVGGraphicsElement::getBBox)
+        mockkStatic(SVGElement::getBBox)
     }
 
     @Test fun `width correct`() {
@@ -54,17 +53,20 @@ class PathMetricsImplTests {
 
     private fun svgFactory(size: Size, length: Double = 23.0) = svgFactory(Rectangle(size = size), length)
 
-    @Suppress("LABEL_NAME_CLASH")
-    private fun svgFactory(bounds: Rectangle, length: Double = 23.0) = mockk<SvgFactory>().apply {
-        every { this@apply.invoke<SVGElement>    ("svg" ) } returns mockk<SVGElement>()
-        every { this@apply.invoke<SVGPathElement>("path") } returns mockk<SVGPathElement>().apply {
-            every { this@apply.getBBox(match { it.stroke == true && it.markers == true }) } returns mockk<DOMRect>().apply {
-                every { this@apply.x      } returns bounds.x
-                every { this@apply.y      } returns bounds.y
-                every { this@apply.width  } returns bounds.width
-                every { this@apply.height } returns bounds.height
-            }
-            every { this@apply.getTotalLength() } returns length.toFloat()
-        }
+    private fun svgFactory(bounds: Rectangle, length: Double = 23.0) = mockk<SvgFactory> {
+        every { invoke<SVGElement>    ("svg" ) } returns mockk()
+        every { invoke<SVGPathElement>("path") } returns svgPathElement(bounds = bounds, length = length)
+    }
+
+    private fun svgPathElement(bounds: Rectangle, length: Double = 23.0) = mockk<SVGPathElement> {
+        every { getBBox(match { it.stroke == true && it.markers == true }) } returns domRect(bounds)
+        every { getTotalLength() } returns length.toFloat()
+    }
+
+    private fun domRect(bounds: Rectangle) = mockk<DOMRect> {
+        every { x      } returns bounds.x
+        every { y      } returns bounds.y
+        every { width  } returns bounds.width
+        every { height } returns bounds.height
     }
 }

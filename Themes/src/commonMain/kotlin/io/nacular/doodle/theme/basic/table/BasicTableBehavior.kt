@@ -30,6 +30,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.width
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.KeyListener.Companion.released
@@ -40,6 +41,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
@@ -114,6 +116,7 @@ public open class BasicTableBehavior<T>(
 
     private val selectionChanged: SetObserver<Table<T, *>, Int> = { table,_,_ ->
         table.bodyDirty()
+        table.scrollToSelection()
     }
 
     private val focusChanged: PropertyObserver<View, Boolean> = { table,_,_ ->
@@ -214,7 +217,7 @@ public open class BasicTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row.onSuccess {
-                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(Insets(top = 1.0)), ColorPaint(color))
+                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(Insets(top = 1.0)).with(width = canvas.width), ColorPaint(color))
                 }
             }
         }

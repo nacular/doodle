@@ -11,9 +11,6 @@ import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import kotlin.math.max
 
 /**
@@ -22,7 +19,6 @@ import kotlin.math.max
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numColumns to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numColumns to organize the items into
@@ -31,10 +27,9 @@ public class VerticalList<T, out M: ListModel<T>>(
    model         : M,
    itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
    selectionModel: SelectionModel<Int>?            = null,
-   fitContent    : Set<Dimension>                  = setOf(Width, Height),
    numColumns    : Int                             = 1,
    scrollCache   : Int                             = 0
-): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): List<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numColumns: Int = max(1, numColumns)
 
     public companion object {
@@ -42,36 +37,32 @@ public class VerticalList<T, out M: ListModel<T>>(
             progression    : IntProgression,
             itemVisualizer : ItemVisualizer<Int, IndexedItem>? = null,
             selectionModel : SelectionModel<Int>? = null,
-            fitContent     : Set<Dimension>       = setOf(Width, Height),
             numColumns     : Int                  = 1,
             scrollCache    : Int                  = 0): VerticalList<Int, ListModel<Int>> =
-            VerticalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numColumns    : Int                  = 1,
             scrollCache   : Int                  = 0): VerticalList<T, ListModel<T>> =
-            VerticalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numColumns    : Int                  = 1,
             scrollCache   : Int                  = 0): VerticalList<View, ListModel<View>> =
-            VerticalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun <T, M: ListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             numColumns    : Int                             = 1,
             scrollCache   : Int                             = 0): VerticalList<T, M> =
-            VerticalList(model, itemGenerator, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalList(model, itemGenerator, selectionModel, numColumns, scrollCache)
     }
 }
 
@@ -81,7 +72,6 @@ public class VerticalList<T, out M: ListModel<T>>(
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numRows to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numRows to organize the items into
@@ -90,10 +80,9 @@ public class HorizontalList<T, out M: ListModel<T>>(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
     selectionModel: SelectionModel<Int>?            = null,
-    fitContent    : Set<Dimension>                  = setOf(Width, Height),
     numRows       : Int                             = 1,
     scrollCache   : Int                             = 0
-): List<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): List<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numRows: Int = max(1, numRows)
 
     public companion object {
@@ -101,36 +90,32 @@ public class HorizontalList<T, out M: ListModel<T>>(
             progression    : IntProgression,
             itemVisualizer : ItemVisualizer<Int, IndexedItem>? = null,
             selectionModel : SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>        = setOf(Width, Height),
             numRows        : Int                  = 1,
             scrollCache    : Int                  = 0): HorizontalList<Int, ListModel<Int>> =
-            HorizontalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalList<T, ListModel<T>> =
-            HorizontalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalList<View, ListModel<View>> =
-            HorizontalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <T, M: ListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             numRows       : Int                             = 1,
             scrollCache   : Int                             = 0): HorizontalList<T, M> =
-            HorizontalList(model, itemGenerator, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList(model, itemGenerator, selectionModel, numRows, scrollCache)
     }
 }
 
@@ -140,7 +125,6 @@ public class HorizontalList<T, out M: ListModel<T>>(
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numColumns to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numColumns to organize the items into
@@ -149,10 +133,9 @@ public class VerticalDynamicList<T, M: DynamicListModel<T>>(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
     selectionModel: SelectionModel<Int>?            = null,
-    fitContent    : Set<Dimension>                  = setOf(Width, Height),
     numColumns    : Int                             = 1,
     scrollCache   : Int                             = 0
-): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): DynamicList<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numColumns: Int = max(1, numColumns)
 
     public companion object {
@@ -160,32 +143,28 @@ public class VerticalDynamicList<T, M: DynamicListModel<T>>(
             progression   : IntProgression,
             itemVisualizer: ItemVisualizer<Int, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): VerticalDynamicList<Int, DynamicListModel<Int>> =
-            VerticalDynamicList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
+            VerticalDynamicList(progression.toMutableList(), itemVisualizer, selectionModel, scrollCache)
 
         public inline operator fun <reified T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): VerticalDynamicList<T, DynamicListModel<T>> =
-            VerticalDynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
+            VerticalDynamicList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): VerticalDynamicList<View, DynamicListModel<View>> =
-            VerticalDynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            VerticalDynamicList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, scrollCache)
 
         public inline operator fun <T, M: DynamicListModel<T>> invoke(
             model         : M,
             itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             scrollCache   : Int                             = 0): VerticalDynamicList<T, M> =
-            VerticalDynamicList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
+            VerticalDynamicList(model, itemVisualizer, selectionModel, scrollCache)
     }
 }
 
@@ -195,7 +174,6 @@ public class VerticalDynamicList<T, M: DynamicListModel<T>>(
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numRows to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numRows to organize the items into
@@ -204,10 +182,9 @@ public class HorizontalDynamicList<T, M: DynamicListModel<T>>(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
     selectionModel: SelectionModel<Int>?            = null,
-    fitContent    : Set<Dimension>                  = setOf(Width, Height),
     numRows       : Int                             = 1,
     scrollCache   : Int                             = 0
-): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): DynamicList<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numRows: Int = max(1, numRows)
 
     public companion object {
@@ -215,36 +192,32 @@ public class HorizontalDynamicList<T, M: DynamicListModel<T>>(
             progression    : IntProgression,
             itemVisualizer : ItemVisualizer<Int, IndexedItem>,
             selectionModel : SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>        = setOf(Width, Height),
             numRows        : Int                  = 1,
             scrollCache    : Int                  = 0): HorizontalList<Int, ListModel<Int>> =
-            HorizontalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<Int, ListModel<Int>>(IntProgressionModel(progression), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalList<T, ListModel<T>> =
-            HorizontalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<T, ListModel<T>>(SimpleListModel(values), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalList<View, ListModel<View>> =
-            HorizontalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList<View, ListModel<View>>(SimpleListModel(values), ViewVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <T, M: ListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             numRows       : Int                             = 1,
             scrollCache   : Int                             = 0): HorizontalList<T, M> =
-            HorizontalList(model, itemGenerator, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalList(model, itemGenerator, selectionModel, numRows, scrollCache)
     }
 }
 
@@ -254,7 +227,6 @@ public class HorizontalDynamicList<T, M: DynamicListModel<T>>(
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numColumns to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numColumns to organize the items into
@@ -263,10 +235,9 @@ public class VerticalMutableList<T, M: MutableListModel<T>>(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
     selectionModel: SelectionModel<Int>?            = null,
-    fitContent    : Set<Dimension>                  = setOf(Width, Height),
     numColumns    : Int                             = 1,
     scrollCache   : Int                             = 0
-): MutableList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): MutableList<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numColumns: Int = max(1, numColumns)
 
     public companion object {
@@ -274,36 +245,32 @@ public class VerticalMutableList<T, M: MutableListModel<T>>(
             progression    : IntProgression,
             itemVisualizer : ItemVisualizer<Int, IndexedItem>,
             selectionModel : SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>        = setOf(Width, Height),
             numColumns     : Int                  = 1,
             scrollCache    : Int                  = 0): VerticalMutableList<Int, MutableListModel<Int>> =
-            VerticalMutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalMutableList(progression.toMutableList(), itemVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun <reified T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numColumns    : Int                  = 1,
             scrollCache   : Int                  = 0): VerticalMutableList<T, MutableListModel<T>> =
-            VerticalMutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalMutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numColumns    : Int                  = 1,
             scrollCache   : Int                  = 0): VerticalMutableList<View, MutableListModel<View>> =
-            VerticalMutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalMutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, numColumns, scrollCache)
 
         public inline operator fun <T, M: MutableListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             numColumns    : Int                             = 1,
             scrollCache   : Int                             = 0): VerticalMutableList<T, M> =
-            VerticalMutableList(model, itemGenerator, selectionModel, fitContent, numColumns, scrollCache)
+            VerticalMutableList(model, itemGenerator, selectionModel, numColumns, scrollCache)
     }
 }
 
@@ -313,7 +280,6 @@ public class VerticalMutableList<T, M: MutableListModel<T>>(
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit its rows width and total height
  * @param numRows to organize the items into
  * @param scrollCache determining how many "hidden" rows are rendered above and below the List's view-port. A value of 0 means
  * @property numRows to organize the items into
@@ -322,10 +288,9 @@ public class HorizontalMutableList<T, M: MutableListModel<T>>(
     model         : M,
     itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
     selectionModel: SelectionModel<Int>?            = null,
-    fitContent    : Set<Dimension>                  = setOf(Width, Height),
     numRows       : Int                             = 1,
     scrollCache   : Int                             = 0
-): MutableList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache) {
+): MutableList<T, M>(model, itemVisualizer, selectionModel, scrollCache) {
     public val numRows: Int = max(1, numRows)
 
     public companion object {
@@ -333,35 +298,31 @@ public class HorizontalMutableList<T, M: MutableListModel<T>>(
             progression    : IntProgression,
             itemVisualizer : ItemVisualizer<Int, IndexedItem>,
             selectionModel : SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>        = setOf(Width, Height),
             numRows        : Int                  = 1,
             scrollCache    : Int                  = 0): HorizontalMutableList<Int, MutableListModel<Int>> =
-            HorizontalMutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalMutableList(progression.toMutableList(), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <reified T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalMutableList<T, MutableListModel<T>> =
-            HorizontalMutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalMutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             numRows       : Int                  = 1,
             scrollCache   : Int                  = 0): HorizontalMutableList<View, MutableListModel<View>> =
-            HorizontalMutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalMutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, numRows, scrollCache)
 
         public inline operator fun <T, M: MutableListModel<T>>invoke(
             model         : M,
             itemGenerator : ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             numRows       : Int                             = 1,
             scrollCache   : Int                             = 0): HorizontalMutableList<T, M> =
-            HorizontalMutableList(model, itemGenerator, selectionModel, fitContent, numRows, scrollCache)
+            HorizontalMutableList(model, itemGenerator, selectionModel, numRows, scrollCache)
     }
 }

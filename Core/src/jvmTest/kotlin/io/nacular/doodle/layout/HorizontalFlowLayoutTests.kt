@@ -2,6 +2,7 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.container
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.core.view
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -272,12 +273,12 @@ class HorizontalFlowLayoutTests {
 
     private fun validate(config: (Container) -> Info) {
         val container = container {
-            suggestSize(Size(500))
+            forceSize(Size(500))
             insets    = Insets.None //Insets(11.0, 12.0, 3.0, 5.0)
             children += (0 until 4).mapIndexed { index, _ ->
-                view { suggestSize(Size(100 + (5 * index), 100 + (3 * index))) }
+                view { forceSize(Size(100 + (5 * index), 100 + (3 * index))) }
             }
-            this.layout = HorizontalFlowLayout(spacing = 0.0)
+            layout = HorizontalFlowLayout(spacing = 0.0)
         }
 
         val info = config(container)

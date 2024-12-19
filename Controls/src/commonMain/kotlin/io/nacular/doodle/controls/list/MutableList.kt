@@ -9,8 +9,6 @@ import io.nacular.doodle.controls.SelectionModel
 import io.nacular.doodle.controls.ViewVisualizer
 import io.nacular.doodle.controls.mutableListModelOf
 import io.nacular.doodle.core.View
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.*
 import io.nacular.doodle.utils.Editable
 import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
@@ -55,7 +53,6 @@ public inline fun <T> listEditor(crossinline block: (list: MutableList<T, *>, it
  * @param model that holds the data for this List
  * @param itemVisualizer that maps [T] to [View] for each item in the List
  * @param selectionModel that manages the List's selection state
- * @param fitContent determines whether the List scales to fit it's items width and total height
  * @param scrollCache determining how many "hidden" items are rendered above and below the List's view-port. A value of 0 means
  * only visible items are rendered, but quick scrolling is more likely to show blank areas.
  */
@@ -63,8 +60,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
         model         : M,
         itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         selectionModel: SelectionModel<Int>?            = null,
-        fitContent    : Set<Dimension>                  = setOf(Width, Height),
-        scrollCache   : Int                             = 0): DynamicList<T, M>(model, itemVisualizer, selectionModel, fitContent, scrollCache), Editable {
+        scrollCache   : Int                             = 0): DynamicList<T, M>(model, itemVisualizer, selectionModel, scrollCache), Editable {
 
     /**
      * Indicates whether the list is currently being edited.
@@ -187,31 +183,27 @@ public open class MutableList<T, M: MutableListModel<T>>(
             progression   : IntProgression,
             itemVisualizer: ItemVisualizer<Int, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): MutableList<Int, MutableListModel<Int>> =
-            MutableList(progression.toMutableList(), itemVisualizer, selectionModel, fitContent, scrollCache)
+            MutableList(progression.toMutableList(), itemVisualizer, selectionModel, scrollCache)
 
         public inline operator fun <reified T> invoke(
             values        : kotlin.collections.List<T>,
             itemVisualizer: ItemVisualizer<T, IndexedItem>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): MutableList<T, MutableListModel<T>> =
-            MutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, fitContent, scrollCache)
+            MutableList(mutableListModelOf(*values.toTypedArray()), itemVisualizer, selectionModel, scrollCache)
 
         public operator fun invoke(
             values        : kotlin.collections.List<View>,
             selectionModel: SelectionModel<Int>? = null,
-            fitContent    : Set<Dimension>       = setOf(Width, Height),
             scrollCache   : Int                  = 0): List<View, ListModel<View>> =
-            MutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, fitContent, scrollCache)
+            MutableList(mutableListModelOf(*values.toTypedArray()), ViewVisualizer, selectionModel, scrollCache)
 
         public operator fun  <T, M: MutableListModel<T>>invoke(
             model         : M,
             itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
             selectionModel: SelectionModel<Int>?            = null,
-            fitContent    : Set<Dimension>                  = setOf(Width, Height),
             scrollCache   : Int                             = 0): MutableList<T, M> =
-            MutableList(model, itemVisualizer, selectionModel, fitContent, scrollCache)
+            MutableList(model, itemVisualizer, selectionModel, scrollCache)
     }
 }

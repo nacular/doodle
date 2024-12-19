@@ -43,19 +43,19 @@ class LabelTests {
     }
 
     @Test @JsName("setsSizeToTextSize")
-    fun `sets size to text size`() {
+    fun `sets ideal size to text size`() {
         val textSize = Size(100.0, 345.0)
 
         Label().let {
             it.behavior   = createBehavior(textSize)
             it.styledText = styledText()
 
-            assertEquals(textSize, it.size)
+            assertEquals(textSize, it.idealSize)
         }
     }
 
     @Test @JsName("setsSizeToWrappedTextSize")
-    fun `sets size to wrapped text size`() {
+    fun `sets ideal size to wrapped text size`() {
         val wrappedSize = Size(10.0, 1000.0)
 
         Label().let {
@@ -63,12 +63,12 @@ class LabelTests {
             it.styledText = styledText()
             it.wrapsWords = true
 
-            assertEquals(wrappedSize, it.size)
+            assertEquals(wrappedSize, it.idealSize)
         }
     }
 
     @Test @JsName("keepsSizeToTextSize")
-    fun `keeps size to text size`() {
+    fun `keeps ideal size to text size`() {
         val textSize = Size(100.0, 345.0)
 
         Label().let {
@@ -76,7 +76,7 @@ class LabelTests {
             it.styledText = styledText()
             it.suggestSize(Empty)
 
-            assertEquals(textSize, it.size)
+            assertEquals(textSize, it.idealSize)
         }
     }
 
@@ -90,7 +90,7 @@ class LabelTests {
             it.wrapsWords = true
             it.suggestSize(Empty)
 
-            assertEquals(wrappedSize, it.size)
+            assertEquals(wrappedSize, it.idealSize)
         }
     }
 

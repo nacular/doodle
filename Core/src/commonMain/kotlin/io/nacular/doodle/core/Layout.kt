@@ -13,7 +13,7 @@ import io.nacular.doodle.layout.Insets.Companion.None
  * @see View
  */
 public interface Positionable {
-    public var position: Point
+    public val position: Point
 
     public val bounds: Rectangle
 

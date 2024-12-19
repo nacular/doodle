@@ -6,12 +6,14 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.forceHeight
+import io.nacular.doodle.core.forceSize
+import io.nacular.doodle.core.forceWidth
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -84,7 +86,7 @@ class ScrollPanelTests {
 
     @Test fun `delegates contains point to behavior`() {
         val behavior = behavior()
-        val panel    = panel(behavior).apply { suggestSize(Size(100)) }
+        val panel    = panel(behavior).apply { forceSize(Size(100)) }
         val point    = Point(4, 78)
 
         panel.contains(point)
@@ -182,6 +184,7 @@ class ScrollPanelTests {
         ).forEach { (target, result) ->
             val panel = panel(behavior).apply {
                 scrollTo(start)
+                doLayout_()
 
                 expect(result) {
                     scrollHorizontallyToVisible(target)
@@ -215,24 +218,24 @@ class ScrollPanelTests {
     }
 
     @Test fun `width constraints work`() {
-        val content = spyk(container { suggestSize(Size(100)) })
+        val content = container { forceSize(Size(100)) }
         val panel   = ScrollPanel(content).apply {
             contentWidthConstraints = { it eq parent.width }
         }
 
-        panel.suggestWidth(300.0)
+        panel.forceWidth(300.0)
         panel.doLayout_()
 
         expect(300.0) { content.width }
     }
 
     @Test fun `height constraints work`() {
-        val content = spyk(container { suggestSize(Size(100)) })
+        val content = container { forceSize(Size(100)) }
         val panel   = ScrollPanel(content).apply {
             contentHeightConstraints = { it eq parent.height / 2 }
         }
 
-        panel.suggestHeight(650.0)
+        panel.forceHeight(650.0)
         panel.doLayout_()
 
         expect(325.0) { content.height }
@@ -283,13 +286,9 @@ class ScrollPanelTests {
         expect(null) { behavior.onScroll }
     }
 
-    private fun panel(behavior: ScrollPanelBehavior = behavior()): ScrollPanel {
-        val content = container { suggestSize(Size(100)) }
-
-        return ScrollPanel(content).apply {
-            this.behavior = behavior
-            suggestSize(Size(10))
-        }
+    private fun panel(behavior: ScrollPanelBehavior = behavior()) = ScrollPanel(container { forceSize(Size(100)) }).apply {
+        this.behavior = behavior
+        forceSize(Size(10))
     }
 
     private fun behavior(): ScrollPanelBehavior {

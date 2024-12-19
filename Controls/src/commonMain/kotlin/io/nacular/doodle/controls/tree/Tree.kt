@@ -428,20 +428,14 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     override fun addSelection(items: Set<Path<Int>>) {
         selectionModel?.addAll(items.filter { visible(it) })
-
-        scrollToSelection()
     }
 
     override fun toggleSelection(items: Set<Path<Int>>) {
         selectionModel?.toggle(items.filter { visible(it) })
-
-        scrollToSelection()
     }
 
     override fun setSelection(items: Set<Path<Int>>) {
         selectionModel?.replaceAll(items.filter { visible(it) })
-
-        scrollToSelection()
     }
 
     override fun removeSelection(items: Set<Path<Int>>) {
