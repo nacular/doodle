@@ -357,7 +357,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             // FIXME: Remove once Text Fixtures work for MPP
             // only here to make testing easier since there's no easy way
             // to force bounds outside the common library
-            if (parent == null) {
+            if (parent == null && !displayed) {
                 syncBounds()
             }
         }

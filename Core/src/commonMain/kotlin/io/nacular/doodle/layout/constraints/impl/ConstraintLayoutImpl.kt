@@ -117,9 +117,11 @@ internal class ReflectionVariable(
 
     override fun toTerm(): Term = VariableTerm(this)
 
-    override fun toString() = "${(target as? PositionableView)?.let {
-        it.view.toString().takeIf { it != "[object Object]" } ?: it.view::class.simpleName
-    } ?: "parent"}.$name"
+    override fun toString(): String = when (target) {
+        is PositionableView -> target.view.toString().takeIf { it != "[object Object]" } ?: target.view::class.simpleName ?: "??"
+        null -> "parent"
+        else -> target.toString()
+    } + ".$name"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

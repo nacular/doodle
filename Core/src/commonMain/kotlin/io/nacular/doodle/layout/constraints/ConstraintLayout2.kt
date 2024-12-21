@@ -856,8 +856,8 @@ public fun <T: Positionable> Iterable<T>.constrain(
     within: (Int, T) -> Rectangle
 ): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
-        this(view.bounds, within(index, view), forceSetup = false, using).apply {
-            view.updateBounds(x, y, size, size)
+        this(view.bounds, within(index, view), forceSetup = false, probe = view, using).apply {
+            view.updatePosition(x, y)
         }
     }
 }
@@ -875,11 +875,38 @@ public class Constrainer {
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
     private var parentSize = Size.Empty
-    private val fakeView   = object: View() {}
     private val solver     = Solver()
     private val context    = ConstraintDslContext()
-    private val fakeBounds = BoundsImpl(fakeView.positionable, context)
-    private val blocks     = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
+
+    private class FakePositionable: Positionable {
+        var probe = null as Positionable?
+
+        override var bounds          = Rectangle.Empty
+        override val visible         = true
+        override val position  get() = bounds.position
+        override val idealSize get() = probe?.idealSize ?: Size.Empty
+
+        override fun contains(point: Point) = true
+
+        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
+            bounds = Rectangle(x, y, max.width, max.height)
+            probe?.updateBounds(x, y, min, max)
+
+            return bounds.size
+        }
+
+        override fun updatePosition(x: Double, y: Double) {
+            bounds = bounds.at(x, y)
+
+            probe?.updatePosition(x, y)
+        }
+
+        override fun toString() = "FakePositionable"
+    }
+
+    private val fakePositionable = FakePositionable()
+    private val fakeBounds       = BoundsImpl(fakePositionable, context)
+    private val blocks           = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
 
@@ -893,13 +920,16 @@ public class Constrainer {
      * @suppress
      */
     public operator fun invoke(
-        rectangle  : Rectangle,
-        within     : Rectangle,
-        forceSetup : Boolean = false,
-        using      : ConstraintDslContext.(Bounds) -> Unit
+        rectangle : Rectangle,
+        within    : Rectangle,
+        forceSetup: Boolean = false,
+        probe     : Positionable? = null,
+        using     : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
-        if (fakeView.bounds != rectangle) {
-            fakeView.suggestBounds(rectangle)
+        fakePositionable.probe = probe
+
+        if (fakePositionable.bounds != rectangle) {
+            fakePositionable.bounds = rectangle
 
             updatedBounds[fakeBounds.top   ] = rectangle.y
             updatedBounds[fakeBounds.left  ] = rectangle.x
@@ -918,6 +948,6 @@ public class Constrainer {
 
         fakeBounds.commit()
 
-        return fakeView.bounds.at(fakeView.position + within.position) //Rectangle(within.x + fakeBounds.x__, within.y + fakeBounds.y_, fakeBounds.width_, fakeBounds.height_)
+        return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }
 }
