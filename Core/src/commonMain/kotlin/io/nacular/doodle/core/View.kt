@@ -870,6 +870,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         field          = new
         idealSizeDirty = true
+
+        // re-layout parent if we are in a constraint layout; otherwise, just re-layout
+        when {
+            (boundsChangeAttempted as BoundsAttemptObserverPool).any() -> when (val p = parent) {
+                null -> display?.relayout()
+                else -> p.relayout()
+            }
+            else -> relayout()
+        }
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -1032,21 +1041,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Causes the [layout] (if any) to re-layout the View's [children] */
-    protected open fun doLayout(min: Size, current: Size, max: Size) { //: Size {
+    protected open fun doLayout(min: Size, current: Size, max: Size) {
         layout?.let { doLayout(it, min = min, max = max, current = current) }
-//        actualBounds = when (val l = layout) {
-//            null -> newBounds.with(preferredSize(allowedMinSize, allowedMaxSize))
-//            else -> newBounds.with(
-//                doLayout(
-//                    l,
-//                    min     = min,
-//                    max     = max,
-//                    current = current
-//                )
-//            )
-//        }
-//
-//        return actualBounds.size
     }
 
     /**
