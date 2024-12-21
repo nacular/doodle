@@ -40,6 +40,7 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.InnerShadow
+import io.nacular.doodle.drawing.LineHeightDetector
 import io.nacular.doodle.drawing.OuterShadow
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Renderer.FillRule
@@ -70,12 +71,14 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 internal open class CanvasImpl(
-    private val renderParent   : HTMLElement,
-    private val htmlFactory    : HtmlFactory,
-    private val textFactory    : TextFactory,
-    private val textMetrics    : TextMetrics,
-    private val useShadowHack  : Boolean,
-    rendererFactory: VectorRendererFactory): NativeCanvas {
+    private val renderParent      : HTMLElement,
+    private val htmlFactory       : HtmlFactory,
+    private val textFactory       : TextFactory,
+    private val textMetrics       : TextMetrics,
+    private val useShadowHack     : Boolean,
+    private val lineHeightDetector: LineHeightDetector,
+                rendererFactory   : VectorRendererFactory,
+): NativeCanvas {
 
     private inner class Context: CanvasContext {
         override var size
@@ -542,10 +545,11 @@ internal open class CanvasImpl(
         textSpacing: TextSpacing
     ) = configure(
         textFactory.create(
-            text,
-            font,
-            textSpacing,
-            if (renderPosition is HTMLElement) renderPosition as HTMLElement else null
+            text        = text,
+            font        = font,
+            lineSpacing = lineHeightDetector.lineHeight(font),
+            textSpacing = textSpacing,
+            possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null
         ),
         fill,
         stroke,
@@ -576,16 +580,25 @@ internal open class CanvasImpl(
             indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
-            lineSpacing = lineSpacing,
+            lineSpacing = lineSpacing(lineSpacing, font),
             textSpacing = textSpacing
         )
 
         return configure(element, fill, stroke, at)
     }
 
-    private fun createStyledTextGlyph(text: StyledText, at: Point, textSpacing: TextSpacing) = textFactory.create(text, textSpacing, if (renderPosition is HTMLElement) renderPosition as HTMLElement else null).apply {
+    private fun lineSpacing(lineSpacing: Float, font: Font?) = lineSpacing.takeIf { it >= 0f } ?: lineHeightDetector.lineHeight(font)
+
+    private fun createStyledTextGlyph(text: StyledText, at: Point, textSpacing: TextSpacing) = textFactory.create(
+        text        = text,
+        lineSpacing = lineHeightDetector.lineHeight(text.maxFont),
+        textSpacing = textSpacing,
+        possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null
+    ).apply {
         style.translate(at)
     }
+
+    private val StyledText.maxFont: Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
 
     private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
         val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), textSpacing) else 0.0
@@ -596,7 +609,7 @@ internal open class CanvasImpl(
             indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
-            lineSpacing = lineSpacing,
+            lineSpacing = lineSpacing(lineSpacing, text.maxFont),
             textSpacing = textSpacing,
         )
 

@@ -16,7 +16,7 @@ import io.nacular.doodle.utils.LeastRecentlyUsedCache
  * Created by Nicholas Eddy on 4/19/24.
  */
 internal interface TextVerticalAligner {
-    fun verticalOffset(text: String, font: Font?, lineSpacing: Float = 1f): Double
+    fun verticalOffset(text: String, font: Font?, lineSpacing: Float = -1f): Double
 }
 
 internal class TextVerticalAlignerImpl(

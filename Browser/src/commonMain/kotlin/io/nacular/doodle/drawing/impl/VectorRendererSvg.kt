@@ -83,6 +83,7 @@ import io.nacular.doodle.drawing.FrostedGlassPaint
 import io.nacular.doodle.drawing.GradientPaint
 import io.nacular.doodle.drawing.ImagePaint
 import io.nacular.doodle.drawing.InnerShadow
+import io.nacular.doodle.drawing.LineHeightDetector
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.OuterShadow
 import io.nacular.doodle.drawing.Paint
@@ -125,13 +126,14 @@ import kotlin.math.min
 import io.nacular.doodle.dom.SVGTextElement as SVGTextElement1
 
 internal open class VectorRendererSvg(
-    protected var context       : CanvasContext,
-    private   val svgFactory    : SvgFactory,
-    private   val htmlFactory   : HtmlFactory,
-    private   val aligner       : TextVerticalAligner,
-    private   val textMetrics   : TextMetrics,
-    private   val idGenerator   : IdGenerator,
-                  rootSvgElement: SVGElement? = null
+    protected var context           : CanvasContext,
+    private   val svgFactory        : SvgFactory,
+    private   val htmlFactory       : HtmlFactory,
+    private   val aligner           : TextVerticalAligner,
+    private   val textMetrics       : TextMetrics,
+    private   val idGenerator       : IdGenerator,
+    private   val lineHeightDetector: LineHeightDetector,
+                  rootSvgElement    : SVGElement? = null
 ): VectorRenderer {
 
     private inner class PatternCanvas(
@@ -141,7 +143,16 @@ internal open class VectorRendererSvg(
         aligner       : TextVerticalAligner,
         idGenerator   : IdGenerator,
         patternElement: SVGElement
-    ): VectorRendererSvg(context, svgFactory, htmlFactory, aligner, textMetrics, idGenerator, patternElement), io.nacular.doodle.drawing.PatternCanvas {
+    ): VectorRendererSvg(
+        context            = context,
+        aligner            = aligner,
+        svgFactory         = svgFactory,
+        htmlFactory        = htmlFactory,
+        textMetrics        = textMetrics,
+        idGenerator        = idGenerator,
+        rootSvgElement     = patternElement,
+        lineHeightDetector = lineHeightDetector,
+    ), io.nacular.doodle.drawing.PatternCanvas {
         private val contextWrapper = ContextWrapper(context)
 
         init {
@@ -348,7 +359,7 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private val StyledText.maxFont    : Font? get() = filter { it.first.isNotBlank() }.mapNotNull  { it.second.font }.maxByOrNull { it.size }
+    private val StyledText.maxFont    : Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
     private val StyledText.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
 
     private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
@@ -657,14 +668,6 @@ internal open class VectorRendererSvg(
         style.font?.let {
             this.style.setFont(it)
         }
-
-//        style.foreground?.let {
-//            fillElement(this, it, true)
-//        } ?: setDefaultFill()
-//
-//        style.stroke?.let {
-//            strokeElement(this, it)
-//        } ?: setStroke(null)
     }
 
     private data class LineInfo(val text: StyledText, val position: Point, val wordSpacing: Double)
@@ -722,7 +725,7 @@ internal open class VectorRendererSvg(
 
                     if (numWords > 0) {
                         maxFontSize = line.maxFontSize
-                        offsetY += lineSpacing * maxFontSize
+                        offsetY += (lineSpacing.takeIf { it >= 0f } ?: lineHeightDetector.lineHeight(line.maxFont)) * maxFontSize
                     }
 
                     currentPoint = Point(at.x, at.y + offsetY)

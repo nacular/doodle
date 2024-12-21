@@ -42,7 +42,6 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         element.style.setTextSpacing(textSpacing)
-        element.style.setLineHeight (1f         )
 
         if (element == possible) {
             element.style.setTextDecoration(null)
@@ -53,6 +52,13 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         return element
     }
+
+    override fun create(text: String, font: Font?, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
+        text,
+        font,
+        textSpacing,
+        possible
+    ).also { it.style.setLineHeight(lineSpacing) }
 
     override fun create(text: StyledText, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
@@ -65,6 +71,12 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         return createBoxed(text, textSpacing, possible)
     }
+
+    override fun create(text: StyledText, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
+        text,
+        textSpacing,
+        possible,
+    ).also { it.style.setLineHeight(lineSpacing) }
 
     override fun wrapped(
         text       : String,

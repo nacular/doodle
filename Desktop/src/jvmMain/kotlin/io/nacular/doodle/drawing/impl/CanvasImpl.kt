@@ -720,7 +720,7 @@ internal class CanvasImpl(
             pushStyle(font.newTextStyle.apply {
                 foreground = paint
 
-                if (lineHeight                != 1f ) height        = lineHeight
+                if (lineHeight                >= 0f ) height        = lineHeight
                 if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
                 if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
             })
@@ -755,18 +755,6 @@ internal class CanvasImpl(
 
         return ImageFilter.makeBlend(BlendMode.SRC_IN, bg = null, f3, crop = null)
     }
-
-//    private fun StyledText.draw(
-//        alignment  : TextAlignment = Start,
-//        lineHeight : Float         = 1f,
-//        textSpacing: TextSpacing,
-//        indent     : Double        = 0.0,
-//        at         : Point,
-//        width      : Double? = null
-//    ) {
-//        fill  (alignment, lineHeight, textSpacing, indent, width).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-//        stroke(alignment, lineHeight, textSpacing, indent, width).paint(skiaCanvas, at.x.toFloat(), at.y.toFloat())
-//    }
 
     private fun StyledText.fill(
         alignment  : TextAlignment = Start,
@@ -826,29 +814,8 @@ internal class CanvasImpl(
             this.forEach { (text, style) ->
                 builder.pushStyle(style.font.newTextStyle.apply {
                     paint(style)
-//                    foreground = paint(style)
-//
-//                    style.background?.skia()?.let { background = it }
-//                    style.decoration?.run {
-//                        decorationStyle = DecorationStyle(
-//                            Under   in lines,
-//                            Over    in lines,
-//                            Through in lines,
-//                            false,
-//                            color?.skia() ?: foreground?.color ?: Black.skia(),
-//                            when (this.style) {
-//                                Style.Solid  -> SOLID
-//                                Style.Double -> DOUBLE
-//                                Style.Dotted -> DOTTED
-//                                Style.Dashed -> DASHED
-//                                Style.Wavy   -> WAVY
-//                            },
-//                            2f)
-//                    }
 
-                    if (lineHeight != 1f) {
-                        height = lineHeight
-                    }
+                    if (lineHeight >= 0f                ) { height = lineHeight }
                     if (textSpacing.wordSpacing   != 0.0) { this.wordSpacing   = textSpacing.wordSpacing.toFloat()   }
                     if (textSpacing.letterSpacing != 0.0) { this.letterSpacing = textSpacing.letterSpacing.toFloat() }
                 })

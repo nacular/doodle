@@ -25,6 +25,9 @@ public sealed class Shadow(public val horizontal: Double, public val vertical: D
 public class InnerShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
 public class OuterShadow(horizontal: Double = 0.0, vertical: Double = 0.0, blurRadius: Double = 0.0, color: Color = Black): Shadow(horizontal, vertical, blurRadius, color)
 
+// Used to indicate line spacing that should be ignored
+private const val defaultLineSpacing = -1f
+
 /**
  * Common functionality for all canvas types. This interface was separated from [Canvas] to simplify the implementation of
  * [PatternCanvas]. This allows the former and [Canvas] to have different levels of support for perspective rendering.
@@ -200,7 +203,7 @@ public interface CommonCanvas: Renderer {
         font       : Font?         = null,
         indent     : Double        = 0.0,
         alignment  : TextAlignment = Start,
-        lineSpacing: Float         = 1f,
+        lineSpacing: Float         = defaultLineSpacing,
         textSpacing: TextSpacing   = default,
     )
 
@@ -228,7 +231,7 @@ public interface CommonCanvas: Renderer {
         font       : Font?         = null,
         indent     : Double        = 0.0,
         alignment  : TextAlignment = Start,
-        lineSpacing: Float         = 1f,
+        lineSpacing: Float         = defaultLineSpacing,
         textSpacing: TextSpacing   = default,
     )
 
@@ -249,7 +252,7 @@ public interface CommonCanvas: Renderer {
         width      : Double,
         indent     : Double        = 0.0,
         alignment  : TextAlignment = Start,
-        lineSpacing: Float         = 1f,
+        lineSpacing: Float         = defaultLineSpacing,
         textSpacing: TextSpacing   = default,
     )
 

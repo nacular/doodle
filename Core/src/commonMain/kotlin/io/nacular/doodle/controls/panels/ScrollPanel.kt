@@ -203,6 +203,8 @@ public open class ScrollPanel(content: View? = null): View() {
             null -> constrain(view {}) {}
             else -> constrain(content, contentConstraints)
         }
+
+        preferredSize = { min, max -> content?.preferredSize(min, max) ?: super.preferredSize(min, max) }
     }
 
     public override var focusable: Boolean = false
