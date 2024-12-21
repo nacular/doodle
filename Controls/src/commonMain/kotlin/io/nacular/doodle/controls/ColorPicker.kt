@@ -56,7 +56,7 @@ public class ColorPicker(color: Color): View() {
             colorRect.color = HsvColor(new)
         }
 
-    private val changed_ by lazy { PropertyObserversImpl<ColorPicker, Color>(this) }
+    private val changed_ = PropertyObserversImpl<ColorPicker, Color>(this)
 
     /** Notifies of changes to [color]. */
     public val changed: PropertyObservers<ColorPicker, Color> = changed_
@@ -132,7 +132,7 @@ public class ColorPicker(color: Color): View() {
                 field = new
             }
 
-        val changed: PropertyObservers<ColorRect, HsvColor> by lazy { PropertyObserversImpl(this) }
+        val changed: PropertyObservers<ColorRect, HsvColor> = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
@@ -221,7 +221,7 @@ public class ColorPicker(color: Color): View() {
             }
         }
 
-        protected val changed_: PropertyObserversImpl<Strip, Float> by lazy { PropertyObserversImpl(this) }
+        val changed_: PropertyObserversImpl<Strip, Float> = PropertyObserversImpl(this)
 
         private var pointerPressed = false
     }
@@ -252,7 +252,7 @@ public class ColorPicker(color: Color): View() {
             updateFill()
         }
 
-        val changed: PropertyObservers<HueStrip, Measure<Angle>> by lazy { PropertyObserversImpl(this) }
+        val changed: PropertyObservers<HueStrip, Measure<Angle>> = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
             canvas.rect(bounds.atOrigin, min(width, height) / 5, fill)
@@ -304,7 +304,7 @@ public class ColorPicker(color: Color): View() {
             }
         }
 
-        val changed: PropertyObservers<OpacityStrip, Float> by lazy { PropertyObserversImpl(this) }
+        val changed: PropertyObservers<OpacityStrip, Float> = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
 //            canvas.innerShadow {

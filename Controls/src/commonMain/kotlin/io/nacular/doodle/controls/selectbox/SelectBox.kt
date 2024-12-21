@@ -103,7 +103,7 @@ public open class SelectBox<T, M: ListModel<T>>(
     }
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { ChangeObserversImpl(this) }
+    private val changed_ = ChangeObserversImpl(this)
 
     /**
      * Broadcasts changes SelectBox

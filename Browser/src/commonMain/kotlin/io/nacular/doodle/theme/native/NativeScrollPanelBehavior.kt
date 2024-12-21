@@ -29,10 +29,8 @@ internal class NativeScrollPanelBehavior(
 
     override var scrollBarSizeChanged: ((ScrollBarType, Double) -> Unit)? = null
 
-    private val nativePeer by lazy {
-        nativeScrollPanelFactory(scrollPanel, managedScrolling, barChanged = { type, size -> scrollBarSizeChanged?.invoke(type, size) }) {
-            onScroll?.invoke(it)
-        }
+    private val nativePeer = nativeScrollPanelFactory(scrollPanel, managedScrolling, barChanged = { type, size ->   scrollBarSizeChanged?.invoke(type, size) }) {
+        onScroll?.invoke(it)
     }
 
     override fun render(view: ScrollPanel, canvas: Canvas) {

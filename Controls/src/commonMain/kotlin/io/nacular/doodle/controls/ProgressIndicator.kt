@@ -94,10 +94,10 @@ public abstract class ProgressIndicator(model: ConfinedValueModel<Double>, priva
     override var focusable: Boolean = false
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { PropertyObserversImpl<ProgressIndicator, Double>(this) }
+    private val changed_ = PropertyObserversImpl<ProgressIndicator, Double>(this)
 
     @Suppress("PrivatePropertyName")
-    private val limitsChanged_ by lazy { PropertyObserversImpl<ProgressIndicator, ClosedRange<Double>>(this) }
+    private val limitsChanged_ = PropertyObserversImpl<ProgressIndicator, ClosedRange<Double>>(this)
 
     public val changed: PropertyObservers<ProgressIndicator, Double> = changed_
     public val limitsChanged: PropertyObservers<ProgressIndicator, ClosedRange<Double>> = limitsChanged_

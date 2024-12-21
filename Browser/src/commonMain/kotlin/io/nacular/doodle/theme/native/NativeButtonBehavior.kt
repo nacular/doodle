@@ -18,7 +18,7 @@ internal class NativeButtonBehavior(
     focusManager       : FocusManager?,
     button             : Button): CommonTextButtonBehavior<Button>(textMetrics, focusManager = focusManager) {
 
-    private val nativePeer       by lazy { nativeButtonFactory(button) }
+    private val nativePeer       = nativeButtonFactory(button)
     private var oldCursor        : Cursor? = null
     private var oldPreferredSize = button.preferredSize
 

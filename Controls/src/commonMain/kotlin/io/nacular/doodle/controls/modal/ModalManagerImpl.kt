@@ -45,8 +45,8 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
         val focusOwner = focusManager?.focusOwner
 
-        val pointerChanged_       by lazy { SetPool<PointerListener>      () }
-        val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
+        val pointerChanged_       = SetPool<PointerListener>      ()
+        val pointerMotionChanged_ = SetPool<PointerMotionListener>()
 
         var overlay = object: View() {
             override fun shouldHandlePointerEvent      (event: PointerEvent) = !allowPointerThrough

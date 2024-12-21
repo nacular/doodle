@@ -125,7 +125,7 @@ public open class SpinButton<T, M: SpinButtonModel<T>> internal constructor(
     internal var _layout   get() = layout; set(new) { layout = new }
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { ChangeObserversImpl(this) }
+    private val changed_ = ChangeObserversImpl(this)
 
     /** Notifies of changes to the spin-button's [value]. */
     public val changed: ChangeObservers<SpinButton<T, M>> = changed_

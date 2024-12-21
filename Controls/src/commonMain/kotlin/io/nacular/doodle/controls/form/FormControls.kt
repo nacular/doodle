@@ -2581,7 +2581,7 @@ public class WhenInvalidFocusLost(text: StyledText, internal val focusTarget: Vi
  */
 public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
 
-    internal val indicatorVisibilityChanged: ChangeObserversImpl<WhenManuallySet> by lazy { ChangeObserversImpl(this) }
+    internal val indicatorVisibilityChanged: ChangeObserversImpl<WhenManuallySet> = ChangeObserversImpl(this)
 
     /**
      * @param text to append to field name

@@ -28,7 +28,7 @@ internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
     private val type                            : Type
 ): CommonTextButtonBehavior<ToggleButton>(textMetrics, focusManager = focusManager) {
 
-    private val nativePeer by lazy { nativeCheckBoxRadioButtonFactory(button, type) }
+    private val nativePeer = nativeCheckBoxRadioButtonFactory(button, type)
 
     private lateinit var oldSize          : Size
     private          var oldCursor        : Cursor? = null

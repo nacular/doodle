@@ -183,7 +183,7 @@ public class SingleItemBundle<Item>(private val type: MimeType<Item>, private va
     @Suppress("UNCHECKED_CAST")
     override fun <T> get     (type: MimeType<T>): T? = if (type in this) item as? T else null
     override fun <T> contains(type: MimeType<T>): Boolean = type assignableTo this.type
-    override val includedTypes: List<MimeType<*>> by lazy { listOf(type) }
+    override val includedTypes: List<MimeType<*>> = listOf(type)
 }
 
 /**

@@ -3,7 +3,7 @@ package io.nacular.doodle.controls.buttons
 public class ButtonGroup(public var allowDeselectAll: Boolean = false, vararg buttons: Button) {
     public val size: Int get() = buttons.size
 
-    private val buttons by lazy { mutableSetOf<Button>() }
+    private val buttons = mutableSetOf<Button>()
     private var selectedModel: ButtonModel? = null
 
     init {

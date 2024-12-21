@@ -51,6 +51,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
+import io.nacular.doodle.layout.constraints.center
 import io.nacular.doodle.layout.constraints.impl.BoundsAttemptObserver
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
@@ -320,12 +321,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     final override val size: Size get() = bounds.size
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
-    public val boundsChanged: PropertyObservers<View, Rectangle> by lazy { PropertyObserversImpl(this) }
+    public val boundsChanged: PropertyObservers<View, Rectangle> = PropertyObserversImpl(this)
 
     /**
      * Work-around to support ConstraintLayout
      */
-    internal val boundsChangeAttempted: Pool<BoundsAttemptObserver> by lazy { BoundsAttemptObserverPool() }
+    internal val boundsChangeAttempted: Pool<BoundsAttemptObserver> = BoundsAttemptObserverPool()
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
@@ -463,7 +464,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal var childrenClipPath_ get() = childrenClipPath; set(new) { childrenClipPath = new }
 
     /** Notifies changes to [transform] */
-    public val transformChanged: PropertyObservers<View, AffineTransform> by lazy { PropertyObserversImpl(this) }
+    public val transformChanged: PropertyObservers<View, AffineTransform> = PropertyObserversImpl(this)
 
     /**
      * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [Layout].
@@ -479,7 +480,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Notifies changes to [camera] */
-    public val cameraChanged: PropertyObservers<View, Camera> by lazy { PropertyObserversImpl(this) }
+    public val cameraChanged: PropertyObservers<View, Camera> = PropertyObserversImpl(this)
 
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
@@ -507,7 +508,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // endregion
 
     /** Notifies changes to [zOrder] */
-    internal val zOrderChanged: ZOrderObservers by lazy { PropertyObserversImpl(this) }
+    internal val zOrderChanged: ZOrderObservers = PropertyObserversImpl(this)
 
     /**
      * Rendering order of this View within it's [parent], or [Display] if top-level.
@@ -518,7 +519,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Notifies changes to [visible] */
-    public val visibilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val visibilityChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether this View is visible. The default is `true`. */
     public var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
@@ -527,7 +528,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Notifies changes to [opacity] */
-    public val opacityChanged: PropertyObservers<View, Float> by lazy { PropertyObserversImpl(this) }
+    public val opacityChanged: PropertyObservers<View, Float> = PropertyObserversImpl(this)
 
     /**
      * Indicates how opaque the View is. A value of 1 means the View should be fully opaque and
@@ -540,7 +541,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Notifies changes to [enabled] */
-    public val enabledChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val enabledChanged: BooleanObservers = PropertyObserversImpl(this)
 
     private var actualEnabled: Boolean = true
     /** Whether this View is enabled.  The default is `true`.  */
@@ -559,13 +560,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Notifies changes to [focusable] */
-    public val focusabilityChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val focusabilityChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether this View is focusable  The default is `true`.  */
     public open var focusable: Boolean by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
-    public val focusChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val focusChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether the View has focus or not.  The default is `false`.  */
     public var hasFocus: Boolean by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
@@ -593,10 +594,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Notifies changes to [parent] */
-    public val parentChange: PropertyObservers<View, View?> by lazy { PropertyObserversImpl(this) }
+    public val parentChange: PropertyObservers<View, View?> = PropertyObserversImpl(this)
 
     /** Notifies changes to [displayed] */
-    public val displayChange: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val displayChange: BooleanObservers = PropertyObserversImpl(this)
 
     /**
      * Is `true` if the View is currently within the [Display].
@@ -606,7 +607,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val displayed: Boolean get() = renderManager != null
 
     /** Notifies on the View's first render */
-    public val firstRender: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
+    public val firstRender: ChangeObservers<View> = ChangeObserversImpl(this)
 
     /**
      * Is `true` if the View has been rendered at least once.
@@ -640,7 +641,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Notifies changes to [cursor] */
-    public val cursorChanged: PropertyObservers<View, Cursor?> by lazy { PropertyObserversImpl(this) }
+    public val cursorChanged: PropertyObservers<View, Cursor?> = PropertyObserversImpl(this)
 
     private var actualFont: Font? = null
 
@@ -662,10 +663,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var backgroundColor: Color? by styleProperty(null) { it.backgroundColor == null }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
-    public val styleChanged: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
+    public val styleChanged: ChangeObservers<View> = ChangeObserversImpl(this)
 
     /** Notifies changes to [localContentDirection] */
-    public val contentDirectionChanged: ChangeObservers<View> by lazy { ChangeObserversImpl(this) }
+    public val contentDirectionChanged: ChangeObservers<View> = ChangeObserversImpl(this)
 
     /**
      * Determines whether the View will be affected by [Theme][io.nacular.doodle.theme.Theme]s set in [ThemeManager][io.nacular.doodle.theme.ThemeManager].
@@ -673,11 +674,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public var acceptsThemes: Boolean = true
 
-    private val pointerFilter_ by lazy { SetPool<PointerListener>() }
+    private val pointerFilter_ = SetPool<PointerListener>()
 
-    private val pointerChanged_ by lazy { SetPool<PointerListener>() }
+    private val pointerChanged_ = SetPool<PointerListener>()
 
-    private val pointerPassedThrough_ by lazy { SetPool<PointerListener>() }
+    private val pointerPassedThrough_ = SetPool<PointerListener>()
 
     /** [PointerListener]s that are notified during the sinking phase of pointer event handling. */
     public val pointerFilter: Pool<PointerListener> get() = pointerFilter_
@@ -694,21 +695,21 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public val pointerPassedThrough: Pool<PointerListener> get() = pointerPassedThrough_
 
-    private val keyFilter_ by lazy { SetPool<KeyListener>() }
+    private val keyFilter_ = SetPool<KeyListener>()
 
     /** [KeyListener]s that are notified during the sinking phase of key event handling*/
     public val keyFilter: Pool<KeyListener> get() = keyFilter_
 
-    private val keyChanged_ by lazy { SetPool<KeyListener>() }
+    private val keyChanged_ = SetPool<KeyListener>()
 
     /** [KeyListener]s that are notified during the bubbling phase of key event handling. */
     public val keyChanged: Pool<KeyListener> get() = keyChanged_
 
-    private val pointerMotionFilter_ by lazy { SetPool<PointerMotionListener>() }
+    private val pointerMotionFilter_ = SetPool<PointerMotionListener>()
 
-    private val pointerMotionChanged_ by lazy { SetPool<PointerMotionListener>() }
+    private val pointerMotionChanged_ = SetPool<PointerMotionListener>()
 
-    private val pointerMotionPassedThrough_ by lazy { SetPool<PointerMotionListener>() }
+    private val pointerMotionPassedThrough_ = SetPool<PointerMotionListener>()
 
     /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
     public val pointerMotionFilter: Pool<PointerMotionListener> get() = pointerMotionFilter_
@@ -732,7 +733,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var dropReceiver: DropReceiver? = null
 
     /** Notifies changes to [monitorsDisplayRect] */
-    public val displayRectHandlingChanged: BooleanObservers by lazy { PropertyObserversImpl(this) }
+    public val displayRectHandlingChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /**
      * Indicates whether the framework should notify the View of changes to its visible region as a result of
@@ -886,48 +887,46 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal val children_ get() = children
 
     /** List of child Views within this one */
-    protected open val children: ObservableList<View> by lazy {
-        ObservableList<View>().apply {
-            changed += { _, diffs ->
-                diffs.computeMoves().forEach { diff ->
-                    when (diff) {
-                        is Delete -> diff.items.forEach {
-                            if (diff.destination(of = it) == null) {
-                                // it's possible that this child has been moved to a new parent
-                                // before this notification. so don't make changes in that case
-                                if (it.parent == this@View) {
-                                    it.parent   = null
-                                    it.zOrder   = 0
-                                    it.suggestPosition(Origin)
-                                }
+    protected open val children: ObservableList<View> = ObservableList<View>().apply {
+        changed += { _, diffs ->
+            diffs.computeMoves().forEach { diff ->
+                when (diff) {
+                    is Delete -> diff.items.forEach {
+                        if (diff.destination(of = it) == null) {
+                            // it's possible that this child has been moved to a new parent
+                            // before this notification. so don't make changes in that case
+                            if (it.parent == this@View) {
+                                it.parent   = null
+                                it.zOrder   = 0
+                                it.suggestPosition(Origin)
                             }
                         }
-                        is Insert -> diff.items.forEach {
-                            if (diff.origin(of = it) == null) {
-                                require(it !== this@View) { "cannot add to self" }
-                                require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
-
-                                val oldFont = it.font
-                                it.parent = this@View
-
-                                if (it.font != oldFont) {
-                                    // Special case where a child's font changes b/c of its new parent
-                                    it.styleChanged { it.actualFont == null }
-                                }
-                            }
-                        }
-                        else      -> {}
                     }
-                }
+                    is Insert -> diff.items.forEach {
+                        if (diff.origin(of = it) == null) {
+                            require(it !== this@View) { "cannot add to self" }
+                            require(!it.ancestorOf(this@View)) { "cannot add ancestor to descendant" }
 
-                renderManager?.childrenChanged(this@View, diffs)
-                (childrenChanged_ as ChildObserversImpl).invoke(diffs)
+                            val oldFont = it.font
+                            it.parent = this@View
+
+                            if (it.font != oldFont) {
+                                // Special case where a child's font changes b/c of its new parent
+                                it.styleChanged { it.actualFont == null }
+                            }
+                        }
+                    }
+                    else      -> {}
+                }
             }
+
+            renderManager?.childrenChanged(this@View, diffs)
+            (childrenChanged_ as ChildObserversImpl).invoke(diffs)
         }
     }
 
     /** Notifies changes to [children] */
-    protected val childrenChanged: Pool<ChildObserver<View>> by lazy { ChildObserversImpl() }
+    protected val childrenChanged: Pool<ChildObserver<View>> = ChildObserversImpl()
 
     internal var generationNumber = 0
 
@@ -978,7 +977,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private  var renderManager       : RenderManager?        = null
     private  var accessibilityManager: AccessibilityManager? = null
 
-    private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> by lazy { mutableMapOf() }
+    private val traversalKeys: MutableMap<TraversalType, Set<KeyState>> = mutableMapOf()
 
     internal fun revalidate_() = revalidate()
 
@@ -1470,7 +1469,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun toString() = view.toString()
     }
 
-    internal val positionable by lazy { PositionableView() }
+    internal val positionable = PositionableView()
 
     private fun PointerListener.notify(event: PointerEvent) {
         when(event.type) {

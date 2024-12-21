@@ -29,5 +29,5 @@ internal class UserPreferencesImpl(window: Window): UserPreferences {
             else           -> Light
         }
 
-    override val colorSchemeChanged: PropertyObservers<UserPreferences, ColorScheme> by lazy { PropertyObserversImpl<UserPreferences, ColorScheme>(this) }
+    override val colorSchemeChanged: PropertyObservers<UserPreferences, ColorScheme> = PropertyObserversImpl<UserPreferences, ColorScheme>(this)
 }

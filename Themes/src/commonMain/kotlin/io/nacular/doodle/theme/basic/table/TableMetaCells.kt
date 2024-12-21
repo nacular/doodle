@@ -154,7 +154,7 @@ public class TableHeaderCell(private val column: Column<*>, private val fillColo
         }
     }
 
-    public val toggled: ChangeObservers<TableHeaderCell> by lazy { ChangeObserversImpl(this) }
+    public val toggled: ChangeObservers<TableHeaderCell> = ChangeObserversImpl(this)
 
     internal var sortOrder: SortOrder? by renderProperty(null)
 
@@ -324,7 +324,7 @@ public class TableFooterCell(private val column: Column<*>, private val fillColo
         }
     }
 
-    public val toggled: ChangeObservers<TableFooterCell> by lazy { ChangeObserversImpl(this) }
+    public val toggled: ChangeObservers<TableFooterCell> = ChangeObserversImpl(this)
 
     override fun addedToDisplay() {
         super.addedToDisplay()

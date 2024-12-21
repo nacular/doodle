@@ -345,12 +345,11 @@ internal open class VectorRendererSvg(
                 } ?: element.setStroke(null)
 
                 style.background?.let { paint ->
-                    val bbox     = element.getBBox_(BoundingBoxOptions())
-                    val fontSize = textInfo.maxFontSize.toDouble()
+                    val bbox = element.getBBox_(BoundingBoxOptions())
 
                     /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
 
-                    makeRect(Rectangle(bbox.x, line * fontSize, bbox.width, fontSize), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
+                    makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
                         fillElement(it, paint, style.stroke)
                         textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                     }

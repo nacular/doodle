@@ -193,7 +193,7 @@ public class MutableTable<T, M: MutableListModel<T>>(
     public class Sorting<T>(public val column: MutableColumn<T, *>, public val order: SortOrder)
 
     /** Notifies changes to [sorting] */
-    public val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> by lazy { PropertyObserversImpl(this) }
+    public val sortingChanged: PropertyObservers<MutableTable<T, M>, List<Sorting<T>>> = PropertyObserversImpl(this)
 
     /** current sorting for the table default is ```emptyList()```.  */
     public var sorting: List<Sorting<T>> by observable(emptyList(), sortingChanged as PropertyObserversImpl<MutableTable<T, M>, List<Sorting<T>>>) { _,_ ->

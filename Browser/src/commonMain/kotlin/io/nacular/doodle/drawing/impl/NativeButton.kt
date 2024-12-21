@@ -59,17 +59,21 @@ internal class NativeButtonFactoryImpl internal constructor(
 ): NativeButtonFactory {
 
     override fun invoke(button: Button) = NativeButton(
-            textMetrics,
-            textFactory,
-            htmlFactory,
-            graphicsSurfaceFactory,
-            nativeEventHandlerFactory,
-            focusManager,
-            button,
-            buttonInsets,
-            buttonBorder)
+        textMetrics,
+        textFactory,
+        htmlFactory,
+        graphicsSurfaceFactory,
+        nativeEventHandlerFactory,
+        focusManager,
+        button,
+        buttonInsets,
+        buttonBorder
+    )
 
-    private val buttonBorder: Insets by lazy {
+    private val buttonBorder = calcBorder()
+    private val buttonInsets = calcInsets()
+
+    private fun calcBorder(): Insets {
         val button = htmlFactory.createButton().also {
             it.textContent = "foo"
         }
@@ -81,12 +85,12 @@ internal class NativeButtonFactoryImpl internal constructor(
         val size = elementRuler.size(button)
 
         // TODO: Get values for each side properly
-        (Size(s.width - size.width, s.height - size.height) / 2.0).run {
+        return (Size(s.width - size.width, s.height - size.height) / 2.0).run {
             Insets(top = height, left = width, bottom = height, right = width)
         }
     }
 
-    private val buttonInsets: Insets by lazy {
+    private fun calcInsets(): Insets {
         val block = htmlFactory.create<HTMLElement>().apply {
             style.setDomPosition(Static())
 
@@ -102,11 +106,11 @@ internal class NativeButtonFactoryImpl internal constructor(
         val size = elementRuler.size(button)
 
         // TODO: Get values for each side properly
-        (Size(size.width - s.width, size.height - s.height) / 2.0).run {
+        return (Size(size.width - s.width, size.height - s.height) / 2.0).run {
             Insets(top    = height - buttonBorder.top,
-                   left   = width  - buttonBorder.left,
-                   bottom = height - buttonBorder.bottom,
-                   right  = width  - buttonBorder.right)
+                left   = width  - buttonBorder.left,
+                bottom = height - buttonBorder.bottom,
+                right  = width  - buttonBorder.right)
         }
     }
 }

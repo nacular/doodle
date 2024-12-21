@@ -22,14 +22,12 @@ private class NativeFileSelectorBehaviorWrapper(
     fileSelector             : FileSelector,
     private val delegate   : Behavior<FileSelector>): FileSelectorBehavior, Behavior<FileSelector> by delegate {
 
-    private val nativePeer by lazy {
-        nativeFileSelectorFactory(
-            fileSelector,
-            customRenderer = { selector, canvas -> delegate.render(selector, canvas) },
-            delegate.clipCanvasToBounds(fileSelector)
-        ) {
-            fileSelector.files = it
-        }
+    private val nativePeer = nativeFileSelectorFactory(
+        fileSelector,
+        customRenderer = { selector, canvas -> delegate.render(selector, canvas) },
+        delegate.clipCanvasToBounds(fileSelector)
+    ) {
+        fileSelector.files = it
     }
 
     override fun render(view: FileSelector, canvas: Canvas) {
@@ -38,10 +36,8 @@ private class NativeFileSelectorBehaviorWrapper(
 }
 
 internal class NativeFileSelectorBehavior(nativeFileSelectorFactory: NativeFileSelectorFactory, fileSelector: FileSelector): FileSelectorBehavior {
-    private val nativePeer by lazy {
-        nativeFileSelectorFactory(fileSelector) {
-            fileSelector.files = it
-        }
+    private val nativePeer = nativeFileSelectorFactory(fileSelector) {
+        fileSelector.files = it
     }
 
     private var oldCursor        : Cursor? = null

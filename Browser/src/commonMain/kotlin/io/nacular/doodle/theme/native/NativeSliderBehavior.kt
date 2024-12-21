@@ -17,15 +17,13 @@ internal class NativeSliderBehavior<T>(
     nativeSliderFactory: NativeSliderFactory,
     slider             : Slider<T>
 ): SliderBehavior<T>, PointerListener, PointerMotionListener where T: Comparable<T> {
-    private val nativePeer by lazy {
-        nativeSliderFactory(slider, object: SliderValueAdapter<T> {
-            override fun get(slider: Slider<T>) = slider.fraction
+    private val nativePeer = nativeSliderFactory(slider, object: SliderValueAdapter<T> {
+        override fun get(slider: Slider<T>) = slider.fraction
 
-            override fun set(slider: Slider<T>, value: Float) {
-                slider.setFraction(value)
-            }
-        })
-    }
+        override fun set(slider: Slider<T>, value: Float) {
+            slider.setFraction(value)
+        }
+    })
 
     override fun render(view: Slider<T>, canvas: Canvas) {
         nativePeer.render(canvas)

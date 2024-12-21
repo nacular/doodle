@@ -89,20 +89,6 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         }
     }
 
-    private val sizeDifference: Size by lazy {
-        elementRuler.size(htmlFactory.createInput()).let {
-            Size(it.width - defaultSize.width, it.height - defaultSize.height)
-        }
-    }
-
-    private val defaultSize: Size by lazy {
-        elementRuler.size(htmlFactory.createInput().apply {
-            style.setBorderWidth (0.0)
-            style.setOutlineWidth(0.0)
-            style.padding = "0px"
-        })
-    }
-
     override fun invoke(textField: TextField) = NativeTextField(
         eventHandlerFactory   = eventHandlerFactory,
         idGenerator           = idGenerator,
@@ -120,6 +106,16 @@ internal class NativeTextFieldFactoryImpl internal constructor(
         autoComplete          = autoComplete,
         textField             = textField
     )
+
+    private val defaultSize = elementRuler.size(htmlFactory.createInput().apply {
+        style.setBorderWidth (0.0)
+        style.setOutlineWidth(0.0)
+        style.padding = "0px"
+    })
+
+    private val sizeDifference = elementRuler.size(htmlFactory.createInput()).let {
+        Size(it.width - defaultSize.width, it.height - defaultSize.height)
+    }
 }
 
 internal class NativeTextField(

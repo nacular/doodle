@@ -60,9 +60,9 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override val popups get() = popUps
 
-    private val popUps by lazy { mutableListOf<View>() }
+    private val popUps = mutableListOf<View>()
 
-    override val children by lazy { ObservableList<View>().apply {
+    override val children = ObservableList<View>().apply {
         changed += { _, differences ->
             var index = 0
 
@@ -88,23 +88,23 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
             (childrenChanged as ChildObserversImpl).invoke(differences)
         }
-    }}
+    }
 
     private inner class ChildObserversImpl: SetPool<ChildObserver<Display>>() {
         operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
 
-    override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }
+    override val childrenChanged: Pool<ChildObserver<Display>> = ChildObserversImpl()
 
-    override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
-    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
+    override val sizeChanged  : PropertyObservers<Display, Size>    = PropertyObserversImpl<Display, Size>   (this)
+    override val cursorChanged: PropertyObservers<Display, Cursor?> = PropertyObserversImpl<Display, Cursor?>(this)
     override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
 
     override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
+    override val contentDirectionChanged: ChangeObservers<Display> = ChangeObserversImpl(this)
 
     override var mirrorWhenRightLeft = true; set(new) {
             if (field == new) return
@@ -114,7 +114,7 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
             notifyMirroringChanged()
         }
 
-    override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
+    override val mirroringChanged: ChangeObservers<Display> = ChangeObserversImpl(this)
 
     override var contentDirection: ContentDirection = LeftRight; set(new) {
             if (field == new) return

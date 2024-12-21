@@ -117,9 +117,9 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    public val expanded        : ExpansionObservers<T>               by lazy { ExpansionObserversImpl(this) }
-    public val collapsed       : ExpansionObservers<T>               by lazy { ExpansionObserversImpl(this) }
-    public val selectionChanged: SetObservers<Tree<T, M>, Path<Int>> by lazy { SetPool               (    ) }
+    public val expanded        : ExpansionObservers<T>               = ExpansionObserversImpl(this)
+    public val collapsed       : ExpansionObservers<T>               = ExpansionObserversImpl(this)
+    public val selectionChanged: SetObservers<Tree<T, M>, Path<Int>> = SetPool               (    )
 
     /**
      * Defines how the contents of an item should be aligned within it.

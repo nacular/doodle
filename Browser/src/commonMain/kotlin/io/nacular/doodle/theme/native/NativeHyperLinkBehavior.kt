@@ -25,10 +25,8 @@ private class NativeHyperLinkBehaviorWrapper(
     hyperLink             : HyperLink,
     private val delegate  : Behavior<HyperLink>): Behavior<HyperLink> by delegate {
 
-    private val nativePeer by lazy {
-        nativeHyperLinkFactory(hyperLink) { link, canvas ->
-            delegate.render(link, canvas)
-        }
+    private val nativePeer = nativeHyperLinkFactory(hyperLink) { link, canvas ->
+        delegate.render(link, canvas)
     }
 
     override fun render(view: HyperLink, canvas: Canvas) {
@@ -44,15 +42,11 @@ internal class NativeHyperLinkBehavior(
     private val customRenderer        : (CommonTextButtonBehavior<HyperLink>.(HyperLink, Canvas) -> Unit)? = null
 ): CommonTextButtonBehavior<HyperLink>(textMetrics, focusManager = focusManager) {
 
-    private val nativePeer by lazy {
-        val renderer: ((HyperLink, Canvas) -> Unit)? = customRenderer?.let { renderer ->
-            { link, canvas ->
-                renderer(this, link, canvas)
-            }
+    private val nativePeer = nativeHyperLinkFactory(hyperLink, customRenderer?.let { renderer ->
+        { link, canvas ->
+            renderer(this, link, canvas)
         }
-
-        nativeHyperLinkFactory(hyperLink, renderer)
-    }
+    })
 
     override fun render(view: HyperLink, canvas: Canvas) {
         nativePeer.render(canvas)

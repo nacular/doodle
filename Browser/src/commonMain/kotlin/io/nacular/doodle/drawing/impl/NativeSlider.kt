@@ -39,28 +39,6 @@ internal class NativeSliderFactoryImpl internal constructor(
     private val nativeEventHandlerFactory: NativeEventHandlerFactory,
     private val focusManager             : FocusManager?
 ): NativeSliderFactory {
-
-    private val sizeDifference: Size by lazy {
-        val slider = htmlFactory.createInput().apply {
-            style.position = "initial"
-            type           = "range"
-        }
-
-        val holder = htmlFactory.create<HTMLElement>().apply {
-            add(slider)
-        }
-
-        elementRuler.size(holder).let {
-            Size(it.width - defaultSize.width, it.height - defaultSize.height)
-        }
-    }
-
-    private val defaultSize: Size by lazy {
-        elementRuler.size(htmlFactory.createInput().apply {
-            type = "range"
-        })
-    }
-
     override fun <T> invoke(slider: Slider<T>, adapter: SliderValueAdapter<T>) where T: Comparable<T> = NativeSlider(
             htmlFactory,
             nativeEventHandlerFactory,
@@ -70,6 +48,19 @@ internal class NativeSliderFactoryImpl internal constructor(
             slider,
             adapter
     )
+
+    private val defaultSize = elementRuler.size(htmlFactory.createInput().apply {
+        type = "range"
+    })
+
+    private val sizeDifference: Size = elementRuler.size(htmlFactory.create<HTMLElement>().apply {
+        add(htmlFactory.createInput().apply {
+            style.position = "initial"
+            type           = "range"
+        })
+    }).let {
+        Size(it.width - defaultSize.width, it.height - defaultSize.height)
+    }
 }
 
 internal class NativeSlider<T> internal constructor(

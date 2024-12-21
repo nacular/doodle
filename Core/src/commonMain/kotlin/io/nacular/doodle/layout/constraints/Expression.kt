@@ -56,7 +56,7 @@ public open class Expression internal constructor(terms: Array<out Term>, consta
     /**
      * `true` if the expression has no terms
      */
-    internal open val isConstant: Boolean by lazy { terms.isEmpty() }
+    internal open val isConstant: Boolean = terms.isEmpty()
 
     /**
      * Provides the Expression's value directly, and does not treat its contents as

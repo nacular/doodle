@@ -90,7 +90,7 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 /** @suppress */
 @Internal
 public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() {
-    override val themes: ObservableSet<Theme> by lazy { ObservableSet() }
+    override val themes: ObservableSet<Theme> = ObservableSet()
 
     override var selected: Theme? by observable(null) { old,new ->
         old?.deselected()
@@ -104,7 +104,7 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
         (selectionChanged as PropertyObserversImpl).forEach { it(this, old, new) }
     }
 
-    override val selectionChanged: PropertyObservers<ThemeManager, Theme?> by lazy { PropertyObserversImpl<ThemeManager, Theme?>(this) }
+    override val selectionChanged: PropertyObservers<ThemeManager, Theme?> = PropertyObserversImpl<ThemeManager, Theme?>(this)
 
     override fun update(view: View) {
         if (view.acceptsThemes) {

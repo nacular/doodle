@@ -20,7 +20,7 @@ public actual open class SetPool<T> private actual constructor(private val deleg
 
 /** @suppress */
 public actual open class ObservableSetPool<T> actual constructor(private val delegate: SetPool<T>): ObservablePool<T>, Set<T> /*by delegate*/ {
-    actual override val changed: Pool<PoolObserver<T>> by lazy { SetPool() }
+    actual override val changed: Pool<PoolObserver<T>> = SetPool()
 
     actual override fun plusAssign (item: T) {
         val notify = item !in delegate

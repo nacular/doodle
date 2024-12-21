@@ -69,7 +69,9 @@ internal class NativeScrollPanelFactoryImpl internal constructor(
         onScroll
     )
 
-    private val scrollBarWidth: Double by lazy {
+    private val scrollBarWidth = scrollBarWidth()
+
+    private fun scrollBarWidth(): Double {
         val outer = htmlFactory.create<HTMLElement>("DIV")
 
         outer.style.setOverflow(Scroll())
@@ -84,7 +86,7 @@ internal class NativeScrollPanelFactoryImpl internal constructor(
 
         outer.parentNode?.removeChild(outer)
 
-        scrollbarWidth.toDouble()
+        return scrollbarWidth.toDouble()
     }
 }
 
@@ -156,11 +158,9 @@ internal class NativeScrollPanel internal constructor(
         }
     }
 
-    private val spacerDiv: HTMLElement by lazy {
-        htmlFactory.create<HTMLElement>("DIV").apply {
-            style.overflowX = "unset"
-            style.overflowY = "unset"
-        }
+    private val spacerDiv: HTMLElement = htmlFactory.create<HTMLElement>("DIV").apply {
+        style.overflowX = "unset"
+        style.overflowY = "unset"
     }
 
     private var barWidth  = scrollBarSize
@@ -176,7 +176,7 @@ internal class NativeScrollPanel internal constructor(
             if (entry.contentRect.height > 0 && rootElement.height > 0) {
                 barChanged(Horizontal, entry.run { panel.height - contentRect.height }.also { barHeight = it })
             }
-        } catch (ignored: Throwable) {
+        } catch (_: Throwable) {
             barWidth  = scrollBarSize
             barHeight = barWidth
         }

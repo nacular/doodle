@@ -22,11 +22,11 @@ public typealias Validator = (String) -> String
 
 public abstract class TextInput(text: String = "", protected val role: TextBoxRole = TextBoxRole()): View(role) {
 
-    public val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> by lazy { PropertyObserversImpl(this) }
+    public val horizontalAlignmentChanged: PropertyObservers<TextInput, HorizontalAlignment> = PropertyObserversImpl(this)
 
     public var horizontalAlignment: HorizontalAlignment by observable(Left, horizontalAlignmentChanged as PropertyObserversImpl<TextInput, HorizontalAlignment>)
 
-    public val textChanged: PropertyObservers<TextInput, String> by lazy { PropertyObserversImpl(this) }
+    public val textChanged: PropertyObservers<TextInput, String> = PropertyObserversImpl(this)
 
     public open var text: String by observable(text, textChanged as PropertyObserversImpl<TextInput, String>) { _,_ ->
         select(min(text.length, selection.position) .. min(text.length, selection.anchor))
@@ -40,7 +40,7 @@ public abstract class TextInput(text: String = "", protected val role: TextBoxRo
             text  = text /* re-validate text */
         }
 
-    public val selectionChanged: PropertyObservers<TextInput, Selection> by lazy { PropertyObserversImpl(this) }
+    public val selectionChanged: PropertyObservers<TextInput, Selection> = PropertyObserversImpl(this)
 
     public var selection: Selection by observable(Selection(0, 0), selectionChanged as PropertyObserversImpl<TextInput, Selection>)
         private set

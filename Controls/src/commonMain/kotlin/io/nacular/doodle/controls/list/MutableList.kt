@@ -73,7 +73,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
     public var editor: ListEditor<T>? = null
 
     /** Notifies changes to [sortOrder] */
-    public val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> by lazy { PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this) }
+    public val sortingChanged: PropertyObservers<MutableList<T, M>, SortOrder?> = PropertyObserversImpl<MutableList<T, M>, SortOrder?>(this)
 
     /** current sorting for the list default is ```null```.  */
     public var sortOrder: SortOrder? by observable(null, sortingChanged as PropertyObserversImpl<MutableList<T, M>, SortOrder?>)

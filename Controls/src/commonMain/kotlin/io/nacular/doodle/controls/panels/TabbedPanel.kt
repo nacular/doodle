@@ -96,10 +96,10 @@ public class TabbedPanel<T>(
     public val itemsChanged: ListObservers<TabbedPanel<T>, T> = SetPool()
 
     /** Notifies of changes to [selection]. */
-    public val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> by lazy { PropertyObserversImpl(this) }
+    public val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> = PropertyObserversImpl(this)
 
     /** Notifies of changes to [orientation]. */
-    public val orientationChanged: PropertyObservers<TabbedPanel<T>, BoxOrientation> by lazy { PropertyObserversImpl(this) }
+    public val orientationChanged: PropertyObservers<TabbedPanel<T>, BoxOrientation> = PropertyObserversImpl(this)
 
     /** The number of items (tabs) in the panel. */
     public val numItems: Int get() = items.size

@@ -107,7 +107,7 @@ public class StarRater(
     private var displayValue by renderProperty(value.roundToNearest(displayRounded.toDouble()))
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { PropertyObserversImpl<StarRater, Double>(this) }
+    private val changed_ = PropertyObserversImpl<StarRater, Double>(this)
 
     public val changed: PropertyObservers<StarRater, Double> = changed_
 

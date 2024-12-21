@@ -83,7 +83,7 @@ public open class TextField(text: String = ""): TextInput(text) {
     /**
      * Notified whenever [mask] changes.
      */
-    public val maskChanged: PropertyObservers<TextField, Char?> by lazy { PropertyObserversImpl(this) }
+    public val maskChanged: PropertyObservers<TextField, Char?> = PropertyObserversImpl(this)
 
     /**
      * Optional character to mask text shown in the field. This only affects [displayText].
@@ -114,7 +114,7 @@ public open class TextField(text: String = ""): TextInput(text) {
     /**
      * Notified whenever [purpose] changes.
      */
-    public val purposeChanged: PropertyObservers<TextField, Purpose> by lazy { PropertyObserversImpl(this) }
+    public val purposeChanged: PropertyObservers<TextField, Purpose> = PropertyObserversImpl(this)
 
     public var behavior: TextFieldBehavior? by behavior(
         beforeChange = { _,_ -> mirrorWhenRightLeft = false },

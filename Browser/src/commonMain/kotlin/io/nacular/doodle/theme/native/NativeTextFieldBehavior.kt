@@ -20,9 +20,7 @@ private class NativeTextFieldBehaviorWrapper(
     textField             : TextField,
     private val delegate  : NativeTextFieldBehaviorModifier
 ): TextFieldBehavior, Behavior<TextField> by delegate {
-    private val nativePeer by lazy {
-        nativeTextFieldFactory(textField)
-    }
+    private val nativePeer = nativeTextFieldFactory(textField)
 
     override fun fitTextSize(textField: TextField) = nativePeer.fitTextSize()
 
@@ -46,7 +44,7 @@ private class NativeTextFieldBehaviorWrapper(
 }
 
 internal class NativeTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFactory, textField: TextField): TextFieldBehavior {
-    private val nativePeer by lazy { nativeTextFieldFactory(textField) }
+    private val nativePeer = nativeTextFieldFactory(textField)
 
     override fun fitTextSize       (textField: TextField) = nativePeer.fitTextSize()
     override fun clipCanvasToBounds(view     : TextField) = nativePeer.clipCanvasToBounds

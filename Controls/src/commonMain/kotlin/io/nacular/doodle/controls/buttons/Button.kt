@@ -51,7 +51,7 @@ public abstract class Button protected constructor(
     }
 
     /** Notifies when the button's text is modified */
-    public val textChanged: PropertyObservers<Button, String> by lazy { PropertyObserversImpl(this) }
+    public val textChanged: PropertyObservers<Button, String> = PropertyObserversImpl(this)
 
     /** Text displayed on the button */
     public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>) { _,new ->
@@ -61,11 +61,11 @@ public abstract class Button protected constructor(
     }
 
     /** Notifies whenever the button is clicked (pressed/released) */
-    public val fired: ChangeObservers<Button> by lazy { ChangeObserversImpl(this) }
+    public val fired: ChangeObservers<Button> = ChangeObserversImpl(this)
 
-    public val armedChanged      : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
-    public val pressedChanged    : PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
-    public val pointerOverChanged: PropertyObservers<Button, Boolean> by lazy { PropertyObserversImpl(this) }
+    public val armedChanged      : PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
+    public val pressedChanged    : PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
+    public val pointerOverChanged: PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
 
     /** All rendering is delegated to the behavior */
     public var behavior: Behavior<Button>? by behavior()

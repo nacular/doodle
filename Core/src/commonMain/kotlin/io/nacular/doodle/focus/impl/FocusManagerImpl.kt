@@ -37,7 +37,7 @@ public class FocusManagerImpl(
 
     override var focusCycleRoot: View? = null; private set
 
-    override val focusChanged: PropertyObservers<FocusManager, View?> by lazy { PropertyObserversImpl<FocusManager, View?>(this) }
+    override val focusChanged: PropertyObservers<FocusManager, View?> = PropertyObserversImpl<FocusManager, View?>(this)
 
     override fun focusable(view: View): Boolean = focusabilityChecker(view)
 

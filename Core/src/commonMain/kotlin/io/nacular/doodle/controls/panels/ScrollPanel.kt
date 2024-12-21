@@ -93,7 +93,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /** Height of the panel's horizontal scroll bar */
     public var horizontalScrollBarHeight: Double by observable(0.0) { _,_ -> relayout(); scrollBarDimensionsChanged_() }; private set
 
-    private val scrollBarDimensionsChanged_ by lazy { ChangeObserversImpl(this) }
+    private val scrollBarDimensionsChanged_ = ChangeObserversImpl(this)
 
     /** Notified when the panel's scroll bars change size or are hidden/shown */
     public val scrollBarDimensionsChanged: ChangeObservers<ScrollPanel> get() = scrollBarDimensionsChanged_
@@ -127,7 +127,7 @@ public open class ScrollPanel(content: View? = null): View() {
     }
 
     /** Notifies of changes to [content]. */
-    public val contentChanged: PropertyObservers<ScrollPanel, View?> by lazy { PropertyObserversImpl(this) }
+    public val contentChanged: PropertyObservers<ScrollPanel, View?> = PropertyObserversImpl(this)
 
     /** Determines how the [content] width changes as the panel resizes */
     public var contentWidthConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
@@ -151,7 +151,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /**
      * Notifies of changes to [scroll]
      */
-    public val scrollChanged: PropertyObservers<ScrollPanel, Point> by lazy { PropertyObserversImpl(this) }
+    public val scrollChanged: PropertyObservers<ScrollPanel, Point> = PropertyObserversImpl(this)
 
     /** Behavior governing how the panel works */
     public var behavior: ScrollPanelBehavior? by behavior { old, new ->

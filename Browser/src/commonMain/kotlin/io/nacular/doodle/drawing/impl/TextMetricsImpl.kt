@@ -148,24 +148,5 @@ internal class TextMetricsImpl(
         }
 
         return width
-
-//        text.forEach { (string, style) ->
-//            if (string.isNotBlank()) {
-//                ++numItems
-//                width += textWidth(string, style.font, textSpacing)
-//            }
-//        }
-
-//        var width    = 0.0
-//        var numItems = 0
-//
-//        text.forEach { (string, style) ->
-//            if (string.isNotBlank()) {
-//                ++numItems
-//                width += textWidth(string, style.font, textSpacing)
-//            }
-//        }
-//
-//        return width //+ (numItems - 1) * textSpacing.wordSpacing
     }
 }

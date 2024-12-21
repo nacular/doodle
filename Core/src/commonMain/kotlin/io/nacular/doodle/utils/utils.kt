@@ -198,7 +198,7 @@ public fun <T> Set<T>.firstOrNull(): T? {
 /** @suppress */ @Internal public expect fun <E> fastSetOf       (vararg elements: E): Set<E>
 /** @suppress */ @Internal public expect fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E>
 
-public val zeroMillis: Measure<Time> by lazy { 0 * milliseconds }
+public val zeroMillis: Measure<Time> = 0 * milliseconds
 
 /**
  * Interpolates between two values.

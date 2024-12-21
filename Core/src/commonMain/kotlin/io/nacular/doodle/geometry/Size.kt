@@ -18,7 +18,7 @@ public class Size private constructor(public val width: Double = 0.0, public val
     public val area: Double by lazy { width * height }
 
     /** `true` IFF [area] == `0` */
-    public val empty: Boolean by lazy { width == 0.0 || height == 0.0 }
+    public val empty: Boolean = width == 0.0 || height == 0.0
 
     @Suppress("PrivatePropertyName")
     private val hashCode_ by lazy { arrayOf(width, height).contentHashCode() }

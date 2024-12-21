@@ -34,10 +34,10 @@ public open class CircularSlider<T>(
     function    : InvertibleFunction = LinearFunction
 ): ValueSlider<T>(model, interpolator, function) where T: Comparable<T> {
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { PropertyObserversImpl<CircularSlider<T>, T>(this) }
+    private val changed_ = PropertyObserversImpl<CircularSlider<T>, T>(this)
 
     @Suppress("PrivatePropertyName")
-    private val limitsChanged_ by lazy { PropertyObserversImpl<CircularSlider<T>, ClosedRange<T>>(this) }
+    private val limitsChanged_ = PropertyObserversImpl<CircularSlider<T>, ClosedRange<T>>(this)
 
     /**
      * Notifies of changes to [value].

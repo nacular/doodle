@@ -192,8 +192,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
     override val firstSelectable: Path<Int>?     get() = tree.firstSelectable
     override val lastSelectable : Path<Int>?     get() = tree.lastSelectable
 
-    public val expanded : ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
-    public val collapsed: ExpansionObservers<T> by lazy { ExpansionObserversImpl(this) }
+    public val expanded : ExpansionObservers<T> = ExpansionObserversImpl(this)
+    public val collapsed: ExpansionObservers<T> = ExpansionObserversImpl(this)
 
     private lateinit var tree: Tree<*, TreeModel<*>>
 

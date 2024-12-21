@@ -58,7 +58,7 @@ public open class ToggleButton protected constructor(
 
     private var roleBinding by binding(role.bind(model))
 
-    public val selectedChanged: PropertyObservers<ToggleButton, Boolean> by lazy { PropertyObserversImpl<ToggleButton, Boolean>(this) }
+    public val selectedChanged: PropertyObservers<ToggleButton, Boolean> = PropertyObserversImpl<ToggleButton, Boolean>(this)
 
     private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
 

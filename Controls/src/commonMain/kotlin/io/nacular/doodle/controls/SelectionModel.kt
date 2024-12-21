@@ -54,7 +54,7 @@ public open class MultiSelectionModel<T>: SelectionModel<T> {
 
     private val set = LinkedHashSet<T>()
     private var anchor_: T? = null
-    protected val observableSet: ObservableSet<T> by lazy { ObservableSet(set) }
+    protected val observableSet: ObservableSet<T> = ObservableSet(set)
 
     init {
         observableSet.changed += { set, removed, added ->

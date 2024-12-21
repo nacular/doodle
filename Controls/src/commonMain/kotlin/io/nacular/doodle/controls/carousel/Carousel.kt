@@ -195,7 +195,7 @@ public open class Carousel<T, M: ListModel<T>>(
     )
 
     @Suppress("PrivatePropertyName")
-    private val nearestItemChanged_ by lazy { PropertyObserversImpl<Carousel<T, M>, Int>(this) }
+    private val nearestItemChanged_ = PropertyObserversImpl<Carousel<T, M>, Int>(this)
 
     /**
      * Notifies of changes to the Carousel's [nearestItem].
@@ -203,7 +203,7 @@ public open class Carousel<T, M: ListModel<T>>(
     public val nearestItemChanged: PropertyObservers<Carousel<T, M>, Int> = nearestItemChanged_
 
     @Suppress("PrivatePropertyName")
-    private val progressChanged_ by lazy { ChangeObserversImpl(this) }
+    private val progressChanged_ = ChangeObserversImpl(this)
 
     /**
      * Notifies of changes to the Carousel's progress to its target. Listeners

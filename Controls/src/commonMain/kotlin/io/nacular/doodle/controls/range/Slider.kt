@@ -40,10 +40,10 @@ public open class Slider<T>(
 ): ValueSlider<T>(model, interpolator, function) where T: Comparable<T>  {
 
     @Suppress("PrivatePropertyName")
-    private val changed_ by lazy { PropertyObserversImpl<Slider<T>, T>(this) }
+    private val changed_ = PropertyObserversImpl<Slider<T>, T>(this)
 
     @Suppress("PrivatePropertyName")
-    private val limitsChanged_ by lazy { PropertyObserversImpl<Slider<T>, ClosedRange<T>>(this) }
+    private val limitsChanged_ = PropertyObserversImpl<Slider<T>, ClosedRange<T>>(this)
 
     /**
      * Notifies of changes to [value].
