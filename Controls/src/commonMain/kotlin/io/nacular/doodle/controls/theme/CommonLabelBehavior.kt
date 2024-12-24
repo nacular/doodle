@@ -17,8 +17,6 @@ import io.nacular.doodle.text.Style
 import io.nacular.doodle.text.TextDecoration
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.ChangeObserver
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.PropertyObserver
 import io.nacular.doodle.utils.TextAlignment.Center
 import io.nacular.doodle.utils.TextAlignment.End
@@ -134,19 +132,8 @@ public open class CommonLabelBehavior(
         }
     }
 
-    override fun measureText(label: Label): Size {
-        val textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing)
-
-        val height = when {
-            Height in label.fitText || label.verticalAlignment != Top -> if (label.wrapsWords) textMetrics.height(label.styledText, label.width, lineSpacing = label.lineSpacing, textSpacing = textSpacing) else textMetrics.height(label.styledText)
-            else                                                      -> 0.0
-        }
-
-        val width = when {
-            Width in label.fitText || label.textAlignment != Start    -> if (label.wrapsWords) textMetrics.width(label.styledText, label.width, textSpacing = textSpacing) else textMetrics.width(label.styledText, textSpacing = textSpacing)
-            else                                                      -> 0.0
-        }
-
-        return Size(width, height)
+    override fun measureText(label: Label): Size = when {
+        label.wrapsWords -> textMetrics.size(label.styledText, label.width, lineSpacing = label.lineSpacing, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
+        else             -> textMetrics.size(label.styledText)
     }
 }

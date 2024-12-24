@@ -18,8 +18,8 @@ public class BasicMonthPanelBehavior(
         val text = "${day.dayOfMonth}"
 
         when (previous) {
-            is Label -> previous.apply    { fitText = emptySet(); this.text = text }
-            else     -> Label(text).apply { fitText = emptySet() }
+            is Label -> previous.apply { this.text = text }
+            else     -> Label(text)
         }.also {
             it.enabled = day.month == panel.startDate.month
         }

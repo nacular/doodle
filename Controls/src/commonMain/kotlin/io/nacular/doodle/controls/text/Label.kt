@@ -9,14 +9,10 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.text.invoke
-import io.nacular.doodle.utils.Dimension
-import io.nacular.doodle.utils.Dimension.Height
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import io.nacular.doodle.utils.dimensionSetProperty
 import io.nacular.doodle.utils.observable
 
 
@@ -31,12 +27,6 @@ public open class Label(
     verticalAlignment  : VerticalAlignment = Middle,
     horizontalAlignment: TextAlignment     = Center
 ): View() {
-
-    /**
-     * Determines whether the Label resizes to fit its text's width, height, or both.
-     */
-    public var fitText: Set<Dimension> by dimensionSetProperty(setOf(Width, Height)) { _,_ -> measureText() }
-
     /**
      * Text displayed by the Label.
      */

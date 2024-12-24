@@ -6,7 +6,6 @@ import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.text.StyledText
-import io.nacular.doodle.utils.Dimension
 
 /**
  * Provides a mapping between an item and a [View] to represent it.
@@ -39,24 +38,20 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
 /**
  * Visualizes Strings using [Label]s.
  */
-public open class StringVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<String, Any> {
+public open class StringVisualizer(): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
-        is Label -> previous.apply { text = item; this@StringVisualizer.fitText?.let { fitText = it } }
-        else     -> Label(StyledText(item)).apply {
-            this@StringVisualizer.fitText?.let { fitText = it }
-        }
+        is Label -> previous.apply { text = item }
+        else     -> Label(StyledText(item))
     }
 }
 
 /**
  * Visualizes [StyledText] using [Label]s.
  */
-public open class StyledTextVisualizer(private val fitText: Set<Dimension>? = null): ItemVisualizer<StyledText, Any> {
+public open class StyledTextVisualizer(): ItemVisualizer<StyledText, Any> {
     override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
-        is Label -> previous.apply { styledText = item; this@StyledTextVisualizer.fitText?.let { fitText = it } }
-        else     -> Label(item).apply {
-            this@StyledTextVisualizer.fitText?.let { fitText = it }
-        }
+        is Label -> previous.apply { styledText = item }
+        else     -> Label(item)
     }
 }
 

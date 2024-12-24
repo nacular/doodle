@@ -68,7 +68,6 @@ import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.text.StyledText
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.CharInterpolator
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
@@ -2503,8 +2502,6 @@ public class NamedConfig internal constructor(public val label: Label) {
      * @return the default layout
      */
     public fun defaultLayout(spacing: Double = DEFAULT_SPACING, itemHeight: Double? = null): (container: View, field: View) -> Layout? = { _,_ ->
-        label.fitText = setOf(Width)
-
         expandingVerticalLayout(spacing, itemHeight)
     }
 
@@ -2648,9 +2645,6 @@ public class LabeledConfig internal constructor(public val name: Label, public v
      * Defines the layout for the named container.
      */
     public var layout: (container: View, field: View) -> Layout? = { container,_ ->
-        name.fitText = setOf(Width)
-        help.fitText = setOf(Width)
-
         expandingVerticalLayout(DEFAULT_SPACING)
     }
 
