@@ -25,9 +25,9 @@ import io.nacular.doodle.utils.Pool
 public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
 public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center }
 
-public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) .. strength }
-public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) .. strength }
-public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) .. strength }
+public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) strength strength }
+public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) strength strength }
+public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) strength strength }
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -648,15 +648,23 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
+    public infix fun List<Result<Constraint>>.strength(strength: Strength): List<Result<Constraint>> {
+        this.forEach { it.getOrNull()?.strength = strength }
+        return this
+    }
+
+    @Deprecated(message = "use strength infix instead", replaceWith = ReplaceWith("strength(strength)"), level = DeprecationLevel.ERROR)
     public operator fun Result<Constraint>.rangeTo(strength: Strength): Result<Constraint> {
         this.getOrNull()?.strength = strength
         return this
     }
 
+    @Deprecated(message = "use strength infix instead", replaceWith = ReplaceWith("strength(strength)"), level = DeprecationLevel.ERROR)
     public operator fun List<Result<Constraint>>.rangeTo(strength: Strength): List<Result<Constraint>> {
         this.forEach { it.getOrNull()?.strength = strength }
         return this
     }
+
 
     public fun Bounds.withOffset(top: Double? = null, left: Double? = null): Bounds = when {
         top == 0.0 && left == 0.0 -> this
