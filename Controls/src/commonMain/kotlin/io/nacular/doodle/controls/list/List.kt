@@ -17,7 +17,6 @@ import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -154,8 +153,6 @@ public open class List<T, out M: ListModel<T>>(
     private   var itemGenerator : ItemGenerator <T>? = null
     private   var itemPositioner: ItemPositioner<T>? = null
 
-    private   var maxRight           = 0.0
-    private   var maxBottom          = 0.0
     private   var minVisiblePoint    = Origin
     private   var maxVisiblePoint    = Origin
     private   var handlingRectChange = false
@@ -204,12 +201,16 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    private var minimumSize = Size.Empty
+    private var minimumSize by observable(Size.Empty) { _,new ->
+        suggestSize(new)
+    }
 
     protected fun updateVisibleHeight() {
         val oldSize = minimumSize
 
         minimumSize = itemPositioner?.minimumSize(this) ?: minimumSize
+
+        preferredSize = { _,_ -> itemPositioner?.minimumSize(this) ?: minimumSize }
 
         if (oldSize == minimumSize) {
             // FIXME: This reset logic could be handled better
@@ -229,19 +230,23 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = simpleLayout { _,_,current,_,_ ->
+        layout = simpleLayout { _,_,_,_,_ ->
+            var maxWidth  = 0.0
+            var maxHeight = 0.0
             (firstVisibleItem .. lastVisibleItem).forEach {
                 if (it < model.size) {
                     model[it].onSuccess { item ->
                         children.getOrNull(it % children.size)?.let { child ->
-                            layout(child, item, it)
+                            layout(child, item, it)?.let {
+                                maxWidth  = max(maxWidth,  it.width )
+                                maxHeight = max(maxHeight, it.bottom)
+                            }
                         }
                     }
                 }
             }
 
-            preferredSize = fixed(Size(max(minimumSize.width, current.width), max(minimumSize.height, current.height)))
-            idealSize
+            Size(maxWidth, maxHeight)
         }
     }
 
@@ -267,8 +272,6 @@ public open class List<T, out M: ListModel<T>>(
 
         super.removedFromDisplay()
     }
-
-//    override fun preferredSize(min: Size, max: Size): Size = Size(super.preferredSize(min, max).width, minimumSize.height)
 
     override fun handleDisplayRectEvent(old: Rectangle, new: Rectangle) {
         itemPositioner?.let { positioner ->
@@ -300,16 +303,15 @@ public open class List<T, out M: ListModel<T>>(
                 model[lastVisibleItem].onSuccess { maxVisiblePoint = positioner.itemBounds(this, it, lastVisibleItem).run { Point(right, bottom) } }
             }
 
-            // reset size info
-            maxRight  = 0.0
-            maxBottom = 0.0
-
             handlingRectChange = true
+
+            var updateSize = false
 
             if (oldFirst > firstVisibleItem) {
                 val end = min(oldFirst, lastVisibleItem)
 
                 (firstVisibleItem .. end).forEach { insert(children, it) }
+                updateSize = true
             }
 
             if (oldLast < lastVisibleItem) {
@@ -319,6 +321,8 @@ public open class List<T, out M: ListModel<T>>(
                 }
 
                 (start..lastVisibleItem).forEach { insert(children, it) }
+                updateSize = true
+
             }
 
             // this updates "hashing" of items into the children list (using % of list size) since the children size has changed
@@ -328,20 +332,22 @@ public open class List<T, out M: ListModel<T>>(
                 }
             }
 
+            if (updateSize) {
+                suggestSize(itemPositioner?.minimumSize(this) ?: minimumSize)
+            }
+
             handlingRectChange = false
         }
     }
 
-    protected fun layout(view: View, item: T, index: Int) {
+    protected fun layout(view: View, item: T, index: Int): Rectangle? {
         itemPositioner?.let {
-            view.suggestBounds(it.itemBounds(this@List, item, index, view))
-
-            maxRight    = max(maxRight,  view.bounds.right )
-            maxBottom   = max(maxBottom, view.bounds.bottom)
-
-            val mSize   = Size(max(minimumSize.width, maxRight), max(minimumSize.height, maxBottom))
-            minimumSize = mSize
+            val bounds = it.itemBounds(this@List, item, index, view)
+            view.suggestBounds(bounds)
+            return bounds
         }
+
+        return null
     }
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
