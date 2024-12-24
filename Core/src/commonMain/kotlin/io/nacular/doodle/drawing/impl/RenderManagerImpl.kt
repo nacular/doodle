@@ -680,7 +680,7 @@ public open class RenderManagerImpl(
         if (!old.size.fastEquals(new.size)) {
             reRender = !new.size.empty
 
-            if (view.layout_ != null && view.children_.isNotEmpty()) {
+            if (view.children_.isNotEmpty() && view.layout_?.requiresLayout(old.size, new.size) == true) {
                 when {
                     layingOut !== view                       -> pendingLayout += view
 
@@ -698,8 +698,8 @@ public open class RenderManagerImpl(
         }
 
         when (parent) {
-            null -> displayPendingLayout = true
-            else -> pendingLayout += parent
+            null -> if (display.layout?.requiresLayout(view.positionable, display.size, old, new) == true) displayPendingLayout = true
+            else -> if (parent.layout_?.requiresLayout(view.positionable, parent.size, old, new) == true) pendingLayout += parent
         }
 
         when {

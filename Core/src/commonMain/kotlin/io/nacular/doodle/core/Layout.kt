@@ -13,10 +13,13 @@ import io.nacular.doodle.layout.Insets.Companion.None
  * @see View
  */
 public interface Positionable {
+    /** The current screen location */
     public val position: Point
 
+    /** The current screen location/size */
     public val bounds: Rectangle
 
+    /** The current preferred size */
     public val idealSize: Size
 
     /** Whether this item is visible. */
@@ -30,10 +33,48 @@ public interface Positionable {
      */
     public operator fun contains(point: Point): Boolean
 
-    public fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
-
+    /**
+     * Sets item's [position] to [x] and [y]
+     *
+     * @param x to set
+     * @param y to set
+     */
     public fun updatePosition(x: Double, y: Double)
 
+    /**
+     * Sets item's [Positionable.position] to the given value
+     *
+     * @param position to set
+     */
+    public fun updatePosition(position: Point) { updatePosition(position.x, position.y) }
+
+    /**
+     * Asks the item to choose a size within [min] and [max]
+     *
+     * @param min size
+     * @param max size
+     * @return size selected
+     */
+    public fun updateSize(min: Size, max: Size): Size = updateBounds(position.x, position.y, min, max)
+
+    public fun updateSize(size: Size) { updateBounds(Rectangle(position, size)) }
+
+    /**
+     * Sets the item's [position] and asks it to choose a size within [min] and [max]
+     *
+     * @param x   value
+     * @param y   value
+     * @param min size
+     * @param max size
+     * @return size selected
+     */
+    public fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
+
+    /**
+     * Sets the item's [bounds] to [rectangle]
+     *
+     * @param rectangle size
+     */
     public fun updateBounds(rectangle: Rectangle) {
         updateBounds(rectangle.x, rectangle.y, rectangle.size, rectangle.size)
     }
@@ -58,12 +99,12 @@ public sealed class LookupResult {
 }
 
 /**
- * Layouts control the positioning of a [PositionableContainer]'s children. They are also responsible for reporting the ideal size for a view given it's contents.
+ * Layouts control the positioning of a sequence of [View]s within a [Size]. They are also responsible for reporting the ideal size for a view given its contents.
  *
- * Layouts automatically take control of content positioning; therefore they should be used in preference of manually monitoring a [PositionableContainer]'s size.
+ * Layouts automatically take control of content positioning; therefore they should be used in preference of manually monitoring a [View]'s size.
  *
- * A [PositionableContainer]'s Layout will be asked to perform positioning whenever that [PositionableContainer]'s size changes or it becomes visible after one or more of its
- * children has triggered a layout.  A child will trigger a layout if its bounds change or if it changes visibility.
+ * A [View]'s Layout will be asked to perform positioning whenever its size changes, or it becomes visible after one or more of its
+ * children has triggered a layout. A child will trigger a layout if its bounds change or if it changes visibility.
  *
  * @author Nicholas Eddy
  */
@@ -80,6 +121,28 @@ public interface Layout {
      * @return a value that respects [min] and [max]
      */
     public fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets = None): Size = max
+
+    /**
+     * Indicates whether a layout is needed because of the given size change to a container.
+     * This is called whenever the container's `size` changes.
+     *
+     * @param old size of the container
+     * @param new size of the container
+     * @return `true` if a layout is needed
+     */
+    public fun requiresLayout(old: Size, new: Size): Boolean = true
+
+    /**
+     * Indicates whether a layout is needed because of the given bounds change to a child within a container.
+     * This is called whenever the child's `size` changes.
+     *
+     * @param child whose bounds has changed
+     * @param within the given size
+     * @param old bounds of the child
+     * @param new bounds of the child
+     * @return `true` if a layout is needed
+     */
+    public fun requiresLayout(child: Positionable, within: Size, old: Rectangle, new: Rectangle): Boolean = true
 
     /**
      * Gets the child within the Positionable at the given point.  The default is to ignore these
