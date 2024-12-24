@@ -12,11 +12,8 @@ import io.nacular.doodle.text.invoke
 import io.nacular.doodle.utils.Dimension
 import io.nacular.doodle.utils.Dimension.Height
 import io.nacular.doodle.utils.Dimension.Width
-import io.nacular.doodle.utils.HorizontalAlignment
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
-import io.nacular.doodle.utils.TextAlignment.End
-import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
 import io.nacular.doodle.utils.dimensionSetProperty
@@ -24,7 +21,7 @@ import io.nacular.doodle.utils.observable
 
 
 public interface LabelBehavior: Behavior<Label> {
-    public val Label.textSize: Size get() = textSize
+    public val Label.textSize: Size get() = textSize_
 
     public fun measureText(label: Label): Size
 }
@@ -43,29 +40,24 @@ public open class Label(
     /**
      * Text displayed by the Label.
      */
-    public var text: String get() = styledText.text
-        set(new) {
-            if (new != styledText.text) {
-                styledText = StyledText(new)
-            }
-        }
+    public var text: String get() = styledText.text; set(new) {
+        styledText = StyledText(new)
+    }
 
     // this a clone of actualStyledText with the Label's styling applied
-    private var visibleStyledText = styledText
-        set(value) {
-            field = value
-            foregroundColor?.invoke { field }
-            font?.invoke            { field }
-        }
+    private var visibleStyledText = styledText; set(value) {
+        field = value
+        foregroundColor?.invoke { field }
+        font?.invoke            { field }
+    }
 
     // this is the styled-text that is set by a caller
-    private var actualStyledText = styledText
-        set(new) {
-            field             = new
-            visibleStyledText = field.copy()
-            measureText()
-            rerender   ()
-        }
+    private var actualStyledText = styledText; set(new) {
+        field             = new
+        visibleStyledText = field.copy()
+        measureText()
+        rerender   ()
+    }
 
     /**
      * Text displayed by the label with styles.
@@ -80,14 +72,13 @@ public open class Label(
      * Determines if the Label will wrap text when its width is too short to
      * show it all.
      */
-    public var wrapsWords: Boolean = false
-        set(new) {
-            if (field != new) {
-                field = new
-                measureText()
-                rerender()
-            }
+    public var wrapsWords: Boolean = false; set(new) {
+        if (field != new) {
+            field = new
+            measureText()
+            rerender()
         }
+    }
 
     /**
      * Alignment of text along the vertical axis.
@@ -114,7 +105,7 @@ public open class Label(
      */
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
-    internal var textSize = Empty; private set(new) {
+    internal var textSize_ = Empty; private set(new) {
         field         = new
         preferredSize = fixed(new)
         suggestSize(new)
@@ -126,7 +117,7 @@ public open class Label(
     }
 
     private fun measureText(behavior: LabelBehavior? = this.behavior): Size {
-        return behavior?.measureText(this)?.also { textSize = it } ?: Empty
+        return behavior?.measureText(this)?.also { textSize_ = it } ?: Empty
     }
 
     init {
@@ -142,13 +133,13 @@ public open class Label(
         // force update
         actualStyledText = actualStyledText
 
-        suggestSize(textSize)
+        suggestSize(textSize_)
     }
 
     override var focusable: Boolean = false
 
     override fun addedToDisplay() {
-        if (textSize.empty) {
+        if (textSize_.empty) {
             measureText()
         }
 
@@ -161,33 +152,16 @@ public open class Label(
     override fun toString(): String = text
 
     public companion object {
-        private val HorizontalAlignment.textAlignment get() = when (this) {
-            HorizontalAlignment.Left  -> Start
-            HorizontalAlignment.Center -> Center
-            HorizontalAlignment.Right  -> End
-        }
-
-        private val TextAlignment.horizontalAlignment get() = when (this) {
-            Center -> HorizontalAlignment.Center
-            else   -> HorizontalAlignment.Center
-        }
-
         public operator fun invoke(
             text               : String,
             verticalAlignment  : VerticalAlignment = Middle,
-            horizontalAlignment: TextAlignment     = Center
+            horizontalAlignment: TextAlignment     = Center,
         ): Label = Label(StyledText(text), verticalAlignment, horizontalAlignment)
 
         public operator fun invoke(
-            text               : String,
-            verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment
-        ): Label = Label(StyledText(text), verticalAlignment, horizontalAlignment)
-
-        public operator fun invoke(
-            styledText         : StyledText          = StyledText(""),
-            verticalAlignment  : VerticalAlignment   = Middle,
-            horizontalAlignment: HorizontalAlignment
-        ): Label = Label(styledText, verticalAlignment, horizontalAlignment.textAlignment)
+            styledText         : StyledText        = StyledText(""),
+            verticalAlignment  : VerticalAlignment = Middle,
+            horizontalAlignment: TextAlignment     = Center,
+        ): Label = Label(styledText, verticalAlignment, horizontalAlignment)
     }
 }

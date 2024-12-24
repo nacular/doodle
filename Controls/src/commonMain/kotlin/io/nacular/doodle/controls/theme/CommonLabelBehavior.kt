@@ -75,15 +75,15 @@ public open class CommonLabelBehavior(
         view.apply {
             val y = when (verticalAlignment) {
                 Top    -> 0.0
-                Middle -> (height - textSize.height) / 2
-                Bottom ->  height - textSize.height
+                Middle -> (height - textSize_.height) / 2
+                Bottom ->  height - textSize_.height
             }
 
             val x = if (!wrapsWords) {
                 when (textAlignment) {
                     Start   -> 0.0
-                    Center  -> (width - textSize.width) / 2
-                    End     ->  width - textSize.width
+                    Center  -> (width - textSize_.width) / 2
+                    End     ->  width - textSize_.width
                     Justify -> 0.0
                 }
             } else 0.0
