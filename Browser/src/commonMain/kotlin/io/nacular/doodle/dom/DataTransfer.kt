@@ -6,9 +6,7 @@ package io.nacular.doodle.dom
  * Created by Nicholas Eddy on 3/13/20.
  */
 internal expect abstract external class DataTransferItem {
-    internal val kind: String
     internal val type: String
-    internal fun getAsString(_callback: ((String) -> Unit)?)
     internal fun getAsFile(): File?
 }
 

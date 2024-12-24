@@ -5,13 +5,16 @@ import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
+import io.nacular.doodle.drawing.Stroke.LineCap
+import io.nacular.doodle.drawing.Stroke.LineJoint
+import io.nacular.doodle.drawing.Stroke.LineJoint.Bevel
+import io.nacular.doodle.drawing.Stroke.LineJoint.Miter
+import io.nacular.doodle.drawing.Stroke.LineJoint.Round
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
-import io.nacular.measured.units.Angle
-import io.nacular.measured.units.Measure
 import kotlin.math.max
 import kotlin.math.min
 
@@ -44,7 +47,6 @@ internal inline fun Node.insert(element: Node, index: Int) = insertBefore(elemen
 // FIXME: Reinstate once WASM exception handling works
 //internal inline fun Node.remove(element: Node) = removeChild(element)
 
-@Suppress("EXPECTED_EXTERNAL_DECLARATION", "WRONG_MODIFIER_TARGET")
 internal expect fun Node.remove(element: Node): Node?
 
 internal inline val HTMLElement.top    get() = offsetTop.toDouble   ()
@@ -57,7 +59,7 @@ internal inline val HTMLElement.hasScrollOverflow get() = style.run { overflowX.
 internal fun HTMLElement.scrollTo(point: Point) {
     try {
         scrollTo(point.x, point.y)
-    } catch (ignored: Throwable) {
+    } catch (_: Throwable) {
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1671283
         scrollTop  = point.y
         scrollLeft = point.x
@@ -65,7 +67,6 @@ internal fun HTMLElement.scrollTo(point: Point) {
 }
 
 internal inline fun HTMLElement.insert(element: Node, index: Int) = insertBefore(element, childAt(index))
-
 
 internal inline val SVGElement.parent get() = parentNode
 
@@ -76,7 +77,7 @@ internal inline fun SVGRectElement.setRadius(value: Double) { setRX(value); setR
 internal inline fun SVGElement.setId      (value: String   ) { setAttributeNS(null, "id", value ); }
 internal inline fun SVGElement.setX       (value: Double   ) = setAttribute("x",      "$value")
 internal inline fun SVGElement.setY       (value: Double   ) = setAttribute("y",      "$value")
-internal inline fun SVGElement.setSize    (value: Size) { setWidth(value.width); setHeight(value.height) }
+internal inline fun SVGElement.setSize    (value: Size     ) { setWidth(value.width); setHeight(value.height) }
 internal inline fun SVGElement.setWidth   (value: Double   ) = setAttribute("width",  "$value")
 internal inline fun SVGElement.setHeight  (value: Double   ) = setAttribute("height", "$value")
 internal inline fun SVGElement.setPosition(value: Point    ) { setX(value.x); setY(value.y) }
@@ -105,8 +106,8 @@ internal inline fun SVGEllipseElement.setCY     (value: Double ) = setAttribute(
 internal inline fun SVGEllipseElement.setEllipse(value: Ellipse) {
     setCX(value.center.x)
     setCY(value.center.y)
-    setRX(value.xRadius)
-    setRY(value.yRadius)
+    setRX(value.xRadius )
+    setRY(value.yRadius )
 }
 
 internal inline fun SVGCircleElement.setCX    (value: Double) = setAttribute  ("cx", "$value")
@@ -122,18 +123,18 @@ internal inline fun SVGElement.setDefaultStrokeDash      (                   ) =
 internal inline fun SVGElement.setStrokeDashOffset       (value: Double?     ) = setAttribute   ("stroke-dashoffset",  value?.let { "$it" } ?: "")
 internal inline fun SVGElement.setDefaultStrokeDashOffset(                   ) = removeAttribute("stroke-dashoffset"                    )
 
-internal inline fun SVGElement.setStrokeJoint(value: Stroke.LineJoint) = setAttribute("stroke-linejoin", when (value) {
-    Stroke.LineJoint.Miter -> "butt"
-    Stroke.LineJoint.Round -> "round"
-    Stroke.LineJoint.Bevel -> "bevel"
+internal inline fun SVGElement.setStrokeJoint(value: LineJoint) = setAttribute("stroke-linejoin", when (value) {
+    Miter -> "butt"
+    Round -> "round"
+    Bevel -> "bevel"
 })
 
 internal inline fun SVGElement.setDefaultStrokeJoint() = removeAttribute("stroke-linejoin")
 
-internal inline fun SVGElement.setStrokeLineCap(value: Stroke.LineCap) = setAttribute("stroke-linecap", when (value) {
-    Stroke.LineCap.Butt -> "butt"
-    Stroke.LineCap.Round -> "round"
-    Stroke.LineCap.Square -> "square"
+internal inline fun SVGElement.setStrokeLineCap(value: LineCap) = setAttribute("stroke-linecap", when (value) {
+    LineCap.Butt   -> "butt"
+    LineCap.Round  -> "round"
+    LineCap.Square -> "square"
 })
 
 internal inline fun SVGElement.setDefaultStrokeLineCap() = removeAttribute("stroke-linecap")
@@ -152,9 +153,6 @@ internal fun SVGElement.setStopOffset(value: Float) {
     setStopOffsetInternal(min(1f, max(0f, value)))
 }
 
-internal fun SVGGradientElement.setGradientRotation(value: Measure<Angle>) { setAttribute("gradientTransform", "rotate(${value `in` Angle.degrees})") }
-
-internal fun SVGGradientElement.setSpreadMethod (value: String) { setAttribute("spreadMethod",  value) }
 internal fun SVGGradientElement.setGradientUnits(value: String) { setAttribute("gradientUnits", value) }
 
 private fun SVGElement.setStopColor         (value: String) { setAttribute("stop-color",     value ) }
@@ -165,10 +163,6 @@ internal fun convert(color: Color?, block: (String) -> Unit) = block(when (color
     null -> none
     else -> "#${color.hexString}"
 })
-
-internal inline fun SVGElement.setDominantBaseline(value: DominantBaseline) {
-    setAttribute("dominant-baseline", value.value)
-}
 
 internal fun SVGElement.setFill(color: Color?) = convert(color) {
     setAttribute("fill", it)
@@ -200,11 +194,6 @@ internal fun SVGElement.setFillPattern(id: String?, opacity: Float = 1f) {
     if (opacity != 1f) {
         setAttribute("fill-opacity", "$opacity")
     }
-}
-
-internal fun SVGTextElement.setWordSpacing(spacing: Double) = when (spacing) {
-    0.0  -> removeAttribute("word-spacing"            )
-    else -> setAttribute   ("word-spacing", "$spacing")
 }
 
 internal fun SVGElement.setStroke(stroke: Stroke?) {

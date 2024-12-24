@@ -1,9 +1,7 @@
 package io.nacular.doodle.dom
 
 internal actual abstract external class DataTransferItem {
-    actual val kind: String
     actual val type: String
-    actual fun getAsString(_callback: ((String) -> Unit)?)
     actual fun getAsFile(): File?
 }
 
