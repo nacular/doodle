@@ -1264,10 +1264,8 @@ internal open class VectorRendererSvg(
                     updateStops(paint.colors)
                 }
 
-                renderer.completeOperation(gradient)
-
                 gradient
-            }.id
+            }.also { renderer.completeOperation(it) }.id
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: LinearGradientPaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint))
@@ -1294,7 +1292,7 @@ internal open class VectorRendererSvg(
                 renderer.completeOperation(gradient)
 
                 gradient
-            }.id
+            }.also { renderer.completeOperation(it) }.id
 
             override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: RadialGradientPaint, stroke: Stroke?) {
                 element.setFillPattern(makeFill(renderer, paint))
@@ -1427,11 +1425,9 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private fun getSharedElement(key: Any, block: () -> SVGElement): SVGElement {
-        return previousElementCache.getOrPut(key) {
-            block().also {
-                elementCache[key] = it
-            }
+    private fun getSharedElement(key: Any, block: () -> SVGElement): SVGElement = previousElementCache.getOrPut(key) {
+        block().also {
+            elementCache[key] = it
         }
     }
 

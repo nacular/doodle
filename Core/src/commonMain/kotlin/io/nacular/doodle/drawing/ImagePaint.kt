@@ -20,4 +20,21 @@ import io.nacular.doodle.image.Image
  */
 public class ImagePaint(public val image: Image, public val size: Size = image.size, public val opacity: Float = 1f): Paint() {
     public override val visible: Boolean = opacity > 0 && !size.empty && !image.size.empty
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ImagePaint) return false
+
+        if (opacity != other.opacity) return false
+        if (image   != other.image  ) return false
+        if (size    != other.size   ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = opacity.hashCode()
+        result = 31 * result + image.hashCode()
+        result = 31 * result + size.hashCode()
+        return result
+    }
 }

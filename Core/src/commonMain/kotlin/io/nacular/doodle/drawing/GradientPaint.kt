@@ -1,6 +1,5 @@
 package io.nacular.doodle.drawing
 
-import io.nacular.doodle.drawing.GradientPaint.Stop
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
 import io.nacular.measured.units.Angle
@@ -29,6 +28,17 @@ public sealed class GradientPaint(public val colors: List<Stop>): Paint() {
 
     /** `true` IFF any one of [colors] is visible */
     override val visible: Boolean = colors.any { it.color.visible }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is GradientPaint) return false
+
+        if (colors != other.colors) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int = colors.hashCode()
 }
 
 /**
@@ -57,6 +67,24 @@ public class LinearGradientPaint(colors: List<Stop>, public val start: Point, pu
 
     /** `true` IFF super visible and start != end */
     override val visible: Boolean = super.visible && start != end
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LinearGradientPaint) return false
+        if (!super.equals(other)) return false
+
+        if (start != other.start) return false
+        if (end   != other.end  ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + start.hashCode()
+        result = 31 * result + end.hashCode()
+        return result
+    }
 }
 
 /**
@@ -80,6 +108,24 @@ public class RadialGradientPaint(colors: List<Stop>, public val start: Circle, p
      * @param end circle that the gradient stops at
      */
     public constructor(color1: Color, color2: Color, start: Circle, end: Circle): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), start, end)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RadialGradientPaint) return false
+        if (!super.equals(other)) return false
+
+        if (start != other.start) return false
+        if (end   != other.end  ) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + start.hashCode()
+        result = 31 * result + end.hashCode()
+        return result
+    }
 }
 
 /**
@@ -111,4 +157,22 @@ public class SweepGradientPaint(
         center  : Point,
         rotation: Measure<Angle> = 0 * degrees
     ): this(listOf(Stop(color1, 0f), Stop(color2, 1f)), center, rotation)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SweepGradientPaint) return false
+        if (!super.equals(other)) return false
+
+        if (center   != other.center  ) return false
+        if (rotation != other.rotation) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + center.hashCode()
+        result = 31 * result + rotation.hashCode()
+        return result
+    }
 }
