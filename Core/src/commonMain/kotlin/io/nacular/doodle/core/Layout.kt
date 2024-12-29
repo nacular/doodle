@@ -160,7 +160,7 @@ public interface Layout {
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        public inline fun simpleLayout(crossinline layout: (items: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
+        public inline fun simpleLayout(crossinline layout: (views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
             override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size = layout(views, min, current, max, insets)
         }
     }
