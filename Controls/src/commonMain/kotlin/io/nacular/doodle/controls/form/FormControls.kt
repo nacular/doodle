@@ -236,8 +236,6 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
             }
 
             state = Valid(selected)
-
-            suggestSize(Size(30, 20))
         }
 
         focusable = false
@@ -246,14 +244,15 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
             switch.left    greaterEq 0
             switch.right   eq parent.right strength Strong
             switch.centerY eq parent.centerY
-            switch.width.preserve
-            switch.height.preserve
+            switch.width   eq 30
+            switch.height  eq 20
 
             label.left     eq 0
             label.centerY  eq switch.centerY
             label.height.preserve
 
-            parent.height  eq max(label.bottom, switch.bottom)
+            parent.height greaterEq label.bottom
+            parent.height greaterEq switch.bottom
         }
     }
 }
@@ -1707,15 +1706,16 @@ public fun <T, M: ListModel<T>> selectBox(
  * @param config used to control the resulting component
  */
 public fun <T> selectBox(
-    first             : T,
-    vararg rest       : T,
-    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
-    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = selectBox(
-    SimpleListModel(listOf(first) + rest),
-    boxItemVisualizer,
-    listItemVisualizer,
-    config
+           first             : T,
+    vararg rest              : T,
+           boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+           listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+           config            : (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(
+    model              = SimpleListModel(listOf(first) + rest),
+    boxItemVisualizer  = boxItemVisualizer,
+    listItemVisualizer = listItemVisualizer,
+    config             = config
 )
 
 /**
@@ -1732,10 +1732,10 @@ public fun <T> selectBox(
  * @param config used to control the resulting component
  */
 public fun <T> selectBox(
-    first : T,
+           first : T,
     vararg rest  : T,
-    label : (T) -> String = { "$it" },
-    config: (SelectBox<T, *>) -> Unit = {}
+           label : (T) -> String = { "$it" },
+           config: (SelectBox<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
 
 /**
@@ -1936,11 +1936,11 @@ public fun <T: Any> optionalSelectBox(
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalSelectBox(
-    first          : T,
+           first          : T,
     vararg rest           : T,
-    label          : (T) -> String = { "$it" },
-    unselectedLabel: String,
-    config         : (SelectBox<T?, *>) -> Unit = {}
+           label          : (T) -> String = { "$it" },
+           unselectedLabel: String,
+           config         : (SelectBox<T?, *>) -> Unit = {}
 ): FieldVisualizer<T?> = optionalSelectBox(
     first,
     *rest,
@@ -2349,7 +2349,6 @@ public fun <T> checkList(
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) {
     CheckBox().apply {
-        suggestWidth(16.0)
         focusChanged += { _,_,focused ->
             if (focused) {
                 parent?.scrollTo(bounds)
@@ -2374,20 +2373,23 @@ public fun <T> switchList(
     vararg rest  : T,
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<List<T>> = buildToggleList(
-        first  = first,
-        rest   = rest,
-        config = config,
-        layout = {
-            switch, label -> constrain(label, switch) { label_, switch_ ->
-                switch_.width   eq 30
-                switch_.height  eq 20
-                switch_.right   eq parent.right
-                switch_.centerY eq parent.centerY
+    first  = first,
+    rest   = rest,
+    config = config,
+    layout = {
+        switch, label -> constrain(label, switch) { label_, switch_ ->
+            switch_.width   eq 30
+            switch_.height  eq 20
+            switch_.right   eq parent.right
+            switch_.centerY eq parent.centerY
 
-                label_.left     eq 0
-                label_.centerY  eq switch_.centerY
-            }
+            label_.left     eq 0
+            label_.centerY  eq switch_.centerY
+
+            parent.height  greaterEq label.height
+            parent.height  greaterEq switch.height
         }
+    }
 ) {
     Switch().apply {
         focusChanged += { _,_,focused ->
@@ -3045,8 +3047,7 @@ private fun <T> buildToggleList(
                     accessibilityLabelProvider = visualizedValue
                 }
 
-                this.layout        = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0]))
-                this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
+                this.layout = (layout(children[1] as ToggleButton, children[0]) ?: buttonItemLayout(button = children[1], label = children[0]))
             }
         }
 
@@ -3079,7 +3080,6 @@ private fun <T> buildRadioList(
 
                 config(value, this)
 
-                suggestWidth(16.0)
                 accessibilityLabelProvider = visualizedValue
             }
 
@@ -3161,10 +3161,15 @@ private fun expandingVerticalLayout(spacing: Double, itemHeight: Double? = null)
 @Suppress("LocalVariableName")
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
     button_.top    eq 0
-    button_.width  eq parent.width
-    button_.height eq parent.height
+    button_.size   eq parent.size
+
     label_.left    eq labelOffset
+    label_.width   eq label_.preferredWidth
+    label_.height  eq parent.height
     label_.centerY eq button_.centerY
+
+    parent.right  eq labelOffset + label_.preferredWidth
+    parent.height eq label_.preferredHeight
 }
 
 private fun <T> FieldInfo<T>.updateRequiredText(

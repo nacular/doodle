@@ -47,6 +47,7 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.center
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
@@ -102,16 +103,21 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             }.paint, 1.5, lineJoint = LineJoint.Round, lineCap = LineCap.Round)
 
             val points = listOf(
-                    Point(arrowPosition.x,                       arrowPosition.y + arrowSize.height * 0.3),
-                    Point(arrowPosition.x + arrowSize.width / 2, arrowPosition.y                         ),
-                    Point(arrowPosition.x + arrowSize.width,     arrowPosition.y + arrowSize.height * 0.3)
+                Point(arrowPosition.x,                       arrowPosition.y + arrowSize.height * 0.3),
+                Point(arrowPosition.x + arrowSize.width / 2, arrowPosition.y                         ),
+                Point(arrowPosition.x + arrowSize.width,     arrowPosition.y + arrowSize.height * 0.3)
             )
 
-            canvas.rect(view.bounds.atOrigin.inset(Insets(
+            canvas.rect(
+                view.bounds.atOrigin.inset(Insets(
                     left   = view.width - buttonWidth - inset,
                     top    = inset,
                     right  = inset,
-                    bottom = inset)), cornerRadius, colors(view).paint)
+                    bottom = inset
+                )),
+                cornerRadius,
+                colors(view).paint
+            )
 
             canvas.path(points, stroke)
             canvas.transform(Identity.flipVertically(arrowPosition.y + arrowSize.height / 2)) {
@@ -161,11 +167,11 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
 
     @Suppress("UNCHECKED_CAST")
     private val boundsChanged: PropertyObserver<View, Rectangle> = { selectBox, old, new ->
-        if (old.height != new.height) {
-            (selectBox as? SelectBox<T, M>)?.apply {
-                list?.behavior = listBehavior(selectBox)
-            }
-        }
+//        if (old.height != new.height) {
+//            (selectBox as? SelectBox<T, M>)?.apply {
+//                list?.behavior = listBehavior(selectBox)
+//            }
+//        }
     }
 
     private inner class CustomListRow(
@@ -207,12 +213,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         override fun invoke(list: List<T, *>, item: T, index: Int, current: View?): View = when (current) {
             is ListItem<*> -> (current as BasicSelectBoxBehavior<T, M>.CustomListRow).apply { update(list, item, index) }
             else           -> CustomListRow(
-                    selectBox      = selectBox,
-                    list           = list,
-                    row            = item,
-                    index          = index,
-                    cornerRadius   = cornerRadius,
-                    itemVisualizer = list.itemVisualizer ?: toString(StringVisualizer())
+                selectBox      = selectBox,
+                list           = list,
+                row            = item,
+                index          = index,
+                cornerRadius   = cornerRadius,
+                itemVisualizer = list.itemVisualizer ?: toString(StringVisualizer())
             )
         }.apply {
             list.cellAlignment?.let { positioner = it }
@@ -235,15 +241,14 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             when (popupManager) {
                 null -> {
                     val viewAbsolute = display.fromAbsolute(view.toAbsolute(Origin))
-                    it.suggestX   (viewAbsolute.x                                             )
-                    it.suggestY   (viewAbsolute.y - view.selection * (view.height - 2 * inset))
-                    it.suggestSize(it.idealSize                                               )
+                    it.suggestPosition(viewAbsolute.x, viewAbsolute.y - view.selection * (view.height - 2 * inset))
+                    it.suggestHeight  (it.idealSize.height)
                     display += it
                 }
                 else -> popupManager.show(it, view) { list, dropdown ->
-                    list.top  eq dropdown.y - view.selection * (view.height - 2 * inset)
-                    list.left eq dropdown.x
-                    list.size eq list.preferredSize
+                    list.top    eq dropdown.y - view.selection * (view.height - 2 * inset)
+                    list.left   eq dropdown.x
+                    list.height eq list.preferredHeight
                 }
             }
         }
@@ -278,11 +283,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
     override fun install(view: SelectBox<T, M>) {
         super.install(view)
 
-        view.list = List(
-            view.model,
-            selectionModel = SingleItemSelectionModel(),
-            itemVisualizer = view.listItemVisualizer,
-        ).apply {
+        view.list = List(view.model, view.listItemVisualizer, SingleItemSelectionModel()).apply {
             insets        = Insets(inset)
             behavior      = listBehavior(view)
             acceptsThemes = false
@@ -325,8 +326,8 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         view.layout = constrain(center, button) { (center, button) ->
             center.top    eq inset
             center.left   eq inset
-            center.right  eq parent.right  - (buttonWidth + inset)
-            center.bottom eq parent.bottom - inset
+            center.right  eq parent.right  - (buttonWidth + inset) strength Strong
+            center.bottom eq parent.bottom - inset                 strength Strong
 
             buttonAlignment(button)
         }
@@ -400,19 +401,18 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         onFailure = { object: View() {} }
     )
 
-    private  fun viewContainer  (selectBox: SelectBox<T, M>): Container? =  selectBox.children.firstOrNull { it !is PushButton } as? Container
+    private  fun viewContainer  (selectBox: SelectBox<T, M>): Container? = selectBox.children.firstOrNull { it !is PushButton } as? Container
     internal fun visualizedValue(selectBox: SelectBox<T, M>): View?      = viewContainer(selectBox)?.firstOrNull()
 
     private fun updateAlignment(selectBox: SelectBox<T, M>, centerView: Container) {
-        val constrains: ConstraintDslContext.(Bounds) -> Unit = {
-            withSizeInsets(width = 0.0) {
-                (selectBox.boxCellAlignment ?: center)(it)
-            }
-        }
+        val constrains = selectBox.boxCellAlignment ?: center
 
         centerView.firstOrNull()?.let { child ->
             when (val l = centerView.layout) {
-                is ConstraintLayout -> { l.unconstrain(child, constrains); l.constrain(child, constrains) }
+                is ConstraintLayout -> {
+                    l.unconstrain(child, constrains)
+                    l.constrain  (child, constrains)
+                }
                 else                -> centerView.layout = constrain(child, constrains)
             }
         }
@@ -430,22 +430,22 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
 
     public companion object {
         public operator fun <T, M: ListModel<T>> invoke(
-                display              : Display,
-                textMetrics          : TextMetrics,
-                backgroundColor      : Color,
-                darkBackgroundColor  : Color,
-                foregroundColor      : Color,
-                cornerRadius         : Double,
-                buttonWidth          : Double        = 20.0,
-                focusManager         : FocusManager? = null): BasicSelectBoxBehavior<T, M> = BasicSelectBoxBehavior(
-                    display             = display,
-                    textMetrics         = textMetrics,
-                    backgroundColor     = backgroundColor,
-                    darkBackgroundColor = darkBackgroundColor,
-                    focusManager        = focusManager,
-                    foregroundColor     = foregroundColor,
-                    cornerRadius        = cornerRadius,
-                    buttonWidth         = buttonWidth,
+            display              : Display,
+            textMetrics          : TextMetrics,
+            backgroundColor      : Color,
+            darkBackgroundColor  : Color,
+            foregroundColor      : Color,
+            cornerRadius         : Double,
+            buttonWidth          : Double        = 20.0,
+            focusManager         : FocusManager? = null): BasicSelectBoxBehavior<T, M> = BasicSelectBoxBehavior(
+                display             = display,
+                textMetrics         = textMetrics,
+                backgroundColor     = backgroundColor,
+                darkBackgroundColor = darkBackgroundColor,
+                focusManager        = focusManager,
+                foregroundColor     = foregroundColor,
+                cornerRadius        = cornerRadius,
+                buttonWidth         = buttonWidth,
         )
     }
 }

@@ -83,7 +83,7 @@ public open class Label(
     /**
      * Space between lines in [text] (when [wrapsWords] == `true`) in terms of the [font] height.
      */
-    public var lineSpacing: Float  by observable(1f ) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
+    public var lineSpacing: Float by observable(-1f) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
 
     /**
      * Space between the words in [text].
@@ -116,6 +116,12 @@ public open class Label(
             actualStyledText = actualStyledText
 
             rerender()
+        }
+
+        boundsChanged += { _,old,new ->
+            if (wrapsWords && old.width != new.width) {
+                measureText()
+            }
         }
 
         mirrorWhenRightLeft = false

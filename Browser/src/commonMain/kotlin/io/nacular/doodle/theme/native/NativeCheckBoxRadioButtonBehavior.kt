@@ -21,11 +21,11 @@ import io.nacular.doodle.system.Cursor.Companion.Default
  * Created by Nicholas Eddy on 4/26/19.
  */
 internal abstract class CommonNativeCheckBoxRadioButtonBehavior(
-    private val nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
+    nativeCheckBoxRadioButtonFactory: NativeCheckBoxRadioButtonFactory,
     textMetrics                     : TextMetrics,
     focusManager                    : FocusManager?,
-    private val button                          : Button,
-    private val type                            : Type
+    button                          : Button,
+    type                            : Type
 ): CommonTextButtonBehavior<ToggleButton>(textMetrics, focusManager = focusManager) {
 
     private val nativePeer = nativeCheckBoxRadioButtonFactory(button, type)

@@ -17,7 +17,7 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
-import kotlin.properties.Delegates
+import kotlin.properties.Delegates.observable
 
 /**
  * Provides presentation and behavior customization for [SelectBox].
@@ -91,14 +91,14 @@ public open class SelectBox<T, M: ListModel<T>>(
     /**
      * Defines how the contents within the drop-down box should be aligned.
      */
-    public var boxCellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by Delegates.observable(null) { _,_,_ ->
+    public var boxCellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by observable(null) { _,_,_ ->
         behavior?.alignmentChanged(this)
     }
 
     /**
      * Defines how the contents of each choice be aligned.
      */
-    public var listCellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by Delegates.observable(null) { _,_,_ ->
+    public var listCellAlignment: (ConstraintDslContext.(Bounds) -> Unit)? by observable(null) { _,_,_ ->
         behavior?.alignmentChanged(this)
     }
 

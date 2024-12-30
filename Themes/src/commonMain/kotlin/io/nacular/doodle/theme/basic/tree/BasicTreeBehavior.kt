@@ -117,12 +117,12 @@ public open class BasicTreeBehavior<T>(override val generator   : RowGenerator<T
                                                     oddRowColor : Color? = Lightgray.lighter().lighter(),
                                                     rowHeight   : Double = 20.0): TreeBehavior<T>, KeyListener, SelectableTreeKeyHandler {
     public constructor(focusManager  : FocusManager?,
-                rowHeight            : Double = 20.0,
-                evenRowColor         : Color? = White,
-                oddRowColor          : Color? = Lightgray.lighter().lighter(),
-                selectionColor       : Color? = Green.lighter(),
-                selectionBlurredColor: Color? = Lightgray,
-                iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
+        rowHeight            : Double = 20.0,
+        evenRowColor         : Color? = White,
+        oddRowColor          : Color? = Lightgray.lighter().lighter(),
+        selectionColor       : Color? = Green.lighter(),
+        selectionBlurredColor: Color? = Lightgray,
+        iconFactory          : () -> TreeRowIcon = { SimpleTreeRowIcon() }
     ): this(BasicTreeRowGenerator(focusManager, selectionColor, selectionBlurredColor, iconFactory), evenRowColor, oddRowColor, rowHeight)
 
     private val patternFill = if (evenRowColor != null || oddRowColor != null) horizontalStripedPaint(rowHeight, evenRowColor, oddRowColor) else null

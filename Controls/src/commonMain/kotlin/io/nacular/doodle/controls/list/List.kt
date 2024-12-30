@@ -332,10 +332,6 @@ public open class List<T, out M: ListModel<T>>(
                 }
             }
 
-            if (updateSize) {
-                suggestSize(itemPositioner?.minimumSize(this) ?: minimumSize)
-            }
-
             handlingRectChange = false
         }
     }

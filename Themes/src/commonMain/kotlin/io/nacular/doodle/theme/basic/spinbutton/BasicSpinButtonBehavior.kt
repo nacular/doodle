@@ -34,7 +34,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
-import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
@@ -168,18 +168,22 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         view.layout = constrain(center, next, previous) { center_, next_, previous_ ->
             center_.top      eq INSET
             center_.left     eq INSET
-            center_.right    eq next_.left    - INSET
-            center_.bottom   eq parent.bottom - INSET
+            center_.right    eq next_.left    - INSET strength Strong
+            center_.bottom   eq parent.bottom - INSET strength Strong
 
-            next_.top        eq INSET
-            next_.right      eq parent.right - INSET
+            next_.top        eq INSET                 strength Strong
+            next_.right      eq parent.right - INSET  strength Strong
             next_.bottom     eq parent.centerY
             next_.width      eq buttonWidth
 
             previous_.top    eq next_.bottom
             previous_.left   eq next_.left
             previous_.right  eq next_.right
-            previous_.bottom eq parent.bottom - INSET
+            previous_.bottom eq parent.bottom - INSET strength Strong
+
+            center.firstOrNull()?.idealSize?.height?.let {
+                parent.height eq it + 4 * INSET
+            }
         }
 
         updateCenter(view)
@@ -231,13 +235,19 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     )
 
     private fun updateAlignment(spinButton: SpinButton<T, M>, centerView: Container) {
-        val constrains: ConstraintDslContext.(Bounds) -> Unit = {
-            (spinButton.cellAlignment ?: center)(it)
+        val constrains: ConstraintDslContext.(Bounds) -> Unit = spinButton.cellAlignment ?: {
+            it.size   eq     it.preferredSize strength Strong
+            it.center eq     parent.center
+            it.width  lessEq parent.width
+            it.height lessEq parent.height
         }
 
         centerView.firstOrNull()?.let { child ->
             when (val l = centerView.layout) {
-                is ConstraintLayout -> { l.unconstrain(child, constrains); l.constrain(child, constrains) }
+                is ConstraintLayout -> {
+                    l.unconstrain(child, constrains)
+                    l.constrain  (child, constrains)
+                }
                 else                -> centerView.layout = constrain(child, constrains)
             }
         }

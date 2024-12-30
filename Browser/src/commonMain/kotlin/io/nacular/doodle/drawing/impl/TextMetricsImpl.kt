@@ -74,9 +74,9 @@ internal class TextMetricsImpl(
         elementRuler.width(box)
     }
 
-    // Special check for empty added to avoid font black-holing if first text checked is empty string
-    override fun height(text: String, font: Font?) = if (text.isEmpty()) 0.0 else fontHeights.getOrPut(font) {
-        elementRuler.height(textFactory.create(text, font, textSpacing = default))
+    override fun height(text: String, font: Font?) = fontHeights.getOrPut(font) {
+        // Special check for empty added to avoid font black-holing if first text checked is empty string
+        elementRuler.height(textFactory.create(text.takeUnless { it.isBlank() } ?: " ", font, textSpacing = default))
     }
 
     override fun height(text: StyledText, textSpacing: TextSpacing): Double  {

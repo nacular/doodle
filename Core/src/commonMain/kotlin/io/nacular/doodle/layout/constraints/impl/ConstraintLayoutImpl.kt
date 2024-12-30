@@ -18,7 +18,6 @@ import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
-import io.nacular.doodle.layout.constraints.PropertyWrapper
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
@@ -59,10 +58,13 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     private var width_  get() = target.bounds.width;  set(value) { width__  = value }
     private var height_ get() = target.bounds.height; set(value) { height__ = value }
 
-    override val top     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
-    override val left    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
-    override val width   by lazy { ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
-    override val height  by lazy { ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
+    val top_     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
+    val left_    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
+
+    override val top     by lazy { with(context) { 0 + top_  } }
+    override val left    by lazy { with(context) { 0 + left_ } }
+    override val width   by lazy {                     ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
+    override val height  by lazy {                     ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
 
     override val right   by lazy { with(context) { left + width      } }
     override val bottom  by lazy { with(context) { top  + height     } }
@@ -128,7 +130,6 @@ internal class ReflectionVariable(
 
         when (other) {
             is ReflectionVariable -> {}
-            is PropertyWrapper    -> return other.variable == this
             else                  -> return false
         }
 
@@ -163,8 +164,8 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
         this.max = max
     }
 
-    override val width   by lazy { ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) }
-    override val height  by lazy { ReflectionVariable(delegate = ::height_, id = HEIGHT_ID) }
+    override val width   by lazy { with(context) { 0 + ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) } }
+    override val height  by lazy { with(context) { 0 + ReflectionVariable(delegate = ::height_, id = HEIGHT_ID) } }
 
     override val right   by lazy { with(context) { 0 + width      } }
     override val centerX by lazy { with(context) { 0 + width  / 2 } }
@@ -190,8 +191,8 @@ internal class ConstraintLayoutImpl(
         if (layingOut) return
 
         viewBounds[view]?.let {
-            updatedBounds[it.top   ] = new.y
-            updatedBounds[it.left  ] = new.x
+            updatedBounds[it.top_  ] = new.y
+            updatedBounds[it.left_ ] = new.x
             updatedBounds[it.width ] = new.width
             updatedBounds[it.height] = new.height
 
@@ -286,8 +287,8 @@ internal class ConstraintLayoutImpl(
 
                 view.positionable.bounds.let {
                     if (it.y != 0.0 || it.x != 0.0 || it.width != 0.0 || it.height != 0.0) {
-                        updatedBounds[bounds.top   ] = it.y
-                        updatedBounds[bounds.left  ] = it.x
+                        updatedBounds[bounds.top_  ] = it.y
+                        updatedBounds[bounds.left_ ] = it.x
                         updatedBounds[bounds.width ] = it.width
                         updatedBounds[bounds.height] = it.height
                     }
@@ -495,12 +496,12 @@ internal class ConstraintLayoutImpl(
             }
         }
 
-        private fun ConstraintDslContext.constrainParent(width: Property, height: Property, min: Size, max: Size) {
+        private fun ConstraintDslContext.constrainParent(width: Expression, height: Expression, min: Size, max: Size) {
             constrainSide(width,  min.width,  max.width )
             constrainSide(height, min.height, max.height)
         }
 
-        private fun ConstraintDslContext.constrainSide(property: Property, minExtent: Double, maxExtent: Double) {
+        private fun ConstraintDslContext.constrainSide(property: Expression, minExtent: Double, maxExtent: Double) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {

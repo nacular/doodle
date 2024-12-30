@@ -111,10 +111,10 @@ public open class CommonLabelBehavior(
                         override val decoration: TextDecoration? get() = when (val d = it.decoration) {
                             null -> null
                             else -> TextDecoration(
-                                    d.lines,
-                                    d.color?.let { disabledColorMapper(it) },
-                                    d.style,
-                                    d.thickness
+                                d.lines,
+                                d.color?.let { disabledColorMapper(it) },
+                                d.style,
+                                d.thickness
                             )
                         }
 

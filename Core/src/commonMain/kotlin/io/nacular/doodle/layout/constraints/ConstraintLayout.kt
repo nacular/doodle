@@ -252,10 +252,10 @@ public interface AllowsForcedMutation<T, V> {
  */
 public interface Bounds {
     /** The rectangle's top edge */
-    public val top: Property
+    public val top: Expression
 
     /** The rectangle's left edge */
-    public val left: Property
+    public val left: Expression
 
     /** The rectangle's vertical extent */
     public val height: Property
@@ -299,7 +299,7 @@ public interface Bounds {
  */
 public interface ParentBounds {
     /** The rectangle's vertical extent */
-    public val height: Property
+    public val height: Expression
 
     /** The rectangle's bottom edge */
     public val bottom: Expression
@@ -308,7 +308,7 @@ public interface ParentBounds {
     public val centerY: Expression
 
     /** The rectangle's horizontal extent */
-    public val width: Property
+    public val width: Expression
 
     /** The rectangle's right side */
     public val right: Expression
@@ -357,7 +357,8 @@ public class UnsatisfiableConstraintException(
 public class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
 
-    public val parent: ParentBounds = ParentBoundsImpl(this)
+    public var parent: ParentBounds = ParentBoundsImpl(this)
+        internal set
 
     public fun updateParent(size: Size, min: Size, max: Size) {
         (parent as ParentBoundsImpl).update(size, min, max)
@@ -391,15 +392,15 @@ public class ConstraintDslContext internal constructor() {
      */
     public val Property.preserve: Result<Constraint> get() = this eq this.readOnly
 
-    public fun min(a: Property, b: Term      ): Term       = min(1 * a, b)
-    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
-    public fun min(a: Property, b: Property  ): Term       = min(a.toTerm(), b.toTerm())
-    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
-
-    public fun max(a: Property, b: Term      ): Term       = max(1 * a, b)
-    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
-    public fun max(a: Property, b: Property  ): Term       = max(a.toTerm(), b.toTerm())
-    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
+//    public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
+//    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
+//    public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
+//    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
+//
+//    public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
+//    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
+//    public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
+//    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
 
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
@@ -414,21 +415,15 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
-    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-    public fun min(a: Term, b: Property  ): Term       = min(a, 1 * b)
-    public fun min(a: Term, b: Expression): Expression = min(a + 0, b)
-    public fun min(a: Term, b: Term      ): Term       = when {
-        a.value < b.value -> a
-        else              -> b
-    }
-
-    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-    public fun max(a: Term, b: Property  ): Term       = max(a, 1 * b)
-    public fun max(a: Term, b: Expression): Expression = max(a + 0, b)
-    public fun max(a: Term, b: Term      ): Term = when {
-        a.value > b.value -> a
-        else              -> b
-    }
+//    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+//    public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
+//    public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
+//    public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
+//
+//    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+//    public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
+//    public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
+//    public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
 
     public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
     public operator fun Expression.plus(constant: Number    ): Expression = Expression(terms, constant = this.constant + constant.toDouble())
@@ -440,8 +435,12 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Expression.minus(property: Property  ): Expression = this + -property
     public operator fun Expression.minus(other   : Expression): Expression = this + -other
 
-    public operator fun Expression.times(coefficient: Number    ): Expression = Expression(*Array(terms.size) { terms[it] * coefficient.toDouble() }, constant = constant * coefficient.toDouble()) // TODO Do we need to make a copy of the term objects in the array?
-    public operator fun Expression.times(other      : Expression): Expression = when {
+    public operator fun Expression.times(coefficient: Number): Expression = Expression(
+        *Array(terms.size) { terms[it] * coefficient.toDouble() },
+        constant = constant * coefficient.toDouble()
+    ) // TODO Do we need to make a copy of the term objects in the array?
+
+    public operator fun Expression.times(other: Expression): Expression = when {
         isConstant       -> constant       * other
         other.isConstant -> other.constant * this
         else             -> throw NonlinearExpressionException()
@@ -455,21 +454,56 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
-    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
-    public fun min(a: Expression, b: Expression): Expression = when {
-        a.value < b.value -> a
-        else              -> b
-    }
-
-    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
-    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
-    public fun max(a: Expression, b: Expression): Expression = when {
-        a.value > b.value -> a
-        else              -> b
-    }
+//    private class LocalVariable(override val name: String, ) : Variable {
+//        private var value = 0.0
+//        override var constrained = false
+//        override val needsSynthetic = false
+//        override val needsStability = false
+//
+//        override fun invoke() = value
+//
+//        override fun invoke(value: Double) {
+//            this.value = value
+//        }
+//
+//        override fun toString() = name
+//    }
+//
+//    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
+//    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+//    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
+//    public fun min(a: Expression, b: Expression): Expression {
+//        // see: https://or.stackexchange.com/questions/1160/how-to-linearize-min-function-as-a-constraint
+//
+//        val x = VariableTerm(LocalVariable("x"))
+//        val y = VariableTerm(LocalVariable("y"))
+//        val m = 1_000_000_000
+//
+//        x lessEq    a
+//        x lessEq    b
+//        x greaterEq a - m * y
+//        x greaterEq b - m * (1 - y)
+//
+//        return x + 0
+//    }
+//
+//    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
+//    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+//    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
+//    public fun max(a: Expression, b: Expression): Expression {
+//        // see: https://or.stackexchange.com/questions/711/how-to-formulate-linearize-a-maximum-function-in-a-constraint
+//
+//        val x = VariableTerm(LocalVariable("x"))
+//        val y = VariableTerm(LocalVariable("y"))
+//        val m = 1_000_000_000
+//
+//        x greaterEq a
+//        x greaterEq b
+//        x lessEq    a + m * (1 - y)
+//        x lessEq    b + m * y
+//
+//        return x + 0
+//    }
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
@@ -483,15 +517,15 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.times(property  : Property  ): Term       = property   * this.toDouble()
     public operator fun Number.times(expression: Expression): Expression = expression * this.toDouble()
 
-    public fun min(a: Number, b: Term      ): Expression = min(b, a)
-    public fun min(a: Number, b: Property  ): Expression = min(b, a)
-    public fun min(a: Number, b: Expression): Expression = min(b, a)
+//    public fun min(a: Number, b: Term      ): Expression = min(b, a)
+//    public fun min(a: Number, b: Property  ): Expression = min(b, a)
+//    public fun min(a: Number, b: Expression): Expression = min(b, a)
+//
+//    public fun max(a: Number, b: Term      ): Expression = max(b, a)
+//    public fun max(a: Number, b: Property  ): Expression = max(b, a)
+//    public fun max(a: Number, b: Expression): Expression = max(b, a)
 
-    public fun max(a: Number, b: Term      ): Expression = max(b, a)
-    public fun max(a: Number, b: Property  ): Expression = max(b, a)
-    public fun max(a: Number, b: Expression): Expression = max(b, a)
-
-    public class NonlinearExpressionException: Exception()
+    public class NonlinearExpressionException : Exception()
 
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
     public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
@@ -548,6 +582,12 @@ public class ConstraintDslContext internal constructor() {
         left eq point.x
     )
 
+    public val Position.preserve: List<Result<Constraint>>
+        get() = listOf(
+            top eq top.readOnly,
+            left eq left.readOnly
+        )
+
     public operator fun Position.plus(point: Point): Position = Position(
         top  = top  + point.y,
         left = left + point.x
@@ -578,8 +618,14 @@ public class ConstraintDslContext internal constructor() {
         height eq size.height
     )
 
-    public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
-    public operator fun Edges.minus(value: Number): Edges = this + Insets(  value.toDouble() )
+    public val Area.preserve: List<Result<Constraint>>
+        get() = listOf(
+            width eq width.readOnly,
+            height eq height.readOnly
+        )
+
+    public operator fun Edges.plus(value: Number): Edges = this + Insets(-(value.toDouble()))
+    public operator fun Edges.minus(value: Number): Edges = this + Insets(value.toDouble())
 
     public operator fun Edges.plus (insets: Insets): Edges = Edges(
         top?.plus (insets.top ) ?: Expression(constant = insets.top ),
@@ -626,6 +672,23 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
+    public val Edges.preserve: List<Result<Constraint>>
+        get() {
+            val result = mutableListOf<Result<Constraint>>()
+
+            if (top != null) {
+                (top eq top.readOnly).also { result += it }
+            }
+            if (left != null) {
+                (left eq left.readOnly).also { result += it }
+            }
+
+            (right eq right.readOnly).also { result += it }
+            (bottom eq right.readOnly).also { result += it }
+
+            return result
+        }
+
     public infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
     public infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
@@ -665,124 +728,67 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
-
-    public fun Bounds.withOffset(top: Double? = null, left: Double? = null): Bounds = when {
+    public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
         top == 0.0 && left == 0.0 -> this
-        else                      -> withOffset(top = top?.let { OffsetTransformer { it } }, left = left?.let { OffsetTransformer { it } })
+        else                      -> withOffset(top = { top }, left = { left })
     }
 
-    public fun Bounds.withOffset(top: (() -> Double)? = null, left: (() -> Double)? = null): Bounds = withOffset(
-        top  = top?.let  { OffsetTransformer(it) },
-        left = left?.let { OffsetTransformer(it) }
-    )
+    public fun Bounds.withOffset(top: () -> Double = { 0.0 }, left: () -> Double = { 0.0 }): Bounds = object: Bounds by this {
+        override val top  get() = this@withOffset.top  - top ()
+        override val left get() = this@withOffset.left - left()
 
-    private fun Bounds.withOffset(top: Transformer<Double>? = null, left: Transformer<Double>? = null): Bounds = object: Bounds by this {
-        override val top  = adapter(this@withOffset.top  as ReflectionVariable, top )
-        override val left = adapter(this@withOffset.left as ReflectionVariable, left)
+        private val t = this.top
+        private val l = this.left
 
-        val t = this.top
-        val l = this.left
+        override val right   by lazy { l + width      }
+        override val centerX by lazy { l + width  / 2 }
+        override val bottom  by lazy { t + height     }
+        override val centerY by lazy { t + height / 2 }
 
-        override val right   by lazy { with(this@ConstraintDslContext) { l + width      } }
-        override val centerX by lazy { with(this@ConstraintDslContext) { l + width  / 2 } }
-        override val bottom  by lazy { with(this@ConstraintDslContext) { t + height     } }
-        override val centerY by lazy { with(this@ConstraintDslContext) { t + height / 2 } }
-
-        override val center  by lazy { Position(left = centerX, top = centerY) }
-        override val edges   by lazy { with(this@ConstraintDslContext) { Edges(top = t + 0, left = l + 0, right = right, bottom = bottom) } }
+        override val center by lazy { Position(left = centerX, top = centerY) }
+        override val edges  by lazy { Edges   (top = t, left = l, right = right, bottom = bottom) }
     }
 }
-
-internal interface Transformer<T> {
-    fun set(value: T): T
-    fun get(value: T): T
-}
-
-public class OffsetTransformer(private val offset: () -> Double): Transformer<Double> {
-    public override fun set(value: Double): Double = value + offset()
-    public override fun get(value: Double): Double = value - offset()
-
-//    override fun equals(other: Any?): Boolean {
-//        if (this === other) return true
-//        if (other !is OffsetTransformer) return false
-//
-//        if (offset != other.offset) return false
-//
-//        return true
-//    }
-
-    override fun toString(): String = "+/- ${offset()}"
-
-//    override fun hashCode(): Int = offset.hashCode()
-}
-
-internal class PropertyWrapper(internal val variable: ReflectionVariable, private val transformer: Transformer<Double>): Property(), Variable {
-    private val isConst      by lazy { variableTerm is ConstTerm }
-    private val variableTerm by lazy { variable.toTerm()         }
-
-    override val name           get() = variable.name
-    override val readOnly       get() = invoke()
-    override var constrained    get() = variable.constrained; set(new) { variable.constrained = new}
-    override val needsSynthetic get() = variable.needsSynthetic
-
-    override fun toTerm() = when {
-        isConst -> ConstTerm   (this, variableTerm.coefficient)
-        else    -> VariableTerm(this, variableTerm.coefficient)
-    }
-    override fun invoke  (             ) = transformer.get(variable())
-    override fun invoke  (value: Double) = variable(transformer.set(value))
-    override fun equals  (other: Any?  ) = variable == other
-    override fun hashCode(             ) = variable.hashCode()
-    override fun toString(             ) = "$variable [$transformer]"
-}
-
-private fun adapter(variable: ReflectionVariable, transformer: Transformer<Double>?): Property = transformer?.let {
-    PropertyWrapper(variable, transformer)
-} ?: variable
 
 public fun ConstraintDslContext.withSizeInsets(
-    width : Double? = null,
-    height: Double? = null,
+    width : Double = 0.0,
+    height: Double = 0.0,
     block : ConstraintDslContext.() -> Unit
 ): Unit = when {
     width == 0.0 && height == 0.0 -> block(this)
     else                          -> this@withSizeInsets.withSizeInsets(
-        width  = width?.let  { OffsetTransformer { it } },
-        height = height?.let { OffsetTransformer { it } },
+        width  = { width  },
+        height = { height },
         block  = block
     )
 }
 
 public fun ConstraintDslContext.withSizeInsets(
-    width : (() -> Double)? = null,
-    height: (() -> Double)? = null,
-    block : ConstraintDslContext.() -> Unit
-): Unit =this@withSizeInsets.withSizeInsets(
-    width  = width?.let  { OffsetTransformer(it) },
-    height = height?.let { OffsetTransformer(it) },
-    block  = block
-)
-
-
-private fun ConstraintDslContext.withSizeInsets(
-    width : Transformer<Double>? = null,
-    height: Transformer<Double>? = null,
+    width : () -> Double = { 0.0 },
+    height: () -> Double = { 0.0 },
     block : ConstraintDslContext.() -> Unit
 ) {
-    apply {
-        (parent as ParentBoundsImpl).let { parent_ ->
-            val oldWidth = parent.width.readOnly
-            val oldHeight = parent.height.readOnly
+    val oldParent = parent
 
-            width?.get(parent_.width_)?.let   { parent_.width_ = it }
-            height?.get(parent_.height_)?.let { parent_.height_ = it }
+    parent = object: ParentBounds by oldParent {
+        override val width  get() = oldParent.width  - width ()
+        override val height get() = oldParent.height - height()
 
-            block(this)
+        private val w = this.width
+        private val h = this.height
 
-            parent_.width_ = oldWidth
-            parent_.height_ = oldHeight
-        }
+        override val right   by lazy { w     }
+        override val centerX by lazy { w / 2 }
+        override val bottom  by lazy { h     }
+        override val centerY by lazy { h / 2 }
+
+        override val center  by lazy { Position(left  = centerX, top    = centerY) }
+        override val edges   by lazy { Edges   (right = right,   bottom = bottom ) }
     }
+
+    block(this)
+
+    parent = oldParent
 }
 
 /**
@@ -939,8 +945,8 @@ public class Constrainer {
         if (fakePositionable.bounds != rectangle) {
             fakePositionable.bounds = rectangle
 
-            updatedBounds[fakeBounds.top   ] = rectangle.y
-            updatedBounds[fakeBounds.left  ] = rectangle.x
+            updatedBounds[fakeBounds.top_  ] = rectangle.y
+            updatedBounds[fakeBounds.left_ ] = rectangle.x
             updatedBounds[fakeBounds.width ] = rectangle.width
             updatedBounds[fakeBounds.height] = rectangle.height
         }

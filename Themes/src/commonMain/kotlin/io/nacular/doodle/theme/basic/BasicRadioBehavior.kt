@@ -93,6 +93,6 @@ public class BasicRadioBehavior(
     override fun install(view: RadioButton) {
         super.install(view)
 
-        view.preferredSize = fixed(view.idealSize.run { Size(max(16.0, width), max(16.0, height)) })
+        view.preferredSize = fixed(Size(16))
     }
 }
