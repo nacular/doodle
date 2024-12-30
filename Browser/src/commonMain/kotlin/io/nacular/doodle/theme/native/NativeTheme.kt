@@ -135,7 +135,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
                 }
 
                 bindBehavior<ScrollPanel>(NTheme::class) {
-                    it.behavior = NativeScrollPanelBehavior(instance(), it, managedScrolling)
+                    it.behavior = NativeScrollPanelBehavior(instance(), managedScrolling)
                 }
             }
 

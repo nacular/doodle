@@ -8,7 +8,6 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Auto
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.Hidden
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.ResizeObserver
 import io.nacular.doodle.dom.Scroll
@@ -94,7 +93,7 @@ internal class NativeScrollPanel internal constructor(
         private val scheduler       : Scheduler,
                     htmlFactory     : HtmlFactory,
                     handlerFactory  : NativeEventHandlerFactory,
-                    graphicsDevice  : GraphicsDevice<RealGraphicsSurface>,
+        private val graphicsDevice  : GraphicsDevice<RealGraphicsSurface>,
         private val scrollBarSize   : Double,
         private val panel           : ScrollPanel,
         private val smoothScroll    : Boolean,
@@ -214,7 +213,15 @@ internal class NativeScrollPanel internal constructor(
         panel.contentChanged -= contentChanged
 
         rootElement.apply {
-            style.setOverflow(Hidden())
+            if (managedScrolling) {
+                panel.content?.let { graphicsDevice[it] }?.removedFromNativeScroll()
+
+                rootElement.remove(spacerDiv)
+            }
+
+            rootElement.style.setOverflow()
+
+            style.setOverflow()
 
             removeAttribute("data-native")
             eventHandler.unregisterScrollListener()

@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior
 import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.impl.NativeScrollPanel
 import io.nacular.doodle.drawing.impl.NativeScrollPanelFactory
 import io.nacular.doodle.geometry.Point
 
@@ -11,9 +12,8 @@ import io.nacular.doodle.geometry.Point
  * Created by Nicholas Eddy on 2/5/18.
  */
 internal class NativeScrollPanelBehavior(
-    nativeScrollPanelFactory: NativeScrollPanelFactory,
-    scrollPanel             : ScrollPanel,
-    managedScrolling        : Boolean,
+    private val nativeScrollPanelFactory: NativeScrollPanelFactory,
+    private val managedScrolling        : Boolean,
 ): ScrollPanelBehavior {
     private var hasRendered     = false
     private var pendingScrollTo = null as Point?
@@ -29,9 +29,7 @@ internal class NativeScrollPanelBehavior(
 
     override var scrollBarSizeChanged: ((ScrollBarType, Double) -> Unit)? = null
 
-    private val nativePeer = nativeScrollPanelFactory(scrollPanel, managedScrolling, barChanged = { type, size ->   scrollBarSizeChanged?.invoke(type, size) }) {
-        onScroll?.invoke(it)
-    }
+    private lateinit var nativePeer: NativeScrollPanel
 
     override fun render(view: ScrollPanel, canvas: Canvas) {
         // Load on first render to avoid premature creation of Graphics Surface, which would
@@ -48,6 +46,10 @@ internal class NativeScrollPanelBehavior(
 
     override fun install(view: ScrollPanel) {
         super.install(view)
+
+        nativePeer = nativeScrollPanelFactory(view, managedScrolling, barChanged = { type, size ->   scrollBarSizeChanged?.invoke(type, size) }) {
+            onScroll?.invoke(it)
+        }
 
         scrollTo(view, view.scroll)
     }
