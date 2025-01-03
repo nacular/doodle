@@ -218,6 +218,8 @@ internal class Solver {
     private val objective      = Row()
     private var artificial     = null as Row?
 
+    val variables: Set<Variable> get() = vars.keys
+
     /**
      * Add a constraint to the solver.
      *

@@ -383,6 +383,8 @@ internal class ConstraintLayoutImpl(
             updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
             errorHandler : (ConstraintException) -> Unit
         ) {
+            updatedBounds.removeAll { variable, _ -> variable !in solver.variables }
+
             activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
                 try {
                     solver.removeEditVariable(variable)
@@ -438,7 +440,6 @@ internal class ConstraintLayoutImpl(
             try {
                 solver.addConstraint(insertedConstraint)
                 insertedConstraint.expression.terms.asSequence().map { it.variable }.forEach { variable ->
-
                     if (variable.needsSynthetic) {
                         // Add synthetic constraints that keep width and height positive
                         try {
