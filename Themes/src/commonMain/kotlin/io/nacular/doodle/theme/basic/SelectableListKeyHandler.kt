@@ -30,25 +30,24 @@ public interface SelectableListKeyHandler {
                                 }
                             }
                         }
-                        else -> {
-                            val newSelection = when (val selection = list.lastSelection) {
-                                null -> if (event.key == ArrowUp) list.lastSelectable      else list.firstSelectable
-                                else -> if (event.key == ArrowUp) list.previous(selection) else list.next(selection)
+                        else -> when (val selection = list.lastSelection) {
+                            null -> when (event.key) {
+                                ArrowUp -> list.lastSelectable
+                                else    -> list.firstSelectable
                             }
-
-                            newSelection?.let { list.setSelection(setOf(it)) }
-                        }
+                            else -> when (event.key) {
+                                ArrowUp -> list.previous(selection) ?: list.firstSelectable
+                                else    -> list.next    (selection) ?: list.lastSelectable
+                            }
+                        }?.let { list.setSelection(setOf(it)) }
                     }
                 }
-
                 KeyText("a"), KeyText("A") -> {
                     if (Ctrl in event || Meta in event) {
                         list.selectAll()
-
                         event.consume()
                     }
                 }
-
                 else -> return
             }
 

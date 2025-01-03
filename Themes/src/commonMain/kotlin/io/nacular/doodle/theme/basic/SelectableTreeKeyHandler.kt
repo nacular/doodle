@@ -42,15 +42,17 @@ public interface SelectableTreeKeyHandler {
                                 }
                             }
                         }
-                        else -> {
-                            val newSelection = when (val selection = tree.lastSelection) {
-                                null -> if (event.key == ArrowUp) tree.lastSelectable      else tree.firstSelectable
-                                else -> if (event.key == ArrowUp) tree.previous(selection) else tree.next(selection)
+                        else -> when (val selection = tree.lastSelection) {
+                            null -> when (event.key) {
+                                ArrowUp -> tree.lastSelectable
+                                else    -> tree.firstSelectable
                             }
-
-                            newSelection?.let { tree.setSelection(setOf(it)) }
-                        }
-                    }?.let { Unit } ?: Unit
+                            else -> when (event.key) {
+                                ArrowUp -> tree.previous(selection) ?: tree.firstSelectable
+                                else    -> tree.next(selection) ?: tree.lastSelectable
+                            }
+                        }?.let { tree.setSelection(setOf(it)) }
+                    }
                 }
                 collapseKey        -> tree.selection.firstOrNull()?.also { if (tree.expanded(it)) { tree.collapse(it) } else it.parent?.let { tree.setSelection(setOf(it)) } } ?: Unit
                 expandKey          -> tree.selection.firstOrNull()?.also { tree.expand(it) } ?: Unit
