@@ -1,8 +1,6 @@
 package io.nacular.doodle.controls
 
 import io.nacular.doodle.utils.ObservableSet
-import io.nacular.doodle.utils.Pool
-import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
 
@@ -77,8 +75,8 @@ public open class MultiSelectionModel<T>: SelectionModel<T> {
 
     override fun add        (item  : T           ): Boolean            = observableSet.add        (item )
     override fun clear      (                    ): Unit               = observableSet.clear      (     )
-    override fun addAll     (items: Collection<T>): Boolean            = observableSet.addAll     (items)
-    override fun remove     (item  : T           ): Boolean            { moveAnchorToDeleteSite(item); return observableSet.remove     (item ) }
+    override fun addAll     (items: Collection<T>): Boolean            = observableSet.batch { removeAll(items); addAll(items) }
+    override fun remove     (item  : T           ): Boolean            { moveAnchorToDeleteSite(item); return observableSet.remove(item ) }
     override fun iterator   (                    ): MutableIterator<T> = observableSet.iterator   (     )
     override fun contains   (item  : T           ): Boolean            = observableSet.contains   (item )
     override fun removeAll  (items: Collection<T>): Boolean            = observableSet.removeAll  (items)
@@ -155,7 +153,7 @@ public class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
 }
 
 public class ListSelectionManager(private val selectionModel: SelectionModel<Int>?, private val numRows: () -> Int): Selectable<Int> {
-    override fun selected       (item : Int     ): Boolean = selectionModel?.contains  (item ) ?: false
+    override fun selected       (item : Int     ): Boolean = selectionModel?.contains  (item ) == true
     override fun selectAll      (               )          { selectionModel?.addAll    ((firstSelectable .. lastSelectable).toList()) }
     override fun addSelection   (items: Set<Int>)          { selectionModel?.addAll    (items) }
     override fun setSelection   (items: Set<Int>)          { selectionModel?.replaceAll(items) }
