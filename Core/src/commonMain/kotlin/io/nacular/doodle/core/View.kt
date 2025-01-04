@@ -1444,7 +1444,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 this,
                 actualBounds,
                 new,
-                new.position != position || allowedMaxSize == allowedMinSize && new.size != allowedMinSize
+                new.position != position ||
+                allowedMaxSize.width  == allowedMinSize.width  && new.width  != allowedMinSize.width ||
+                allowedMaxSize.height == allowedMinSize.height && new.height != allowedMinSize.height
             )
         }
     }
