@@ -10,6 +10,7 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
@@ -51,7 +52,6 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
-import io.nacular.doodle.layout.constraints.center
 import io.nacular.doodle.layout.constraints.impl.BoundsAttemptObserver
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
@@ -75,6 +75,7 @@ import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
+import kotlin.math.min
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -1448,8 +1449,22 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    internal inner class PositionableView: Positionable {
+    internal inner class PositionableView: Positionable, BoundsUpdateContext {
         val view get() = this@View
+
+        private var x        : Double  = view.x
+        private var y        : Double  = view.y
+        private var minWidth : Double? = null
+        private var maxWidth : Double? = null
+        private var minHeight: Double? = null
+        private var maxHeight: Double? = null
+
+        override fun setY        (value: Double) { y         = value }
+        override fun setX        (value: Double) { x         = value }
+        override fun setMinWidth (value: Double) { minWidth  = value }
+        override fun setMaxWidth (value: Double) { maxWidth  = value }
+        override fun setMinHeight(value: Double) { minHeight = value }
+        override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override val visible   get() = this@View.visible
         override val position  get() = this@View.newBounds.position
@@ -1459,11 +1474,47 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun contains(point: Point) = point in this@View
 
         override fun updatePosition(x: Double, y: Double) {
-            actualBounds = Rectangle(x, y, actualBounds.width, actualBounds.height)
+            val size = newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
+
+            actualBounds = Rectangle(x, y, size.width, size.height)
         }
 
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = this@View.preferredSize_(min, max).also {
             actualBounds = Rectangle(x, y, it.width, it.height)
+        }
+
+        override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
+            x         = view.x
+            y         = view.y
+            minWidth  = null
+            maxWidth  = null
+            minHeight = null
+            maxHeight = null
+
+            block(this)
+
+            when {
+                minWidth == null && maxWidth == null && minHeight == null && maxHeight == null -> {
+                    val size = newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
+
+                    actualBounds = Rectangle(x, y, size.width, size.height)
+                }
+                else -> {
+                    val size = this@View.preferredSize_(
+                        Size(minWidth ?: allowedMinSize.width, minHeight ?: allowedMinSize.height),
+                        Size(maxWidth ?: allowedMaxSize.width, maxHeight ?: allowedMaxSize.height)
+                    )
+
+                    actualBounds = Rectangle(
+                        x,
+                        y,
+                        if (minWidth  == null && maxWidth  == null) newBounds.size.coerceIn(allowedMinSize, allowedMaxSize).width  else size.width,
+                        if (minHeight == null && maxHeight == null) newBounds.size.coerceIn(allowedMinSize, allowedMaxSize).height else size.height
+                    )
+                }
+            }
+
+            return actualBounds.size
         }
 
         override fun toString() = view.toString()
@@ -1667,6 +1718,62 @@ public class ViewBuilder internal constructor(): View() {
  * @param block used to configure the View
  */
 public fun view(block: ViewBuilder.() -> Unit): View = ViewBuilder().also(block)
+
+/**
+ * Scrolls the View (if it is within a [ScrollPanel]) to show the given horizontal range.
+ *
+ * @param range within the View's coordinate space
+ */
+public fun View.scrollToHorizontal(range: ClosedRange<Double>) {
+    val ancestor = if (parent is ScrollPanel) this else mostRecentAncestor { it.parent is ScrollPanel }
+
+    ancestor?.let {
+        val rangeInAncestor = it.toLocal(Point(x = range.start,        y = 0.0), from = this).x ..
+                              it.toLocal(Point(x = range.endInclusive, y = 0.0), from = this).x
+
+        (it.parent as? ScrollPanel)?.let {
+            it.scrollHorizontallyToVisible(rangeInAncestor)
+            it.scrollToHorizontal(rangeInAncestor) // handle nested ScrollPanel case
+        }
+    }
+}
+
+/**
+ * Scrolls the View (if it is within a [ScrollPanel]) to show the given vertical range.
+ *
+ * @param range within the View's coordinate space
+ */
+public fun View.scrollToVertical(range: ClosedRange<Double>) {
+    val ancestor = if (parent is ScrollPanel) this else mostRecentAncestor { it.parent is ScrollPanel }
+
+    ancestor?.let {
+        val rangeInAncestor = it.toLocal(Point(x = 0.0, y = range.start       ), from = this).y ..
+                              it.toLocal(Point(x = 0.0, y = range.endInclusive), from = this).y
+
+        (it.parent as? ScrollPanel)?.let {
+            it.scrollVerticallyToVisible(rangeInAncestor)
+            it.scrollToVertical(rangeInAncestor) // handle nested ScrollPanel case
+        }
+    }
+}
+
+/**
+ * Scrolls the View to the given point if it is within a [ScrollPanel].
+ *
+ * @param point within the View's coordinate space
+ */
+public fun View.scrollTo(point: Point) {
+    val ancestor = if (parent is ScrollPanel) this else mostRecentAncestor { it.parent is ScrollPanel }
+
+    ancestor?.let {
+        val pointInAncestor = it.toLocal(point, from = this)
+
+        (it.parent as? ScrollPanel)?.let {
+            it.scrollToVisible(pointInAncestor)
+            it.scrollTo(pointInAncestor) // handle nested ScrollPanel case
+        }
+    }
+}
 
 /**
  * Scrolls the View to the given region if it is within a [ScrollPanel].

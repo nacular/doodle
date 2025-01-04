@@ -85,9 +85,11 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 
         when {
             !(width.constrained || height.constrained) -> target.updatePosition(x__, y__)
-            else                                       -> target.updateBounds  (x__, y__, Size(minWidth, minHeight), Size(maxWidth, maxHeight)).let {
-                width__  = it.width
-                height__ = it.height
+            else -> target.updateBounds {
+                setX(x__)
+                setY(y__)
+                if (width.constrained ) { setMinWidth (minWidth ); setMaxWidth (maxWidth ) }
+                if (height.constrained) { setMinHeight(minHeight); setMaxHeight(maxHeight) }
             }
         }
     }

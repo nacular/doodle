@@ -262,7 +262,7 @@ public open class ScrollPanel(content: View? = null): View() {
     public fun scrollVerticallyToVisible(range: ClosedRange<Double>): Unit = moveVerticallyToVisible(range)
 
     private fun moveToVisible(point: Point) {
-        var farSide = scroll.x + width
+        var farSide = scroll.x + width - verticalScrollBarWidth
 
         val x = when {
             point.x > farSide  -> point.x - farSide
@@ -270,7 +270,7 @@ public open class ScrollPanel(content: View? = null): View() {
             else               -> 0.0
         }
 
-        farSide = scroll.y + height
+        farSide = scroll.y + height - horizontalScrollBarHeight
 
         val y = when {
             point.y > farSide  -> point.y - farSide

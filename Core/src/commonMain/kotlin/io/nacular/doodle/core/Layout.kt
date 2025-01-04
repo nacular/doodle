@@ -73,11 +73,36 @@ public interface Positionable {
     /**
      * Sets the item's [bounds] to [rectangle]
      *
-     * @param rectangle size
+     * @param rectangle bounds
      */
     public fun updateBounds(rectangle: Rectangle) {
-        updateBounds(rectangle.x, rectangle.y, rectangle.size, rectangle.size)
+        updateBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height)
     }
+
+    /**
+     * Sets the item's [bounds] to the specified values
+     *
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     */
+    public fun updateBounds(x: Double, y: Double, width: Double, height: Double) {
+        val size = Size(width, height)
+
+        updateBounds(x, y, size, size)
+    }
+
+    public interface BoundsUpdateContext {
+        public fun setX        (value: Double)
+        public fun setY        (value: Double)
+        public fun setMinWidth (value: Double)
+        public fun setMaxWidth (value: Double)
+        public fun setMinHeight(value: Double)
+        public fun setMaxHeight(value: Double)
+    }
+
+    public fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size
 }
 
 /**

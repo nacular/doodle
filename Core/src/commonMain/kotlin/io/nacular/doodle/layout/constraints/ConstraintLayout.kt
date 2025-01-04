@@ -3,6 +3,7 @@ package io.nacular.doodle.layout.constraints
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
+import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
@@ -582,11 +583,10 @@ public class ConstraintDslContext internal constructor() {
         left eq point.x
     )
 
-    public val Position.preserve: List<Result<Constraint>>
-        get() = listOf(
-            top eq top.readOnly,
-            left eq left.readOnly
-        )
+    public val Position.preserve: List<Result<Constraint>> get() = listOf(
+        top  eq top.readOnly,
+        left eq left.readOnly
+    )
 
     public operator fun Position.plus(point: Point): Position = Position(
         top  = top  + point.y,
@@ -672,22 +672,21 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
-    public val Edges.preserve: List<Result<Constraint>>
-        get() {
-            val result = mutableListOf<Result<Constraint>>()
+    public val Edges.preserve: List<Result<Constraint>> get() {
+        val result = mutableListOf<Result<Constraint>>()
 
-            if (top != null) {
-                (top eq top.readOnly).also { result += it }
-            }
-            if (left != null) {
-                (left eq left.readOnly).also { result += it }
-            }
-
-            (right eq right.readOnly).also { result += it }
-            (bottom eq right.readOnly).also { result += it }
-
-            return result
+        if (top != null) {
+            (top eq top.readOnly).also { result += it }
         }
+        if (left != null) {
+            (left eq left.readOnly).also { result += it }
+        }
+
+        (right eq right.readOnly).also { result += it }
+        (bottom eq right.readOnly).also { result += it }
+
+        return result
+    }
 
     public infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
@@ -892,13 +891,27 @@ public class Constrainer {
     private val solver     = Solver()
     private val context    = ConstraintDslContext()
 
-    private class FakePositionable: Positionable {
+    private class FakePositionable: Positionable, BoundsUpdateContext {
         var probe = null as Positionable?
 
         override var bounds          = Rectangle.Empty
         override val visible         = true
         override val position  get() = bounds.position
         override val idealSize get() = probe?.idealSize ?: Size.Empty
+
+        private var x        : Double  = 0.0
+        private var y        : Double  = 0.0
+        private var minWidth : Double? = null
+        private var maxWidth : Double? = null
+        private var minHeight: Double? = null
+        private var maxHeight: Double? = null
+
+        override fun setX        (value: Double) { x         = value }
+        override fun setY        (value: Double) { y         = value }
+        override fun setMinWidth (value: Double) { minWidth  = value }
+        override fun setMaxWidth (value: Double) { maxWidth  = value }
+        override fun setMinHeight(value: Double) { minHeight = value }
+        override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override fun contains(point: Point) = true
 
@@ -915,13 +928,27 @@ public class Constrainer {
             probe?.updatePosition(x, y)
         }
 
+        override fun updateBounds(block: BoundsUpdateContext.() -> Unit) = when (val p = probe) {
+            null -> {
+                x         = bounds.x
+                y         = bounds.y
+                maxWidth  = null
+                maxHeight = null
+
+                block(this)
+
+                Rectangle(x, y, maxWidth ?: bounds.width, maxHeight ?: bounds.height).also { bounds = it }.size
+            }
+            else -> p.updateBounds(block).also { bounds = p.bounds }
+        }
+
         override fun toString() = "FakePositionable"
     }
 
     private val fakePositionable = FakePositionable()
     private val fakeBounds       = BoundsImpl(fakePositionable, context)
     private val blocks           = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
-            (a) -> using(a)
+        (a) -> using(a)
     })
 
     /**
