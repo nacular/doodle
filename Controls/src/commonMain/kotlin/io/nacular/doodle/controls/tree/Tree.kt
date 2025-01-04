@@ -15,7 +15,6 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -199,10 +198,7 @@ public open class Tree<T, out M: TreeModel<T>>(
             }
 
             // FIXME: use maxWidth
-            Size(maxRight, minHeight).also {
-                preferredSize = fixed(it)
-                suggestSize(it)
-            }
+            Size(maxRight, minHeight)
         }
     }
 

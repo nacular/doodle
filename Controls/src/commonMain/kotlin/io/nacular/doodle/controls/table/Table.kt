@@ -19,7 +19,7 @@ import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.fixed
-import io.nacular.doodle.core.scrollTo
+import io.nacular.doodle.core.scrollToVertical
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
@@ -29,6 +29,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Pool
@@ -281,20 +282,24 @@ public open class Table<T, M: ListModel<T>>(
                 val delegate = tableLayout(this@Table, header, panel, footer, behavior, { headerVisibility }, { headerSticky }, { footerVisibility }, { footerSticky })
 
                 layout = simpleLayout { items, min, current, max, _ ->
-                    val w = columnSizePolicy.layout(max(0.0, current.width - panel.verticalScrollBarWidth), internalColumns, resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth
-
                     // explicitly set ideal size of table-panel so the scroll panel layout will update it
                     panel.content?.let {
                         it.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
                         it.suggestSize(it.idealSize)
                     }
 
-                    val size = delegate.layout(items, min, current, max)
+                    resizingCol = null
 
-                    preferredSize = fixed(Size(w, size.height))
-                    resizingCol   = null
+                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
+                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
 
-                    idealSize
+                    delegate.layout(items, min, current, max).run { Size(
+                        columnSizePolicy.layout(
+                            max(0.0, current.width - panel.verticalScrollBarWidth),
+                            internalColumns,
+                            resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth,
+                        behavior.rowPositioner.minimumSize(this@Table).height + headerHeight + footerHeight
+                    ) }
                 }
             }
         }
@@ -346,8 +351,14 @@ public open class Table<T, M: ListModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints  = { it eq max(content?.idealSize?.width  ?: it.readOnly, width ) - verticalScrollBarWidth }
-            contentHeightConstraints = { it eq max(content?.idealSize?.height ?: it.readOnly, height)                          }
+            contentWidthConstraints = {
+                it greaterEq panel.idealSize.width
+                it eq        parent.width - verticalScrollBarWidth strength Strong
+            }
+            contentHeightConstraints = {
+                it greaterEq panel.idealSize.height
+                it eq        parent.height - horizontalScrollBarHeight strength Strong
+            }
 
             scrollBarDimensionsChanged += {
                 columnSizeChanged()
@@ -397,8 +408,8 @@ public open class Table<T, M: ListModel<T>>(
     public fun scrollTo(item: Int) {
         this[item].onSuccess {
             behavior?.rowPositioner?.rowBounds(this, it, item)?.let { bounds ->
-                scrollTo(bounds.at(y = bounds.y + panel.y))
-                panel.scrollToVisible(bounds)
+                scrollToVertical(bounds.y .. bounds.bottom + panel.y)
+                panel.scrollVerticallyToVisible(bounds.y .. bounds.bottom)
             }
         }
     }

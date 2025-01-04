@@ -133,8 +133,8 @@ internal fun <T: View> tableLayout(
     }
 
     behavior.footerPositioner(table).apply {
-        val footerHeight  = metaRowHeight(footer, footerVisibility(), height)
-        footerPadding = if (footerHeight > 0) insetTop else 0.0
+        val footerHeight = metaRowHeight(footer, footerVisibility(), height)
+        footerPadding    = if (footerHeight > 0) insetTop else 0.0
 
         footer_.width  eq parent.width
         footer_.height eq footerHeight
@@ -159,7 +159,7 @@ internal fun <T: View> tableLayout(
     }
 }
 
-private fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {
+internal fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {
     visibility == Always || (visibility == HasContents && row.hasContent) -> targetHeight
     else                                                                  -> 0.0
 }
