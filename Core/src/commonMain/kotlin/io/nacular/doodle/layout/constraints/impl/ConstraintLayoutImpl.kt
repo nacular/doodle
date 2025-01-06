@@ -93,6 +93,13 @@ internal open class BoundsImpl(private val target: Positionable, private val con
             }
         }
     }
+
+    fun reset() {
+        x__      = target.bounds.x
+        y__      = target.bounds.y
+        width__  = target.bounds.width
+        height__ = target.bounds.height
+    }
 }
 
 internal class ReflectionVariable(

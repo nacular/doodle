@@ -963,7 +963,7 @@ public class Constrainer {
     public operator fun invoke(
         rectangle : Rectangle,
         within    : Rectangle,
-        forceSetup: Boolean = false,
+        forceSetup: Boolean       = false,
         probe     : Positionable? = null,
         using     : ConstraintDslContext.(Bounds) -> Unit
     ): Rectangle {
@@ -971,6 +971,7 @@ public class Constrainer {
 
         if (fakePositionable.bounds != rectangle) {
             fakePositionable.bounds = rectangle
+            fakeBounds.reset()
 
             updatedBounds[fakeBounds.top_  ] = rectangle.y
             updatedBounds[fakeBounds.left_ ] = rectangle.x
