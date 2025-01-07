@@ -43,10 +43,14 @@ public open class Label(
 
     // this is the styled-text that is set by a caller
     private var actualStyledText = styledText; set(new) {
+        val old           = visibleStyledText
         field             = new
         visibleStyledText = field.copy()
-        measureText()
-        rerender   ()
+
+        if (visibleStyledText != old) {
+            measureText()
+            rerender()
+        }
     }
 
     /**

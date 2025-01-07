@@ -59,12 +59,12 @@ internal fun Style.setLineHeight(value: Float) {
 
 internal fun Style.setTextSpacing(textSpacing: TextSpacing) {
     letterSpacing = when {
-        textSpacing.letterSpacing != 0.0 -> "${textSpacing.letterSpacing}px"
+        textSpacing.letterSpacing >= 0.0 -> "${textSpacing.letterSpacing}px"
         else                             -> ""
     }
 
     wordSpacing = when {
-        textSpacing.wordSpacing != 0.0 -> "${textSpacing.wordSpacing}px"
+        textSpacing.wordSpacing >= 0.0 -> "${textSpacing.wordSpacing}px"
         else                           -> ""
     }
 }

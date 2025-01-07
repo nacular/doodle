@@ -29,9 +29,9 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
     }
 
     private fun Font?.newTextStyle(lineSpacing: Float = 1f, textSpacing: TextSpacing) = this.newTextStyle.apply {
-        if (lineSpacing               != 1f ) height        = lineSpacing
-        if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
-        if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
+        if (lineSpacing               >= 0f ) height        = lineSpacing
+        if (textSpacing.wordSpacing   >= 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
+        if (textSpacing.letterSpacing >= 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
     }
 
     private fun StyledText.paragraph(indent: Double = 0.0, width: Double? = null, lineSpacing: Float = 1f, textSpacing: TextSpacing): Paragraph {

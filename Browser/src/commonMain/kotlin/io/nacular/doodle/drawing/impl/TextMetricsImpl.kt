@@ -110,8 +110,8 @@ internal class TextMetricsImpl(
 
     private fun textWidth(text: String, font: Font?, textSpacing: TextSpacing): Double {
         val notSupported = noFontSupport                                                ||
-                           (textSpacing.wordSpacing   != 0.0 && noWordSpacingSupport  ) ||
-                           (textSpacing.letterSpacing != 0.0 && noLetterSpacingSupport)
+                           (textSpacing.wordSpacing   >= 0.0 && noWordSpacingSupport  ) ||
+                           (textSpacing.letterSpacing >= 0.0 && noLetterSpacingSupport)
 
         return when {
             notSupported -> elementRuler.size(textFactory.create(text, font, textSpacing)).width

@@ -243,13 +243,13 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
         layout = constrain(children[0], children[1]) { label, switch ->
             switch.left    greaterEq 0
             switch.right   eq parent.right strength Strong
-            switch.centerY eq parent.centerY
             switch.width   eq 30
             switch.height  eq 20
+            switch.centerY eq parent.centerY
 
             label.left     eq 0
+            label.height   eq label.preferredHeight
             label.centerY  eq switch.centerY
-            label.height.preserve
 
             parent.height greaterEq label.bottom
             parent.height greaterEq switch.bottom

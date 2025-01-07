@@ -721,8 +721,8 @@ internal class CanvasImpl(
                 foreground = paint
 
                 if (lineHeight                >= 0f ) height        = lineHeight
-                if (textSpacing.wordSpacing   != 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
-                if (textSpacing.letterSpacing != 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
+                if (textSpacing.wordSpacing   >= 0.0) wordSpacing   = textSpacing.wordSpacing.toFloat()
+                if (textSpacing.letterSpacing >= 0.0) letterSpacing = textSpacing.letterSpacing.toFloat()
             })
             addText(text)
         }
@@ -815,9 +815,9 @@ internal class CanvasImpl(
                 builder.pushStyle(style.font.newTextStyle.apply {
                     paint(style)
 
-                    if (lineHeight >= 0f                ) { height = lineHeight }
-                    if (textSpacing.wordSpacing   != 0.0) { this.wordSpacing   = textSpacing.wordSpacing.toFloat()   }
-                    if (textSpacing.letterSpacing != 0.0) { this.letterSpacing = textSpacing.letterSpacing.toFloat() }
+                    if (lineHeight                >= 0f ) { height = lineHeight }
+                    if (textSpacing.wordSpacing   >= 0.0) { this.wordSpacing   = textSpacing.wordSpacing.toFloat()   }
+                    if (textSpacing.letterSpacing >= 0.0) { this.letterSpacing = textSpacing.letterSpacing.toFloat() }
                 })
                 builder.addText(text)
                 builder.popStyle()

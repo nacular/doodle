@@ -10,6 +10,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
 import io.nacular.doodle.utils.lerp
@@ -28,6 +29,7 @@ public abstract class AbstractSliderBehavior<T>(
     private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
     private val enabledChanged: (View,      Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
     private val styleChanged  : (View                       ) -> Unit = {           it.rerender() }
+    private val oldPreferredSizes = mutableMapOf<View, (Size, Size) -> Size>()
 
     override fun install(view: Slider<T>) {
         view.changed              += changed
@@ -36,6 +38,9 @@ public abstract class AbstractSliderBehavior<T>(
         view.pointerChanged       += this
         view.enabledChanged       += enabledChanged
         view.pointerMotionChanged += this
+
+        oldPreferredSizes[view] = view.preferredSize
+        view.preferredSize         = { min,_ -> Size(min.width, 16.0) }
     }
 
     override fun uninstall(view: Slider<T>) {
@@ -45,6 +50,8 @@ public abstract class AbstractSliderBehavior<T>(
         view.pointerChanged       -= this
         view.enabledChanged       -= enabledChanged
         view.pointerMotionChanged -= this
+
+        oldPreferredSizes.remove(view)?.let { view.preferredSize = it }
     }
 
     override fun pressed(event: PointerEvent) {

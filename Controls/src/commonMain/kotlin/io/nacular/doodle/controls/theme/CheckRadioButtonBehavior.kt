@@ -21,13 +21,14 @@ import kotlin.math.max
  * Created by Nicholas Eddy on 4/25/19.
  */
 public open class CheckRadioButtonBehavior<T: ToggleButton> protected constructor(
-        private val textMetrics        : TextMetrics,
-        private val textColor          : Color,
-        private val icon               : Icon<T>,
-        private val iconTextSpacing    : Double = 2.0,
-        private val iconInset          : Double = 2.0,
-        private val disabledColorMapper: (Color) -> Color = { it.lighter() },
-                    focusManager       : FocusManager? = null): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
+    private val textMetrics        : TextMetrics,
+    private val textColor          : Color,
+    private val icon               : Icon<T>,
+    private val iconTextSpacing    : Double = 2.0,
+    private val iconInset          : Double = 2.0,
+    private val disabledColorMapper: (Color) -> Color = { it.lighter() },
+                focusManager       : FocusManager? = null
+): CommonTextButtonBehavior<T>(textMetrics, focusManager = focusManager) {
 
     private val contentDirectionChanged: (source: View) -> Unit = { it.rerender() }
 
