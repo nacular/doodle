@@ -205,7 +205,7 @@ internal class ConstraintLayoutImpl(
             updatedBounds[it.width ] = new.width
             updatedBounds[it.height] = new.height
 
-            if (old.size != new.size && relayout && view.displayed) {
+            if (relayout && view.displayed) {
                 when (val p = view.parent) {
                     null -> view.display?.relayout()
                     else -> p.relayout_()
@@ -273,15 +273,17 @@ internal class ConstraintLayoutImpl(
 
     @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
-        views.forEach {
+        blockTracker.remove(views to constraintBlock)?.let {
+            blocks -= it.block
+        }
+
+        val remaining = blockTracker.flatMap { entry -> entry.key.first }.toSet()
+
+        views.filter { it !in remaining }.forEach {
             it.boundsChangeAttempted -= this
             viewBounds -= it
 
             it.resetConstraints()
-        }
-
-        blockTracker.remove(views to constraintBlock)?.let {
-            blocks -= it.block
         }
 
         return this

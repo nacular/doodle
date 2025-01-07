@@ -192,15 +192,17 @@ public open class GridPanel: View() {
             val rowLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
             val colLanes = mutableMapOf<Int, MutableList<OverlappingView>>()
 
+            val positionables = views.toList()
+
             // Calculate row and column sizes
-            children.forEach { child ->
+            children.forEachIndexed { index, child ->
                 locations[child]?.forEach { location ->
                     val rowSpan   = rowSpans.getValue   (child)
                     val colSpan   = columnSpans.getValue(child)
                     val idealSize = child.idealSize
 
-                    rowLanes.getOrPut(location.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, child.size.height, idealSize.height) }
-                    colLanes.getOrPut(location.column) { mutableListOf() }.also { it += OverlappingView(colSpan, child.size.width,  idealSize.width ) }
+                    rowLanes.getOrPut(location.row   ) { mutableListOf() }.also { it += OverlappingView(rowSpan, positionables[index].bounds.height, idealSize.height) }
+                    colLanes.getOrPut(location.column) { mutableListOf() }.also { it += OverlappingView(colSpan, positionables[index].bounds.width,  idealSize.width ) }
                 }
             }
 
@@ -245,14 +247,14 @@ public open class GridPanel: View() {
                 }
 
                 it.suggestBounds(constrainer(
-                    it.bounds,
-                    within = Rectangle(
+                    using     = cellAlignment,
+                    rectangle = it.bounds,
+                    within    = Rectangle(
                         (x ?: 0.0) + insets.left,
                         (y ?: 0.0) + insets.top,
-                        widths.sumOf  { it.size } + horizontalSpacing * (widths.size - 1),
+                        widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
                         heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
                     ),
-                    using     = cellAlignment
                 ))
             }
 
