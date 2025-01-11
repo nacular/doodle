@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.theme.range
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.fixed
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
 import io.nacular.doodle.event.PointerEvent
@@ -29,7 +30,7 @@ public abstract class AbstractSliderBehavior<T>(
     private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }
     private val enabledChanged: (View,      Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
     private val styleChanged  : (View                       ) -> Unit = {           it.rerender() }
-    private val oldPreferredSizes = mutableMapOf<View, (Size, Size) -> Size>()
+    private val oldPreferredSizes = mutableMapOf<View, View.(Size, Size) -> Size>()
 
     override fun install(view: Slider<T>) {
         view.changed              += changed
@@ -39,8 +40,8 @@ public abstract class AbstractSliderBehavior<T>(
         view.enabledChanged       += enabledChanged
         view.pointerMotionChanged += this
 
-        oldPreferredSizes[view] = view.preferredSize
-        view.preferredSize         = { min,_ -> Size(min.width, 16.0) }
+        oldPreferredSizes[view]    = view.preferredSize
+        view.preferredSize         = fixed(Size(100.0, 16.0))
     }
 
     override fun uninstall(view: Slider<T>) {
