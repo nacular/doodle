@@ -29,6 +29,7 @@ import io.nacular.doodle.drawing.Color.Companion.Green
 import io.nacular.doodle.drawing.Color.Companion.Pink
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.ColorPaint
+import io.nacular.doodle.drawing.LineHeightDetector
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
@@ -568,10 +569,12 @@ class VectorRendererSvgTests {
     }
 
     private fun renderer(
-        context     : CanvasContext = mockk(),
-        svgFactory  : SvgFactory = mockk(),
-        htmlFactory : HtmlFactory = mockk(),
-        aligner     : TextVerticalAligner = mockk(),
-        textMetrics : TextMetrics = mockk(),
-        idGenerator : IdGenerator = mockk()) = VectorRendererSvg(context, svgFactory, htmlFactory, aligner, textMetrics, idGenerator)
+        context           : CanvasContext       = mockk(),
+        svgFactory        : SvgFactory          = mockk(),
+        htmlFactory       : HtmlFactory         = mockk(),
+        aligner           : TextVerticalAligner = mockk(),
+        textMetrics       : TextMetrics         = mockk(),
+        idGenerator       : IdGenerator         = mockk(),
+        lineHeightDetector: LineHeightDetector  = mockk(),
+    ) = VectorRendererSvg(context, svgFactory, htmlFactory, aligner, textMetrics, idGenerator, lineHeightDetector)
 }

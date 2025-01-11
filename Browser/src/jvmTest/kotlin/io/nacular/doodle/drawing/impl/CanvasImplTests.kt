@@ -32,6 +32,7 @@ import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.ImagePaint
+import io.nacular.doodle.drawing.LineHeightDetector
 import io.nacular.doodle.drawing.LinearGradientPaint
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.PatternPaint
@@ -294,13 +295,19 @@ class CanvasImplTests {
 // region Text
     @Test fun `renders simple text`() {
         val fill = Red.paint
-        val text  = "some text"
-        val font  = mockk<Font>()
-        val at    = Point(34, 89)
+        val text = "some text"
+        val font = mockk<Font>()
+        val at   = Point(34, 89)
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.create(text, font, any(), null) } returns t
+            every { textFactory.create(
+                text        = text,
+                font        = font,
+                lineSpacing = any(),
+                textSpacing = any(),
+                possible    = null
+            ) } returns t
 
             text(text, font, at, fill)
 
@@ -331,7 +338,7 @@ class CanvasImplTests {
 
         validateRender { renderParent, _, textFactory, _, _ ->
             val t = mockk<HTMLElement>()
-            every { textFactory.create(text, any(), null) } returns t
+            every { textFactory.create(text = text, lineSpacing = any(), textSpacing = any(), possible = null) } returns t
 
             text(text, at)
 
@@ -372,7 +379,7 @@ class CanvasImplTests {
                     width       = 100.0,
                     indent      = 50.0,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = any(),
                     textSpacing = any(),
                     possible    = null
                 )
@@ -406,7 +413,7 @@ class CanvasImplTests {
                     indent      = 50.0,
                     fill       = fill,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = any(),
                     textSpacing = TextSpacing()
                 )
             }
@@ -425,7 +432,7 @@ class CanvasImplTests {
                     width       = 100.0,
                     indent      = 50.0,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = any(),
                     textSpacing = TextSpacing(),
                     possible    = null
                 )
@@ -456,7 +463,7 @@ class CanvasImplTests {
                     width       = 100.0,
                     indent      =  50.0,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = any(),
                     textSpacing = TextSpacing()
                 )
             }
@@ -467,7 +474,7 @@ class CanvasImplTests {
                     width       = 100.0,
                     indent      = 50.0,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = any(),
                     textSpacing = TextSpacing()
                 )
             }
@@ -659,8 +666,20 @@ class CanvasImplTests {
 
         every { htmlFactory.createOrUse("B", any()) } returns r1 andThen r2
 
-        every { textFactory.create("hello", any(), any(), any()) } returns hello
-        every { textFactory.create("world", any(), any(), any()) } returns world
+        every { textFactory.create(
+            text        = "hello",
+            font        = any(),
+            lineSpacing = any(),
+            textSpacing = any(),
+            possible    = any()
+        ) } returns hello
+        every { textFactory.create(
+            text        = "world",
+            font        = any(),
+            lineSpacing = any(),
+            textSpacing = any(),
+            possible    = any()
+        ) } returns world
 
         rect(Rectangle(10, 10), Red.paint)
         text("world", Origin, Black.paint)
@@ -830,17 +849,21 @@ class CanvasImplTests {
         every { this@apply.invoke(any()) } returns renderer
     }
 
-    private fun canvas(renderParent   : HTMLElement = mockk(),
-                       htmlFactory    : HtmlFactory           = mockk(),
-                       textFactory    : TextFactory           = mockk(),
-                       textMetrics    : TextMetrics           = mockk(),
-                       rendererFactory: VectorRendererFactory = rendererFactory()) = CanvasImpl(
-        renderParent    = renderParent,
-        htmlFactory     = htmlFactory,
-        textFactory     = textFactory,
-        textMetrics     = textMetrics,
-        useShadowHack   = false,
-        rendererFactory = rendererFactory
+    private fun canvas(
+        renderParent   : HTMLElement = mockk(),
+        htmlFactory    : HtmlFactory           = mockk(),
+        textFactory    : TextFactory           = mockk(),
+        textMetrics    : TextMetrics           = mockk(),
+        rendererFactory: VectorRendererFactory = rendererFactory(),
+        lineHeightDetector: LineHeightDetector = mockk()
+    ) = CanvasImpl(
+        renderParent       = renderParent,
+        htmlFactory        = htmlFactory,
+        textFactory        = textFactory,
+        textMetrics        = textMetrics,
+        useShadowHack      = false,
+        rendererFactory    = rendererFactory,
+        lineHeightDetector = lineHeightDetector
     )
 
     private fun <T> validateDefault(p: KProperty1<CanvasImpl, T>, default: T?) {

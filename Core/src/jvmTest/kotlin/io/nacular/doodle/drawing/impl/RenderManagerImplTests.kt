@@ -18,6 +18,7 @@ import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.view
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.GraphicsDevice
@@ -633,7 +634,7 @@ class RenderManagerImplTests {
 
         val renderManager = renderManager(display)
 
-        verify(exactly = 0) { view.addedToDisplay(display, renderManager.first, any()) }
+        verify(exactly = 0) { view.addedToDisplay_(display, renderManager.first, any()) }
         verify(exactly = 0) { view.render        (any()                              ) }
 
         parent.children_ += view
@@ -652,9 +653,9 @@ class RenderManagerImplTests {
         val renderManager = renderManager(display)
 
         verifyOrder {
-            grandParent.addedToDisplay(display, renderManager.first, any())
-            parent.addedToDisplay     (display, renderManager.first, any())
-            child.addedToDisplay      (display, renderManager.first, any())
+            grandParent.addedToDisplay_(display, renderManager.first, any())
+            parent.addedToDisplay_     (display, renderManager.first, any())
+            child.addedToDisplay_      (display, renderManager.first, any())
 
             grandParent.render(any())
             parent.render(any())
@@ -1128,7 +1129,7 @@ class RenderManagerImplTests {
                 handleDisplayRectEvent(old, new)
             }
         }.apply {
-            suggestSize(Size(10))
+            forceSize(Size(10))
             monitorsDisplayRect = true
         }
 
@@ -1300,7 +1301,7 @@ class RenderManagerImplTests {
     }
 
     private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: InternalDisplay, view: View, times: Int = 1) {
-        verify(exactly = times) { view.addedToDisplay(display, renderManager.first, renderManager.second) }
+        verify(exactly = times) { view.addedToDisplay_(display, renderManager.first, renderManager.second) }
         verify(exactly = times) { view.render        (any()                                             ) }
     }
 
@@ -1363,6 +1364,8 @@ class RenderManagerImplTests {
     private fun layout(): Layout = mockk {
         val currentSize = slot<Size>()
 
+        every { requiresLayout(any(), any()              ) } returns true
+        every { requiresLayout(any(), any(), any(), any()) } returns true
         every { layout(any(), any(), capture(currentSize), any()) } answers { currentSize.captured }
     }
 

@@ -10,6 +10,7 @@ import io.mockk.verify
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
@@ -204,7 +205,7 @@ class ButtonTests {
 
     @Test @JsName("delegatesContainsPointToBehavior")
     fun `delegates contains point to behavior`() {
-        val button   = TestButton(model = mockk(relaxed = true)).apply { suggestSize(Size(100)) }
+        val button   = TestButton(model = mockk(relaxed = true)).apply { forceSize(Size(100)) }
         val behavior = mockk<Behavior<Button>>(relaxed = true)
         val point    = Point(4, 5)
 

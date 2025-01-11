@@ -13,6 +13,8 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.fill
 import io.nacular.doodle.core.height
+import io.nacular.doodle.core.forceBounds
+import io.nacular.doodle.core.forcePosition
 import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.CSSStyleDeclaration
@@ -178,10 +180,10 @@ class DisplayImplTests {
 
     @Test fun `child at (no layout) works`() {
         val display = display()
-        val child0  = view().apply { suggestPosition(10.0, 12.0) }
-        val child1  = view().apply { suggestPosition(10.0, 12.0) }
-        val child2  = view().apply { suggestPosition(20.0, 12.0) }
-        val child3  = view().apply { suggestBounds(Rectangle(10.0, 23.0, width = 0.0, height = height)) }
+        val child0  = view().apply { forcePosition(10.0, 12.0) }
+        val child1  = view().apply { forcePosition(10.0, 12.0) }
+        val child2  = view().apply { forcePosition(20.0, 12.0) }
+        val child3  = view().apply { forceBounds(Rectangle(10.0, 23.0, width = 0.0, height = height)) }
 
         display += child0
         display += child1

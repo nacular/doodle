@@ -183,7 +183,7 @@ class ViewTests {
         val renderManager = mockk<RenderManager>()
         val view          = object: View() {}
 
-        view.addedToDisplay(display, renderManager, null)
+        view.addedToDisplay_(display, renderManager, null)
 
         view.rerender()
 
@@ -197,7 +197,7 @@ class ViewTests {
 
         view.rerenderNow()
 
-        view.addedToDisplay(display, renderManager, null)
+        view.addedToDisplay_(display, renderManager, null)
 
         view.rerenderNow()
 
@@ -223,7 +223,7 @@ class ViewTests {
         val renderManager = mockk<RenderManager>()
         val view          = view {}
 
-        view.addedToDisplay(display, renderManager, null)
+        view.addedToDisplay_(display, renderManager, null)
 
         view.clipCanvasToBounds_ = false
 
@@ -254,7 +254,7 @@ class ViewTests {
 
         view.displayChange += observer
 
-        view.addedToDisplay(mockk(), mockk(), null)
+        view.addedToDisplay_(mockk(), mockk(), null)
 
         verify(exactly = 1) { observer(view, false, true) }
 
@@ -270,7 +270,7 @@ class ViewTests {
 
         expect(false) { view.displayed }
 
-        view.addedToDisplay(mockk(), renderManager, null)
+        view.addedToDisplay_(mockk(), renderManager, null)
 
         expect(true) { view.displayed }
 
@@ -285,7 +285,7 @@ class ViewTests {
 
         val accessibilityManager = mockk<AccessibilityManager>()
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         verify(exactly = 1) { accessibilityManager.roleAdopted(view) }
 
@@ -378,7 +378,7 @@ class ViewTests {
 
         val renderManager = mockk<RenderManager>()
 
-        view.addedToDisplay(mockk(), renderManager, null)
+        view.addedToDisplay_(mockk(), renderManager, null)
 
         view.displayRect
 
@@ -556,7 +556,7 @@ class ViewTests {
             every { contentDirection } returns direction
         }
 
-        child.addedToDisplay(display, mockk(), mockk())
+        child.addedToDisplay_(display, mockk(), mockk())
 
         expect(direction) { child.contentDirection }
     }
@@ -652,7 +652,7 @@ class ViewTests {
 
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
         view.suggestBounds(bounds)
 
@@ -679,7 +679,7 @@ class ViewTests {
         val display       = mockk<Display>      (relaxed = true)
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(display, renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(display, renderManager, mockk(relaxed = true))
         view.boundsChanged += observer
         view.forceBounds(new             )
         view.forceBounds(new.at(x = 67.0))
@@ -703,7 +703,7 @@ class ViewTests {
 
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.opacityChanged += observer
         view.opacity         = new
 
@@ -726,7 +726,7 @@ class ViewTests {
 
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.transformChanged += observer
         view.transform         = new
 
@@ -749,7 +749,7 @@ class ViewTests {
 
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, mockk(relaxed = true))
         view.visibilityChanged += observer
         view.visible            = new
 
@@ -832,7 +832,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.enabled = false
 
@@ -844,7 +844,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.accessibilityRole = mockk()
 
@@ -857,7 +857,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.accessibilityLabel = "hello there"
 
@@ -869,7 +869,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.accessibilityLabelProvider = mockk()
 
@@ -881,7 +881,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.accessibilityDescriptionProvider = mockk()
 
@@ -893,7 +893,7 @@ class ViewTests {
 
         val view = view {}
 
-        view.addedToDisplay(mockk(), mockk(), accessibilityManager)
+        view.addedToDisplay_(mockk(), mockk(), accessibilityManager)
 
         view.nextInAccessibleReadOrder = mockk()
 
@@ -907,7 +907,7 @@ class ViewTests {
         val old           = view.zOrder
         val renderManager = mockk<RenderManager>(relaxed = true)
 
-        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, mockk(relaxed = true))
 
         view.zOrderChanged += observer
         view.zOrder         = new
@@ -965,7 +965,7 @@ class ViewTests {
         val parent = object: View() {}
         val child  = object: View() {}
 
-        root.addedToDisplay(mockk(), mockk(), mockk())
+        root.addedToDisplay_(mockk(), mockk(), mockk())
 
         expect(false) { root ancestorOf_ root  }
         expect(false) { root ancestorOf_ child }
@@ -973,8 +973,8 @@ class ViewTests {
         root.children_   += parent
         parent.children_ += child
 
-        parent.addedToDisplay(mockk(), mockk(), mockk())
-        child.addedToDisplay(mockk(), mockk(), mockk())
+        parent.addedToDisplay_(mockk(), mockk(), mockk())
+        child.addedToDisplay_(mockk(), mockk(), mockk())
 
         expect(true) { root ancestorOf_ parent }
         expect(true) { root ancestorOf_ child  }
@@ -1071,9 +1071,9 @@ class ViewTests {
         grandParent.children += parent
         parent.children      += child
 
-        grandParent.addedToDisplay(mockk(), mockk(), mockk())
-        parent.addedToDisplay(mockk(), mockk(), mockk())
-        child.addedToDisplay(mockk(), mockk(), mockk())
+        grandParent.addedToDisplay_(mockk(), mockk(), mockk())
+        parent.addedToDisplay_(mockk(), mockk(), mockk())
+        child.addedToDisplay_(mockk(), mockk(), mockk())
 
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
@@ -1147,13 +1147,13 @@ class ViewTests {
 
         // Force the View to have focus if we are testing losing it
         if (!gained) {
-            view.focusGained(null)
+            view.focusGained_(null)
         }
 
         if (gained) {
-            view.focusGained(null)
+            view.focusGained_(null)
         } else {
-            view.focusLost(null)
+            view.focusLost_(null)
         }
 
         block(view, observer)
@@ -1259,7 +1259,7 @@ class ViewTests {
                 val display       = mockk<InternalDisplay>()
                 val renderManager = mockk<RenderManager>()
 
-                view.addedToDisplay(display, renderManager, null)
+                view.addedToDisplay_(display, renderManager, null)
                 renderManager
             } else null
 

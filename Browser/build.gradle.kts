@@ -37,10 +37,12 @@ kotlin {
         jvmTest.dependencies {
             implementation(kotlin("test-junit"))
             implementation(libs.bundles.test.libs)
-        }
 
-        jsTest.dependencies {
-            implementation(kotlin("test-js"))
+            implementation(projects.core) {
+                capabilities {
+                    requireCapability("$group:$name-test-fixtures:$version")
+                }
+            }
         }
 
         val wasmJsMain by getting {

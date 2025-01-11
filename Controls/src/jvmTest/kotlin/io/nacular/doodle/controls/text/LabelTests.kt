@@ -5,6 +5,7 @@ package io.nacular.doodle.controls.text
 import JsName
 import io.mockk.every
 import io.mockk.mockk
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
@@ -101,9 +102,8 @@ class LabelTests {
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
             it.styledText = styledText()
-            it.fitText    = emptySet()
             it.wrapsWords = true
-            it.suggestSize(Empty)
+            it.forceSize(Empty)
 
             assertEquals(Empty, it.size)
         }

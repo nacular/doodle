@@ -69,7 +69,7 @@ class FocusManagerImplTests {
                 requestFocus(view)
 
                 verify(exactly = if (expected) 1 else 0) {
-                    view.focusGained(null)
+                    view.focusGained_(null)
                     listener(this@apply, null, view)
                 }
 
@@ -91,8 +91,8 @@ class FocusManagerImplTests {
             requestFocus(view    )
 
             verify {
-                previous.focusLost(view    )
-                view.focusGained  (previous)
+                previous.focusLost_(view    )
+                view.focusGained_  (previous)
                 listener(this@apply, previous, view)
             }
 
@@ -112,7 +112,7 @@ class FocusManagerImplTests {
             requestFocus(view)
 
             verify(exactly = 1) {
-                view.focusGained(null)
+                view.focusGained_(null)
                 listener(this@apply, null, view)
             }
 
@@ -133,7 +133,7 @@ class FocusManagerImplTests {
             requestFocus(view) // should no-op
 
             verify(exactly = 0) {
-                view.focusGained(any())
+                view.focusGained_(any())
                 listener(this@apply, null, view)
             }
 
@@ -229,7 +229,7 @@ class FocusManagerImplTests {
             displayChangedListener.captured(view, true, false)
 
             verify(exactly = 0) {
-                view.focusLost(any())
+                view.focusLost_(any())
                 listener(this@apply, view, any())
             }
 
@@ -250,7 +250,7 @@ class FocusManagerImplTests {
             enabled = false
 
             verify(exactly = 1) {
-                view.focusLost(null)
+                view.focusLost_(null)
                 listener(this@apply, view, null)
             }
 
@@ -272,7 +272,7 @@ class FocusManagerImplTests {
             enabled = true
 
             verify(exactly = 2) {
-                view.focusGained(null)
+                view.focusGained_(null)
                 listener(this@apply, null, view)
             }
 
@@ -369,7 +369,7 @@ class FocusManagerImplTests {
             propertyChange()
 
             verify(exactly = 1) {
-                view.focusLost(to)
+                view.focusLost_(to)
                 listener(this@apply, view, to)
             }
 
@@ -442,9 +442,9 @@ class FocusManagerImplTests {
             Downward -> if (explicit) manager.moveFocusDownward(from = focusedView) else manager.moveFocusDownward()
         }
 
-        verify(exactly = 1) { focusedView.focusLost(newFocusOwner) }
+        verify(exactly = 1) { focusedView.focusLost_(newFocusOwner) }
 
-        newFocusOwner?.let { verify(exactly = 1) { it.focusGained(focusedView) } }
+        newFocusOwner?.let { verify(exactly = 1) { it.focusGained_(focusedView) } }
     }
 
     private companion object {

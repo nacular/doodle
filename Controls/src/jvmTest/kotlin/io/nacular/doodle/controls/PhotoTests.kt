@@ -3,6 +3,7 @@ package io.nacular.doodle.controls
 import JsName
 import io.mockk.mockk
 import io.mockk.verify
+import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -29,7 +30,7 @@ class PhotoTests {
 
         verify(exactly = 1) { canvas.image(image = image, source = Rectangle(size = image.size), destination = photo.bounds.atOrigin) }
 
-        photo.suggestSize(Size(49, 56))
+        photo.forceSize(Size(49, 56))
 
         photo.render(canvas)
 

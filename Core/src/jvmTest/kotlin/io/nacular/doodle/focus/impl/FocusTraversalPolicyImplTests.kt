@@ -292,7 +292,7 @@ class FocusTraversalPolicyImplTests {
                 node.isFocusCycleRoot?.let { isFocusCycleRoot = it }
                 children += node.children.map { createHierarchy(it, path + it.value) }
                 children.forEach {
-                    it.addedToDisplay(mockk(), mockk(), mockk())
+                    it.addedToDisplay_(mockk(), mockk(), mockk())
                 }
             }.also {
                 pathToView[path] = it
