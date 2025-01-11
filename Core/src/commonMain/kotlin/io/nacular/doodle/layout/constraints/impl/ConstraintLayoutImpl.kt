@@ -18,7 +18,7 @@ import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
-import io.nacular.doodle.layout.constraints.Strength
+import io.nacular.doodle.layout.constraints.Strength.Companion.Light
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
@@ -196,16 +196,20 @@ internal class ConstraintLayoutImpl(
     private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
     private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
 
+    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { view,_,new ->
+        updateBounds(view, new)
+    }
+
+    private fun updateBounds(view: View, new: Rectangle) = viewBounds[view]?.also {
+        updatedBounds[it.top_  ] = new.y
+        updatedBounds[it.left_ ] = new.x
+        updatedBounds[it.width ] = new.width
+        updatedBounds[it.height] = new.height
+    }
+
     override fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
-        if (layingOut) return
-
-        viewBounds[view]?.let {
-            updatedBounds[it.top_  ] = new.y
-            updatedBounds[it.left_ ] = new.x
-            updatedBounds[it.width ] = new.width
-            updatedBounds[it.height] = new.height
-
-            if (relayout && view.displayed) {
+        updateBounds(view, new)?.let {
+            if (!layingOut && relayout && view.displayed) {
                 when (val p = view.parent) {
                     null -> view.display?.relayout()
                     else -> p.relayout_()
@@ -281,7 +285,8 @@ internal class ConstraintLayoutImpl(
 
         views.filter { it !in remaining }.forEach {
             it.boundsChangeAttempted -= this
-            viewBounds -= it
+            it.boundsChanged         -= boundsChanged
+            viewBounds               -= it
 
             it.resetConstraints()
         }
@@ -291,6 +296,7 @@ internal class ConstraintLayoutImpl(
 
     private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
         view.boundsChangeAttempted += this
+        view.boundsChanged         += boundsChanged
 
         viewBounds.getOrPut(view) {
             BoundsImpl(view.positionable, context).also { bounds ->
@@ -353,11 +359,9 @@ internal class ConstraintLayoutImpl(
                             previousDelete?.let {
                                 if (index < it.items.size && insertedConstraint.differsByConstantOnly(it.items[index])) {
                                     // update constraint
-                                    try {
+                                    doTrying(errorHandler) {
                                         solver.updateConstant(it.items[index], insertedConstraint)
-                                    } catch (exception: ConstraintException) {
-                                        errorHandler(exception)
-                                    } catch (_: UnknownConstraintException) {}
+                                    }
                                 } else {
                                     // handle delete
                                     handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
@@ -397,32 +401,30 @@ internal class ConstraintLayoutImpl(
             updatedBounds.removeAll { variable, _ -> variable !in solver.variables }
 
             activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
-                try {
+                doTrying(errorHandler) {
                     solver.removeEditVariable(variable)
-                } catch (_: Exception) {}
+                }
 
-                try {
+                doTrying(errorHandler) {
                     solver.addEditVariable(variable, Weak)
                     solver.suggestValue(variable, value)
-                } catch (_: Exception) {}
+                }
             }
 
             updatedBounds.filter { it.key !in activeBounds }.forEach { (variable,_) ->
-                try {
+                doTrying(errorHandler) {
                     solver.removeEditVariable(variable)
-                } catch (_: Exception) {}
+                }
 
-                try {
-                    solver.addEditVariable(variable, Strength(100))
-                } catch (_: Exception) {}
+                doTrying(errorHandler) {
+                    solver.addEditVariable(variable, Light)
+                }
             }
 
             updatedBounds.forEach { (variable, value) ->
-                try {
+                doTrying(errorHandler) {
                     solver.suggestValue(variable, value)
-                } catch (exception: ConstraintException) {
-                    errorHandler(exception)
-                } catch (_: UnknownEditVariableException) {}
+                }
             }
 
             activeBounds.putAll(updatedBounds)
@@ -430,13 +432,6 @@ internal class ConstraintLayoutImpl(
             updatedBounds.clear()
 
             solver.updateVariables()
-
-            // Hold anything that changes. These should all have Weak strength
-            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
-                try {
-                    solver.suggestValue(variable, value)
-                } catch (_: Exception) {}
-            }
 
             // Cleanup holds
             updatedBounds.clear()
@@ -449,30 +444,33 @@ internal class ConstraintLayoutImpl(
             errorHandler      : (ConstraintException) -> Unit
         ): Boolean {
             try {
-                solver.addConstraint(insertedConstraint)
-                insertedConstraint.expression.terms.asSequence().map { it.variable }.forEach { variable ->
-                    if (variable.needsSynthetic) {
-                        // Add synthetic constraints that keep width and height positive
-                        try {
-                            solver.addConstraint(ensureNonNegative(variable))
-                        } catch (_: Exception) { }
-                    }
+                val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                    val strength = when {
-                        variable in updatedBounds -> Strength(100)
-                        else                      -> Weak
+                solver.addConstraint(insertedConstraint)
+
+                newVariables.forEach {
+                    val variable = it.variable
+
+                    if (variable.needsSynthetic) {
+                        try {
+                            // Add synthetic constraints that keep width and height positive
+                            solver.addConstraint(ensureNonNegative(variable))
+                        } catch (_: Exception) {}
                     }
 
                     try {
+                        val strength = when {
+                            variable in updatedBounds -> Light
+                            else                      -> Weak
+                        }
+
                         solver.addEditVariable(variable, strength)
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) {}
 
                     if (variable() != 0.0) {
-                        try {
+                        doTrying(errorHandler) {
                             solver.suggestValue(variable, variable())
-                        } catch (exception: ConstraintException) {
-                            errorHandler(exception)
-                        } catch (_: UnknownEditVariableException) { }
+                        }
                     }
                 }
             } catch (exception: UnsatisfiableConstraintException) {
@@ -496,6 +494,14 @@ internal class ConstraintLayoutImpl(
                     solver.removeConstraint(ensureNonNegative(variable))
                 } catch (_: Exception) {}
             }
+        }
+
+        private fun doTrying(errorHandler : (ConstraintException) -> Unit, block: () -> Unit) {
+            try {
+                block()
+            } catch (exception: ConstraintException) {
+                errorHandler(exception)
+            } catch (_: UnknownEditVariableException) {}
         }
 
         private fun ensureNonNegative(variable: Variable) = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)

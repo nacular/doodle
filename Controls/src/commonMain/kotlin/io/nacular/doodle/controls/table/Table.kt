@@ -285,7 +285,6 @@ public open class Table<T, M: ListModel<T>>(
                     // explicitly set ideal size of table-panel so the scroll panel layout will update it
                     panel.content?.let {
                         it.preferredSize = fixed(Size(internalColumns.sumOf { it.width }, panel.content?.idealSize?.height ?: 0.0))
-                        it.suggestSize(it.idealSize)
                     }
 
                     resizingCol = null
@@ -293,13 +292,24 @@ public open class Table<T, M: ListModel<T>>(
                     val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
                     val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
 
-                    delegate.layout(items, min, current, max).run { Size(
-                        columnSizePolicy.layout(
-                            max(0.0, current.width - panel.verticalScrollBarWidth),
-                            internalColumns,
-                            resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth,
-                        behavior.rowPositioner.minimumSize(this@Table).height + headerHeight + footerHeight
-                    ) }
+                    delegate.layout(items, min, current, max).run {
+                        val auditor = SizeAuditor { _, _, new, _, _ ->
+                            val w = columnSizePolicy.layout(
+                                max(0.0, new.width - panel.verticalScrollBarWidth),
+                                internalColumns,
+                                resizingCol?.let { it + 1 } ?: 0
+                            ) + panel.verticalScrollBarWidth
+
+                            Size(w, new.height)
+                        }
+
+                        sizeAuditor = auditor
+
+                        Size(
+                            auditor(this@Table, Size.Empty, current, min, max).width,
+                            behavior.rowPositioner.minimumSize(this@Table).height + headerHeight + footerHeight
+                        )
+                    }
                 }
             }
         }

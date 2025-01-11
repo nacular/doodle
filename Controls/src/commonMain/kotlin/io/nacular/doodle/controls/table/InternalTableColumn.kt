@@ -80,9 +80,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
     }
 
     override var width = preferredWidth ?: minWidth; set(new) {
-        field = max(minWidth, new).let {
-            maxWidth?.let { maxWidth -> min(maxWidth, it) } ?: it
-        }
+        field = new.coerceIn(minWidth, maxWidth)
     }
 
     override var minWidth = minWidth; set(new) {

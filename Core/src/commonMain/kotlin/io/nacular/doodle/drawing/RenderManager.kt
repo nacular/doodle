@@ -120,6 +120,37 @@ public abstract class RenderManager {
      */
     internal abstract fun displayRectHandlingChanged(view: View, old: Boolean, new: Boolean)
 
+    /**
+     * Notifies whenever [view] is shown as a pop-up
+     *
+     * @param view that is shown
+     */
     internal abstract fun popupShown (view: View)
+
+    /**
+     * Notifies whenever [view] is hidden as a pop-up
+     *
+     * @param view that is hidden
+     */
     internal abstract fun popupHidden(view: View)
+
+    /**
+     * Checks whether [view] needs to be laid out.
+     *
+     * @param view to check
+     * @return `true` IFF the view needs to be laid out
+     */
+    internal abstract fun layoutNeeded(view: View): Boolean
+
+    /**
+     * Notifies tha [view] has performed a layout. This allows the [RenderManager]
+     * to skip any pending layout.
+     *
+     * @param view that was laid out
+     */
+    internal abstract fun performedLayout(view: View)
+
+    // FIXME: REMOVE
+    internal abstract fun logLayout(view: View)
+    internal abstract fun logPreferredSizeLayout(view: View)
 }

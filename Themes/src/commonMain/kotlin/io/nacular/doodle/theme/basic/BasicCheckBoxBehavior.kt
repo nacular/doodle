@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.theme.CheckRadioButtonBehavior
 import io.nacular.doodle.core.Icon
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -24,14 +23,14 @@ import io.nacular.doodle.geometry.Size
  * Created by Nicholas Eddy on 4/25/19.
  */
 private class BasicCheckBoxIcon(
-        private val foregroundColor    : Color,
-        private val backgroundColor    : Color,
-        private val darkBackgroundColor: Color,
-        private val cornerRadius       : Double,
-        private val checkInset         : (CheckBox) -> Float,
-        private val size_              : (CheckBox) -> Size,
-        private val hoverColorMapper   : ColorMapper,
-        private val disabledColorMapper: ColorMapper
+    private val foregroundColor    : Color,
+    private val backgroundColor    : Color,
+    private val darkBackgroundColor: Color,
+    private val cornerRadius       : Double,
+    private val checkInset         : (CheckBox) -> Float,
+    private val size_              : (CheckBox) -> Size,
+    private val hoverColorMapper   : ColorMapper,
+    private val disabledColorMapper: ColorMapper
 ): Icon<CheckBox> {
 
     override fun size(view: CheckBox) = size_(view)
@@ -98,41 +97,35 @@ private class BasicCheckBoxIcon(
 }
 
 public class BasicCheckBoxBehavior(
-        textMetrics        : TextMetrics,
-        foregroundColor    : Color               = Black,
-        backgroundColor    : Color               = Lightgray,
-        darkBackgroundColor: Color               = backgroundColor.darker(),
-        cornerRadius       : Double              = 2.0,
-        iconTextSpacing    : Double              = 8.0,
-        iconInset          : Double              = 1.0,
-        checkInset         : (CheckBox) -> Float = { 0.5f },
-        iconSize           : (CheckBox) -> Size  = { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInset, it.width - 2 * iconInset))) },
-        hoverColorMapper   : ColorMapper         = { it.darker(0.1f) },
-        disabledColorMapper: ColorMapper         = { it.lighter()    },
-        focusManager       : FocusManager?       = null,
+    textMetrics        : TextMetrics,
+    foregroundColor    : Color               = Black,
+    backgroundColor    : Color               = Lightgray,
+    darkBackgroundColor: Color               = backgroundColor.darker(),
+    cornerRadius       : Double              = 2.0,
+    iconTextSpacing    : Double              = 8.0,
+    iconInset          : Double              = 1.0,
+    checkInset         : (CheckBox) -> Float = { 0.5f },
+    iconSize           : (CheckBox) -> Size  = { Size(maxOf(0.0, minOf(16.0, it.height - 2 * iconInset, it.width - 2 * iconInset))) },
+    hoverColorMapper   : ColorMapper         = { it.darker(0.1f) },
+    disabledColorMapper: ColorMapper         = { it.lighter()    },
+    focusManager       : FocusManager?       = null,
 ): CheckRadioButtonBehavior<CheckBox>(
-        textMetrics,
-        foregroundColor,
-        BasicCheckBoxIcon(
-            foregroundColor     = foregroundColor,
-            backgroundColor     = backgroundColor,
-            darkBackgroundColor = darkBackgroundColor,
-            cornerRadius        = cornerRadius,
-            checkInset          = checkInset,
-            size_               = iconSize,
-            hoverColorMapper    = hoverColorMapper,
-            disabledColorMapper = disabledColorMapper
-        ),
-        iconTextSpacing,
-        iconInset,
-        disabledColorMapper,
-        focusManager
+    textMetrics = textMetrics,
+    textColor   = foregroundColor,
+    icon        = BasicCheckBoxIcon(
+        foregroundColor     = foregroundColor,
+        backgroundColor     = backgroundColor,
+        darkBackgroundColor = darkBackgroundColor,
+        cornerRadius        = cornerRadius,
+        checkInset          = checkInset,
+        size_               = iconSize,
+        hoverColorMapper    = hoverColorMapper,
+        disabledColorMapper = disabledColorMapper
+    ),
+    iconTextSpacing     = iconTextSpacing,
+    iconInset           = iconInset,
+    disabledColorMapper = disabledColorMapper,
+    focusManager        = focusManager
 ) {
     override fun mirrorWhenRightToLeft(view: CheckBox): Boolean = false
-
-    override fun install(view: CheckBox) {
-        super.install(view)
-
-        view.preferredSize = fixed(Size(16))
-    }
 }

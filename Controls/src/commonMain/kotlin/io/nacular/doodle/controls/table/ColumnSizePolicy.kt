@@ -47,25 +47,38 @@ public object ConstrainedSizePolicy: ColumnSizePolicy {
         columns.forEachIndexed { index, it ->
             if (index >= startIndex) {
                 it.width = it.preferredWidth ?: it.minWidth
+                remainingWidth -= it.width
             }
-
-            remainingWidth -= it.width
         }
 
         // Can this special knowledge of a dummy last column be avoided?
-        columns.drop(startIndex).dropLast(1).filter {
-            when {
-                remainingWidth > 0 -> it.preferredWidth == null
-                else               -> it.preferredWidth != null
-            }
-        }.run {
-            var size = size
+        var columnSubSet = columns.drop(startIndex).dropLast(1)
 
-            forEach {
+        val filter = { it: ColumnSizePolicy.Column ->
+            when {
+                remainingWidth > 0 -> it.preferredWidth == null && it.width < (it.maxWidth ?: Double.POSITIVE_INFINITY)
+                else               -> it.preferredWidth != null && it.width > it.minWidth
+            }
+        }
+
+        while (true) {
+            columnSubSet = columnSubSet.filter(filter)
+
+            if (!columnSubSet.any()) break
+
+            var size = columnSubSet.size
+            var numChanged = 0
+
+            columnSubSet.forEach {
                 val old = it.width
                 it.width += remainingWidth / size--
+
+                if (old != it.width) ++numChanged
+
                 remainingWidth -= it.width - old
             }
+
+            if (numChanged == size) break
         }
 
         columns.lastOrNull()?.let {

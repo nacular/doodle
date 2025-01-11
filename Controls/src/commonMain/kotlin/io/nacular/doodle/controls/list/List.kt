@@ -210,7 +210,7 @@ public open class List<T, out M: ListModel<T>>(
 
         minimumSize = itemPositioner?.minimumSize(this) ?: minimumSize
 
-        preferredSize = { _,_ -> itemPositioner?.minimumSize(this) ?: minimumSize }
+        preferredSize = { _,_ -> itemPositioner?.minimumSize(this@List) ?: minimumSize }
 
         if (oldSize == minimumSize) {
             // FIXME: This reset logic could be handled better

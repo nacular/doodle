@@ -11,6 +11,7 @@ import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.Positionable.BoundsUpdateContext
+import io.nacular.doodle.core.View.SizeAuditor
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
@@ -63,6 +64,7 @@ import io.nacular.doodle.system.SystemPointerEvent.Type.Move
 import io.nacular.doodle.system.SystemPointerEvent.Type.Up
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.PropertyObservers
@@ -82,7 +84,32 @@ import kotlin.reflect.KProperty
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
 private typealias ZOrderObservers  = PropertyObservers<View, Int>
 
-public fun fixed(size: Size): (Size, Size) -> Size = { _:Size, _:Size -> size }
+public fun fixed(size: Size): View.(Size, Size) -> Size = { _,_ -> size }
+
+public fun proposed(): View.(Size, Size) -> Size = { _,_ -> prospectiveBounds.size }
+
+public fun preserveAspect(width: Double, height: Double): SizeAuditor {
+    val aspect = width / height
+
+    return SizeAuditor { _, old, new, min, max ->
+        val s = new.coerceIn(min, max)
+
+        when {
+            s.width != old.width -> {
+                var h = (s.width / aspect).coerceIn(min.height, max.height)
+                val w = h * aspect
+
+                Size(w, h)
+            }
+            else                  -> {
+                val w = (s.height * aspect).coerceIn(min.width, max.width)
+                var h = w / aspect
+
+                Size(w, h)
+            }
+        }
+    }
+}
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -334,14 +361,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     public var bounds: Rectangle get() = actualBounds; private set(new) {
-        newBounds = new
+        newBounds = when (val r = sizeAuditor) {
+            null -> new
+            else -> new.with(r(this, size, new.size, allowedMinSize, allowedMaxSize))
+        }
 
         if (new == actualBounds) return
 
         notifyAttemptedBoundsChange(new)
     }
-
-    private var idealSizeDirty = true
 
     public val idealSize: Size get() = preferredSize(Empty, Infinite)
 
@@ -355,13 +383,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)
-
-            // FIXME: Remove once Text Fixtures work for MPP
-            // only here to make testing easier since there's no easy way
-            // to force bounds outside the common library
-            if (parent == null && !displayed) {
-                syncBounds()
-            }
         }
     }
 
@@ -388,13 +409,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         (boundsChanged as PropertyObserversImpl).forEach { it(this, old, field) }
     }
 
-    private var allowedMinSize = Empty
-    private var allowedMaxSize = Infinite
+    private var allowedMinSize by observable(Empty   ) { _,_ -> layoutNeeded = true }
+    private var allowedMaxSize by observable(Infinite) { _,_ -> layoutNeeded = true }
 
     internal fun resetConstraints() {
         allowedMinSize = Empty
         allowedMaxSize = Infinite
     }
+
+    private var idealSizeCache     = null as Size?
+    private var preferredSizeCache = LeastRecentlyUsedCache<Pair<Size, Size>, Size>(maxSize = 2)
 
     /**
      * Requests the View's preferred size based on the specified [min] and [max] constraints.
@@ -403,25 +427,50 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param max the largest size this View is allowed to be
      * @return the View's preferred size
      */
-    public var preferredSize: (min: Size, max: Size) -> Size = { min, max ->
+    public var preferredSize: View.(min: Size, max: Size) -> Size = { min, max ->
         when (val l = layout) {
             null -> newBounds.size
-            else -> when {
-//                preferredSizeCache.valid(min, max) -> preferredSizeCache.size
-                else -> doLayout(l, min, newBounds.size, max).also {
-//                    preferredSizeCache.min  = min
-//                    preferredSizeCache.size = it
-//                    preferredSizeCache.max  = max
+            else -> when (val s = preferredSizeCache(min, max)) {
+                null                                               -> {
+                    doLayout(l, min, newBounds.size, max).also {
+                        renderManager?.logPreferredSizeLayout(this)
+
+                        when {
+                            min == Empty && max == Infinite -> idealSizeCache = it
+                            else                            -> preferredSizeCache[min to max] = it
+                        }
+                    }
                 }
+                else -> s
             }
         }
     }
 
-    private inner class CachedPreferredSize(var size: Size, var min: Size, var max: Size) {
-        fun valid(min: Size, max: Size) = this.min == min && this.max == max && newBounds.size == this@View.size
+    public fun interface SizeAuditor {
+        /**
+         * Called whenever the View's size is changing, providing an opportunity to manage the final size.
+         * The result of this call will still be clipped to the View's min/max allowed sizes.
+         *
+         * @param old size before change
+         * @param new size being considered
+         * @param min the smallest size this View is allowed to be
+         * @param max the largest size this View is allowed to be
+         * @return the size the View should change to (which will be clipped to min/max)
+         */
+        public operator fun invoke(view: View, old: Size, new: Size, min: Size, max: Size): Size
     }
 
-//    private var preferredSizeCache = CachedPreferredSize(Empty, Empty, Empty)
+    /**
+     * Called whenever the View's size is changing, providing an opportunity to manage the final size.
+     * The result of this call will still be clipped to the View's min/max allowed sizes.
+     */
+    public var sizeAuditor: SizeAuditor? = null
+
+    private fun preferredSizeCache(min: Size, max: Size): Size? = when {
+        min == Empty && max == Infinite && !layoutNeeded && idealSizeCache != null -> idealSizeCache
+        needsLayout                                                                -> null
+        else                                                                       -> preferredSizeCache[min to max]
+    }
 
     /**
      * Called whenever the View's parent wishes to update it's size.
@@ -431,14 +480,19 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return a value that respects [min] and [max]
      */
     internal fun preferredSize_(min: Size, max: Size): Size {
-//        if (preferredSizeCache.valid(min, max)) return preferredSizeCache.size
-
         allowedMinSize = min.coerceIn(Empty,          Infinite)
         allowedMaxSize = max.coerceIn(allowedMinSize, Infinite)
 
         return when (min) {
             max  -> min
-            else -> preferredSize(allowedMinSize, allowedMaxSize).coerceIn(allowedMinSize, allowedMaxSize)
+            else -> {
+                val prefSize = preferredSize(allowedMinSize, allowedMaxSize)
+
+                when (val r = sizeAuditor) {
+                    null -> prefSize
+                    else -> r(this, size, prefSize, allowedMinSize, allowedMaxSize)
+                }.coerceIn(allowedMinSize, allowedMaxSize)
+            }
         }
     }
 
@@ -870,8 +924,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected open var layout: Layout? = null; set(new) {
         if (field == new) return
 
-        field          = new
-        idealSizeDirty = true
+        layoutNeeded = true
+        field        = new
 
         // re-layout parent if we are in a constraint layout; otherwise, just re-layout
         when {
@@ -1002,31 +1056,35 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     protected open fun relayoutNow() { renderManager?.layoutNow(this) }
 
-    internal fun doLayout_() = doLayout()
+    internal fun doLayout_() {
+        doLayout()
+    }
 
     protected fun doLayout() {
         doLayout(allowedMinSize, newBounds.size, allowedMaxSize)
     }
 
-    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) = layout.layout(
-        children.asSequence().map { it.positionable },
-        min     = min,
-        max     = max,
-        current = current,
-        insets  = insets
-    ).let {
-//        preferredSizeCache.min  = min
-//        preferredSizeCache.size = it
-//        preferredSizeCache.max  = max
+    private var layoutNeeded = true
+    private val needsLayout get() = layoutNeeded || renderManager?.layoutNeeded(this) != false
 
-//        if (preferredSizeCache.valid(min, max)) {
-//            preferredSizeCache.size = it
-//        }
+    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size): Size {
+        if (min == allowedMinSize && max == allowedMaxSize) {
+            renderManager?.performedLayout(this)
+        }
 
-//        if (it != newBounds.size) {
-//            notifyAttemptedBoundsChange(newBounds.with(it))
-//        }
-        it.coerceIn(min, max)
+        layoutNeeded = false
+
+        return layout.layout(
+            children.asSequence().map { it.positionable },
+            min     = min,
+            max     = max,
+            current = current,
+            insets  = insets
+        ).let {
+            // FIXME: REMOVE
+            renderManager?.logLayout(this)
+            it.coerceIn(min, max)
+        }
     }
 
     internal fun syncBounds() {
@@ -1042,6 +1100,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Causes the [layout] (if any) to re-layout the View's [children] */
     protected open fun doLayout(min: Size, current: Size, max: Size) {
+        if (!needsLayout) return
+
         layout?.let { doLayout(it, min = min, max = max, current = current) }
     }
 
@@ -1342,7 +1402,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param previous The previous View--if any--that had focus
      */
-    internal fun focusGained(@Suppress("UNUSED_PARAMETER") previous: View?) {
+    internal fun focusGained_(@Suppress("UNUSED_PARAMETER") previous: View?) {
         hasFocus = true
     }
 
@@ -1351,7 +1411,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param new The new View--if any--that will have focus
      */
-    internal fun focusLost(@Suppress("UNUSED_PARAMETER") new: View?) {
+    internal fun focusLost_(@Suppress("UNUSED_PARAMETER") new: View?) {
         hasFocus = false
     }
 
@@ -1367,7 +1427,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param renderManager The RenderManager that will handle all renders for the view
      */
-    internal fun addedToDisplay(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
+    internal fun addedToDisplay_(display: Display, renderManager: RenderManager, accessibilityManager: AccessibilityManager?) {
         this.display              = display
         this.renderManager        = renderManager
         this.accessibilityManager = accessibilityManager?.also {
@@ -1572,7 +1632,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
  * @param initial value of the property
  * @param onChange called when the property changes. There's no need to call rerender in [onChange].
  */
-public inline fun <T> renderProperty(initial: T, noinline onChange: View.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
+public fun <T> renderProperty(initial: T, onChange: View.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
     rerender()
     onChange(old, new)
 }

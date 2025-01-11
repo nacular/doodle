@@ -125,7 +125,7 @@ public open class BasicButtonBehavior(
 
     private fun recalculateSize(button: Button) {
         val icon   = icon(button)
-        var size   = textMetrics.size(button.text, font(button))
+        val size   = textMetrics.size(button.text, font(button))
         var width  = size.width
         var height = size.height
 
@@ -141,10 +141,6 @@ public open class BasicButtonBehavior(
             height  = max(height, iconSize.height)
         }
 
-        size = Size(width + insets.left + insets.right, height + insets.top + insets.bottom)
-
-        button.preferredSize = fixed(size)
-
-//        button.setSize(size)
+        button.preferredSize = fixed(Size(width + insets.left + insets.right, height + insets.top + insets.bottom))
     }
 }

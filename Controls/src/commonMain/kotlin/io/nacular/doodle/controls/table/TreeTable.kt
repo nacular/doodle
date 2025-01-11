@@ -580,13 +580,24 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
                     val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
 
-                    delegate.layout(items, min, current, max).run { Size(
-                        columnSizePolicy.layout(
-                            max(0.0, current.width - panel.verticalScrollBarWidth),
-                            internalColumns,
-                            resizingCol?.let { it + 1 } ?: 0) + panel.verticalScrollBarWidth,
-                        current.height
-                    ) }
+                    delegate.layout(items, min, current, max).run {
+                        val auditor = SizeAuditor { _,_,new,_,_ ->
+                            val w = columnSizePolicy.layout(
+                                max(0.0, new.width - panel.verticalScrollBarWidth),
+                                internalColumns,
+                                resizingCol?.let { it + 1 } ?: 0
+                            ) + panel.verticalScrollBarWidth
+
+                            Size(w, new.height)
+                        }
+
+                        sizeAuditor = auditor
+
+                        Size(
+                            auditor(this@TreeTable, Size.Empty, current, min, max).width,
+                            current.height
+                        )
+                    }
                 }
             }
         }

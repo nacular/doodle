@@ -75,6 +75,7 @@ public value class Strength private constructor(public val value: Int): Comparab
         public val Required: Strength = Strength(1001001000)
         public val Strong  : Strength = Strength(   1000000)
         public val Medium  : Strength = Strength(      1000)
+        public val Light   : Strength = Strength(       100)
         public val Weak    : Strength = Strength(         1)
 
         /**

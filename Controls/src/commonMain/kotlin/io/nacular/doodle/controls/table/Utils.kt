@@ -9,11 +9,9 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.observable
-import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 
 /**
@@ -69,30 +67,20 @@ internal class TablePanel(
         children  += columns.map { it.view }
         layout     = simpleLayout { views,_,current,_,_ ->
             var x          = 0.0
-            var height     = 0.0
+            var height     = max(current.height, views.first().idealSize.height)
             var totalWidth = 0.0
 
             views.forEachIndexed { index, view ->
                 val col   = columns[index]
                 val width = col.width
 
-                view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, POSITIVE_INFINITY)).also {
+                view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, height)).also {
                     x          += it.width
                     totalWidth += it.width
-
-                    if (index == 0) {
-                        height = it.height
-                    }
                 }
             }
 
             preferredSize = fixed(Size(totalWidth, height))
-
-            views.drop(1).forEach {
-                it.updateBounds(it.bounds.with(height = max(current.height, idealSize.height)))
-            }
-
-            suggestSize(idealSize)
 
             idealSize
         }

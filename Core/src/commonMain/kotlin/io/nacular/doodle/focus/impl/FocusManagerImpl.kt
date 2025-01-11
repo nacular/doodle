@@ -113,7 +113,7 @@ public class FocusManagerImpl(
                     when {
                         oldFocusOwner.shouldYieldFocus() -> {
                             stopMonitorProperties(oldFocusOwner)
-                            oldFocusOwner.focusLost(view)
+                            oldFocusOwner.focusLost_(view)
                         }
 
                         else -> return
@@ -132,7 +132,7 @@ public class FocusManagerImpl(
                 focusOwner = view
 
                 focusOwner?.let { focusOwner ->
-                    focusOwner.focusGained(oldFocusOwner)
+                    focusOwner.focusGained_(oldFocusOwner)
 
                     focusCycleRoot = focusOwner.focusCycleRoot_
 

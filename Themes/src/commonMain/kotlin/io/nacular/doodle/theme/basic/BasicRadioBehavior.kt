@@ -3,7 +3,6 @@ package io.nacular.doodle.theme.basic
 import io.nacular.doodle.controls.buttons.RadioButton
 import io.nacular.doodle.controls.theme.CheckRadioButtonBehavior
 import io.nacular.doodle.core.Icon
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Black
@@ -74,25 +73,19 @@ public class BasicRadioBehavior(
         disabledColorMapper: ColorMapper             = { it.lighter()    },
         focusManager       : FocusManager?           = null,
 ): CheckRadioButtonBehavior<RadioButton>(
-        textMetrics,
-        foregroundColor,
-        BasicRadioIcon(
-                foregroundColor     = foregroundColor,
-                backgroundColor     = backgroundColor,
-                darkBackgroundColor = darkBackgroundColor,
-                innerCircleInset    = innerCircleInset,
-                size_               = iconSize,
-                hoverColorMapper    = hoverColorMapper,
-                disabledColorMapper = disabledColorMapper
-        ),
-        iconTextSpacing,
-        iconInset,
-        disabledColorMapper,
-        focusManager
-) {
-    override fun install(view: RadioButton) {
-        super.install(view)
-
-        view.preferredSize = fixed(Size(16))
-    }
-}
+    textMetrics = textMetrics,
+    textColor   = foregroundColor,
+    icon        = BasicRadioIcon(
+        foregroundColor     = foregroundColor,
+        backgroundColor     = backgroundColor,
+        darkBackgroundColor = darkBackgroundColor,
+        innerCircleInset    = innerCircleInset,
+        size_               = iconSize,
+        hoverColorMapper    = hoverColorMapper,
+        disabledColorMapper = disabledColorMapper
+    ),
+    iconTextSpacing     = iconTextSpacing,
+    iconInset           = iconInset,
+    disabledColorMapper = disabledColorMapper,
+    focusManager        = focusManager
+)

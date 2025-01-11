@@ -216,7 +216,7 @@ public open class RenderManagerImpl(
             if (highestAncestor in display || highestAncestor in popups) {
                 view.display?.let { it -= view } // Remove from other display if any
 
-                view.addedToDisplay(display, this, accessibilityManager)
+                view.addedToDisplay_(display, this, accessibilityManager)
 
                 dirtyViews          += view
                 neverRendered       += view
@@ -350,9 +350,47 @@ public open class RenderManagerImpl(
                 pendingLayout += view
                 schedulePaint()
             }
-            else -> {
-                layoutOverflow += view
-            }
+            else -> layoutOverflow += view
+        }
+    }
+
+    // FIXME: REMOVE
+    private var layouts = mutableMapOf<String, Int>()
+    // FIXME: REMOVE
+    private var preferredSizeLayouts = mutableMapOf<String, Int>()
+
+    // FIXME: REMOVE
+    private fun Map<String, Int>.prettyPrint(name: String) {
+        val columnWidth = keys.maxOf { it.length }
+
+        println("$name [${this.values.sum()}]")
+        println("".padEnd(columnWidth * keys.size, '-'))
+        println(keys.joinToString  (" | ") { it.padEnd(columnWidth) })
+        println(values.map { "$it" }.joinToString(" | ") { it.padEnd(columnWidth) })
+    }
+
+    override fun layoutNeeded(view: View) = view in pendingLayout
+
+    override fun performedLayout(view: View) {
+        pendingLayout -= view
+    }
+
+    // FIXME: REMOVE
+    override fun logLayout(view: View) {
+        if (false) {
+            layouts[view::class.simpleName!!] = layouts.getOrElse(view::class.simpleName!!) { 0 } + 1
+
+            layouts.prettyPrint("Layouts")
+        }
+    }
+
+    // FIXME: REMOVE
+    override fun logPreferredSizeLayout(view: View) {
+        if (false) {
+            preferredSizeLayouts[view::class.simpleName!!] =
+                preferredSizeLayouts.getOrElse(view::class.simpleName!!) { 0 } + 1
+
+            preferredSizeLayouts.prettyPrint("Preferred-size Layouts")
         }
     }
 
@@ -687,19 +725,17 @@ public open class RenderManagerImpl(
                     // view is in the middle of a layout, so re-do it to allow bounds
                     // changes to take effect
                     old.size sufficientlyDifferentTo new.size -> {
-//                        pendingLayout += view
                         layoutOverflow += view
-//                        view.syncBounds()
-//                        view.doLayout_()
                     }
-//                    else                                      -> return
                 }
             }
         }
 
         when (parent) {
             null -> if (display.layout?.requiresLayout(view.positionable, display.size, old, new) == true) displayPendingLayout = true
-            else -> if (parent.layout_?.requiresLayout(view.positionable, parent.size,  old, new) == true) pendingLayout += parent
+            else -> if (parent != layingOut && parent.layout_?.requiresLayout(view.positionable, parent.size,  old, new) == true) {
+                pendingLayout += parent
+            }
         }
 
         when {
