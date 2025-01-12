@@ -97,13 +97,13 @@ public fun preserveAspect(width: Double, height: Double): SizeAuditor {
         when {
             s.width != old.width -> {
                 var h = (s.width / aspect).coerceIn(min.height, max.height)
-                val w = h * aspect
+                val w = (h       * aspect).coerceIn(min.width,  max.width )
 
                 Size(w, h)
             }
             else                  -> {
-                val w = (s.height * aspect).coerceIn(min.width, max.width)
-                var h = w / aspect
+                val w = (s.height * aspect).coerceIn(min.width,  max.width )
+                var h = (w        / aspect).coerceIn(min.height, max.height)
 
                 Size(w, h)
             }
@@ -260,7 +260,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param value suggested
      * @see position
      */
-    public fun suggestPosition(value: Point) { setBounds(value.x, value.y, newBounds.width, newBounds.height) }
+    public fun suggestPosition(value: Point): Unit = suggestPosition(value.x, value.y)
 
     /**
      * Request that the View's position value be updated.
@@ -272,7 +272,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param y suggested
      * @see suggestPosition
      */
-    public fun suggestPosition(x: Double, y: Double): Unit = suggestPosition(Point(x, y))
+    public fun suggestPosition(x: Double, y: Double) { setBounds(x, y, newBounds.width, newBounds.height) }
 
     /**
      * Request that the View's width value be updated.
@@ -305,7 +305,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param value suggested
      * @see size
      */
-    public fun suggestSize(value: Size) { setBounds(newBounds.x, newBounds.y, value.width, value.height) }
+    public fun suggestSize(value: Size): Unit = suggestSize(value.width, value.height)
 
     /**
      * Request that the View's size value be updated.
@@ -317,7 +317,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param height suggested
      * @see suggestSize
      */
-    public fun suggestSize(width: Double, height: Double): Unit = suggestSize(Size(width, height))
+    public fun suggestSize(width: Double, height: Double) { setBounds(newBounds.x, newBounds.y, width, height) }
 
     /**
      * Request that the View's bounds value be updated.
@@ -329,6 +329,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @see bounds
      */
     public fun suggestBounds(value: Rectangle) { bounds = value }
+
+    /**
+     * Request that the View's bounds value be updated.
+     *
+     * NOTE: this does not guarantee that [View.bounds] will be changed. That depends on constraints placed on this View
+     * by any [Layout].
+     *
+     * @param x      suggested
+     * @param y      suggested
+     * @param width  suggested
+     * @param height suggested
+     * @see bounds
+     */
+    public fun suggestBounds(x: Double, y: Double, width: Double, height: Double): Unit = suggestBounds(Rectangle(x, y, width, height))
 
     /** Left edge of [bounds] */
     public val x: Double get() = bounds.x

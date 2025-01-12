@@ -27,7 +27,6 @@ import io.nacular.doodle.utils.Direction.East
 import io.nacular.doodle.utils.Direction.North
 import io.nacular.doodle.utils.Direction.South
 import io.nacular.doodle.utils.Direction.West
-import io.nacular.doodle.utils.Resizer.Phase
 import io.nacular.doodle.utils.Resizer.Phase.EventBubbling
 import io.nacular.doodle.utils.Resizer.Phase.EventSinking
 
@@ -88,12 +87,10 @@ public class Resizer(
     private var ignorePropertyChange = false
 
     override fun released(event: PointerEvent) {
-        val interaction = activeInteraction(event)
-
-        if (activePointerChanged(event) && interaction?.state == Up) {
+        if (activePointerChanged(event) && activeInteraction(event)?.state == Up) {
             captureInitialState(event)
             if (consumedDrag) {
-                event.consume()
+                event.preventOsHandling()
                 consumedDrag = false
             }
         }
@@ -184,7 +181,10 @@ public class Resizer(
 
         dragMode.clear()
 
-        val interaction = if (Button2 in event.buttons) null else  event.targetInteractions.firstOrNull { it.state == Down || it.state == Drag }
+        val interaction = when (Button2) {
+            in event.buttons -> null
+            else             -> event.targetInteractions.firstOrNull { it.state == Down || it.state == Drag }
+        }
 
         if (interaction != null) {
             activePointer   = interaction.pointer
