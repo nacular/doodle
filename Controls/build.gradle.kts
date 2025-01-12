@@ -25,17 +25,17 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test-common"))
             implementation(kotlin("test-annotations-common"))
-        }
-
-        jvmTest.dependencies {
-            implementation(kotlin("test-junit"))
-            implementation(libs.bundles.test.libs)
 
             implementation(projects.core) {
                 capabilities {
                     requireCapability("$group:$name-test-fixtures:$version")
                 }
             }
+        }
+
+        jvmTest.dependencies {
+            implementation(kotlin("test-junit"))
+            implementation(libs.bundles.test.libs)
         }
     }
 }

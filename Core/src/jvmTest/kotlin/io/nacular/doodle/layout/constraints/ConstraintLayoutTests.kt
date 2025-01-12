@@ -42,7 +42,7 @@ import kotlin.test.expect
  */
 class ConstraintLayoutTests {
     @Test fun foo() {
-        val child       = view {}.apply { suggestWidth(10.0) }
+        val child       = NamedView("child").apply { suggestWidth(10.0) }
         val parent      = container { + child }
         val grandParent = container {
             + parent
@@ -66,8 +66,8 @@ class ConstraintLayoutTests {
     }
 
     @Test fun basic() {
-        val child1    = view {}.apply { forceHeight(10.0) }
-        val child2    = view {}
+        val child1    = NamedView("child1").apply { forceHeight(10.0) }
+        val child2    = NamedView("child2")
         val container = container {
             + listOf(child1, child2)
         }
@@ -91,8 +91,8 @@ class ConstraintLayoutTests {
     }
 
     @Test fun `with updates`() {
-        val child1 = view {}.apply { suggestWidth(100.0) }
-        val child2 = view {}
+        val child1 = NamedView("child1").apply { suggestWidth(100.0) }
+        val child2 = NamedView("child2")
 
         val container = container {
             + listOf(child1, child2)
@@ -180,7 +180,8 @@ class ConstraintLayoutTests {
                 it.bottom lessEq    parent.bottom - 10,
 
                 it.width  eq 500 strength  Medium,
-                it.height eq 500 strength  Medium).takeLast(1).map { it.getOrThrow() }
+                it.height eq 500 strength  Medium
+            ).takeLast(1).map { it.getOrThrow() }
         }
 
         layout.layout(sequenceOf(view).map { it.positionable }, Size.Empty, Size(100), Size.Infinite)
@@ -371,7 +372,6 @@ class ConstraintLayoutTests {
 
     @Test fun `non-required const updates`() {
         val headerStartHeight = 117.0
-        val mainStartHeight   = 186.0
         val footerStartHeight =  56.0
 
         val header       = NamedView("header").apply { forceHeight(117.0) }

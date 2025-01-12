@@ -3,6 +3,7 @@ package io.nacular.doodle.layout.constraints.impl
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PositionableView
+import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
@@ -238,11 +239,7 @@ internal class ConstraintLayoutImpl(
         context.updateParent(current, min = min, max = max)
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
-        solve      (solver, activeBounds, updatedBounds, ::notifyOfErrors)
-
-        blockTracker.values.asSequence().flatMap { it.constraints }.forEach {
-            it.commit()
-        }
+        solve      (solver, activeBounds, updatedBounds, blockTracker.values.asSequence().flatMap { it.constraints }, ::notifyOfErrors)
 
         layingOut = false
 
@@ -303,7 +300,7 @@ internal class ConstraintLayoutImpl(
                 viewBounds[view] = bounds
 
                 view.positionable.bounds.let {
-                    if (it.y != 0.0 || it.x != 0.0 || it.width != 0.0 || it.height != 0.0) {
+                    if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
                         updatedBounds[bounds.top_  ] = it.y
                         updatedBounds[bounds.left_ ] = it.x
                         updatedBounds[bounds.width ] = it.width
@@ -393,10 +390,11 @@ internal class ConstraintLayoutImpl(
         }
 
         fun solve(
-            solver       : Solver,
-            activeBounds : MutableMap<ReflectionVariable, Double> = mutableMapOf(),
+            solver: Solver,
+            activeBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
             updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
-            errorHandler : (ConstraintException) -> Unit
+            bounds      : Sequence<BoundsImpl>,
+            errorHandler: (ConstraintException) -> Unit
         ) {
             updatedBounds.removeAll { variable, _ -> variable !in solver.variables }
 
@@ -432,6 +430,15 @@ internal class ConstraintLayoutImpl(
             updatedBounds.clear()
 
             solver.updateVariables()
+
+            bounds.forEach { it.commit() }
+
+            // Hold anything that changes. These should all have Weak strength
+            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
+                try {
+                    solver.suggestValue(variable, value)
+                } catch (_: Exception) {}
+            }
 
             // Cleanup holds
             updatedBounds.clear()

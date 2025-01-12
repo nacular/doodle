@@ -1,4 +1,8 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+
+import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import org.gradle.api.attributes.Category.LIBRARY
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
@@ -51,16 +55,18 @@ kotlin {
         val name = "${name}TestFixtures"
 
         compilations.create("testFixtures") {
-            associateWith(this@target.compilations.getByName("main"))
-
-            this@target.compilations.getByName("test").associateWith(this)
-
-            configurations.consumable("${name}ApiElements") {
+            fun ConsumableConfiguration.setup(
+                       jvmUsageName   : String,
+                       kotlinUsageName: String,
+                vararg extendsFrom    : String
+            ) {
                 attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(if (platformType == KotlinPlatformType.jvm) "java-api-jars" else "kotlin-api"))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                    attribute(USAGE_ATTRIBUTE,    objects.named(if (platformType == jvm) jvmUsageName else kotlinUsageName))
+                    attribute(CATEGORY_ATTRIBUTE, objects.named(LIBRARY))
                 }
-                extendsFrom(configurations.getByName(apiConfigurationName))
+                extendsFrom.forEach {
+                    extendsFrom(configurations.getByName(it))
+                }
                 usesPlatformOf(this@target)
                 outgoing {
                     capability("$group:${project.name}-test-fixtures:$version")
@@ -68,25 +74,33 @@ kotlin {
                 }
             }
 
-            configurations.consumable("${name}RuntimeElements") {
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(if (platformType == KotlinPlatformType.jvm) "java-runtime-jars" else "kotlin-runtime"))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                }
-                extendsFrom(configurations.getByName(implementationConfigurationName))
-                extendsFrom(configurations.getByName(runtimeOnlyConfigurationName   ))
-                usesPlatformOf(this@target)
-                outgoing {
-                    capability("$group:${project.name}-test-fixtures:$version")
+            associateWith(this@target.compilations.getByName("main"))
 
-                    for (output in output.allOutputs) artifact(output) { builtBy(compileTaskProvider) }
-                }
+            this@target.compilations.getByName("test").associateWith(this)
+
+            configurations.consumable("${name}ApiElements") {
+                setup(
+                    jvmUsageName    = "java-api-jars",
+                    kotlinUsageName = "kotlin-api",
+                    apiConfigurationName
+                )
+            }
+
+            configurations.consumable("${name}RuntimeElements") {
+                setup(
+                    jvmUsageName    = "java-runtime-jars",
+                    kotlinUsageName = "kotlin-runtime",
+                    implementationConfigurationName,
+                    runtimeOnlyConfigurationName
+                )
+
             }
         }
     }
     applyDefaultHierarchyTemplate {
         withSourceSetTree(KotlinSourceSetTree("testFixtures"))
     }
+
 }
 
 tasks.withType<Test> {

@@ -986,9 +986,12 @@ public class Constrainer {
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 
-        solve(solver, activeBounds = activeBounds, updatedBounds = updatedBounds) { throw it }
-
-        fakeBounds.commit()
+        solve(
+            solver        = solver,
+            activeBounds  = activeBounds,
+            updatedBounds = updatedBounds,
+            bounds        = sequenceOf(fakeBounds),
+        ) { throw it }
 
         return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }

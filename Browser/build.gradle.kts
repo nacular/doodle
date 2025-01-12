@@ -28,6 +28,12 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test-common"))
             implementation(kotlin("test-annotations-common"))
+
+            implementation(projects.core) {
+                capabilities {
+                    requireCapability("$group:$name-test-fixtures:$version")
+                }
+            }
         }
 
         val jsCommon by creating { dependsOn(commonMain.get()) }
@@ -37,12 +43,6 @@ kotlin {
         jvmTest.dependencies {
             implementation(kotlin("test-junit"))
             implementation(libs.bundles.test.libs)
-
-            implementation(projects.core) {
-                capabilities {
-                    requireCapability("$group:$name-test-fixtures:$version")
-                }
-            }
         }
 
         val wasmJsMain by getting {
