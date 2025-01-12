@@ -159,12 +159,12 @@ class ConstraintLayoutTests {
         child1.suggestWidth(200.0)
         container.doLayout_()
 
-        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
 
         child3.suggestX(500.0)
         container.doLayout_()
 
-        expect(200.0, 0.0, 1000.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
     }
 
     @Test fun `display constraints work`() {
