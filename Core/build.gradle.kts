@@ -4,6 +4,7 @@ import org.gradle.api.attributes.Category.LIBRARY
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
 
@@ -50,6 +51,8 @@ kotlin {
         }
     }
 
+    // Custom TextFixture until there is proper support for this in Multiplatform. Based on
+    // https://kotlinlang.slack.com/archives/C3PQML5NU/p1735910631062769
     targets.all target@{
         if (this is KotlinMetadataTarget) return@target
         val name = "${name}TestFixtures"
@@ -70,7 +73,12 @@ kotlin {
                 usesPlatformOf(this@target)
                 outgoing {
                     capability("$group:${project.name}-test-fixtures:$version")
-                    for (output in output.allOutputs) artifact(output) { builtBy(compileTaskProvider) }
+                    this@target.compilations.all compilation@{
+                        for (classesDir in output.classesDirs) artifact(classesDir) { builtBy(compileTaskProvider) }
+                        if (this@compilation is KotlinJvmCompilation) {
+                            artifact(output.resourcesDir) { builtBy(processResourcesTaskName) }
+                        }
+                    }
                 }
             }
 
@@ -97,6 +105,7 @@ kotlin {
             }
         }
     }
+
     applyDefaultHierarchyTemplate {
         withSourceSetTree(KotlinSourceSetTree("testFixtures"))
     }
