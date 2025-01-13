@@ -16,6 +16,7 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.View.SizeAuditor
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform2D
@@ -39,6 +40,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.coerceIn
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
@@ -71,47 +73,48 @@ class ViewTests {
         expect(true) { object: View() {}.shouldYieldFocus() }
 
         mapOf(
-                View::x                                to 0.0,
-                View::y                                to 0.0,
-                View::font                             to null,
-                View::size                             to Size.Empty,
-                View::width                            to 0.0,
-                View::parent                           to null,
-                View::height                           to 0.0,
-                View::bounds                           to Empty,
-                View::cursor                           to null,
-                View::zOrder                           to 0,
-                View::enabled                          to true,
-                View::visible                          to true,
-                View::opacity                          to 1f,
-                View::insets_                          to None,
-                View::layout_                          to null,
-                View::position                         to Origin,
-                View::hasFocus                         to false,
-                View::display                          to null,
-                View::displayed                        to false,
-                View::focusable                        to true,
-                View::idealSize                        to Size.Empty,
-                View::displayRect                      to Empty,
-                View::dropReceiver                     to null,
-                View::acceptsThemes                    to true,
-                View::dragRecognizer                   to null,
-                View::focusCycleRoot_                  to null,
-                View::foregroundColor                  to null,
-                View::backgroundColor                  to null,
-                View::contentDirection                 to LeftRight,
-                View::isFocusCycleRoot_                to false,
-                View::childrenClipPath_                to null,
-                View::accessibilityLabel               to null,
-                View::clipCanvasToBounds_              to true,
-                View::mirrorWhenRightLeft              to true,
-                View::monitorsDisplayRect              to false,
-                View::needsMirrorTransform             to false,
-                View::focusTraversalPolicy_            to null,
-                View::localContentDirection            to null,
-                View::nextInAccessibleReadOrder        to null,
-                View::accessibilityLabelProvider       to null,
-                View::accessibilityDescriptionProvider to null,
+            View::x                                to 0.0,
+            View::y                                to 0.0,
+            View::font                             to null,
+            View::size                             to Size.Empty,
+            View::width                            to 0.0,
+            View::parent                           to null,
+            View::height                           to 0.0,
+            View::bounds                           to Empty,
+            View::cursor                           to null,
+            View::zOrder                           to 0,
+            View::enabled                          to true,
+            View::visible                          to true,
+            View::opacity                          to 1f,
+            View::insets_                          to None,
+            View::layout_                          to null,
+            View::position                         to Origin,
+            View::hasFocus                         to false,
+            View::display                          to null,
+            View::displayed                        to false,
+            View::focusable                        to true,
+            View::idealSize                        to Size.Empty,
+            View::displayRect                      to Empty,
+            View::sizeAuditor                      to null,
+            View::dropReceiver                     to null,
+            View::acceptsThemes                    to true,
+            View::dragRecognizer                   to null,
+            View::focusCycleRoot_                  to null,
+            View::foregroundColor                  to null,
+            View::backgroundColor                  to null,
+            View::contentDirection                 to LeftRight,
+            View::isFocusCycleRoot_                to false,
+            View::childrenClipPath_                to null,
+            View::accessibilityLabel               to null,
+            View::clipCanvasToBounds_              to true,
+            View::mirrorWhenRightLeft              to true,
+            View::monitorsDisplayRect              to false,
+            View::needsMirrorTransform             to false,
+            View::focusTraversalPolicy_            to null,
+            View::localContentDirection            to null,
+            View::nextInAccessibleReadOrder        to null,
+            View::accessibilityLabelProvider       to null,
+            View::accessibilityDescriptionProvider to null,
         ).forEach { validateDefault(it.key, it.value) }
     }
 
@@ -131,20 +134,14 @@ class ViewTests {
             expect(value, "toolTipText set to $value") { it.toolTipText }
         }
 
-//        validateSetter(View::x,                                -5.0                           )
-//        validateSetter(View::y,                                6.0                            )
         validateSetter(View::font,                             mockk()                        )
-//        validateSetter(View::size,                             Size.Empty                     )
-//        validateSetter(View::width,                            99.0                           )
         validateSetter(View::zOrder,                           56                             )
-//        validateSetter(View::height,                           45.0                           )
-//        validateSetter(View::bounds,                           Rectangle(4.5, -3.0, 2.0, 45.5))
         validateSetter(View::cursor,                           Crosshair                      )
         validateSetter(View::enabled,                          false                          )
         validateSetter(View::visible,                          false                          )
         validateSetter(View::opacity,                          0.3f                           )
-//        validateSetter(View::position,                         Origin                         )
         validateSetter(View::focusable,                        false                          )
+        validateSetter(View::sizeAuditor,                      mockk()                        )
         validateSetter(View::preferredSize,                    { _,_ -> Size(40, 67) }        )
         validateSetter(View::foregroundColor,                  Red                            )
         validateSetter(View::backgroundColor,                  Green                          )
@@ -156,7 +153,6 @@ class ViewTests {
         validateSetter(View::nextInAccessibleReadOrder,        mockk()                        )
         validateSetter(View::accessibilityLabelProvider,       mockk()                        )
         validateSetter(View::accessibilityDescriptionProvider, mockk()                        )
-
     }
 
     @Test fun `traversal key setters work`() {
@@ -446,66 +442,6 @@ class ViewTests {
         }
     }
 
-//    @Test fun `min size triggers size preference event`() {
-//        val view          = object: View() {}
-//        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
-//        val renderManager = mockk<RenderManager>(relaxed = true)
-//
-//        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
-//
-//        view.sizePreferencesChanged += observer
-//
-//        val newSize      = Size(100, 100)
-//        view.minimumSize = newSize
-//
-//        verifyOrder {
-//            renderManager.sizePreferencesChanged(view,
-//                match { it.minimumSize == Size.Empty && it.idealSize == null },
-//                match { it.minimumSize == newSize    && it.idealSize == null })
-//
-//
-//            observer(view,
-//                match { it.minimumSize == Size.Empty && it.idealSize == null },
-//                match { it.minimumSize == newSize    && it.idealSize == null })
-//        }
-//    }
-
-//    @Test fun `ideal size triggers size preference event`() {
-//        val view          = object: View() {}
-//        val observer      = mockk<PropertyObserver<View, SizePreferences>>()
-//        val renderManager = mockk<RenderManager>(relaxed = true)
-//
-//        view.addedToDisplay(mockk(relaxed = true), renderManager, mockk(relaxed = true))
-//
-//        view.sizePreferencesChanged += observer
-//
-//        val newSize    = Size(100, 100)
-//        view.idealSize = newSize
-//
-//        verifyOrder {
-//            renderManager.sizePreferencesChanged(view,
-//                    match { it.minimumSize == Size.Empty && it.idealSize == null },
-//                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
-//
-//            observer(view,
-//                    match { it.minimumSize == Size.Empty && it.idealSize == null },
-//                    match { it.minimumSize == Size.Empty && it.idealSize == newSize })
-//        }
-//    }
-
-//    @Test fun `min size delegates to layout`() {
-//        val size = Size(10, 10)
-//        val view = object: View() {
-//            init {
-//                layout = mockk<Layout>().apply {
-//                    every { minimumSize(any(), any()) } returns size
-//                }
-//            }
-//        }
-//
-//        expect(size) { view.minimumSize }
-//    }
-
     @Test fun `ideal size delegates to layout`() {
         val size = Size(10, 10)
         val view = object: View() {
@@ -517,6 +453,80 @@ class ViewTests {
         }
 
         expect(size) { view.idealSize }
+    }
+
+    @Test fun `ideal size relies on preferredSize`() {
+        val size = Size(10.6, 1.0)
+        val prefSize = mockk<View.(Size, Size) -> Size> {
+            every { this@mockk.invoke(any(), any(), any()) } returns size
+        }
+        val view = object: View() {
+            init {
+                preferredSize = prefSize
+
+                layout = mockk<Layout>().apply {
+                    every { layout(any(), Size.Empty, any(), Size.Infinite) } returns Size(56)
+                }
+            }
+        }
+
+        expect(size) { view.idealSize }
+    }
+
+    @Test fun `suggested size audited`() {
+        val auditor = mockk<SizeAuditor>()
+        val view = view {}.apply { sizeAuditor = auditor }
+        val size = Size(34.5, 47.9)
+
+        view.suggestSize(size)
+
+        verify(exactly = 1) { auditor.invoke(view, Size.Empty, size, Size.Empty, Size.Infinite) }
+    }
+
+    @Test fun `size audit result used`() {
+        val auditedSize = Size(10)
+        val auditor = mockk<SizeAuditor> {
+            every { this@mockk(any(), any(), any(), any(), any()) } returns auditedSize
+        }
+
+        val child = view {}.apply { sizeAuditor = auditor }
+        val parent = container {
+            + child
+            layout = simpleLayout { views, min, current, max, insets ->
+                views.forEach { it.updateBounds(0.0, 0.0, Size.Empty, Size.Infinite) }
+
+                current
+            }
+        }
+
+        child.suggestSize(Size(34.5, 47.9))
+        parent.doLayout_()
+
+        expect(auditedSize) { child.size }
+    }
+
+    @Test fun `audited size clipped to min and max`() {
+        val min         = Size( 20)
+        val max         = Size(100)
+        val auditedSize = Size(1000, 10)
+        val auditor = mockk<SizeAuditor> {
+            every { this@mockk(any(), any(), any(), any(), any()) } returns auditedSize
+        }
+
+        val child = view {}.apply { sizeAuditor = auditor }
+        val parent = container {
+            + child
+            layout = simpleLayout { views, _, current, _, insets ->
+                views.forEach { it.updateBounds(0.0, 0.0, min, max) }
+
+                current
+            }
+        }
+
+        child.suggestSize(Size(34.5, 47.9))
+        parent.doLayout_()
+
+        expect(auditedSize.coerceIn(min, max)) { child.size }
     }
 
     @Test fun `style change events work`() {

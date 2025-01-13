@@ -377,7 +377,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var bounds: Rectangle get() = actualBounds; private set(new) {
         newBounds = when (val r = sizeAuditor) {
             null -> new
-            else -> new.with(r(this, size, new.size, allowedMinSize, allowedMaxSize))
+            else -> new.with(r(this, size, new.size, allowedMinSize, allowedMaxSize).coerceIn(allowedMinSize, allowedMaxSize))
         }
 
         if (new == actualBounds) return
@@ -435,7 +435,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var preferredSizeCache = LeastRecentlyUsedCache<Pair<Size, Size>, Size>(maxSize = 2)
 
     /**
-     * Requests the View's preferred size based on the specified [min] and [max] constraints.
+     * Requests the View's preferred size within the specified [min] and [max] constraints.
      *
      * @param min the smallest size this View is allowed to be
      * @param max the largest size this View is allowed to be
