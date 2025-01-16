@@ -18,6 +18,8 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.External
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Invalid
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
 import io.nacular.doodle.utils.fastMutableMapOf
+import io.nacular.doodle.utils.fastMutableSetOf
+import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.MAX_VALUE
 import kotlin.math.abs
 
@@ -85,7 +87,13 @@ internal class Solver {
     }
 
     private inner class Row {
-        var symbol: Symbol? = null
+        var symbol: Symbol? by observable(null) {_,new ->
+            if (new == null) {
+                cells.keys.forEach {
+                    unregisterSymbol(it)
+                }
+            }
+        }
         var cells   = fastMutableMapOf<Symbol, Double>(); private set
         var constant: Double
 
@@ -96,6 +104,20 @@ internal class Solver {
         constructor(other: Row) {
             cells.putAll(other.cells)
             constant = other.constant
+
+            cells.keys.forEach {
+                registerSymbol(it)
+            }
+        }
+
+        private fun registerSymbol  (symbol: Symbol) { rowsWithSymbol.getOrPut(symbol) { fastMutableSetOf() }.add(this) }
+        private fun unregisterSymbol(symbol: Symbol) {
+            rowsWithSymbol[symbol]?.let {
+                it.remove(this)
+                if (it.isEmpty()) {
+                    rowsWithSymbol.remove(symbol)
+                }
+            }
         }
 
         /**
@@ -113,10 +135,13 @@ internal class Solver {
          * is zero, the symbol will be removed from the row
          */
         fun insert(symbol: Symbol, coefficient: Double = 1.0) {
-            val newCoefficient = cells.getOrPut(symbol) { 0.0 } + coefficient
+            val newCoefficient = cells.getOrPut(symbol) {
+                registerSymbol(symbol)
+                0.0
+            } + coefficient
 
             when {
-                nearZero(newCoefficient) -> cells.remove(symbol)
+                nearZero(newCoefficient) -> cells.remove(symbol).also { unregisterSymbol(symbol) }
                 else                     -> cells[symbol] = newCoefficient
             }
         }
@@ -161,7 +186,7 @@ internal class Solver {
          */
         fun solveFor(symbol: Symbol) {
             val coefficient = -1.0 / cells[symbol]!!
-            cells.remove(symbol)
+            cells.remove(symbol).also { unregisterSymbol(symbol) }
             constant *= coefficient
             for ((key, value) in cells) {
                 cells[key] = value * coefficient
@@ -205,6 +230,7 @@ internal class Solver {
          */
         fun substitute(symbol: Symbol, row: Row) {
             cells.remove(symbol)?.let { coefficient ->
+                unregisterSymbol(symbol)
                 insert(row, coefficient)
             }
         }
@@ -217,6 +243,7 @@ internal class Solver {
     private val infeasibleRows = mutableListOf<Symbol>()
     private val objective      = Row()
     private var artificial     = null as Row?
+    private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
 
     val variables: Set<Variable> get() = vars.keys
 
@@ -345,10 +372,19 @@ internal class Solver {
             return
         }
 
-        rows.forEach { (symbol, row) ->
-            val coefficient = row.coefficientFor(tag.marker)
-            if (coefficient != 0.0 && row.add(delta * coefficient) < 0.0 && symbol.type !== External) {
-                infeasibleRows.add(symbol)
+        rowsWithSymbol[tag.marker]?.iterator()?.let {
+            while (it.hasNext()) {
+                val currentRow = it.next()
+
+                when {
+                    currentRow.symbol != null -> {
+                        val coefficient = currentRow.coefficientFor(tag.marker)
+                        if (coefficient != 0.0 && currentRow.add(delta * coefficient) < 0.0 && currentRow.symbol!!.type != External) {
+                            infeasibleRows.add(currentRow.symbol!!)
+                        }
+                    }
+                    else                      -> it.remove()
+                }
             }
         }
 
@@ -502,7 +538,6 @@ internal class Solver {
     /**
      * Add the row to the tableau using an artificial variable.
      *
-     *
      * This will return false if the constraint cannot be satisfied.
      */
     private fun addWithArtificialVariable(row: Row): Boolean {
@@ -564,14 +599,15 @@ internal class Solver {
      * in the tableau and the objective function with the given row.
      */
     private fun substitute(symbol: Symbol, row: Row) {
-        for ((key, value) in rows) {
-            value.substitute(symbol, row)
-            if (key.type !== External && value.constant < 0.0) {
+        rowsWithSymbol[symbol]?.filter { it.symbol != null }?.forEach {
+            val key = it.symbol!!
+            it.substitute(symbol, row)
+            if (key.type != External && it.constant < 0.0) {
                 infeasibleRows.add(key)
             }
         }
 
-        objective.substitute(symbol, row)
+        objective.substitute  (symbol, row)
         artificial?.substitute(symbol, row)
     }
 
@@ -673,53 +709,49 @@ internal class Solver {
     /**
      * Get the symbol for the given variable.
      *
-     *
      * If a symbol does not exist for the variable, one will be created.
      */
     private fun getVarSymbol(variable: Variable) = vars.getOrPut(variable) {
         Symbol(External)
     }
 
-    private companion object {
-        /**
-         * Choose the subject for solving for the row
-         *
-         *
-         * This method will choose the best subject for using as the solve
-         * target for the row. An invalid symbol will be returned if there
-         * is no valid target.
-         * The symbols are chosen according to the following precedence:
-         * 1) The first symbol representing an external variable.
-         * 2) A negative slack or error tag variable.
-         * If a subject cannot be found, an invalid symbol will be returned.
-         */
-        private fun chooseSubject(row: Row, tag: Tag): Symbol {
-            for (key in row.cells.keys) {
-                if (key.type == External) {
-                    return key
-                }
+    /**
+     * Choose the subject for solving for the row
+     *
+     * This method will choose the best subject for using as the solve
+     * target for the row. An invalid symbol will be returned if there
+     * is no valid target.
+     * The symbols are chosen according to the following precedence:
+     * 1) The first symbol representing an external variable.
+     * 2) A negative slack or error tag variable.
+     * If a subject cannot be found, an invalid symbol will be returned.
+     */
+    private fun chooseSubject(row: Row, tag: Tag): Symbol {
+        for (key in row.cells.keys) {
+            if (key.type == External) {
+                return key
             }
-
-            if ((tag.marker.type == Slack || tag.marker.type == Error) && row.coefficientFor(tag.marker) < 0.0) return tag.marker
-            if ((tag.other.type  == Slack || tag.other.type  == Error) && row.coefficientFor(tag.other ) < 0.0) return tag.other
-
-            return Symbol()
         }
 
-        /**
-         * Compute the entering variable for a pivot operation.
-         *
-         * This method will return first symbol in the objective function which
-         * is non-dummy and has a coefficient less than zero. If no symbol meets
-         * the criteria, it means the objective function is at a minimum, and an
-         * invalid symbol is returned.
-         */
-        private fun getEnteringSymbol(objective: Row) = objective.cells.filter { (key, value) ->
-            key.type != Dummy && value < 0.0
-        }.firstNotNullOfOrNull {
-            it.key
-        } ?: Symbol()
+        if ((tag.marker.type == Slack || tag.marker.type == Error) && row.coefficientFor(tag.marker) < 0.0) return tag.marker
+        if ((tag.other.type  == Slack || tag.other.type  == Error) && row.coefficientFor(tag.other ) < 0.0) return tag.other
 
-        private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
+        return Symbol()
     }
+
+    /**
+     * Compute the entering variable for a pivot operation.
+     *
+     * This method will return first symbol in the objective function which
+     * is non-dummy and has a coefficient less than zero. If no symbol meets
+     * the criteria, it means the objective function is at a minimum, and an
+     * invalid symbol is returned.
+     */
+    private fun getEnteringSymbol(objective: Row) = objective.cells.filter { (key, value) ->
+        key.type != Dummy && value < 0.0
+    }.firstNotNullOfOrNull {
+        it.key
+    } ?: Symbol()
+
+    private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
 }

@@ -672,21 +672,7 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
-    public val Edges.preserve: List<Result<Constraint>> get() {
-        val result = mutableListOf<Result<Constraint>>()
-
-        if (top != null) {
-            (top eq top.readOnly).also { result += it }
-        }
-        if (left != null) {
-            (left eq left.readOnly).also { result += it }
-        }
-
-        (right eq right.readOnly).also { result += it }
-        (bottom eq right.readOnly).also { result += it }
-
-        return result
-    }
+    public val Edges.preserve: List<Result<Constraint>> get() = this eq this.readOnly
 
     public infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this

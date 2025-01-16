@@ -297,8 +297,6 @@ internal class ConstraintLayoutImpl(
 
         viewBounds.getOrPut(view) {
             BoundsImpl(view.positionable, context).also { bounds ->
-                viewBounds[view] = bounds
-
                 view.positionable.bounds.let {
                     if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
                         updatedBounds[bounds.top_  ] = it.y
@@ -363,13 +361,13 @@ internal class ConstraintLayoutImpl(
                                     // handle delete
                                     handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
                                     // handle insert
-                                    if (!handleInsert(solver, insertedConstraint, updatedBounds) {}) {
+                                    if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
                                         failedInserts += insertedConstraint
                                     }
                                 }
                             }.ifNull {
                                 // handle insert
-                                if (!handleInsert(solver, insertedConstraint, updatedBounds) {}) {
+                                if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
                                     failedInserts += insertedConstraint
                                 }
                             }
@@ -448,7 +446,7 @@ internal class ConstraintLayoutImpl(
             solver            : Solver,
             insertedConstraint: Constraint,
             updatedBounds     : MutableMap<ReflectionVariable, Double>,
-            errorHandler      : (ConstraintException) -> Unit
+            errorHandler      : (ConstraintException) -> Unit = {}
         ): Boolean {
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }

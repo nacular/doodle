@@ -43,9 +43,7 @@ import kotlin.math.abs
  * @property terms (or variable-coefficient pairs) within the expression
  * @property constant value for the expression
  */
-public open class Expression internal constructor(terms: Array<out Term>, constant: Double = 0.0) {
-    internal val constant = constant + terms.asSequence().filter { it.isConst }.sumOf { it.value }
-
+public open class Expression internal constructor(terms: Array<out Term>, internal val constant: Double = 0.0) {
     internal val terms = terms.filterIsInstance<VariableTerm>().toTypedArray()
 
     /**
@@ -56,7 +54,7 @@ public open class Expression internal constructor(terms: Array<out Term>, consta
     /**
      * `true` if the expression has no terms
      */
-    internal open val isConstant: Boolean = terms.isEmpty()
+    internal open val isConstant: Boolean get() = terms.isEmpty()
 
     /**
      * Provides the Expression's value directly, and does not treat its contents as
@@ -133,44 +131,15 @@ public open class Expression internal constructor(terms: Array<out Term>, consta
  */
 public abstract class Term internal constructor(internal open val coefficient: Double = 1.0) {
     internal abstract val value: Double
-    internal abstract val isConst: Boolean
     internal abstract operator fun times(value: Number): Term
 }
 
 internal data class VariableTerm(val variable: Variable, override val coefficient: Double = 1.0): Term(coefficient) {
     override val value: Double get() = coefficient * variable()
-    override val isConst = false
 
     override fun times(value: Number) = VariableTerm(variable, coefficient * value.toDouble())
 
     override fun toString(): String = "${if (coefficient >= 0) "+ $coefficient" else "- ${abs(coefficient)}"}($variable:${variable()})"
-}
-
-internal class ConstTerm(val property: Property, override val coefficient: Double = 1.0): Term(coefficient) {
-    override val value: Double get() = coefficient * property.readOnly
-    override val isConst = true
-
-    override fun times(value: Number) = ConstTerm(property, coefficient * value.toDouble())
-
-    override fun toString(): String = "${if (coefficient >= 0) "+ $coefficient" else "- ${abs(coefficient)}"}($property)"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as ConstTerm
-
-        if (property    != other.property   ) return false
-        if (coefficient != other.coefficient) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = property.hashCode()
-        result = 31 * result + coefficient.hashCode()
-        return result
-    }
 }
 
 internal interface Variable {
