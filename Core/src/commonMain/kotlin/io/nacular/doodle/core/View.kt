@@ -275,6 +275,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public fun suggestPosition(x: Double, y: Double) { setBounds(x, y, newBounds.width, newBounds.height) }
 
     /**
+     * Requests that the View's center be moved to the given point.
+     *
+     * @param at the point to center
+     */
+    public fun suggestCenter(at: Point) { suggestBounds(newBounds.centered(at)) }
+
+    /**
      * Request that the View's width value be updated.
      *
      * NOTE: this does not guarantee that [View.width] will be changed. That depends on constraints placed on this View
@@ -1655,13 +1662,6 @@ public fun <T> renderProperty(initial: T, onChange: View.(old: T, new: T) -> Uni
  * The View's center point in its **parent's** coordinate system.
  */
 public val View.center: Point get() = position + Point(width/2, height/2)
-
-/**
- * Moves the View's center to the given point.
- *
- * @param at the point to center
- */
-public fun View.centered(at: Point) { suggestBounds(bounds.centered(at)) }
 
 /**
  * @param filter used in search
