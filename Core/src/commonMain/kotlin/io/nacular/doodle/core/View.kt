@@ -11,7 +11,6 @@ import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.Positionable.BoundsUpdateContext
-import io.nacular.doodle.core.View.SizeAuditor
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
@@ -83,31 +82,6 @@ import kotlin.reflect.KProperty
 
 private typealias BooleanObservers = PropertyObservers<View, Boolean>
 private typealias ZOrderObservers  = PropertyObservers<View, Int>
-
-public fun fixed(size: Size): View.(Size, Size) -> Size = { _,_ -> size }
-
-public fun proposed(): View.(Size, Size) -> Size = { _,_ -> prospectiveBounds.size }
-
-public fun preserveAspect(ratio: Double): SizeAuditor = SizeAuditor { _, old, new, min, max ->
-    val s = new.coerceIn(min, max)
-
-    when {
-        s.width != old.width -> {
-            var h = (s.width / ratio).coerceIn(min.height, max.height)
-            val w = (h       * ratio).coerceIn(min.width,  max.width )
-
-            Size(w, h)
-        }
-        else                  -> {
-            val w = (s.height * ratio).coerceIn(min.width,  max.width )
-            var h = (w        / ratio).coerceIn(min.height, max.height)
-
-            Size(w, h)
-        }
-    }
-}
-
-public fun preserveAspect(width: Double, height: Double): SizeAuditor = preserveAspect(if (height > 0.0) width / height else 0.0)
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -446,24 +420,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param max the largest size this View is allowed to be
      * @return the View's preferred size
      */
-    public var preferredSize: View.(min: Size, max: Size) -> Size = { min, max ->
-        when (val l = layout) {
-            null -> newBounds.size
-            else -> when (val s = preferredSizeCache(min, max)) {
-                null                                               -> {
-                    doLayout(l, min, newBounds.size, max).also {
-                        renderManager?.logPreferredSizeLayout(this)
-
-                        when {
-                            min == Empty && max == Infinite -> idealSizeCache = it
-                            else                            -> preferredSizeCache[min to max] = it
-                        }
-                    }
-                }
-                else -> s
-            }
-        }
-    }
+    public var preferredSize: View.(min: Size, max: Size) -> Size = defaultPreferredSize
 
     public fun interface SizeAuditor {
         /**
@@ -477,6 +434,29 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
          * @return the size the View should change to (which will be clipped to min/max)
          */
         public operator fun invoke(view: View, old: Size, new: Size, min: Size, max: Size): Size
+
+        public companion object {
+            public fun preserveAspect(ratio: Double): SizeAuditor = SizeAuditor { _, old, new, min, max ->
+                val s = new.coerceIn(min, max)
+
+                when {
+                    s.width != old.width -> {
+                        var h = (s.width / ratio).coerceIn(min.height, max.height)
+                        val w = (h       * ratio).coerceIn(min.width,  max.width )
+
+                        Size(w, h)
+                    }
+                    else                  -> {
+                        val w = (s.height * ratio).coerceIn(min.width,  max.width )
+                        var h = (w        / ratio).coerceIn(min.height, max.height)
+
+                        Size(w, h)
+                    }
+                }
+            }
+
+            public fun preserveAspect(width: Double, height: Double): SizeAuditor = preserveAspect(if (height > 0.0) width / height else 0.0)
+        }
     }
 
     /**
@@ -1645,6 +1625,29 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         public fun <T> observableStyleProperty(initial: T, filter: (View) -> Boolean = { true }, onChanged: (old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<View, T> = observable(initial) { old, new ->
             styleChanged(filter)
             onChanged(old, new)
+        }
+
+        public fun fixed(size: Size): View.(Size, Size) -> Size = { _,_ -> size }
+
+        public val proposedSize: View.(Size, Size) -> Size = { _,_ -> prospectiveBounds.size }
+
+        public val defaultPreferredSize: View.(Size, Size) -> Size = { min, max ->
+            when (val l = layout) {
+                null -> newBounds.size
+                else -> when (val s = preferredSizeCache(min, max)) {
+                    null                                               -> {
+                        doLayout(l, min, newBounds.size, max).also {
+                            renderManager?.logPreferredSizeLayout(this)
+
+                            when {
+                                min == Empty && max == Infinite -> idealSizeCache = it
+                                else                            -> preferredSizeCache[min to max] = it
+                            }
+                        }
+                    }
+                    else -> s
+                }
+            }
         }
     }
 }

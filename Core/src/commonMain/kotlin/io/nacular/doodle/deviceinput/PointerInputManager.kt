@@ -513,22 +513,23 @@ public class PointerInputManagerImpl(
         }
 
         return PointerEvent(
-                target,
-                target,
-                event.buttons,
-                event.clickCount,
-                targetInteractions  = targetedInteractions[target]!!,
-                changedInteractions = fastSetOf(interaction),
-                allInteractions     = { targetedInteractions.values.asSequence().flatten().toSet() },
-                modifiers           = event.modifiers)
+            source              = target,
+            target              = target,
+            buttons             = event.buttons,
+            clickCount          = event.clickCount,
+            targetInteractions  = targetedInteractions[target]!!,
+            changedInteractions = fastSetOf(interaction),
+            allInteractions     = { targetedInteractions.values.asSequence().flatten().toSet() },
+            modifiers           = event.modifiers
+        )
     }
 
     private fun createInteraction(target: View, event: SystemPointerEvent, type: Type = event.type) = Interaction(
-            Pointer(event.id),
-            target,
-            type,
-            target.fromAbsolute(event.location),
-            event.location
+        Pointer(event.id),
+        target,
+        type,
+        target.fromAbsolute(event.location),
+        event.location
     )
 
     private fun updateInteractions(view: View) {

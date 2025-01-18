@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.files.FileSelectorBehavior
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.NativeFileSelectorFactory
 import io.nacular.doodle.system.Cursor

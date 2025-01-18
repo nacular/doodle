@@ -6,7 +6,6 @@ import io.nacular.doodle.controls.table.MetaRowVisibility.Never
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong

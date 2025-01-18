@@ -6,7 +6,7 @@ import io.nacular.doodle.controls.text.TextFieldBehavior
 import io.nacular.doodle.controls.text.TextInput
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.impl.CanvasImpl

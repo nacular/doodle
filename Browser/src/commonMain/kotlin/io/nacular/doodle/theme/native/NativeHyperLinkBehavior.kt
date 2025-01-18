@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.buttons.HyperLink
 import io.nacular.doodle.controls.theme.CommonTextButtonBehavior
 import io.nacular.doodle.core.Behavior
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.impl.NativeHyperLinkFactory

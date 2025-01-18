@@ -3,7 +3,7 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.dom.BorderStyle.None
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
@@ -190,14 +190,12 @@ internal class NativeButton internal constructor(
             Right  -> maxX
             Center -> max(minX, min(maxX, (bounds.width - stringSize.width) / 2)) - border.left
             Left   -> minX
-            else   -> minX
         }
 
         val y = when (button.verticalAlignment) {
             Bottom -> maxY
             Middle -> max(minY, min(maxY, (bounds.height - stringSize.height) / 2)) - border.top
             Top    -> minY
-            else   -> minY
         }
 
         return Point(x, y)

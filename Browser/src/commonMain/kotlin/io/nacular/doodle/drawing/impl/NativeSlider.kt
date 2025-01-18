@@ -2,7 +2,7 @@ package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement

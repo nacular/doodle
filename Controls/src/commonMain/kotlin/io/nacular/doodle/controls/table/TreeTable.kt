@@ -20,7 +20,6 @@ import io.nacular.doodle.controls.tree.TreeModel
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.scrollToVertical
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point

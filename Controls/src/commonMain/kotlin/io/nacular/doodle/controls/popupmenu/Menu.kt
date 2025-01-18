@@ -14,7 +14,6 @@ import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.renderProperty
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.event.KeyCode.Companion.ArrowDown

@@ -2,7 +2,7 @@ package io.nacular.doodle.theme
 
 import io.nacular.doodle.controls.ProgressIndicator
 import io.nacular.doodle.controls.theme.ProgressIndicatorBehavior
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color

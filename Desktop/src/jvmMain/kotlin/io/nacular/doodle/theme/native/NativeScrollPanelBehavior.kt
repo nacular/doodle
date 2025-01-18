@@ -9,7 +9,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.LookupResult
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface

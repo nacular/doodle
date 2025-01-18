@@ -5,7 +5,7 @@ import io.nacular.doodle.controls.files.FileSelector.Companion.AnyFile
 import io.nacular.doodle.controls.files.FileSelectorBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.datatransport.LocalFile
 import io.nacular.doodle.datatransport.MimeType
 import io.nacular.doodle.datatransport.SimpleFile

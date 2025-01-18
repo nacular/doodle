@@ -3,7 +3,7 @@ package io.nacular.doodle.theme.native
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.fixed
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.impl.CanvasImpl
 import io.nacular.doodle.event.PointerEvent
