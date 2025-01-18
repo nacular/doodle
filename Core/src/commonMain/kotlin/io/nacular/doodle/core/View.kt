@@ -88,28 +88,26 @@ public fun fixed(size: Size): View.(Size, Size) -> Size = { _,_ -> size }
 
 public fun proposed(): View.(Size, Size) -> Size = { _,_ -> prospectiveBounds.size }
 
-public fun preserveAspect(width: Double, height: Double): SizeAuditor {
-    val aspect = width / height
+public fun preserveAspect(ratio: Double): SizeAuditor = SizeAuditor { _, old, new, min, max ->
+    val s = new.coerceIn(min, max)
 
-    return SizeAuditor { _, old, new, min, max ->
-        val s = new.coerceIn(min, max)
+    when {
+        s.width != old.width -> {
+            var h = (s.width / ratio).coerceIn(min.height, max.height)
+            val w = (h       * ratio).coerceIn(min.width,  max.width )
 
-        when {
-            s.width != old.width -> {
-                var h = (s.width / aspect).coerceIn(min.height, max.height)
-                val w = (h       * aspect).coerceIn(min.width,  max.width )
+            Size(w, h)
+        }
+        else                  -> {
+            val w = (s.height * ratio).coerceIn(min.width,  max.width )
+            var h = (w        / ratio).coerceIn(min.height, max.height)
 
-                Size(w, h)
-            }
-            else                  -> {
-                val w = (s.height * aspect).coerceIn(min.width,  max.width )
-                var h = (w        / aspect).coerceIn(min.height, max.height)
-
-                Size(w, h)
-            }
+            Size(w, h)
         }
     }
 }
+
+public fun preserveAspect(width: Double, height: Double): SizeAuditor = preserveAspect(if (height > 0.0) width / height else 0.0)
 
 /**
  * The smallest unit of displayable, interactive content within doodle.  Views are the visual entities used to display components for an application.
@@ -485,7 +483,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Called whenever the View's size is changing, providing an opportunity to manage the final size.
      * The result of this call will still be clipped to the View's min/max allowed sizes.
      */
-    public var sizeAuditor: SizeAuditor? = null
+    public var sizeAuditor: SizeAuditor? by observable(null) { _,new ->
+        new?.invoke(this, Empty, newBounds.size, allowedMinSize, allowedMaxSize)?.let {
+            suggestSize(it)
+        }
+    }
 
     private fun preferredSizeCache(min: Size, max: Size): Size? = when {
         min == Empty && max == Infinite && !layoutNeeded && idealSizeCache != null -> idealSizeCache

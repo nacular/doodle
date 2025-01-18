@@ -75,6 +75,7 @@ import io.nacular.doodle.dom.setY
 import io.nacular.doodle.dom.setY1
 import io.nacular.doodle.dom.setY2
 import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Color.Companion.White
 import io.nacular.doodle.drawing.ColorPaint
@@ -1323,7 +1324,7 @@ internal open class VectorRendererSvg(
 
     private inner class ForeignObjectFillHandler<T: Paint>(private val configure: HTMLElement.(T) -> Unit): FillHandler<T> {
         private fun makeForeign(mask: SVGElement, paint: T) = getSharedElement(paint to mask.id) {
-            val gradient = createOrUse<SVGElement>("foreignObject").apply {
+            val foreignObject = createOrUse<SVGElement>("foreignObject").apply {
                 appendChild(htmlFactory.create<HTMLElement>().apply {
                     configure(paint)
                     style.maskImage = "url(#${mask.id})"
@@ -1332,7 +1333,7 @@ internal open class VectorRendererSvg(
                 })
             }
 
-            gradient
+            foreignObject
         }
 
         private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
@@ -1346,8 +1347,7 @@ internal open class VectorRendererSvg(
                 child = parent.cloneNode(deep = false).also { parentClone ->
                     var index = 0
 
-                    // need to include all siblings that came before the TSpan to ensure proper placement of the
-                    // mask
+                    // need to include all siblings that came before the TSpan to ensure proper placement of the mask
                     while (index < parent.numChildren) {
                         (parent.childAt(index++) as? SVGElement)?.let {
                             parentClone.appendChild(
@@ -1386,8 +1386,27 @@ internal open class VectorRendererSvg(
             renderer.completeOperation(makeForeign(mask, paint).apply {
                 val bbox = element.getBBox_(BoundingBoxOptions())
 
-                setAttribute("width",  "${bbox.x + bbox.width}" )
-                setAttribute("height", "${bbox.y + bbox.height}")
+                var translation = Identity
+
+                if (bbox.x < 0) {
+                    setAttribute("x",      "${bbox.x     }")
+                    setAttribute("width",  "${bbox.width }")
+                    translation  = Identity.translate(x = -bbox.x)
+                } else {
+                    setAttribute("width",  "${bbox.x + bbox.width }")
+                }
+
+                if (bbox.y < 0) {
+                    translation *= Identity.translate(y = -bbox.y)
+                    setAttribute("y",      "${bbox.y     }")
+                    setAttribute("height", "${bbox.height}")
+                } else {
+                    setAttribute("height",  "${bbox.y + bbox.height}")
+                }
+
+                if (!translation.isIdentity) {
+                    (mask.firstChild as SVGElement).style.setTransform(translation)
+                }
             })
         }
 

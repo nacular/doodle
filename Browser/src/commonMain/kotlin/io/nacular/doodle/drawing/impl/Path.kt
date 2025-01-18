@@ -3,7 +3,7 @@ package io.nacular.doodle.drawing.impl
 import io.nacular.doodle.geometry.Point
 import kotlin.js.JsName
 
-internal abstract class Path constructor(
+internal abstract class Path(
         private val moveTo: String,
         private val lineTo: String,
         private val close : String,

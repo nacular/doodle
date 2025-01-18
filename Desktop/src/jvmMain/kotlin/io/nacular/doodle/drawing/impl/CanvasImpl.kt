@@ -521,7 +521,7 @@ internal class CanvasImpl(
                     style      = GradientStyle(DECAL, isPremul = true, Identity.rotate(around = center, rotation).skia33())
                 )
             }
-            is FrostedGlassPaint   -> result.color = color.skia() // Background blurring happens elsewhere, so we just need to treat this like ColorPaint now
+            is FrostedGlassPaint   -> result.color = (color ?: Transparent).skia() // Background blurring happens elsewhere, so we just need to treat this like ColorPaint now
         }
 
         return result
