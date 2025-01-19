@@ -1180,12 +1180,9 @@ internal open class VectorRendererSvg(
 
                     setAttribute("patternUnits", "userSpaceOnUse")
 
-                    if (!paint.transform.isIdentity) {
-                        setPatternTransform(paint.transform)
-                    }
-
-                    setBounds(paint.bounds)
-                    clear    (            )
+                    setPatternTransform(paint.transform)
+                    setBounds          (paint.bounds   )
+                    clear              (               )
                 }
 
                 renderer.completeOperation(pattern)
