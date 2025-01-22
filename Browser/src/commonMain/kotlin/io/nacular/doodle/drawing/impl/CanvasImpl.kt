@@ -390,8 +390,9 @@ internal open class CanvasImpl(
     private fun isSimple(text: StyledText): Boolean = text.all { (_,style) ->
         val simpleForeground = isSimpleText(style.foreground, style.stroke)
         val simpleBackground = style.background?.isSimple != false
+        val noStroke         = style.stroke == null
 
-        simpleForeground && simpleBackground
+        simpleForeground && simpleBackground && noStroke
     }
 
     private fun subFrame(block: Canvas.() -> Unit, configure: (HTMLElement) -> Unit) {

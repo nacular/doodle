@@ -321,10 +321,10 @@ internal open class VectorRendererSvg(
     }
 
     override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
-        textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont), line = 0)
+        textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont))
     }
 
-    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double, line: Int) {
+    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double) {
         if (text.count > 0) {
             syncShadows  ()
             updateRootSvg() // Done here since present normally does this
@@ -790,7 +790,6 @@ internal open class VectorRendererSvg(
                     wordSpacing   = wordSpacing + textSpacing.wordSpacing
                 ),
                 verticalOffset,
-                line = index
             )
         }
 
@@ -1320,17 +1319,24 @@ internal open class VectorRendererSvg(
     }
 
     private inner class ForeignObjectFillHandler<T: Paint>(private val configure: HTMLElement.(T) -> Unit): FillHandler<T> {
-        private fun makeForeign(mask: SVGElement, paint: T) = getSharedElement(paint to mask.id) {
-            val foreignObject = createOrUse<SVGElement>("foreignObject").apply {
-                appendChild(htmlFactory.create<HTMLElement>().apply {
-                    configure(paint)
-                    style.maskImage = "url(#${mask.id})"
-                    style.setWidthPercent (100.0)
-                    style.setHeightPercent(100.0)
-                })
-            }
+        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke?) {
+            makeFill(renderer, paint, element, stroke)
+        }
 
-            foreignObject
+        override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke) {
+            makeStroke(renderer, paint, element, stroke)
+        }
+
+        private fun makeForeign(mask: SVGElement, paint: T) = createOrUse<SVGElement>("foreignObject").apply {
+            removeAttribute("x")
+            removeAttribute("y")
+
+            appendChild(htmlFactory.create<HTMLElement>().apply {
+                configure(paint)
+                style.maskImage = "url(#${mask.id})"
+                style.setWidthPercent (100.0)
+                style.setHeightPercent(100.0)
+            })
         }
 
         private fun makeMask(element: SVGGraphicsElement, config: SVGElement.() -> Unit) = createOrUse<SVGElement>("mask").apply {
@@ -1379,38 +1385,13 @@ internal open class VectorRendererSvg(
 
             element.setFill(null)
 
-            renderer.completeOperation(mask                   )
-            renderer.completeOperation(makeForeign(mask, paint).apply {
-                val bbox = element.getBBox_(BoundingBoxOptions())
-
-                var translation = Identity
-
-                if (bbox.x < 0) {
-                    setAttribute("x",      "${bbox.x     }")
-                    setAttribute("width",  "${bbox.width }")
-                    translation  = Identity.translate(x = -bbox.x)
-                } else {
-                    setAttribute("width",  "${bbox.x + bbox.width }")
-                }
-
-                if (bbox.y < 0) {
-                    translation *= Identity.translate(y = -bbox.y)
-                    setAttribute("y",      "${bbox.y     }")
-                    setAttribute("height", "${bbox.height}")
-                } else {
-                    setAttribute("height",  "${bbox.y + bbox.height}")
-                }
-
-                if (!translation.isIdentity) {
-                    (mask.firstChild as SVGElement).style.setTransform(translation)
-                }
-            })
+            finish(renderer, paint, null, element, mask)
         }
 
         private fun makeStroke(renderer: VectorRendererSvg, paint: T, element: SVGGraphicsElement, stroke: Stroke) {
             val mask = makeMask(element) {
-                element.getAttribute("y")?.let { setAttribute("y", it) }
                 element.getAttribute("x")?.let { setAttribute("x", it) }
+                element.getAttribute("y")?.let { setAttribute("y", it) }
 
                 setFill  (null  )
                 setStroke(Stroke(
@@ -1423,21 +1404,38 @@ internal open class VectorRendererSvg(
                 setStrokeColor(White)
             }
 
+            finish(renderer, paint, stroke, element, mask)
+        }
+
+        private fun finish(renderer: VectorRendererSvg, paint: T, stroke: Stroke?, element: SVGGraphicsElement, mask: SVGElement) {
             renderer.completeOperation(mask                   )
             renderer.completeOperation(makeForeign(mask, paint).apply {
-                val bbox = element.getBBox_(BoundingBoxOptions())
+                val bbox     = element.getBBox_(BoundingBoxOptions())
+                val offset   = (stroke?.thickness ?: 0.0) / 2
+                val adjusted = Rectangle(bbox.x - offset, bbox.y - offset, bbox.width + 2 * offset, bbox.height + 2 * offset)
 
-                setAttribute("width",  "${bbox.x + bbox.width  + stroke.thickness / 2}")
-                setAttribute("height", "${bbox.y + bbox.height + stroke.thickness / 2}")
+                var translation = Identity
+
+                if (adjusted.x < 0) {
+                    setAttribute("x",      "${adjusted.x     }")
+                    setAttribute("width",  "${adjusted.width }")
+                    translation  = Identity.translate(x = -adjusted.x)
+                } else {
+                    setAttribute("width",  "${adjusted.x + adjusted.width }")
+                }
+
+                if (adjusted.y < 0) {
+                    translation *= Identity.translate(y = -adjusted.y)
+                    setAttribute("y",      "${adjusted.y     }")
+                    setAttribute("height", "${adjusted.height}")
+                } else {
+                    setAttribute("height",  "${adjusted.y + adjusted.height}")
+                }
+
+                if (!translation.isIdentity) {
+                    (mask.firstChild as SVGElement).style.setTransform(translation)
+                }
             })
-        }
-
-        override fun fill(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke?) {
-            makeFill(renderer, paint, element, stroke)
-        }
-
-        override fun stroke(renderer: VectorRendererSvg, element: SVGGraphicsElement, paint: T, stroke: Stroke) {
-            makeStroke(renderer, paint, element, stroke)
         }
     }
 
