@@ -9,8 +9,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.core.container
-import io.nacular.doodle.core.fixed
 import io.nacular.doodle.core.forceHeight
 import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.core.forceWidth

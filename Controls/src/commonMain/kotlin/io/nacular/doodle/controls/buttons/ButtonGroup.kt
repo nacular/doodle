@@ -49,14 +49,12 @@ public class ButtonGroup(public var allowDeselectAll: Boolean = false, vararg bu
                 if (selected) {
                     selectedModel = buttonModel
                 }
-            } else {
-                if (selectedModel != buttonModel && selected) {
-                    val temp = selectedModel
+            } else if (selectedModel != buttonModel && selected) {
+                val temp = selectedModel
 
-                    selectedModel = buttonModel
+                selectedModel = buttonModel
 
-                    temp?.selected = false
-                }
+                temp?.selected = false
             }
 
             if (!allowDeselectAll) {

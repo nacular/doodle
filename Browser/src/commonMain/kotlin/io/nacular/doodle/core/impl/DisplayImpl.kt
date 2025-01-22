@@ -142,16 +142,16 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
     val renderOffset: Int get() = canvasElement.parent?.let { 1 } ?: 0
 
     override var transform: AffineTransform = Identity; set (new) {
-            field = new
+        field = new
 
-            refreshAugmentedTransform()
-        }
+        refreshAugmentedTransform()
+    }
 
     private var augmentedTransform: AffineTransform = Identity; set (new) {
-            field = new
+        field = new
 
-            updateTransform()
-        }
+        updateTransform()
+    }
 
     private var ignoreNextContentDirection = false
 
