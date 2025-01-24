@@ -33,11 +33,6 @@ public class TextDecoration(
         public class Percent (public val value: Float ): Thickness()
     }
 
-    public companion object {
-        public val UnderLine  : TextDecoration = TextDecoration(lines = setOf(Under  ))
-        public val LineThrough: TextDecoration = TextDecoration(lines = setOf(Through))
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is TextDecoration) return false
@@ -56,6 +51,34 @@ public class TextDecoration(
         result = 31 * result + style.hashCode()
         result = 31 * result + (thickness?.hashCode() ?: 0)
         return result
+    }
+
+    public companion object {
+        /** [Underline][io.nacular.doodle.text.TextDecoration.UnderLine] style with defaults */
+        public val UnderLine  : TextDecoration = TextDecoration(lines = setOf(Under  ))
+
+        /** [LineThrough][io.nacular.doodle.text.TextDecoration.LineThrough] style with defaults */
+        public val LineThrough: TextDecoration = TextDecoration(lines = setOf(Through))
+
+        /**
+         * Utility for creating [Underline][io.nacular.doodle.text.TextDecoration.UnderLine] [io.nacular.doodle.text.TextDecoration].
+         */
+        public fun underLine(color: Color, style: Style = Solid, thickness: Thickness? = null): TextDecoration = TextDecoration(
+            lines     = setOf(Under),
+            color     = color,
+            style     = style,
+            thickness = thickness
+        )
+
+        /**
+         * Utility for creating [LineThrough][io.nacular.doodle.text.TextDecoration.LineThrough] [io.nacular.doodle.text.TextDecoration].
+         */
+        public fun lineThrough(color: Color, style: Style = Solid, thickness: Thickness? = null): TextDecoration = TextDecoration(
+            lines     = setOf(Through),
+            color     = color,
+            style     = style,
+            thickness = thickness
+        )
     }
 }
 
@@ -240,11 +263,11 @@ public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().ap
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
-public operator fun Color?.invoke(target: Target = Foreground, text: () -> String): StyledText = this?.let { ColorPaint(it) }(target, text)
+public operator fun Color?.invoke(target: Target = Foreground, text: () -> String): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
 
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
-public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }(target, text)
+public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
 
 // endregion
 
