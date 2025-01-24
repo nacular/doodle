@@ -1536,6 +1536,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override val bounds    get() = this@View.newBounds
         override val idealSize get() = this@View.idealSize
 
+        override fun preferredSize(min: Size, max: Size) = this@View.preferredSize(min, max)
+
         override fun contains(point: Point) = point in this@View
 
         override fun updatePosition(x: Double, y: Double) {

@@ -19,8 +19,16 @@ public interface Positionable {
     /** The current screen location/size */
     public val bounds: Rectangle
 
-    /** The current preferred size */
+    /** The ideal size */
     public val idealSize: Size
+
+    /**
+     * Preferred size within [min] and [max].
+     *
+     * @param min size allowed
+     * @param max size allowed
+     */
+    public fun preferredSize(min: Size, max: Size): Size
 
     /** Whether this item is visible. */
     public val visible: Boolean

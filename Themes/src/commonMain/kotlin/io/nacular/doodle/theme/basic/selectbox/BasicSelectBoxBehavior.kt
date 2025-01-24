@@ -248,7 +248,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
                 else -> popupManager.show(it, view) { list, dropdown ->
                     list.top    eq dropdown.y - view.selection * (view.height - 2 * inset)
                     list.left   eq dropdown.x
-                    list.height eq list.preferredHeight
+                    list.height eq list.idealHeight
                 }
             }
         }

@@ -248,7 +248,7 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
             switch.centerY eq parent.centerY
 
             label.left     eq 0
-            label.height   eq label.preferredHeight
+            label.height   eq label.idealHeight
             label.centerY  eq switch.centerY
 
             parent.height greaterEq label.bottom
@@ -3164,12 +3164,12 @@ private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26
     button_.size   eq parent.size
 
     label_.left    eq labelOffset
-    label_.width   eq label_.preferredWidth
+    label_.width   eq label_.idealWidth
     label_.height  eq parent.height
     label_.centerY eq button_.centerY
 
-    parent.right  eq labelOffset + label_.preferredWidth
-    parent.height eq label_.preferredHeight
+    parent.right  eq labelOffset + label_.idealWidth
+    parent.height eq label_.idealHeight
 }
 
 private fun <T> FieldInfo<T>.updateRequiredText(

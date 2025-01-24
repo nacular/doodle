@@ -349,8 +349,8 @@ public class Menu private constructor(
                             menu.top  greaterEq parentInset strength Strong
                             menu.left greaterEq parentInset strength Strong
 
-                            menu.width  eq menu.preferredWidth
-                            menu.height eq menu.preferredHeight
+                            menu.width  eq menu.idealWidth
+                            menu.height eq menu.idealHeight
 
                             menu.right  lessEq parent.right  - parentInset
                             menu.bottom lessEq parent.bottom - parentInset

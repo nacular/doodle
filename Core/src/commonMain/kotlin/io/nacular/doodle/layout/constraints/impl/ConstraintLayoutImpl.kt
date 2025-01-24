@@ -76,7 +76,9 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override val edges   by lazy { with(context) { Edges(top   + 0, left   + 0, right, bottom) } }
     override val size    by lazy { with(context) { Area (width + 0, height + 0               ) } }
 
-    override val preferredSize get() = target.idealSize
+    override val idealSize get() = target.idealSize
+
+    override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
     fun commit() {
         val minWidth  = if (width.constrained ) width__  else 0.0

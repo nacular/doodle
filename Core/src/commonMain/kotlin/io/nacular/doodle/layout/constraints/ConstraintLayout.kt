@@ -285,14 +285,22 @@ public interface Bounds {
     /** The rectangle's center */
     public val center: Position
 
-    /** The preferred width */
-    public val preferredWidth: Double get() = preferredSize.width
+    /** The ideal width */
+    public val idealWidth: Double get() = idealSize.width
 
-    /** The preferred height */
-    public val preferredHeight: Double get() = preferredSize.height
+    /** The ideal height */
+    public val idealHeight: Double get() = idealSize.height
 
-    /** The preferred size */
-    public val preferredSize: Size
+    /** The ideal size */
+    public val idealSize: Size
+
+    /**
+     * The preferred size within [min] - [max]
+     *
+     * @param min size allowed
+     * @param max size allowed
+     */
+    public fun preferredSize(min: Size, max: Size): Size
 }
 
 /**
@@ -900,6 +908,8 @@ public class Constrainer {
         override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override fun contains(point: Point) = true
+
+        override fun preferredSize(min: Size, max: Size) = probe?.preferredSize(min, max) ?: Size.Empty
 
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
             bounds = Rectangle(x, y, max.width, max.height)

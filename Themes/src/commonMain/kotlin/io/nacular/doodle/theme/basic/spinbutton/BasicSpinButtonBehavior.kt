@@ -236,7 +236,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
 
     private fun updateAlignment(spinButton: SpinButton<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = spinButton.cellAlignment ?: {
-            it.size   eq     it.preferredSize strength Strong
+            it.size   eq     it.idealSize strength Strong
             it.center eq     parent.center
             it.width  lessEq parent.width
             it.height lessEq parent.height
