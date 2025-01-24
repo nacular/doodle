@@ -379,7 +379,7 @@ internal class RealGraphicsSurface private constructor(
             else           -> try {
                 htmlFactory.root.remove(rootElement)
                 nonPopupTopLevelSurfaces -= this
-            } catch (ignore: Throwable) {}
+            } catch (_: Throwable) {}
         }
     }
 
@@ -475,13 +475,15 @@ internal class RealGraphicsSurface private constructor(
                     }
                 }
 
+                htmlFactory.root.remove(rootElement)
+
                 if (realIndex >= 0) {
                     nonPopupTopLevelSurfaces.remove(this)
                     nonPopupTopLevelSurfaces.addOrAppend(realIndex, this)
+                    htmlFactory.root.insert(rootElement, realIndex + rootElementOffset())
+                } else {
+                    htmlFactory.root.appendChild(rootElement)
                 }
-
-                htmlFactory.root.remove(rootElement                                 )
-                htmlFactory.root.insert(rootElement, realIndex + rootElementOffset())
             }
             else -> parent?.setIndex(this, realIndex, shift)
         }
