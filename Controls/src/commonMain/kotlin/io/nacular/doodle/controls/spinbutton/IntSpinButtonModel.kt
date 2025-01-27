@@ -8,14 +8,13 @@ public open class IntSpinButtonModel(private val progression: IntProgression, st
     override fun next    () { if (hasNext    ) { value += progression.step } }
     override fun previous() { if (hasPrevious) { value -= progression.step } }
 
-    override var value: Int = start
-        protected set(new) {
-            if (new == field || new < progression.first || new > progression.last) { return }
+    override var value: Int = start.coerceIn(progression.first, progression.last); protected set(new) {
+        if (new == field || new < progression.first || new > progression.last) { return }
 
-            field = new
+        field = new
 
-            changed_()
-        }
+        changed_()
+    }
 }
 
 public class MutableIntSpinButtonModel(progression: IntProgression, start: Int = progression.first): IntSpinButtonModel(progression, start), MutableSpinButtonModel<Int> {

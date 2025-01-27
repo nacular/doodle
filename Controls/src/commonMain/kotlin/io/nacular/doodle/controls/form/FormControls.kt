@@ -1977,6 +1977,21 @@ public fun <T, M: SpinButtonModel<T>> spinButton(
             )
         }
 
+        initial.fold(
+            onValid = {
+                do {
+                    val item = spinButton.value
+
+                    if (item.getOrNull() == it) {
+                        break
+                    }
+
+                    spinButton.next()
+                } while (spinButton.model.hasNext)
+            },
+            default = spinButton.value
+        )
+
         state = spinButton.value.fold(
             onSuccess = { Valid(it) },
             onFailure = { Invalid() }
