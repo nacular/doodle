@@ -1083,11 +1083,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             max     = max,
             current = current,
             insets  = insets
-        ).let {
-            // FIXME: REMOVE
-            renderManager?.logLayout(this)
-            it.coerceIn(min, max)
-        }
+        ).coerceIn(min, max)
     }
 
     internal fun syncBounds() {
@@ -1638,9 +1634,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 null -> newBounds.size
                 else -> when (val s = preferredSizeCache(min, max)) {
                     null                                               -> {
-                        doLayout(l, min, newBounds.size, max).also {
-                            renderManager?.logPreferredSizeLayout(this)
-
+                        l.preferredSize(
+                            views   = children.asSequence().map { it.positionable },
+                            min     = min,
+                            max     = max,
+                            current = newBounds.size,
+                            insets  = insets
+                        ).coerceIn(min, max).also {
                             when {
                                 min == Empty && max == Infinite -> idealSizeCache = it
                                 else                            -> preferredSizeCache[min to max] = it

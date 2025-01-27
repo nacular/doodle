@@ -169,11 +169,12 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     var min = Size.Empty; private set
     var max = min;        private set
 
-    fun update(size: Size, min: Size, max: Size) {
+    fun update(size: Size, min: Size, max: Size, insets: Insets) {
         width_  = size.width
         height_ = size.height
         this.min = min
         this.max = max
+        this.insets = insets
     }
 
     override val width   by lazy { with(context) { 0 + ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) } }
@@ -187,6 +188,8 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     override val center  by lazy { Position(centerX, centerY) }
     override val edges   by lazy { Edges(null, null, right, bottom) }
     override val size    by lazy { with(context) { Area (width + 0, height + 0) } }
+
+    override var insets: Insets = Insets.None
 }
 
 internal class ConstraintLayoutImpl(
@@ -238,7 +241,7 @@ internal class ConstraintLayoutImpl(
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         layingOut = true
 
-        context.updateParent(current, min = min, max = max)
+        context.updateParent(current, min = min, max = max, insets = insets)
 
         setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
         solve      (solver, activeBounds, updatedBounds, blockTracker.values.asSequence().flatMap { it.constraints }, ::notifyOfErrors)

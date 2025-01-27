@@ -374,7 +374,7 @@ private fun collinearPoint(
 
     val vector1 = point - previous
     val vector2 = next  - point
-    val angle   = vector1 interiorAngle vector2
+    val angle   = 180 * degrees - (vector1 interiorAngle vector2)
 
     val direction = vector1.x * vector2.y - vector1.y * vector2.x
 

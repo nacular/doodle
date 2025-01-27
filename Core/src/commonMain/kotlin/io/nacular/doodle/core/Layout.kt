@@ -142,18 +142,35 @@ public sealed class LookupResult {
  * @author Nicholas Eddy
  */
 public interface Layout {
-
     /**
-     * Called whenever the View's parent wishes to update it's size.
+     * Positions and sizes the given [views] and returns a size appropriate to laying out these views
+     * within the given constraints.
      *
      * @param views being laid out
      * @param min the smallest size to fit the views in
      * @param current size to fit the views in
      * @param max the largest size to fit the views in
      * @param insets to apply
-     * @return a value that respects [min] and [max]
      */
-    public fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets = None): Size = max
+    public fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets = None): Size
+
+    /**
+     * Determines the best size to contain the [views] given the constraints. The default implementation relies on [layout]
+     * with current = [max] for the answer.
+     *
+     * @param views being contained
+     * @param min the smallest size to fit the views in
+     * @param current size to fit the views in
+     * @param max the largest size to fit the views in
+     * @param insets to apply
+     */
+    public fun preferredSize(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets = None): Size = layout(
+        views   = views,
+        min     = min,
+        current = current,
+        max     = max,
+        insets  = insets
+    )
 
     /**
      * Indicates whether a layout is needed because of the given size change to a container.
@@ -178,8 +195,8 @@ public interface Layout {
     public fun requiresLayout(child: Positionable, within: Size, old: Rectangle, new: Rectangle): Boolean = true
 
     /**
-     * Gets the child within the Positionable at the given point.  The default is to ignore these
-     * calls and let the caller perform their own search for the right child.  But Layouts are
+     * Gets the child within the Positionable at the given point. The default is to ignore these
+     * calls and let the caller perform their own search for the right child. But Layouts are
      * free to return a value here if it can be done more efficiently.
      *
      * @param of the Positionable
@@ -194,7 +211,13 @@ public interface Layout {
          * @return a Layout that delegates to [layout]
          */
         public inline fun simpleLayout(crossinline layout: (views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
-            override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size = layout(views, min, current, max, insets)
+            override fun layout(
+                views  : Sequence<Positionable>,
+                min    : Size,
+                current: Size,
+                max    : Size,
+                insets : Insets
+            ): Size = layout(views, min, current, max, insets)
         }
     }
 }

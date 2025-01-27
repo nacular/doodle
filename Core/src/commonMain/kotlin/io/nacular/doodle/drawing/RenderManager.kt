@@ -149,8 +149,4 @@ public abstract class RenderManager {
      * @param view that was laid out
      */
     internal abstract fun performedLayout(view: View)
-
-    // FIXME: REMOVE
-    internal abstract fun logLayout(view: View)
-    internal abstract fun logPreferredSizeLayout(view: View)
 }

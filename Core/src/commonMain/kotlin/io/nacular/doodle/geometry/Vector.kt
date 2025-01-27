@@ -2,7 +2,6 @@ package io.nacular.doodle.geometry
 
 import io.nacular.doodle.utils.lerp
 import io.nacular.measured.units.Angle
-import io.nacular.measured.units.Angle.Companion.degrees
 import io.nacular.measured.units.Angle.Companion.radians
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
@@ -294,7 +293,7 @@ public fun lerp(first: Vector2D, second: Vector2D, fraction: Float): Vector2D = 
  *
  * @param other vector to compare [this] with
  */
-public infix fun Vector3D.interiorAngle(other: Vector3D): Measure<Angle> = 180 * degrees - acos(this * other / (magnitude() * other.magnitude())) * radians
+public infix fun Vector3D.interiorAngle(other: Vector3D): Measure<Angle> = acos(this * other / (magnitude() * other.magnitude())) * radians
 
 internal class VectorImpl(override val x: Double = 0.0, override val y: Double = 0.0, override val z: Double = 0.0): Vector2D, Vector3D {
     override inline fun as2d() = this

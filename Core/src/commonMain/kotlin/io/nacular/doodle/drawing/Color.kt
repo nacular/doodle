@@ -352,13 +352,24 @@ public fun lerp(start: Color, end: Color, fraction: Float): Color = when(fractio
         red     = lerp(start.red.toDouble  (), end.red.toDouble  (), fraction).toInt().toUByte(),
         green   = lerp(start.green.toDouble(), end.green.toDouble(), fraction).toInt().toUByte(),
         blue    = lerp(start.blue.toDouble (), end.blue.toDouble (), fraction).toInt().toUByte(),
-        opacity = lerp(start.opacity, end.opacity, fraction)
+        opacity = lerp(start.opacity,          end.opacity,          fraction)
     )
 }
 
-public val Color?.visible   : Boolean get() = this?.visible ?: false
-public val HslColor?.visible: Boolean get() = this?.visible ?: false
-public val HsvColor?.visible: Boolean get() = this?.visible ?: false
+public fun lerp(start: HsvColor, end: HsvColor, fraction: Float): HsvColor = when (fraction) {
+    0f -> start
+    1f -> end
+    else -> HsvColor(
+        lerp(start.hue,        end.hue,        fraction),
+        lerp(start.saturation, end.saturation, fraction),
+        lerp(start.value,      end.value,      fraction),
+        lerp(start.opacity,    end.opacity,    fraction),
+    )
+}
+
+public val Color?.visible   : Boolean get() = this?.visible == true
+public val HslColor?.visible: Boolean get() = this?.visible == true
+public val HsvColor?.visible: Boolean get() = this?.visible == true
 
 private operator fun ClosedRange<Int>.contains(value: Double) = value.toIntExactOrNull().let { if (it != null) contains(it) else false }
 

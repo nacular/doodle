@@ -354,44 +354,10 @@ public open class RenderManagerImpl(
         }
     }
 
-    // FIXME: REMOVE
-    private var layouts = mutableMapOf<String, Int>()
-    // FIXME: REMOVE
-    private var preferredSizeLayouts = mutableMapOf<String, Int>()
-
-    // FIXME: REMOVE
-    private fun Map<String, Int>.prettyPrint(name: String) {
-        val columnWidth = keys.maxOf { it.length }
-
-        println("$name [${this.values.sum()}]")
-        println("".padEnd(columnWidth * keys.size, '-'))
-        println(keys.joinToString  (" | ") { it.padEnd(columnWidth) })
-        println(values.map { "$it" }.joinToString(" | ") { it.padEnd(columnWidth) })
-    }
-
     override fun layoutNeeded(view: View) = view in pendingLayout
 
     override fun performedLayout(view: View) {
         pendingLayout -= view
-    }
-
-    // FIXME: REMOVE
-    override fun logLayout(view: View) {
-        if (false) {
-            layouts[view::class.simpleName!!] = layouts.getOrElse(view::class.simpleName!!) { 0 } + 1
-
-            layouts.prettyPrint("Layouts")
-        }
-    }
-
-    // FIXME: REMOVE
-    override fun logPreferredSizeLayout(view: View) {
-        if (false) {
-            preferredSizeLayouts[view::class.simpleName!!] =
-                preferredSizeLayouts.getOrElse(view::class.simpleName!!) { 0 } + 1
-
-            preferredSizeLayouts.prettyPrint("Preferred-size Layouts")
-        }
     }
 
     private fun performLayout(view: View) {

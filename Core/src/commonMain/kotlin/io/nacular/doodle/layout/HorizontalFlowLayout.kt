@@ -67,6 +67,9 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
         return Size(current.width, y + lineHeight)
     }
 
+    override fun preferredSize(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size =
+        layout(views, min, max, max, insets)
+
     private fun layoutLine(itemList: List<Positionable>, parent: Size, insets: Insets, lineWidth: Double, lineY: Double, lineHeight: Double) {
         var startX = when (justification) {
             Right  ->  parent.width - lineWidth - insets.right

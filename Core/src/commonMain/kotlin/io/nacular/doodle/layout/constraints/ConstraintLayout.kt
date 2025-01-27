@@ -9,6 +9,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
@@ -44,7 +45,7 @@ public fun center(                strength: Strength           ): (ConstraintDsl
  * }
  * ```
  */
-public abstract class ConstraintLayout: Layout {
+public abstract class ConstraintLayout internal constructor(): Layout {
     /**
      * Add constraints for [view].
      *
@@ -333,6 +334,9 @@ public interface ParentBounds {
 
     /** The rectangle's center */
     public val center: Position
+
+    /** The insets if any */
+    public val insets: Insets
 }
 
 /**
@@ -369,8 +373,8 @@ public class ConstraintDslContext internal constructor() {
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
 
-    public fun updateParent(size: Size, min: Size, max: Size) {
-        (parent as ParentBoundsImpl).update(size, min, max)
+    public fun updateParent(size: Size, min: Size, max: Size, insets: Insets) {
+        (parent as ParentBoundsImpl).update(size, min, max, insets)
     }
 
     private fun add(constraint: Constraint) = when {
@@ -978,7 +982,7 @@ public class Constrainer {
         if (forceSetup || within.size != parentSize || this.using != using) {
             this.using     = using
             parentSize     = within.size
-            context.updateParent(size = within.size, min = within.size, max = within.size)
+            context.updateParent(size = within.size, min = within.size, max = within.size, insets = None)
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 
