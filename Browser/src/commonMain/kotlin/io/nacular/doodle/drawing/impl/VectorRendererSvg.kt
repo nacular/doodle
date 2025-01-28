@@ -312,7 +312,7 @@ internal open class VectorRendererSvg(
     )
 
     private fun text_(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) {
-        present(stroke = stroke, fill = fill) {
+        present(stroke = stroke, fill = fill, clearFill = fill != null) {
             when {
                 text.isNotBlank() -> makeText(text, font, at, stroke, fill, textSpacing)
                 else              -> null
@@ -807,7 +807,7 @@ internal open class VectorRendererSvg(
         makePath(data).also { it.setFillRule(fillRule) }
     }
 
-    private fun present(stroke: Stroke?, fill: Paint?, block: () -> SVGGraphicsElement?) {
+    private fun present(stroke: Stroke?, fill: Paint?, clearFill: Boolean = true, block: () -> SVGGraphicsElement?) {
         syncShadows()
 
         if (visible(stroke, fill)) {
@@ -823,7 +823,7 @@ internal open class VectorRendererSvg(
                     fillElement(it, fill, stroke, stroke == null || !stroke.visible)
                 }
                 if (stroke != null) {
-                    outlineElement(it, stroke, fill == null || !fill.visible)
+                    outlineElement(it, stroke, clearFill && (fill == null || !fill.visible))
                 }
             }
         }

@@ -209,8 +209,9 @@ internal open class PointerInputServiceStrategyWebkit(
 
     private fun pointerUp(event: PointerEvent): Boolean {
         lastUpId         = event.pointerId
-        preventScroll   -= event.pointerId
         lastUpIsPointer  = event.pointerType == "touch"
+
+        val pointerWasDown = preventScroll.remove(event.pointerId)
 
         eventHandler?.invoke(createPointerEvent(event, Up, 1))
 
@@ -219,8 +220,11 @@ internal open class PointerInputServiceStrategyWebkit(
             eventHandler?.invoke(createPointerEvent(event, Exit, 1))
         }
 
-        return isNativeElement(event.target).ifFalse {
-            event.preventBrowserDefault()
+        return when {
+            !pointerWasDown -> true
+            else            -> isNativeElement(event.target).ifFalse {
+                event.preventBrowserDefault()
+            }
         }
     }
 

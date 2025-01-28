@@ -3,6 +3,7 @@ package io.nacular.doodle.dom
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform2D
 import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Color.Companion.Black
 import io.nacular.doodle.drawing.Renderer
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.Stroke.LineCap
@@ -170,7 +171,7 @@ internal fun SVGElement.setFill(color: Color?) = convert(color) {
 }
 
 internal inline fun SVGElement.setDefaultFill() {
-    removeAttribute("fill")
+    setFill(Black)
 }
 
 internal fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
