@@ -11,8 +11,6 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.DayOfWeek.MONDAY
-import kotlinx.datetime.DayOfWeek.SUNDAY
 
 /**
  * Determines how a [DaysOfTheWeekPanel] renders.
@@ -33,7 +31,7 @@ public interface DaysOfTheWeekPanelBehavior: Behavior<DaysOfTheWeekPanel> {
  * @param weekStart indicates which day should be used as the start of the week
  * @param itemVisualizer that maps [DayOfWeek] to [View] for each item in the panel
  */
-public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null): View() {
+public class DaysOfTheWeekPanel(weekStart: DayOfWeek = DayOfWeek.SUNDAY, public val itemVisualizer: ItemVisualizer<DayOfWeek, Unit>? = null): View() {
     private inner class DaysLayout: Layout {
         override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
             val columnWidth = current.width / numColumns
@@ -77,7 +75,7 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = SUNDAY, public val itemVi
         layout = DaysLayout()
     }
 
-    private fun shiftDay(weekStart: DayOfWeek) = (SUNDAY.ordinal - (weekStart.ordinal + MONDAY.ordinal) + 1)  % (SUNDAY.ordinal + 1)
+    private fun shiftDay(weekStart: DayOfWeek) = (DayOfWeek.SUNDAY.ordinal - (weekStart.ordinal + DayOfWeek.MONDAY.ordinal) + 1)  % (DayOfWeek.SUNDAY.ordinal + 1)
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)

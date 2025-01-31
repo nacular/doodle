@@ -47,6 +47,10 @@ kotlin {
 
         val wasmJsMain by getting {
             dependsOn(jsCommon)
+
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
         }
     }
 }

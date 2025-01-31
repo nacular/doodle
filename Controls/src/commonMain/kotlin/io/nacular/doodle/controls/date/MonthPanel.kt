@@ -27,7 +27,6 @@ import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.observable
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.DayOfWeek.SUNDAY
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
@@ -57,7 +56,7 @@ public open class MonthPanel(
                 date          : LocalDate,
     public  val itemVisualizer: ItemVisualizer<LocalDate, MonthPanel>? = null,
     private val selectionModel: SelectionModel<LocalDate>? = null,
-                weekStart     : DayOfWeek = SUNDAY
+                weekStart     : DayOfWeek = DayOfWeek.SUNDAY
 ): View(), Selectable<LocalDate> {
     private inner class MonthLayout: Layout {
         private val constrainer = Constrainer()
@@ -91,7 +90,7 @@ public open class MonthPanel(
     }
 
     private var numRows    = 0
-    private val numColumns = DayOfWeek.values().size
+    private val numColumns = DayOfWeek.entries.size
 
     /**
      * Indicates which day should be used as the start of the week.
@@ -206,9 +205,9 @@ public open class MonthPanel(
     }
 
     private fun shiftDay(weekStart: DayOfWeek, dayOfWeek: DayOfWeek): Int {
-        val offset = (SUNDAY.ordinal - (weekStart.ordinal + DayOfWeek.MONDAY.ordinal) + 1)  % (SUNDAY.ordinal + 1)
+        val offset = (DayOfWeek.SUNDAY.ordinal - (weekStart.ordinal + DayOfWeek.MONDAY.ordinal) + 1)  % (DayOfWeek.SUNDAY.ordinal + 1)
 
-        return (dayOfWeek.ordinal + offset) % (SUNDAY.ordinal + 1)
+        return (dayOfWeek.ordinal + offset) % (DayOfWeek.SUNDAY.ordinal + 1)
     }
 
     @Suppress("PrivatePropertyName")
