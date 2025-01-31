@@ -136,6 +136,43 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun contains(point: Point): Boolean = point in ellipse
     }
 
+    public fun interface SizeAuditor {
+        /**
+         * Called whenever the View's size is changing, providing an opportunity to manage the final size.
+         * The result of this call will still be clipped to the View's min/max allowed sizes.
+         *
+         * @param old size before change
+         * @param new size being considered
+         * @param min the smallest size this View is allowed to be
+         * @param max the largest size this View is allowed to be
+         * @return the size the View should change to (which will be clipped to min/max)
+         */
+        public operator fun invoke(view: View, old: Size, new: Size, min: Size, max: Size): Size
+
+        public companion object {
+            public fun preserveAspect(ratio: Double): SizeAuditor = SizeAuditor { _, old, new, min, max ->
+                val s = new.coerceIn(min, max)
+
+                when {
+                    s.width != old.width -> {
+                        var h = (s.width / ratio).coerceIn(min.height, max.height)
+                        val w = (h       * ratio).coerceIn(min.width,  max.width )
+
+                        Size(w, h)
+                    }
+                    else                  -> {
+                        val w = (s.height * ratio).coerceIn(min.width,  max.width )
+                        var h = (w        / ratio).coerceIn(min.height, max.height)
+
+                        Size(w, h)
+                    }
+                }
+            }
+
+            public fun preserveAspect(width: Double, height: Double): SizeAuditor = preserveAspect(if (height > 0.0) width / height else 0.0)
+        }
+    }
+
     private inner class ChildObserversImpl: SetPool<ChildObserver<View>>() {
         operator fun invoke(differences: Differences<View>) = this.forEach { it(this@View, differences) }
     }
@@ -156,6 +193,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             .mapNotNull { reference -> reference.invoke() }
             .iterator()
     }
+
 
     // region Accessibility
 
@@ -421,43 +459,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @return the View's preferred size
      */
     public var preferredSize: View.(min: Size, max: Size) -> Size = defaultPreferredSize
-
-    public fun interface SizeAuditor {
-        /**
-         * Called whenever the View's size is changing, providing an opportunity to manage the final size.
-         * The result of this call will still be clipped to the View's min/max allowed sizes.
-         *
-         * @param old size before change
-         * @param new size being considered
-         * @param min the smallest size this View is allowed to be
-         * @param max the largest size this View is allowed to be
-         * @return the size the View should change to (which will be clipped to min/max)
-         */
-        public operator fun invoke(view: View, old: Size, new: Size, min: Size, max: Size): Size
-
-        public companion object {
-            public fun preserveAspect(ratio: Double): SizeAuditor = SizeAuditor { _, old, new, min, max ->
-                val s = new.coerceIn(min, max)
-
-                when {
-                    s.width != old.width -> {
-                        var h = (s.width / ratio).coerceIn(min.height, max.height)
-                        val w = (h       * ratio).coerceIn(min.width,  max.width )
-
-                        Size(w, h)
-                    }
-                    else                  -> {
-                        val w = (s.height * ratio).coerceIn(min.width,  max.width )
-                        var h = (w        / ratio).coerceIn(min.height, max.height)
-
-                        Size(w, h)
-                    }
-                }
-            }
-
-            public fun preserveAspect(width: Double, height: Double): SizeAuditor = preserveAspect(if (height > 0.0) width / height else 0.0)
-        }
-    }
 
     /**
      * Called whenever the View's size is changing, providing an opportunity to manage the final size.

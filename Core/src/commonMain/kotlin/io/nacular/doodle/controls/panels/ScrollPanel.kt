@@ -16,7 +16,7 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
-import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.IdealSizedProperty
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -130,14 +130,14 @@ public open class ScrollPanel(content: View? = null): View() {
     public val contentChanged: PropertyObservers<ScrollPanel, View?> = PropertyObserversImpl(this)
 
     /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
+    public var contentWidthConstraints: (ConstraintDslContext.(IdealSizedProperty) -> Result<Constraint>)? = null; set(new) {
         field = new
 
         (layout as? ConstraintLayout)?.also { updateConstraints(it) }
     }
 
     /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: (ConstraintDslContext.(Property) -> Result<Constraint>)? = null; set(new) {
+    public var contentHeightConstraints: (ConstraintDslContext.(IdealSizedProperty) -> Result<Constraint>)? = null; set(new) {
         field = new
 
         (layout as? ConstraintLayout)?.also { updateConstraints(it) }
@@ -188,8 +188,16 @@ public open class ScrollPanel(content: View? = null): View() {
         it.top  eq -scroll.y
         it.left eq -scroll.x
 
-        contentWidthConstraints?.invoke (this, it.width )
-        contentHeightConstraints?.invoke(this, it.height)
+        contentWidthConstraints?.invoke (this, object: IdealSizedProperty() {
+            override val idealValue get() = it.idealWidth
+            override val readOnly   get() = it.width.readOnly
+            override fun toTerm        () = it.width.toTerm()
+        } )
+        contentHeightConstraints?.invoke(this, object: IdealSizedProperty() {
+            override val idealValue get() = it.idealHeight
+            override val readOnly   get() = it.height.readOnly
+            override fun toTerm        () = it.height.toTerm()
+        } )
     }
 
     private var ignoreLayout = false

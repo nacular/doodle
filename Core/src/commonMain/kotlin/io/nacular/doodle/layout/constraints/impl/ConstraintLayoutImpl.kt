@@ -511,7 +511,8 @@ internal class ConstraintLayoutImpl(
                 block()
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
-            } catch (_: UnknownEditVariableException) {}
+            } catch (_: UnknownEditVariableException) {
+            } catch (_: UnknownConstraintException  ) {}
         }
 
         private fun ensureNonNegative(variable: Variable) = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)

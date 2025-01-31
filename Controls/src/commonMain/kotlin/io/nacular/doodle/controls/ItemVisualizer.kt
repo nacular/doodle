@@ -75,11 +75,11 @@ public object ViewVisualizer: ItemVisualizer<View, Any> {
 /**
  * Places the item (which is a View) within a [ScrollPanel].
  */
-public open class ScrollPanelVisualizer: ItemVisualizer<View, Any> {
+public open class ScrollPanelVisualizer(private val config: ScrollPanel.() -> Unit = {}): ItemVisualizer<View, Any> {
     override fun invoke(item: View, previous: View?, context: Any): ScrollPanel = when (previous) {
         is ScrollPanel -> previous.also { it.content = item }
         else           -> ScrollPanel(item)
-    }
+    }.also(config)
 }
 
 /**

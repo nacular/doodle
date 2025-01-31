@@ -144,11 +144,10 @@ public open class Tree<T, out M: TreeModel<T>>(
     private   val rowToPath                            = mutableMapOf<Int, Path<Int>>()
     private   var minVisiblePosition                   = Origin
     private   var maxVisiblePosition                   = Origin
-    private   var minHeight                            = 0.0
-        set(new) {
-            field = new
-            suggestHeight(field)
-        }
+    private   var minHeight                            = 0.0; set(new) {
+        field = new
+        suggestHeight(field)
+    }
 
     private   var handlingRectChange   = false
     protected var firstVisibleRow: Int =  0
@@ -197,7 +196,6 @@ public open class Tree<T, out M: TreeModel<T>>(
                 }
             }
 
-            // FIXME: use maxWidth
             Size(maxRight, minHeight)
         }
     }

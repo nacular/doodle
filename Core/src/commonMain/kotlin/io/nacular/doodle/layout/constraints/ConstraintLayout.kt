@@ -198,6 +198,17 @@ public abstract class Property internal constructor() {
     internal abstract fun toTerm(): Term
 }
 
+/**
+ * Simple value within a [Bounds] set that has an ideal value.
+ */
+public abstract class IdealSizedProperty internal constructor(): Property() {
+    /**
+     * Provides the Property's ideal value directly, and does not treat it as
+     * a variable when used in a [Constraint]. This means the Property won't be
+     * altered to try and satisfy the constraint.
+     */
+    public abstract val idealValue: Double
+}
 
 /**
  * 2-Dimensional value within a [Bounds] set.

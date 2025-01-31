@@ -447,7 +447,7 @@ class ViewTests {
         val view = object: View() {
             init {
                 layout = mockk<Layout>().apply {
-                    every { layout(any(), Size.Empty, any(), Size.Infinite) } returns size
+                    every { preferredSize(any(), Size.Empty, any(), Size.Infinite) } returns size
                 }
             }
         }

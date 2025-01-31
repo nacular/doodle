@@ -68,7 +68,7 @@ internal class RequiredFailureException: Exception()
 
 internal class UnknownConstraintException(val constraint: Constraint): Exception(constraint.toString())
 
-internal class UnknownEditVariableException: Exception()
+internal class UnknownEditVariableException(variable: Variable): Exception(variable.toString())
 
 internal class Solver {
     private class Tag {
@@ -325,7 +325,7 @@ internal class Solver {
     }
 
     fun removeEditVariable(variable: Variable) {
-        val edit = edits[variable] ?: throw UnknownEditVariableException()
+        val edit = edits[variable] ?: throw UnknownEditVariableException(variable)
 
         removeConstraint(edit.constraint)
 
@@ -333,7 +333,7 @@ internal class Solver {
     }
 
     fun suggestValue(variable: Variable, value: Double) {
-        val info  = edits[variable] ?: throw UnknownEditVariableException()
+        val info  = edits[variable] ?: throw UnknownEditVariableException(variable)
         val delta = value - info.constant
 
         if (delta != 0.0) {
@@ -343,7 +343,7 @@ internal class Solver {
     }
 
     fun updateConstant(old: Constraint, new: Constraint) {
-        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(new)
+        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(old)
         val delta = new.expression.constant - old.expression.constant
         constraints[new] = tag
 
