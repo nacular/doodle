@@ -470,11 +470,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    private fun preferredSizeCache(min: Size, max: Size): Size? = when {
+    private fun preferredSizeCache(min: Size, max: Size): Size? = null /*when {
         min == Empty && max == Infinite && !layoutNeeded && idealSizeCache != null -> idealSizeCache
         needsLayout                                                                -> null
         else                                                                       -> preferredSizeCache[min to max]
-    }
+    }*/
 
     /**
      * Called whenever the View's parent wishes to update it's size.

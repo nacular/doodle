@@ -11,7 +11,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.utils.observable
-import kotlin.math.max
+import kotlin.Double.Companion.POSITIVE_INFINITY
 
 /**
  * Indicate when a meta row in a [Table] (i.e. header, footer, etc.) should be visible.
@@ -57,7 +57,7 @@ internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val 
     }
 }
 
-internal class TablePanel(
+internal open class TablePanel(
     columns: List<InternalColumn<*, *, *, *>>,
     private val renderBlock: (Canvas) -> Unit
 ): Container() {
@@ -65,13 +65,15 @@ internal class TablePanel(
         focusable  = false
         children  += columns.map { it.view }
         layout     = simpleLayout { views,_,current,_,_ ->
-            var x          = 0.0
-            var height     = max(current.height, views.first().idealSize.height)
-            var totalWidth = 0.0
+            var width      = columns[0].width
+            val firstSize  = views.first().updateBounds(0.0, 0.0, Size(width, 0.0), Size(width, POSITIVE_INFINITY))
+            var x          = firstSize.width
+            var height     = firstSize.height
+            var totalWidth = firstSize.width
 
-            views.forEachIndexed { index, view ->
-                val col   = columns[index]
-                val width = col.width
+            views.drop(1).forEachIndexed { index, view ->
+                val col = columns[index + 1]
+                width   = col.width
 
                 view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, height)).also {
                     x          += it.width
@@ -80,6 +82,7 @@ internal class TablePanel(
             }
 
             preferredSize = fixed(Size(totalWidth, height))
+            suggestSize(idealSize)
 
             idealSize
         }
@@ -138,9 +141,9 @@ internal fun <T: View> tableLayout(
 
     when {
         (isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect -> {
-            panel_.height greaterEq panel_.idealHeight
-            panel_.height eq        parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Strong
-            parent.height eq        panel_.bottom + footer_.height + footerPadding                                    strength Strong
+            panel_.height eq panel_.idealHeight
+            panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Strong
+            parent.height eq panel_.bottom + footer_.height + footerPadding                                    strength Strong
         }
         else -> panel_.bottom eq parent.bottom - (footer_.height + footerPadding)
     }
