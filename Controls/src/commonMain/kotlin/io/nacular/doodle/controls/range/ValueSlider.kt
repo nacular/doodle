@@ -53,20 +53,6 @@ public abstract class ValueSlider<T> internal constructor(
         snapSize = if (field > 1) 1.0 / (field - 1) else null
     }
 
-    // FIXME: Make private
-    /** @suppress */
-    public var snapSize: Double? = null; private set(new) {
-        if (new == field) return
-
-        field = new
-
-        if (snapToTicks) {
-            value = value // update value to ensure snapped to the closest tick
-        }
-
-        ticksChanged()
-    }
-
     /**
      * Model that represents the slider's [value] and [range].
      */
@@ -125,6 +111,18 @@ public abstract class ValueSlider<T> internal constructor(
 
     /** Notifies of changes to [ticks] */
     protected abstract fun ticksChanged()
+
+    private var snapSize: Double? = null; set(new) {
+        if (new == field) return
+
+        field = new
+
+        if (snapToTicks) {
+            value = value // update value to ensure snapped to the closest tick
+        }
+
+        ticksChanged()
+    }
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
         changed(old, new)

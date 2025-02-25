@@ -24,7 +24,7 @@ public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Comparable<T> {
 }
 
 public abstract class AbstractSliderBehavior<T>(
-        private val focusManager: FocusManager?
+    private val focusManager: FocusManager?
 ): SliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
     private val changed       : (Slider<T>, T,       T      ) -> Unit = { it,_,_ -> it.rerender() }

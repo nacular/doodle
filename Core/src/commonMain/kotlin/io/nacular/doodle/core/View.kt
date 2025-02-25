@@ -410,7 +410,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var newBounds: Rectangle = Rectangle.Empty; set(new) {
         if (field.fastEqual(new)) return
 
-        field = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+        field = when {
+            (boundsChangeAttempted as BoundsAttemptObserverPool).any() -> new
+            else -> new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+        }
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)

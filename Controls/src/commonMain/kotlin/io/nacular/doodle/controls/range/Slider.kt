@@ -96,7 +96,8 @@ public open class Slider<T>(
             range      : ClosedRange<Int>,
             value      : Int              = range.start,
             orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Int> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Int> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -107,7 +108,8 @@ public open class Slider<T>(
         public operator fun invoke(
             model      : ConfinedValueModel<Int>,
             orientation: Orientation = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Int> = Slider(
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Int> = Slider(
             model,
             orientation,
             function,
@@ -124,9 +126,10 @@ public open class Slider<T>(
         @JvmName("invokeFloat")
         public operator fun invoke(
             range      : ClosedRange<Float>,
-            value      : Float         = range.start,
-            orientation: Orientation = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Float> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Float              = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Float> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -137,8 +140,9 @@ public open class Slider<T>(
         @JvmName("invokeFloat")
         public operator fun invoke(
             model      : ConfinedValueModel<Float>,
-            orientation: Orientation = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Float> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Float> = Slider(
             model,
             orientation,
             function,
@@ -155,9 +159,10 @@ public open class Slider<T>(
         @JvmName("invokeDouble")
         public operator fun invoke(
             range      : ClosedRange<Double>,
-            value      : Double           = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Double> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Double             = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Double> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -168,8 +173,9 @@ public open class Slider<T>(
         @JvmName("invokeDouble")
         public operator fun invoke(
             model      : ConfinedValueModel<Double>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Double> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Double> = Slider(
             model,
             orientation,
             function,
@@ -186,9 +192,10 @@ public open class Slider<T>(
         @JvmName("invokeLong")
         public operator fun invoke(
             range      : ClosedRange<Long>,
-            value      : Long             = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Long> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Long               = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Long> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -199,8 +206,9 @@ public open class Slider<T>(
         @JvmName("invokeLong")
         public operator fun invoke(
             model      : ConfinedValueModel<Long>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Long> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Long> = Slider(
             model,
             orientation,
             function,
@@ -217,9 +225,10 @@ public open class Slider<T>(
         @JvmName("invokeShort")
         public operator fun invoke(
             range      : ClosedRange<Short>,
-            value      : Short            = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Short> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Short              = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Short> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -230,8 +239,9 @@ public open class Slider<T>(
         @JvmName("invokeShort")
         public operator fun invoke(
             model      : ConfinedValueModel<Short>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Short> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Short> = Slider(
             model,
             orientation,
             function,
@@ -248,9 +258,10 @@ public open class Slider<T>(
         @JvmName("invokeByte")
         public operator fun invoke(
             range      : ClosedRange<Byte>,
-            value      : Byte             = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Byte> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Byte               = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Byte> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -261,8 +272,9 @@ public open class Slider<T>(
         @JvmName("invokeByte")
         public operator fun invoke(
             model      : ConfinedValueModel<Byte>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Byte> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Byte> = Slider(
             model,
             orientation,
             function,
@@ -282,9 +294,10 @@ public open class Slider<T>(
          */
         public operator fun invoke(
             range      : CharRange,
-            value      : Char             = range.first,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Char> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Char               = range.first,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Char> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -295,8 +308,9 @@ public open class Slider<T>(
         @JvmName("invokeChar")
         public operator fun invoke(
             model      : ConfinedValueModel<Char>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Char> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Char> = Slider(
             model,
             orientation,
             function,
@@ -316,9 +330,10 @@ public open class Slider<T>(
          */
         public operator fun <T: Units> invoke(
             range      : ClosedRange<Measure<T>>,
-            value      : Measure<T>       = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Measure<T>> = invoke(BasicConfinedValueModel(range, value), orientation, function)
+            value      : Measure<T>         = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Measure<T>> = invoke(BasicConfinedValueModel(range, value), orientation, function)
 
         /**
          * Creates a Slider with the given model.
@@ -329,8 +344,9 @@ public open class Slider<T>(
         @JvmName("invokeMeasure")
         public operator fun <T: Units> invoke(
             model      : ConfinedValueModel<Measure<T>>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<Measure<T>> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<Measure<T>> = Slider(
             model,
             orientation,
             function,
@@ -351,9 +367,10 @@ public open class Slider<T>(
         public operator fun <T> invoke(
             range      : ClosedRange<T>,
             converter  : Interpolator<T>,
-            value      : T                = range.start,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<T> where T: Comparable<T> = Slider(
+            value      : T                  = range.start,
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<T> where T: Comparable<T> = Slider(
             BasicConfinedValueModel(range, value) as ConfinedValueModel<T>,
             orientation,
             function,
@@ -369,8 +386,9 @@ public open class Slider<T>(
         public operator fun <T> invoke(
             model      : ConfinedValueModel<T>,
             converter  : Interpolator<T>,
-            orientation: Orientation      = Horizontal,
-            function   : InvertibleFunction = LinearFunction): Slider<T> where T: Comparable<T> = Slider(
+            orientation: Orientation        = Horizontal,
+            function   : InvertibleFunction = LinearFunction
+        ): Slider<T> where T: Comparable<T> = Slider(
             model,
             orientation,
             function,
