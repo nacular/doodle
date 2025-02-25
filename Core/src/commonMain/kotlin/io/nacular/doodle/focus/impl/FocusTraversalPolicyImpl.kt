@@ -94,7 +94,9 @@ public class FocusTraversalPolicyImpl(private val focusabilityChecker: Focusabil
                 }
             }
 
-            return next(cycleRoot, parent.parent, parent)
+            if (parent !is DisplayView) {
+                return next(cycleRoot, parent.parent, parent)
+            }
         }
 
         return null

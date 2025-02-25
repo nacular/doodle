@@ -241,6 +241,26 @@ class FocusTraversalPolicyImplTests {
         }
     }
 
+    @Test fun `next in simple display works none selectable`() {
+        display(5).also { display ->
+            listOf(
+                0,
+                1,
+                2,
+                3,
+            ).forEach { from ->
+                val view = slot<View>()
+                val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+                    every { this@apply(capture(view)) } answers { false }
+                }
+
+                FocusTraversalPolicyImpl(focusabilityChecker).apply {
+                    expect(null, "$from -> next") { next(display = display, from = display.children[from]) }
+                }
+            }
+        }
+    }
+
     @Test fun `previous in simple display works`() {
         display(5).also { display ->
             listOf(
@@ -256,6 +276,26 @@ class FocusTraversalPolicyImplTests {
 
                 FocusTraversalPolicyImpl(focusabilityChecker).apply {
                     expect(display.children[to], "$from -> $to") { previous(display = display, from = display.children[from]) }
+                }
+            }
+        }
+    }
+
+    @Test fun `previous in simple display works none selectable`() {
+        display(5).also { display ->
+            listOf(
+                0,
+                1,
+                2,
+                3,
+            ).forEach { from ->
+                val view = slot<View>()
+                val focusabilityChecker = mockk<FocusabilityChecker>().apply {
+                    every { this@apply(capture(view)) } answers { false }
+                }
+
+                FocusTraversalPolicyImpl(focusabilityChecker).apply {
+                    expect(null, "$from -> previous") { previous(display = display, from = display.children[from]) }
                 }
             }
         }
