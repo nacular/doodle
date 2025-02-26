@@ -149,9 +149,11 @@ fun Project.setupPublication(dokkaJar: Jar) {
 private fun KotlinMultiplatformExtension.compilerOptions() {
     targets.configureEach {
         compilations.configureEach {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xexpect-actual-classes")
-                freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                    freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
+                }
             }
         }
     }

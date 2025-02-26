@@ -107,8 +107,8 @@ public inline fun <reified T: Application> application(
  * @param allowDefaultDarkMode controls whether the Browser tries to provide dark vs light styles
  * @param modules to use for the application
  * @param creator block that constructs the application
+ * @suppress
  */
-/** @suppress */
 @Internal
 public inline fun <reified T: Application> application(
              root                : Any,

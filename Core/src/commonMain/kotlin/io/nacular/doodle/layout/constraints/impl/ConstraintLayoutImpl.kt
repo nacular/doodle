@@ -81,16 +81,18 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
     fun commit() {
+        val x         = if (left_.constrained ) x__      else x_
+        val y         = if (top_.constrained  ) y__      else y_
         val minWidth  = if (width.constrained ) width__  else 0.0
         val maxWidth  = if (width.constrained ) width__  else POSITIVE_INFINITY
         val minHeight = if (height.constrained) height__ else 0.0
         val maxHeight = if (height.constrained) height__ else POSITIVE_INFINITY
 
         when {
-            !(width.constrained || height.constrained) -> target.updatePosition(x__, y__)
+            !(width.constrained || height.constrained) -> target.updatePosition(x, y)
             else -> target.updateBounds {
-                setX(x__)
-                setY(y__)
+                setX(x)
+                setY(y)
                 if (width.constrained ) { setMinWidth (minWidth ); setMaxWidth (maxWidth ) }
                 if (height.constrained) { setMinHeight(minHeight); setMaxHeight(maxHeight) }
             }

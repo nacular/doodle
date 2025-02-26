@@ -392,14 +392,16 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * by any applied [transform].
      */
     public var bounds: Rectangle get() = actualBounds; private set(new) {
-        newBounds = when (val r = sizeAuditor) {
+        val auditedNew = when (val r = sizeAuditor) {
             null -> new
-            else -> new.with(r(this, size, new.size, allowedMinSize, allowedMaxSize).coerceIn(allowedMinSize, allowedMaxSize))
+            else -> new.with(r(this, size, new.size, allowedMinSize, allowedMaxSize))
         }
+
+        newBounds = auditedNew
 
         if (new == actualBounds) return
 
-        notifyAttemptedBoundsChange(new)
+        notifyAttemptedBoundsChange(auditedNew)
     }
 
     public val idealSize: Size get() = preferredSize(Empty, Infinite)
