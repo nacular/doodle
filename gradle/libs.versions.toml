@@ -10,7 +10,7 @@ koverVersion      = { strictly = "0.9.1"   }
 logbackVersion    = { strictly = "1.4.11"  }
 measuredVersion   = { strictly = "0.4.1"   }
 mockkVersion      = { strictly = "1.13.13" }
-skikoVersion      = { strictly = "0.8.19"  }
+skikoVersion      = { strictly = "0.9.2"   }
 slf4jVersion      = { strictly = "2.0.9"   }
 kxBrowserVersion  = { strictly = "0.3"     }
 
