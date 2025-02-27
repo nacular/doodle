@@ -84,9 +84,11 @@ internal class RealGraphicsSurface(
                 it.release()
             }
 
-            // FIXME: Should always be true
-            if (parent?.released == false) {
-                parent.remove(this)
+            when {
+                parent == null           -> onPaintNeeded()
+                parent.released == false -> { // FIXME: Should always be true
+                    parent.remove(this)
+                }
             }
         }
     }
@@ -128,7 +130,7 @@ internal class RealGraphicsSurface(
     private fun needsRerender() {
         try {
             picture?.close()
-        } catch (ignore: Throwable) {}
+        } catch (_: Throwable) {}
 
         picture = null
 
