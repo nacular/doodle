@@ -474,7 +474,7 @@ internal class CanvasImpl(
     }
 
     override fun clear() {
-        skiaCanvas.clear(Transparent.skia())
+        skiaCanvas.clear(org.jetbrains.skia.Color.TRANSPARENT)
     }
 
     override fun flush() {
