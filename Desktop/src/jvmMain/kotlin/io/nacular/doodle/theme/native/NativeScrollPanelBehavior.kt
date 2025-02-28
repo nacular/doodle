@@ -56,18 +56,11 @@ internal class NativeScrollPanelBehavior(
     private val nativePointerPreprocessor: NativePointerPreprocessor?
 ): ScrollPanelBehavior {
 
-    private class ViewPortComponent(scrollPanel: ScrollPanel?): JComponent(), Scrollable {
+    private class ScrollableWrapper(scrollPanel: ScrollPanel?): JComponent(), Scrollable {
         init {
             scrollPanel?.content?.let {
                 bounds        = java.awt.Rectangle(it.x.toInt(), it.y.toInt(), it.width.toInt(), it.height.toInt())
                 preferredSize = size
-
-                it.boundsChanged += { _,old,new ->
-                    if (old.size != new.size) {
-                        bounds        = java.awt.Rectangle(new.x.toInt(), new.y.toInt(), new.width.toInt(), new.height.toInt())
-                        preferredSize = size
-                    }
-                }
             }
         }
 
@@ -78,15 +71,13 @@ internal class NativeScrollPanelBehavior(
         override fun getScrollableTracksViewportHeight () = false
     }
 
-    private inner class JScrollPanePeer(scrollPanel: ScrollPanel): JScrollPane(ViewPortComponent(scrollPanel)) {
-        private val scrollPanel: ScrollPanel? = scrollPanel
-
+    private inner class JScrollPanePeer(scrollPanel: ScrollPanel): JScrollPane(ScrollableWrapper(scrollPanel)) {
         inner class TransparentViewport: JViewport() {
             init {
                 this.isOpaque = false
             }
 
-            public override fun paintComponent(g: Graphics) {
+            override fun paintComponent(g: Graphics) {
                 // no-op
             }
         }
@@ -119,10 +110,12 @@ internal class NativeScrollPanelBehavior(
         init {
             border = null
 
-            setCorner(LOWER_RIGHT_CORNER, corner)
+//            setCorner(LOWER_RIGHT_CORNER, corner)
 
             viewport.addChangeListener {
-                onScroll?.invoke(Point(horizontalScrollBar.value, verticalScrollBar.value))
+                if (!ignoreScroll) {
+                    onScroll?.invoke(Point(horizontalScrollBar.value, verticalScrollBar.value))
+                }
             }
 
             verticalScrollBar.addComponentListener  (ScrollBarMonitor(Vertical  ))
@@ -131,11 +124,7 @@ internal class NativeScrollPanelBehavior(
 
         override fun createViewport() = TransparentViewport()
 
-        override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-            scrollPanel?.rerender()
-        }
-
-        override fun paintChildren(g: Graphics?) {
+        override fun paintChildren(g: Graphics) {
             // no-op
         }
 
@@ -146,6 +135,7 @@ internal class NativeScrollPanelBehavior(
 
     private var oldCursor    : Cursor?    = null
     private var oldIdealSize              = Empty
+    private var ignoreScroll              = false
     private var clickedTarget: Component? = null
 
     private lateinit var nativePeer     : JScrollPanePeer
@@ -164,26 +154,29 @@ internal class NativeScrollPanelBehavior(
     }
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _, _, new ->
-        nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
+        nativePeer.size = new.size.toAwt()
         nativePeer.revalidate()
     }
 
     private val contentBoundsChanged: (source: View, old: Rectangle, new: Rectangle) -> Unit = { view, _, new ->
-        updateNativePeerScroll(view, new)
+        updateNativePeerScroll(new)
     }
 
     private val contentChanged: (source: ScrollPanel, old: View?, new: View?) -> Unit = { view, old, new ->
         old?.boundsChanged?.minusAssign(contentBoundsChanged)
         new?.boundsChanged?.plusAssign (contentBoundsChanged)
 
-        updateNativePeerScroll(view, new?.bounds ?: Rectangle.Empty)
+        updateNativePeerScroll(new?.bounds ?: Rectangle.Empty)
     }
 
-    private fun updateNativePeerScroll(source: View, bounds: Rectangle) {
-        nativePeer.viewport.view.location      = bounds.position.run { java.awt.Point(x.toInt(), y.toInt()) }
-        nativePeer.viewport.view.preferredSize = bounds.size.run     { Dimension(width.toInt(), height.toInt()) }
+    private fun updateNativePeerScroll(bounds: Rectangle) {
+        ignoreScroll = true
+        nativePeer.viewport.view.size        = bounds.size.toAwt()
+        nativePeer.viewport.viewPosition     = (-bounds.position).toAwt()
+        ignoreScroll = false
+
+        nativePeer.viewport.view.preferredSize = bounds.size.toAwt()
         nativePeer.viewport.view.revalidate()
-        window.frameFor(source)?.revalidate()
     }
 
     override fun render(view: ScrollPanel, canvas: Canvas) {
@@ -253,7 +246,7 @@ internal class NativeScrollPanelBehavior(
         }
 
         appScope.launch(uiDispatcher) {
-            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
+            nativePeer.size = view.size.toAwt()
 
             view.apply {
                 cursor        = Cursor.Default

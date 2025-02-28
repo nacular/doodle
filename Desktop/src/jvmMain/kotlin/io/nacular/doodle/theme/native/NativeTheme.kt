@@ -20,6 +20,7 @@ import io.nacular.doodle.theme.Modules.Companion.ThemeModule
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.Scene
 import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import org.jetbrains.skia.Canvas
@@ -61,15 +62,13 @@ public class NativeTheme internal constructor(behaviors: Iterable<BehaviorResolv
             bindInstance { GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.defaultConfiguration }
             bindSingleton {
                 object: SwingGraphicsFactory {
-                    override fun invoke(fontManager: FontMgr, skiaCanvas: Canvas): SkiaGraphics2D {
-                        return SkiaGraphics2D(
-                            canvas         = skiaCanvas,
-                            defaultFont    = instance(),
-                            textMetrics    = instance(),
-                            fontManager    = fontManager,
-                            fontCollection = instance()
-                        )
-                    }
+                    override fun invoke(fontManager: FontMgr, skiaCanvas: Canvas) = SkiaGraphics2D(
+                        canvas         = skiaCanvas,
+                        defaultFont    = instance(),
+                        textMetrics    = instance(),
+                        fontManager    = fontManager,
+                        fontCollection = instance()
+                    )
                 }
             }
 

@@ -1116,18 +1116,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param at The point being tested
      * @return The child (`null` if no child contains the given point)
      */
-    protected open fun child(at: Point): View? = when {
+    protected open fun child(at: Point): View? = child_(at) { true }
+
+    internal fun child_(at: Point) = child(at)
+
+    internal fun child_(at: Point, predicate: (View) -> Boolean): View? = when {
         false == childrenClipPath?.contains(at) -> null
-        else                                    -> when (val result = layout?.item(children.asSequence().map { it.positionable }, at)) {
-            null, Ignored -> child_(at) { true }
+        else                                    -> when (val result = layout?.item(children.asSequence().filter(predicate).map { it.positionable }, at)) {
+            null, Ignored -> childAtPrivate(at, predicate)
             is Found      -> (result.item as? PositionableView)?.view
             is Empty      -> null
         }
     }
 
-    internal fun child_(at: Point) = child(at)
-
-    internal fun child_(at: Point, predicate: (View) -> Boolean): View? {
+    private fun childAtPrivate(at: Point, predicate: (View) -> Boolean): View? {
         var child     = null as View?
         var topZOrder = 0
 

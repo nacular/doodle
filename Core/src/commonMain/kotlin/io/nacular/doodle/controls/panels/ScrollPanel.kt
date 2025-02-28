@@ -53,7 +53,7 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
 
     /**
      * Listener registered by [ScrollPanel] to listen for scroll events from
-     * the behavior.  Behaviors should be used this instead of [ScrollPanel.scrollTo]
+     * the behavior.  Behaviors should use this instead of [ScrollPanel.scrollTo]
      * since it bi-passes validation to support things like bouncing.
      */
     public var onScroll: ((Point) -> Unit)?
