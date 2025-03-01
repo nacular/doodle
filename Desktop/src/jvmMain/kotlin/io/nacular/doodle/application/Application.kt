@@ -85,16 +85,15 @@ private open class ApplicationHolderImpl protected constructor(
     }
 
     init {
-        // Set Skiko properties before any Skiko components are initialized
-
+        // Better match Mac OS appearance
         System.setProperty("apple.awt.application.appearance", "system")
 
-        System.setProperty("skiko.rendering.laf.global",        "true")
-        System.setProperty("skiko.rendering.useScreenMenuBar",  "true")
-        System.setProperty("skiko.linux.autodpi",               "true")
-
-//        System.setProperty("skiko.vsync.enabled",              "false")
-//        System.setProperty("skiko.fps.enabled",                "true" )
+        // Set Skiko properties before any Skiko components are initialized
+        System.setProperty("skiko.rendering.laf.global",        "true" )
+        System.setProperty("skiko.rendering.useScreenMenuBar",  "true" )
+        System.setProperty("skiko.linux.autodpi",               "true" )
+        System.setProperty("skiko.vsync.enabled",               "false")
+//        System.setProperty("skiko.fps.enabled",                 "true" )
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
 
