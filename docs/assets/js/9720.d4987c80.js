@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdoodle_docs=self.webpackChunkdoodle_docs||[]).push([[9720],{9720:(e,c,s)=>{s.d(c,{createArchitectureServices:()=>d.S});var d=s(9936);s(9369)}}]);
