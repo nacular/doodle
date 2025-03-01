@@ -17,5 +17,10 @@ public interface Image {
     public val description: String
 }
 
-public inline val Image.width : Double get () = size.width
+public inline val Image.width : Double get() = size.width
 public inline val Image.height: Double get() = size.height
+
+/**
+ * Ratio of Image [width]/[height].
+ */
+public inline val Image.aspectRatio: Double get() = width / height
