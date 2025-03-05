@@ -50,8 +50,6 @@ public class LinearPresenter<T>(
                 items(currentPosition) ?:
                 items(currentPosition.next!!.also { currentPosition = it })
             )!!.apply {
-                bounds = boundsFromConstraint(this, carousel.size)
-
                 bounds = when (val b = currentBounds) {
                     null -> {
                         nextItem = currentPosition.next?.let(items)
@@ -64,7 +62,7 @@ public class LinearPresenter<T>(
 
                     else -> {
                         nextItem = null
-                        boundsFromConstraint(this, carousel.size).run {
+                        boundsFromConstraint(this, carousel.size, forceSetup = true).run {
                             when (orientation) {
                                 Horizontal -> at(x = b.right  + spacing)
                                 else       -> at(y = b.bottom + spacing)
@@ -79,7 +77,7 @@ public class LinearPresenter<T>(
             currentBounds!!.farEdge + spacing < carousel.size.extent &&
             currentPosition.next?.let {
                 currentPosition = it
-                if (it == position && currentBounds!!.x == firstBounds!!.x) null else it
+                if (it == position && currentBounds.x == firstBounds!!.x) null else it
             } != null
         )
 
@@ -90,16 +88,14 @@ public class LinearPresenter<T>(
             currentBounds!!.offset - spacing > 0 &&
             currentPosition.previous?.let {
                 currentPosition = it
-                if (it == position && currentBounds!!.x == firstBounds!!.x) null else it
+                if (it == position && currentBounds.x == firstBounds!!.x) null else it
             } != null
         ) {
             results.add(items(currentPosition)!!.apply {
-                setBounds(this, carousel.size) {
-                    it.run {
-                        when (orientation) {
-                            Horizontal -> at(x = currentBounds!!.x - width  - spacing)
-                            else       -> at(y = currentBounds!!.y - height - spacing)
-                        }
+                bounds = boundsFromConstraint(this, carousel.size, forceSetup = true).run {
+                    when (orientation) {
+                        Horizontal -> at(x = currentBounds!!.x - width  - spacing)
+                        else       -> at(y = currentBounds!!.y - height - spacing)
                     }
                 }
 

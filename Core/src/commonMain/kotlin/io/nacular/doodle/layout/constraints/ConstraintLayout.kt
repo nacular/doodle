@@ -966,8 +966,29 @@ public class Constrainer {
      * Applies the given constraints to [rectangle] as though they were within the Rectangle provided by [within].
      *
      * @param rectangle to constrain
-     * @param using this constraint for each View
      * @param within this rectangle
+     * @param forceSetup forces reconfiguring of underlying solver
+     * @param probe associated with this invocation
+     * @param using this constraint for each View
+     * @throws ConstraintException
+     * @suppress
+     */
+    public operator fun invoke(
+        rectangle : Rectangle,
+        within    : Rectangle,
+        forceSetup: Boolean = false,
+        probe     : View,
+        using     : ConstraintDslContext.(Bounds) -> Unit
+    ): Rectangle = invoke(rectangle, within, forceSetup, probe = probe.positionable, using)
+
+    /**
+     * Applies the given constraints to [rectangle] as though they were within the Rectangle provided by [within].
+     *
+     * @param rectangle to constrain
+     * @param within this rectangle
+     * @param forceSetup forces reconfiguring of underlying solver
+     * @param probe associated with this invocation
+     * @param using this constraint for each View
      * @throws ConstraintException
      * @suppress
      */

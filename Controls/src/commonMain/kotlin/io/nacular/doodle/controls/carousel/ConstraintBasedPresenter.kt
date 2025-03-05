@@ -45,9 +45,10 @@ public abstract class ConstraintBasedPresenter<T>(
         forceSetup : Boolean = false
     ): Rectangle = item.constrainer(
         Rectangle(size = item.size),
-        within      = Rectangle(size = viewPort),
-        forceSetup  = forceSetup,
-        using       = itemConstraints
+        within     = Rectangle(size = viewPort),
+        forceSetup = forceSetup,
+        using      = itemConstraints,
+        probe      = item.view
     )
 
     private val PresentedItem.constrainer: Constrainer get() = when (cache) {
