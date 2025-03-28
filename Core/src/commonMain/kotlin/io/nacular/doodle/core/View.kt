@@ -654,14 +654,20 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
             old?.children?.remove(this)
 
-            (parentChange as PropertyObserversImpl)(old, new)
+            (parentChanged as PropertyObserversImpl)(old, new)
         }
 
     /** Notifies changes to [parent] */
-    public val parentChange: PropertyObservers<View, View?> = PropertyObserversImpl(this)
+    public val parentChanged: PropertyObservers<View, View?> = PropertyObserversImpl(this)
+
+    @Deprecated("Use parentChanged property instead", ReplaceWith("parentChanged"))
+    public val parentChange: PropertyObservers<View, View?> get() = parentChanged
 
     /** Notifies changes to [displayed] */
-    public val displayChange: BooleanObservers = PropertyObserversImpl(this)
+    public val displayChanged: BooleanObservers = PropertyObserversImpl(this)
+
+    @Deprecated("Use displayChanged property instead", ReplaceWith("displayChanged"))
+    public val displayChange: BooleanObservers get() = displayChanged
 
     /**
      * Is `true` if the View is currently within the [Display].
@@ -1452,7 +1458,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         addedToDisplay()
 
-        (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
+        (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
     }
 
     /**
@@ -1475,7 +1481,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityManager = null
         removedFromDisplay()
 
-        (displayChange as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }
+        (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }
     }
 
     /**

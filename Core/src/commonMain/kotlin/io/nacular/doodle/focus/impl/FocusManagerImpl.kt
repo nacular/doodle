@@ -148,16 +148,16 @@ public class FocusManagerImpl(
         view.enabledChanged      += focusabilityChanged
         view.visibilityChanged   += focusabilityChanged
         view.focusabilityChanged += focusabilityChanged
-        view.displayChange       += displayChanged
-        view.parentChange        += parentChanged
+        view.displayChanged      += displayChanged
+        view.parentChanged       += parentChanged
     }
 
     private fun stopMonitorProperties(view: View) {
         view.enabledChanged      -= focusabilityChanged
         view.visibilityChanged   -= focusabilityChanged
         view.focusabilityChanged -= focusabilityChanged
-        view.displayChange       -= displayChanged
-        view.parentChange        -= parentChanged
+        view.displayChanged      -= displayChanged
+        view.parentChanged       -= parentChanged
     }
 
     private val displayChanged: (View, Boolean, Boolean) -> Unit = { _,_, displayed ->

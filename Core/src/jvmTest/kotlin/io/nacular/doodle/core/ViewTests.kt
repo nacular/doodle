@@ -232,7 +232,7 @@ class ViewTests {
 
         val observer = mockk<PropertyObserver<View, View?>>()
 
-        view.parentChange += observer
+        view.parentChanged += observer
 
         parent.children += view
 
@@ -248,7 +248,7 @@ class ViewTests {
 
         val observer = mockk<PropertyObserver<View, Boolean>>()
 
-        view.displayChange += observer
+        view.displayChanged += observer
 
         view.addedToDisplay_(mockk(), mockk(), null)
 

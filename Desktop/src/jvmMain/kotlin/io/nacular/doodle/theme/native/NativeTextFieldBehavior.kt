@@ -185,15 +185,15 @@ private class PlaceHolderLabel(text: String, private val component: JTextCompone
 }
 
 internal open class NativeTextFieldBehavior(
-        private val window              : WindowDiscovery,
-        private val appScope            : CoroutineScope,
-        private val uiDispatcher        : CoroutineContext,
-        private val defaultFont         : SkiaFont,
-        private val fontManager         : FontMgr,
-        private val swingGraphicsFactory: SwingGraphicsFactory,
-        private val swingFocusManager   : javax.swing.FocusManager,
-        private val textMetrics         : TextMetricsImpl,
-        private val focusManager        : FocusManager?
+    private val window              : WindowDiscovery,
+    private val appScope            : CoroutineScope,
+    private val uiDispatcher        : CoroutineContext,
+    private val defaultFont         : SkiaFont,
+    private val fontManager         : FontMgr,
+    private val swingGraphicsFactory: SwingGraphicsFactory,
+    private val swingFocusManager   : javax.swing.FocusManager,
+    private val textMetrics         : TextMetricsImpl,
+    private val focusManager        : FocusManager?
 ): TextFieldBehavior, PointerListener, PointerMotionListener {
 
     private inner class JTextFieldPeer(textField: TextField): JPasswordField() {
@@ -401,6 +401,24 @@ internal open class NativeTextFieldBehavior(
         nativePeer.revalidate()
     }
 
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
+        appScope.launch(uiDispatcher) {
+            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
+
+            window.frameFor(view)?.add(nativePeer)
+            nativePeer.revalidate()
+
+            if (view.hasFocus) {
+                nativePeer.requestFocusInWindow()
+            }
+
+            view.apply {
+                cursor        = Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
+            }
+        }
+    }
+
     override fun render(view: TextField, canvas: Canvas) {
         nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
@@ -423,25 +441,14 @@ internal open class NativeTextFieldBehavior(
             boundsChanged        += this@NativeTextFieldBehavior.boundsChanged
             enabledChanged       += this@NativeTextFieldBehavior.enabledChanged
             pointerChanged       += this@NativeTextFieldBehavior
+            displayChanged       += this@NativeTextFieldBehavior.displayChanged
             selectionChanged     += this@NativeTextFieldBehavior.selectionChanged
             focusabilityChanged  += this@NativeTextFieldBehavior.focusableChanged
             pointerMotionChanged += this@NativeTextFieldBehavior
         }
 
-        appScope.launch(uiDispatcher) {
-            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
-
-            window.frameFor(view)?.add(nativePeer)
-            nativePeer.revalidate()
-
-            if (view.hasFocus) {
-                nativePeer.requestFocusInWindow()
-            }
-
-            view.apply {
-                cursor        = Default
-                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
-            }
+        if (view.displayed) {
+            displayChanged(view, false, true)
         }
     }
 
@@ -459,6 +466,7 @@ internal open class NativeTextFieldBehavior(
             boundsChanged        -= this@NativeTextFieldBehavior.boundsChanged
             enabledChanged       -= this@NativeTextFieldBehavior.enabledChanged
             pointerChanged       -= this@NativeTextFieldBehavior
+            displayChanged       -= this@NativeTextFieldBehavior.displayChanged
             selectionChanged     -= this@NativeTextFieldBehavior.selectionChanged
             focusabilityChanged  -= this@NativeTextFieldBehavior.focusableChanged
             pointerMotionChanged -= this@NativeTextFieldBehavior

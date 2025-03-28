@@ -61,21 +61,21 @@ internal class AccessibilityManagerImpl(
             }
 
         init {
-            idRelationships      += this
-            source.firstRender   += firstRender
-            source.displayChange += displayChanged
-            target.firstRender   += firstRender
-            target.displayChange += displayChanged
+            idRelationships       += this
+            source.firstRender    += firstRender
+            source.displayChanged += displayChanged
+            target.firstRender    += firstRender
+            target.displayChanged += displayChanged
 
             update()
         }
 
         fun delete() {
-            idRelationships      -= this
-            source.firstRender   -= firstRender
-            source.displayChange -= displayChanged
-            target.firstRender   -= firstRender
-            target.displayChange -= displayChanged
+            idRelationships       -= this
+            source.firstRender    -= firstRender
+            source.displayChanged -= displayChanged
+            target.firstRender    -= firstRender
+            target.displayChanged -= displayChanged
 
             if (sourceReady) {
                 deleteRelationship()

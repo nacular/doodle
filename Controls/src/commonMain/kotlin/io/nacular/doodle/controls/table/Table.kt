@@ -395,7 +395,7 @@ public open class Table<T, M: ListModel<T>>(
     internal val footerPointerMotionFilter: Pool<PointerMotionListener> get() = footer.pointerMotionFilter
 
     init {
-        parentChange += { _,_,new ->
+        parentChanged += { _, _, new ->
             monitorsDisplayRect = when (new) {
                 is ScrollPanel -> true
                 else           -> false

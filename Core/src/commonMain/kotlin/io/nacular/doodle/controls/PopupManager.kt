@@ -188,9 +188,9 @@ public class PopupManagerImpl(
     override fun hide(view: View) {
         popups.remove(view)?.let {
             it.discard()
-            view.parentChange  -= parentChanged
-            view.boundsChanged -= boundsChanged
-            view.displayChange -= displayChanged
+            view.parentChanged  -= parentChanged
+            view.boundsChanged  -= boundsChanged
+            view.displayChanged -= displayChanged
             renderManager.popupHidden(view)
         }
     }
@@ -231,9 +231,9 @@ public class PopupManagerImpl(
 
         renderManager.popupShown(view)
 
-        view.parentChange  += parentChanged
-        view.boundsChanged += boundsChanged
-        view.displayChange += displayChanged
+        view.parentChanged  += parentChanged
+        view.boundsChanged  += boundsChanged
+        view.displayChanged += displayChanged
 
         popUp.relayout()
     }

@@ -112,7 +112,8 @@ internal class RealGraphicsSurface(
 
     private fun updateParentChildrenSort() {
         parent?.let {
-            it.children.sortWith(Comparator<RealGraphicsSurface> { a, b -> a.zOrder - b.zOrder }.thenComparing { a, b -> a.index - b.index })
+            it.children.sortWith { a, b -> (a.zOrder - b.zOrder).takeUnless { it == 0 } ?: (a.index - b.index) }
+//            it.children.sortWith(Comparator<RealGraphicsSurface> { a, b -> a.zOrder - b.zOrder }.thenComparing { a, b -> a.index - b.index })
             it.needsRerender()
         }
     }

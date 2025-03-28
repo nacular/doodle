@@ -67,6 +67,23 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
+        appScope.launch(uiDispatcher) {
+            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
+
+            view.apply {
+                cursor        = Cursor.Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
+            }
+
+            window.frameFor(view)?.add(nativePeer)
+
+            if (view.hasFocus) {
+                nativePeer.requestFocusInWindow()
+            }
+        }
+    }
+
     override fun render(view: T, canvas: Canvas) {
         nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
     }
@@ -97,22 +114,12 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             focusChanged        += this@AbstractNativeButtonBehavior.focusChanged
             boundsChanged       += this@AbstractNativeButtonBehavior.boundsChanged
             enabledChanged      += this@AbstractNativeButtonBehavior.enabledChanged
+            displayChanged      += this@AbstractNativeButtonBehavior.displayChanged
             focusabilityChanged += this@AbstractNativeButtonBehavior.focusableChanged
         }
 
-        appScope.launch(uiDispatcher) {
-            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
-
-            view.apply {
-                cursor        = Cursor.Default
-                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
-            }
-
-            window.frameFor(view)?.add(nativePeer)
-
-            if (view.hasFocus) {
-                nativePeer.requestFocusInWindow()
-            }
+        if (view.displayed) {
+            displayChanged(view, false, true)
         }
     }
 
@@ -126,6 +133,7 @@ internal abstract class AbstractNativeButtonBehavior<in T: Button, P>(
             focusChanged        -= this@AbstractNativeButtonBehavior.focusChanged
             boundsChanged       -= this@AbstractNativeButtonBehavior.boundsChanged
             enabledChanged      -= this@AbstractNativeButtonBehavior.enabledChanged
+            displayChanged      -= this@AbstractNativeButtonBehavior.displayChanged
             focusabilityChanged -= this@AbstractNativeButtonBehavior.focusableChanged
         }
 

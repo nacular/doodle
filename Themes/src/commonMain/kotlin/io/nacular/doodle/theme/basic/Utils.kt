@@ -58,7 +58,7 @@ public open class GenericTextEditOperation<T, V>(
             }
         }
 
-        displayChange += { _,_, displayed ->
+        displayChanged += { _, _, displayed ->
             if (displayed) {
                 focusManager?.requestFocus(this)
                 if (selectAllInitially) { selectAll() }

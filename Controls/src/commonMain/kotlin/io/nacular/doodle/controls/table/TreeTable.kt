@@ -674,7 +674,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
     internal val columnDirty: (Column<*>) -> Unit = { (it as? InternalColumn<*,*,*,*>)?.view?.rerender() }
 
     init {
-        parentChange += { _,_,new ->
+        parentChanged += { _, _, new ->
             monitorsDisplayRect = when (new) {
                 is ScrollPanel -> true
                 else           -> false

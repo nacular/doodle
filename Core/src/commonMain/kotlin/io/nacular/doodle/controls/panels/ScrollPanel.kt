@@ -82,7 +82,7 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  */
 @Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
-    private val parentChanged: (View, View?, View?) -> Unit = { view,old,new ->
+    private val parentChanged_: (View, View?, View?) -> Unit = { view, old, new ->
         if (old == this) this.content = null
         if (new == this) this.content = view
     }
@@ -109,7 +109,7 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
         field?.let {
-            it.parentChange -= parentChanged
+            it.parentChanged -= parentChanged_
             children -= it
             (layout as? ConstraintLayout)?.also { clearConstrains(it) }
         }
@@ -119,7 +119,7 @@ public open class ScrollPanel(content: View? = null): View() {
 
         field?.let {
             children += it
-            it.parentChange +=  parentChanged
+            it.parentChanged +=  parentChanged_
             (layout as? ConstraintLayout)?.also { updateConstraints(it) }
         }
 

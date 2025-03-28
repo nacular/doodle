@@ -169,6 +169,26 @@ internal class NativeScrollPanelBehavior(
         updateNativePeerScroll(new?.bounds ?: Rectangle.Empty)
     }
 
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view, _, _ ->
+        appScope.launch(uiDispatcher) {
+            nativePeer.size = view.size.toAwt()
+
+            view.apply {
+                cursor        = Cursor.Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
+            }
+
+            window.frameFor(view)?.let {
+                it.add(nativePeer)
+                it.revalidate()
+            }
+
+            if (view.hasFocus) {
+                nativePeer.requestFocusInWindow()
+            }
+        }
+    }
+
     private fun updateNativePeerScroll(bounds: Rectangle) {
         ignoreScroll = true
         nativePeer.viewport.view.size        = bounds.size.toAwt()
@@ -240,27 +260,14 @@ internal class NativeScrollPanelBehavior(
         view.apply {
             oldIdealSize    = idealSize
             boundsChanged  += this@NativeScrollPanelBehavior.boundsChanged
+            displayChanged += this@NativeScrollPanelBehavior.displayChanged
             contentChanged += this@NativeScrollPanelBehavior.contentChanged
 
             content?.boundsChanged?.plusAssign(this@NativeScrollPanelBehavior.contentBoundsChanged)
         }
 
-        appScope.launch(uiDispatcher) {
-            nativePeer.size = view.size.toAwt()
-
-            view.apply {
-                cursor        = Cursor.Default
-                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
-            }
-
-            window.frameFor(view)?.let {
-                it.add(nativePeer)
-                it.revalidate()
-            }
-
-            if (view.hasFocus) {
-                nativePeer.requestFocusInWindow()
-            }
+        if (view.displayed) {
+            displayChanged(view, false, true)
         }
     }
 
@@ -273,6 +280,7 @@ internal class NativeScrollPanelBehavior(
             cursor          = oldCursor
             preferredSize   = fixed(oldIdealSize) // FIXME: This should track the View's original preferredSize lambda instead
             boundsChanged  -= this@NativeScrollPanelBehavior.boundsChanged
+            displayChanged -= this@NativeScrollPanelBehavior.displayChanged
             contentChanged -= this@NativeScrollPanelBehavior.contentChanged
 
             content?.boundsChanged?.minusAssign(this@NativeScrollPanelBehavior.contentBoundsChanged)

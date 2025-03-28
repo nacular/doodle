@@ -109,7 +109,7 @@ internal class DocumentImpl(
         children += view
 
         // TODO: remove listener
-        view.parentChange += { _,_,_ ->
+        view.parentChanged += { _, _, _ ->
             surface.rootElement.style.position  = "initial"
             surface.rootElement.style.display   = "initial"
             surface.rootElement.style.transform = "translate3d(0,0,0)"

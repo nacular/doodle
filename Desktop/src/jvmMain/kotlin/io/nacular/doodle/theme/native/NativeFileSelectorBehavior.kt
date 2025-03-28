@@ -180,22 +180,7 @@ internal class NativeFileSelectorBehavior(
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
-    override fun render(view: FileSelector, canvas: Canvas) {
-        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
-    }
-
-    override fun install(view: FileSelector) {
-        super.install(view)
-
-        nativePeer = FileSelectorPeer(view)
-
-        view.apply {
-            focusChanged        += this@NativeFileSelectorBehavior.focusChanged
-            boundsChanged       += this@NativeFileSelectorBehavior.boundsChanged
-            enabledChanged      += this@NativeFileSelectorBehavior.enabledChanged
-            focusabilityChanged += this@NativeFileSelectorBehavior.focusableChanged
-        }
-
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
         appScope.launch(uiDispatcher) {
             nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
 
@@ -212,6 +197,28 @@ internal class NativeFileSelectorBehavior(
         }
     }
 
+    override fun render(view: FileSelector, canvas: Canvas) {
+        nativePeer.paint(swingGraphicsFactory(fontManager, (canvas as CanvasImpl).skiaCanvas))
+    }
+
+    override fun install(view: FileSelector) {
+        super.install(view)
+
+        nativePeer = FileSelectorPeer(view)
+
+        view.apply {
+            focusChanged        += this@NativeFileSelectorBehavior.focusChanged
+            boundsChanged       += this@NativeFileSelectorBehavior.boundsChanged
+            enabledChanged      += this@NativeFileSelectorBehavior.enabledChanged
+            displayChanged      += this@NativeFileSelectorBehavior.displayChanged
+            focusabilityChanged += this@NativeFileSelectorBehavior.focusableChanged
+        }
+
+        if (view.displayed) {
+            displayChanged(view, false, true)
+        }
+    }
+
     override fun uninstall(view: FileSelector) {
         super.uninstall(view)
 
@@ -222,6 +229,7 @@ internal class NativeFileSelectorBehavior(
             focusChanged        -= this@NativeFileSelectorBehavior.focusChanged
             boundsChanged       -= this@NativeFileSelectorBehavior.boundsChanged
             enabledChanged      -= this@NativeFileSelectorBehavior.enabledChanged
+            displayChanged      -= this@NativeFileSelectorBehavior.displayChanged
             focusabilityChanged -= this@NativeFileSelectorBehavior.focusableChanged
         }
 

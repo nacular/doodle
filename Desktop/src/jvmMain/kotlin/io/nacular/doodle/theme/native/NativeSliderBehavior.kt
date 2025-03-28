@@ -185,6 +185,23 @@ internal class NativeSliderBehavior<T>(
         nativePeer.size = new.size.run { Dimension(width.toInt(), height.toInt()) }
     }
 
+    private val displayChanged: (View, Boolean, Boolean) -> Unit = { view,_,_ ->
+        appScope.launch(uiDispatcher) {
+            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
+
+            view.apply {
+                cursor        = Default
+                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
+            }
+
+            window.frameFor(view)?.add(nativePeer)
+
+            if (view.hasFocus) {
+                nativePeer.requestFocusInWindow()
+            }
+        }
+    }
+
     private val changeListener      : (Slider<T>, T,              T             ) -> Unit = { _,_,_ -> nativePeer.notifyChange() }
     private val limitsChangeListener: (Slider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { _,_,_ -> nativePeer.notifyChange() }
 
@@ -209,24 +226,14 @@ internal class NativeSliderBehavior<T>(
             focusChanged        += this@NativeSliderBehavior.focusChanged
             boundsChanged       += this@NativeSliderBehavior.boundsChanged
             enabledChanged      += this@NativeSliderBehavior.enabledChanged
+            displayChanged      += this@NativeSliderBehavior.displayChanged
             focusabilityChanged += this@NativeSliderBehavior.focusableChanged
             changed             += this@NativeSliderBehavior.changeListener
             limitsChanged       += this@NativeSliderBehavior.limitsChangeListener
         }
 
-        appScope.launch(uiDispatcher) {
-            nativePeer.size = view.size.run { Dimension(view.width.toInt(), view.height.toInt()) }
-
-            view.apply {
-                cursor        = Default
-                preferredSize = fixed(nativePeer.preferredSize.run { Size(width, height) })
-            }
-
-            window.frameFor(view)?.add(nativePeer)
-
-            if (view.hasFocus) {
-                nativePeer.requestFocusInWindow()
-            }
+        if (view.displayed) {
+            displayChanged(view, false, true)
         }
     }
 
@@ -240,6 +247,7 @@ internal class NativeSliderBehavior<T>(
             focusChanged        -= this@NativeSliderBehavior.focusChanged
             boundsChanged       -= this@NativeSliderBehavior.boundsChanged
             enabledChanged      -= this@NativeSliderBehavior.enabledChanged
+            displayChanged      -= this@NativeSliderBehavior.displayChanged
             focusabilityChanged -= this@NativeSliderBehavior.focusableChanged
             changed             -= this@NativeSliderBehavior.changeListener
             limitsChanged       -= this@NativeSliderBehavior.limitsChangeListener

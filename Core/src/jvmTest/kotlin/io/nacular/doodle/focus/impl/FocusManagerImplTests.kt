@@ -186,7 +186,7 @@ class FocusManagerImplTests {
             val parent = focusableView()
 
             every { it.parent } returns parent
-            every { it.parentChange += capture(propertyChanged) } just Runs
+            every { it.parentChanged += capture(propertyChanged) } just Runs
 
             {
                 propertyChanged.captured(it, parent, null)
@@ -200,8 +200,8 @@ class FocusManagerImplTests {
             val propertyChanged = slot<PropertyObserver<View, Boolean>>()
             val parent = focusableView()
 
-            every { it.parent                                    } returns parent
-            every { it.displayChange += capture(propertyChanged) } just Runs
+            every { it.parent                                     } returns parent
+            every { it.displayChanged += capture(propertyChanged) } just Runs
 
             {
                 propertyChanged.captured(it, true, false)
@@ -216,7 +216,7 @@ class FocusManagerImplTests {
         val displayChangedListener = slot<PropertyObserver<View, Boolean>>()
 
         val view = focusableView().apply {
-            every { displayChange += capture(displayChangedListener) } just Runs
+            every { displayChanged += capture(displayChangedListener) } just Runs
         }
 
         FocusManagerImpl(createDisplayWithSingleView(), mockk(), focusabilityChecker).apply {

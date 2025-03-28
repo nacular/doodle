@@ -708,7 +708,7 @@ internal class AccessibilityManagerImpl(
         displayChanged = { view: View, _: Boolean, new: Boolean ->
             if (!new) {
                 cache.entries.removeIf { it.key.second == view }
-                view.displayChange -= displayChanged
+                view.displayChanged -= displayChanged
             }
         }
     }
@@ -724,7 +724,7 @@ internal class AccessibilityManagerImpl(
     ): Accessible? = cache.getOrPut(display to of) {
         when {
             predicate(of) -> {
-                of.displayChange += displayChanged
+                of.displayChanged += displayChanged
 
                 CustomAccessible(when (of) {
                     is List<*,*> -> AccessibleListContext(display, of)
