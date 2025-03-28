@@ -621,6 +621,7 @@ public open class RenderManagerImpl(
             // Views that change bounds while invisible are never scheduled
             // for bounds sync, so catch them here
             if (new) {
+                pendingLayout       += view // Ensure children are laid out.
                 pendingBoundsChange += view
             }
 
@@ -631,7 +632,7 @@ public open class RenderManagerImpl(
             render(parent)
         } else if (view in display || view in popups) {
             if (new) {
-                pendingLayout       += view // Ensure children are laid out. It has no parent to lay out, unlike above.
+                pendingLayout       += view // Ensure children are laid out.
                 visibilityChanged   += view
                 pendingBoundsChange += view // See above
 
