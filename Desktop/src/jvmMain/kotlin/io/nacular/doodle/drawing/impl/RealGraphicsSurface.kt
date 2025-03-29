@@ -13,6 +13,7 @@ import io.nacular.doodle.skia.skia
 import io.nacular.doodle.skia.skia33
 import io.nacular.doodle.utils.addOrAppend
 import io.nacular.doodle.utils.observable
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.skia.ClipMode.INTERSECT
 import org.jetbrains.skia.Font
 import org.jetbrains.skia.Matrix44
@@ -23,39 +24,46 @@ import org.jetbrains.skia.paragraph.FontCollection
 import kotlin.properties.ReadWriteProperty
 import org.jetbrains.skia.Canvas as SkiaCanvas
 
+internal interface GraphicsSurfaceParent {
+    val released: Boolean
+    val children: MutableList<RealGraphicsSurface>
+
+    fun add          (child: RealGraphicsSurface)
+    fun remove       (child: RealGraphicsSurface)
+    fun needsRerender(                          )
+}
+
 /**
  * Created by Nicholas Eddy on 5/19/21.
  */
 internal class RealGraphicsSurface(
+    private val parent        : GraphicsSurfaceParent,
     private val defaultFont   : Font,
     private val fontCollection: FontCollection,
-    private val parent        : RealGraphicsSurface?,
-    private val onPaintNeeded : () -> Unit,
-): GraphicsSurface {
+): GraphicsSurface, GraphicsSurfaceParent {
 
-    private var picture                         =  null as Picture?
-    private val children                        =  mutableListOf<RealGraphicsSurface>()
-    private var renderBlock                     by redrawProperty<((Canvas) -> Unit)?>(null)
-    private var finalTransform: AffineTransform by parentRedrawProperty(Identity)
-    private val pictureRecorder                 =  PictureRecorder()
+    private  var picture                         =  null as Picture?
+    override val children                        =  mutableListOf<RealGraphicsSurface>()
+    private  var renderBlock                     by redrawProperty<((Canvas) -> Unit)?>(null)
+    private  var finalTransform: AffineTransform by parentRedrawProperty(Identity)
+    private  val pictureRecorder                 =  PictureRecorder()
 
     internal var postRender: ((Canvas) -> Unit)? = null
 
     init {
-        parent?.add(this)
+        parent.add(this)
     }
 
     override var size  by redrawProperty(Empty)
-    override var index = 0
-        set(new) {
-            parent?.let {
-                it.children.remove(this)
-                if (new >= 0) {
-                    it.children.addOrAppend(new, this)
-                }
-                updateParentChildrenSort()
-            }
+    override var index = 0; set(new) {
+        field = new
+
+        parent.children.remove(this)
+        if (new >= 0) {
+            parent.children.addOrAppend(new, this)
         }
+        updateParentChildrenSort()
+    }
     override var zOrder                     by parentRedrawProperty (0                  ) { _,_ ->   updateParentChildrenSort(        ) }
     override var visible                    by redrawProperty       (true               )
     override var opacity                    by redrawProperty       (0.5f               )
@@ -70,7 +78,7 @@ internal class RealGraphicsSurface(
         renderBlock = block
     }
 
-    private var released = false
+    override var released = false
 
     override fun release() {
         if (!released) {
@@ -84,11 +92,9 @@ internal class RealGraphicsSurface(
                 it.release()
             }
 
-            when {
-                parent == null           -> onPaintNeeded()
-                parent.released == false -> { // FIXME: Should always be true
-                    parent.remove(this)
-                }
+            // FIXME: Should always be true
+            if (parent.released == false) { // FIXME: Should always be true
+                parent.remove(this)
             }
         }
     }
@@ -111,34 +117,30 @@ internal class RealGraphicsSurface(
     }
 
     private fun updateParentChildrenSort() {
-        parent?.let {
-            it.children.sortWith { a, b -> (a.zOrder - b.zOrder).takeUnless { it == 0 } ?: (a.index - b.index) }
-//            it.children.sortWith(Comparator<RealGraphicsSurface> { a, b -> a.zOrder - b.zOrder }.thenComparing { a, b -> a.index - b.index })
-            it.needsRerender()
-        }
+        parent.children.sortWith { a, b -> (a.zOrder - b.zOrder).takeUnless { it == 0 } ?: (a.index - b.index) }
+        parent.needsRerender()
     }
 
-    private fun add(child: RealGraphicsSurface) {
+    @VisibleForTesting
+    override fun add(child: RealGraphicsSurface) {
         children += child
         needsRerender()
     }
 
-    private fun remove(child: RealGraphicsSurface) {
+    @VisibleForTesting
+    override fun remove(child: RealGraphicsSurface) {
         children -= child
         needsRerender()
     }
 
-    private fun needsRerender() {
+    override fun needsRerender() {
         try {
             picture?.close()
         } catch (_: Throwable) {}
 
         picture = null
 
-        when (parent) {
-            null -> onPaintNeeded()
-            else -> parent.needsRerender()
-        }
+        parent.needsRerender()
     }
 
     private fun drawToCanvas(skiaCanvas: SkiaCanvas) {
@@ -216,9 +218,6 @@ internal class RealGraphicsSurface(
     private fun <T> parentRedrawProperty(initial: T, onChange: RealGraphicsSurface.(old: T, new: T) -> Unit = { _,_ -> }): ReadWriteProperty<RealGraphicsSurface, T> = observable(initial) { old, new ->
         onChange(old, new)
 
-        when (parent) {
-            null -> onPaintNeeded()
-            else -> parent.needsRerender()
-        }
+        parent.needsRerender()
     }
 }

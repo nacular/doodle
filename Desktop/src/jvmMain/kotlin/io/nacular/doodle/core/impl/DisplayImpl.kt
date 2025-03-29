@@ -112,6 +112,8 @@ internal class DisplayImpl(
         }
     } }
 
+    override val surfaces = mutableListOf<RealGraphicsSurface>()
+
     private inner class ChildObserversImpl: SetPool<ChildObserver<Display>>() {
         operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
@@ -208,8 +210,8 @@ internal class DisplayImpl(
             }
         }
 
-        children.forEach {
-            device[it].onRender(canvas)
+        surfaces.forEach {
+            it.onRender(canvas)
         }
 
         popUps.forEach {

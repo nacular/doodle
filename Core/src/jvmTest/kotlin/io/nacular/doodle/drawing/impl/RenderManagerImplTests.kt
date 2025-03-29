@@ -17,7 +17,9 @@ import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.forceBounds
 import io.nacular.doodle.core.forceSize
+import io.nacular.doodle.core.forceWidth
 import io.nacular.doodle.core.forceX
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -599,7 +601,7 @@ class RenderManagerImplTests {
         expect(true) { grandChild in parent.children }
     }
 
-    @Test fun `rerenders on bounds changed`() {
+    @Test fun `re-renders on bounds changed`() {
         val view          = spyk<View> { suggestSize(Size(100)) }
         val display       = display(view)
         val renderManager = renderManager(display)
@@ -611,7 +613,7 @@ class RenderManagerImplTests {
         verify(exactly = 2) { view.render(any()) }
     }
 
-    @Test fun `rerenders on becoming visible`() {
+    @Test fun `re-renders on becoming visible`() {
         val view    = spyk<View> { suggestSize(Size(100)) }
         val display = display(view)
 
@@ -626,7 +628,7 @@ class RenderManagerImplTests {
         verifyChildAddedProperly(renderManager, display, view)
     }
 
-    @Test fun `rerenders on added becoming visible`() {
+    @Test fun `re-renders on added becoming visible`() {
         val parent  = container()
         val view    = spyk<View> { suggestSize(Size(100)) }
         val display = display(parent)
@@ -1260,36 +1262,36 @@ class RenderManagerImplTests {
         }
     }
 
-//    @Test fun `cold display rect call works`() {
-//        data class Data(
-//                val grandParent: Rectangle,
-//                val parent     : Rectangle,
-//                val child      : Rectangle,
-//                val event      : Pair<Rectangle, Rectangle>,
-//                val operation  : (View, View, View) -> Unit
-//        )
-//
-//        listOf(
-//            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0,  0, 10)) { _,parent,_ ->
-//                parent.x = -10.0
-//            },
-//            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(       10, 10)) { _,parent,_ ->
-//                parent.width = 1000.0
-//            }
-//        ).forEach {
-//            val child         = view()
-//            val parent        = container().apply { children += child;  bounds = it.parent      }
-//            val grandParent   = container().apply { children += parent; bounds = it.grandParent }
-//            val display       = display(grandParent)
-//            val renderManager = renderManager(display)
-//
-//            it.operation(grandParent, parent, child)
-//
-//            expect(it.event.second) {
-//                renderManager.first.displayRect(child)
-//            }
-//        }
-//    }
+    @Test fun `cold display rect call works`() {
+        data class Data(
+                val grandParent: Rectangle,
+                val parent     : Rectangle,
+                val child      : Rectangle,
+                val event      : Pair<Rectangle, Rectangle>,
+                val operation  : (View, View, View) -> Unit
+        )
+
+        listOf(
+            Data(Rectangle(100, 100), Rectangle(50, 50), Rectangle(10, 10), Rectangle(10, 10) to Rectangle(10, 0,  0, 10)) { _,parent,_ ->
+                parent.forceX(-10.0)
+            },
+            Data(Rectangle(100, 100), Rectangle( 0, 50), Rectangle(10, 10), Rectangle( 0, 10) to Rectangle(       10, 10)) { _,parent,_ ->
+                parent.forceWidth(1000.0)
+            }
+        ).forEach {
+            val child         = view()
+            val parent        = container().apply { children += child;  forceBounds(it.parent     ) }
+            val grandParent   = container().apply { children += parent; forceBounds(it.grandParent) }
+            val display       = display(grandParent)
+            val renderManager = renderManager(display)
+
+            it.operation(grandParent, parent, child)
+
+            expect(it.event.second) {
+                renderManager.first.displayRect(child)
+            }
+        }
+    }
 
     @Test fun `stops monitoring display rect when disabled`() {
         val child = spyk(view()).apply {
@@ -1312,6 +1314,41 @@ class RenderManagerImplTests {
         verify(exactly = 1) {
             child.handleDisplayRectEvent_(Rectangle.Empty, Rectangle( 10,  10))
         }
+    }
+
+    @Test fun `graphics index correct child becomes visible`() {
+        val child1   = spyk(view())
+        val child2   = spyk(view().apply { visible = false })
+        val child3   = spyk(view())
+        val parent   = spyk<Container> { suggestSize(Size(10)); children += listOf(child1, child2, child3) }
+        val display  = display(parent)
+
+        var indexes       = mutableMapOf<GraphicsSurface, Int>()
+        val capturedIndex = slot<Int>()
+
+        val surface1 = mockk<GraphicsSurface> { every { index = capture(capturedIndex) } answers { indexes[this@mockk] = capturedIndex.captured }  }
+        val surface3 = mockk<GraphicsSurface> { every { index = capture(capturedIndex) } answers { indexes[this@mockk] = capturedIndex.captured }  }
+        val surface2 = mockk<GraphicsSurface> { every { index = capture(capturedIndex) } answers { indexes[this@mockk] = capturedIndex.captured }  }
+
+        val scheduler = ManualAnimationScheduler()
+
+        val renderManager = renderManager(
+            display        = display,
+            scheduler      = scheduler,
+            graphicsDevice = graphicsDevice(mapOf(child1 to surface1, child2 to surface2, child3 to surface3))
+        )
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, parent)
+
+        expect(listOf(0,null,2)) { listOf(indexes[surface1], indexes[surface2], indexes[surface3]) }
+
+        child2.visible = true
+
+        scheduler.runJobs()
+
+        expect(listOf(0,1,2)) { listOf(indexes[surface1], indexes[surface2], indexes[surface3]) }
     }
 
     private fun verifyLayout(layout: Layout = layout(), count: Int = 2, block: (View) -> Unit) {

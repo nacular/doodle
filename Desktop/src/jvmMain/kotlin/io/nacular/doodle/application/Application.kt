@@ -92,7 +92,7 @@ private open class ApplicationHolderImpl protected constructor(
         System.setProperty("skiko.rendering.laf.global",        "true" )
         System.setProperty("skiko.rendering.useScreenMenuBar",  "true" )
         System.setProperty("skiko.linux.autodpi",               "true" )
-        System.setProperty("skiko.vsync.enabled",               "false")
+//        System.setProperty("skiko.vsync.enabled",               "false")
 //        System.setProperty("skiko.fps.enabled",                 "true" )
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
@@ -136,8 +136,12 @@ private open class ApplicationHolderImpl protected constructor(
                     defaultFont          = instance(),
                     uiDispatcher         = instance(),
                     fontCollection       = instance(),
-                    graphicsDevices      = { onPaintNeeded ->
-                        RealGraphicsDevice(RealGraphicsSurfaceFactory(instance(), instance(), onPaintNeeded))
+                    graphicsDevices      = { parent ->
+                        RealGraphicsDevice(RealGraphicsSurfaceFactory(
+                            parent          = parent,
+                            defaultFont     = instance(),
+                            fontCollection  = instance(),
+                        ))
                     },
                     renderManagers       = { display ->
                         DesktopRenderManagerImpl(display, instance(), instanceOrNull(), instanceOrNull())

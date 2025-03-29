@@ -322,10 +322,10 @@ class DisplayImplTests {
             }
         }
 
-        val child = mockk<View>()
-        val popup = mockk<View>()
+        val children = (0..3).map { mockk<View>() }
+        val popups   = (0..2).map { mockk<View>() }
 
-        val surfaces  = listOf(child, popup).associateWith { mockk<RealGraphicsSurface>() }
+        val surfaces  = (children + popups).associateWith { mockk<RealGraphicsSurface>() }
         val device    = mockk<GraphicsDevice<RealGraphicsSurface>>().apply {
             val view = slot<View>()
 
@@ -336,14 +336,17 @@ class DisplayImplTests {
 
         val display = display(device = device, skiaLayer = skiaLayer)
 
-        display += child
-        display.showPopup(popup)
+        display += children
+
+        display.surfaces += children.mapNotNull { surfaces[it] }
+
+        popups.forEach { display.showPopup(it) }
 
         val canvas = mockk<Canvas>()
 
         renderDelegate.captured.onRender(canvas, 400, 500, 1000L)
 
-        verify(exactly = 1) {
+        verifyOrder {
             surfaces.values.forEach {
                 it.onRender(canvas)
             }

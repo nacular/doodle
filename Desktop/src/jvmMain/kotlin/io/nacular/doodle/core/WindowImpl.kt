@@ -11,6 +11,7 @@ import io.nacular.doodle.core.impl.DisplayImpl
 import io.nacular.doodle.core.impl.DisplaySkiko
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.RenderManager
+import io.nacular.doodle.drawing.impl.GraphicsSurfaceParent
 import io.nacular.doodle.drawing.impl.RealGraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.drawing.impl.SwingCanvas
@@ -51,7 +52,7 @@ internal class WindowImpl(
                 uiDispatcher        : CoroutineDispatcher,
                 fontCollection      : FontCollection,
                 accessibilityManager: () -> AccessibilityManagerSkiko?,
-                graphicsDevices     : (() -> Unit) -> RealGraphicsDevice<RealGraphicsSurface>,
+                graphicsDevices     : (GraphicsSurfaceParent) -> RealGraphicsDevice<RealGraphicsSurface>,
     private val renderManagers      : (DisplayImpl   ) -> RenderManager,
                 displays            : DisplayFactory,
                 size                : Size,
@@ -172,9 +173,19 @@ internal class WindowImpl(
 
     val skiaLayer: JPanel get() = display.panel
 
-    val graphicsDevice: GraphicsDevice<RealGraphicsSurface> = graphicsDevices {
-        display.paintNeeded()
-    }
+    val graphicsDevice: GraphicsDevice<RealGraphicsSurface> = graphicsDevices(
+        object: GraphicsSurfaceParent {
+            override val released = false
+            override val children get() = display.surfaces
+
+            override fun add   (child: RealGraphicsSurface) { children += child }
+            override fun remove(child: RealGraphicsSurface) { children -= child }
+
+            override fun needsRerender() {
+                display.paintNeeded()
+            }
+        }
+    )
 
     override val closed: ChangeObservers<WindowImpl> = ChangeObserversImpl(this)
 

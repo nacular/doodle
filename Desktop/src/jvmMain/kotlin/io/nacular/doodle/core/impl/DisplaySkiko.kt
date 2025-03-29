@@ -23,6 +23,7 @@ internal interface DisplaySkiko: InternalDisplay {
     val locationOnScreen: Point
     val indexInParent   : Int
     val panel           : JPanel
+    val surfaces        : MutableList<RealGraphicsSurface>
 
     fun syncSize   ()
     fun shutdown   ()
