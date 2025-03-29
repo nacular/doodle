@@ -45,7 +45,7 @@ kotlin {
             implementation(libs.bundles.test.libs)
         }
 
-        val wasmJsMain by getting {
+        wasmJsMain {
             dependsOn(jsCommon)
 
             dependencies {

@@ -39,39 +39,37 @@ public open class ListItem<T>(
         private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
         private val role                           : ListItemRole = ListItemRole()): View(role) {
 
-    public var list: ListLike = list
-        private set(new) {
-            field.focusChanged -= listFocusChanged
+    public var list: ListLike = list; private set(new) {
+        field.focusChanged -= listFocusChanged
 
-            field = new
+        field = new
 
-            when {
-                field.selected(index) -> {
-                    field.focusChanged += listFocusChanged
+        when {
+            field.selected(index) -> {
+                field.focusChanged += listFocusChanged
 
-                    backgroundColor = if (field.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
-                }
-                else                  -> {
-                    field.focusChanged -= listFocusChanged
+                backgroundColor = if (field.hasFocus) backgroundSelectionColor else backgroundSelectionBlurredColor
+            }
+            else                  -> {
+                field.focusChanged -= listFocusChanged
 
-                    backgroundColor = null
-                }
+                backgroundColor = null
             }
         }
+    }
 
     public var insetTop : Double = if (backgroundSelectionColor != null || backgroundSelectionBlurredColor != null) 1.0 else 0.0
     public var insetLeft: Double = 0.0
 
-    public var positioner: ConstraintDslContext.(Bounds) -> Unit = defaultPositioner
-        set(new) {
-            if (field == new) {
-                return
-            }
-
-            field = new
-
-            layout = constrainLayout(children[0])
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = defaultPositioner; set(new) {
+        if (field == new) {
+            return
         }
+
+        field = new
+
+        layout = constrainLayout(children[0])
+    }
 
     private var pointerOver by observable(false) { _,new ->
         pointerOver(new)
