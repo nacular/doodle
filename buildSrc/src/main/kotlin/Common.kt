@@ -112,8 +112,8 @@ fun Project.setupPublication(dokkaJar: Jar) {
         repositories {
             maven {
                 url = uri(when {
-                    releaseBuild -> "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-                    else         -> "https://oss.sonatype.org/content/repositories/snapshots"
+                    releaseBuild -> "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+                    else         -> "https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots"
                 })
 
                 credentials {
