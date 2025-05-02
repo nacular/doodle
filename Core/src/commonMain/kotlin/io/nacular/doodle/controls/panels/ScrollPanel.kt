@@ -6,6 +6,7 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
+import io.nacular.doodle.core.scrollTo
 import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -188,16 +189,20 @@ public open class ScrollPanel(content: View? = null): View() {
         it.top  eq -scroll.y
         it.left eq -scroll.x
 
-        contentWidthConstraints?.invoke (this, object: IdealSizedProperty() {
-            override val idealValue get() = it.idealWidth
-            override val readOnly   get() = it.width.readOnly
-            override fun toTerm        () = it.width.toTerm()
-        } )
-        contentHeightConstraints?.invoke(this, object: IdealSizedProperty() {
-            override val idealValue get() = it.idealHeight
-            override val readOnly   get() = it.height.readOnly
-            override fun toTerm        () = it.height.toTerm()
-        } )
+        if (!ignoreLayout) {
+            contentWidthConstraints?.invoke(this, object : IdealSizedProperty() {
+                override val idealValue get() = it.idealWidth
+                override val readOnly   get() = it.width.readOnly
+                override fun toTerm()         = it.width.toTerm()
+            })
+            contentHeightConstraints?.invoke(this, object : IdealSizedProperty() {
+                override val idealValue get() = it.idealHeight
+                override val readOnly   get() = it.height.readOnly
+                override fun toTerm()         = it.height.toTerm()
+            })
+        }
+
+        ignoreLayout = false
     }
 
     private var ignoreLayout = false

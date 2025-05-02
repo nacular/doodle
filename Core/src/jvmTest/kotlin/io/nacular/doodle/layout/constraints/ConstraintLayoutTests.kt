@@ -10,6 +10,7 @@ import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.View.Companion.fixed
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.forceHeight
 import io.nacular.doodle.core.forceSize
@@ -19,6 +20,8 @@ import io.nacular.doodle.drawing.impl.RenderManagerImpl
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.geometry.times
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
@@ -49,7 +52,7 @@ class ConstraintLayoutTests {
 
             layout = simpleLayout { items,_,_,_,_ ->
                 items.forEach {
-                    it.updateBounds(0.0, 0.0, Size(10), Size.Infinite)
+                    it.updateBounds(0.0, 0.0, Size(10), Infinite)
                 }
 
                 Size(100)
@@ -184,7 +187,7 @@ class ConstraintLayoutTests {
             ).takeLast(1).map { it.getOrThrow() }
         }
 
-        layout.layout(sequenceOf(view).map { it.positionable }, Size.Empty, Size(100), Size.Infinite)
+        layout.layout(sequenceOf(view).map { it.positionable }, Empty, Size(100), Infinite)
 
         val solver = Solver()
 
@@ -450,6 +453,60 @@ class ConstraintLayoutTests {
 
         doLayout()
         expect(expectedChildBounds) { child.bounds }
+    }
+
+    @Test fun `foo1`() {
+        val image = view {}
+        val text  = view {}.apply { preferredSize = fixed(Size(200, 10))}
+
+        var firstBock = false
+
+        val layout = constrain(image, text) { image, text ->
+
+            image.top eq 0
+
+            if (firstBock) {
+                image.left   greaterEq 10
+                image.left   eq        parent.centerX - 10 strength Strong
+                image.width  eq        parent.width * 0.4
+                image.height eq        image.width / 2
+
+                text.left    eq image.right + 20
+                text.right   eq parent.right - image.left
+                text.height  eq text.idealHeight
+                text.centerY eq image.centerY
+            } else {
+                val width = parent.width - 2 * 10
+
+                image.left   eq 10
+                image.width  eq width
+                image.height eq image.width / 2
+
+                text.top     eq image.bottom + 20
+                text.left    eq image.left
+                text.width   eq width
+                text.height  eq text.idealHeight
+            }
+        }
+
+        var size = Size(500)
+
+        layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
+
+        expect(Point(10.0, 0.0)) { image.position }
+        expect(size.width - 2 * 10) { image.width }
+        expect(image.width / 2) { image.height }
+
+        expect(Point(image.x, image.bounds.bottom + 20)) { text.position }
+        expect(Size(image.width, text.idealSize.height)) { text.size     }
+
+        firstBock = true
+
+        layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
+
+        expect(true) { image.x > 10.0 }
+        expect(size.width * 0.4) { image.width }
+        expect(image.width / 2) { image.height }
     }
 
 //    @Test fun `min works`() {
