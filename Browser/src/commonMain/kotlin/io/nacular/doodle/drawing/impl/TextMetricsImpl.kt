@@ -17,6 +17,7 @@ import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import io.nacular.doodle.utils.TextAlignment.Start
+import io.nacular.doodle.utils.splitMatches
 import kotlin.math.max
 
 internal class TextMetricsImpl(
@@ -37,7 +38,10 @@ internal class TextMetricsImpl(
     private val wrappedWidths       = LeastRecentlyUsedCache<WrappedInfo,      Double> (maxSize = cacheLength)
     private val wrappedStyledWidths = LeastRecentlyUsedCache<WrappedStyleInfo, Double> (maxSize = cacheLength)
 
-    private val fontHeights = mutableMapOf<Font?, Double>()
+    private val heights              = LeastRecentlyUsedCache<TextInfo,         Double> (maxSize = cacheLength)
+    private val styledHeights        = LeastRecentlyUsedCache<StyledTextInfo,   Double> (maxSize = cacheLength)
+    private val wrappedHeights       = LeastRecentlyUsedCache<WrappedInfo,      Double> (maxSize = cacheLength)
+    private val wrappedStyledHeights = LeastRecentlyUsedCache<WrappedStyleInfo, Double> (maxSize = cacheLength)
 
     private val renderingContext = htmlFactory.create<HTMLCanvasElement>("canvas").getContext("2d") as CanvasRenderingContext2D
 
@@ -74,12 +78,12 @@ internal class TextMetricsImpl(
         elementRuler.width(box)
     }
 
-    override fun height(text: String, font: Font?) = fontHeights.getOrPut(font) {
+    override fun height(text: String, font: Font?) = heights.getOrPut(TextInfo(text, font)) {
         // Special check for empty added to avoid font black-holing if first text checked is empty string
         elementRuler.height(textFactory.create(text.takeUnless { it.isBlank() } ?: " ", font, textSpacing = default))
     }
 
-    override fun height(text: StyledText, textSpacing: TextSpacing): Double  {
+    override fun height(text: StyledText, textSpacing: TextSpacing) = styledHeights.getOrPut(StyledTextInfo(text, textSpacing)) {
         var maxHeight = 0.0
 
         text.forEach { (string, style) ->
@@ -89,24 +93,28 @@ internal class TextMetricsImpl(
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
-        text        = text,
-        font        = font,
-        width       = width,
-        indent      = indent,
-        alignment   = Start,
-        lineSpacing = lineSpacing,
-        textSpacing = textSpacing,
-    ))
+    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = wrappedHeights.getOrPut(WrappedInfo(text, width, indent, font, textSpacing)) {
+        elementRuler.height(textFactory.wrapped(
+            text        = text,
+            font        = font,
+            width       = width,
+            indent      = indent,
+            alignment   = Start,
+            lineSpacing = lineSpacing,
+            textSpacing = textSpacing,
+        ))
+    }
 
-    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = elementRuler.height(textFactory.wrapped(
-        text        = text,
-        width       = width,
-        indent      = indent,
-        alignment   = Start,
-        lineSpacing = lineSpacing,
-        textSpacing = textSpacing,
-    ))
+    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = wrappedStyledHeights.getOrPut(WrappedStyleInfo(text, width, indent, textSpacing)) {
+        elementRuler.height(textFactory.wrapped(
+            text        = text,
+            width       = width,
+            indent      = indent,
+            alignment   = Start,
+            lineSpacing = lineSpacing,
+            textSpacing = textSpacing,
+        ))
+    }
 
     private fun textWidth(text: String, font: Font?, textSpacing: TextSpacing): Double {
         val notSupported = noFontSupport                                                ||
@@ -116,11 +124,15 @@ internal class TextMetricsImpl(
         return when {
             notSupported -> elementRuler.size(textFactory.create(text, font, textSpacing)).width
             else         -> {
+                val lines = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
+
                 renderingContext.font          = fontSerializer(font)
                 renderingContext.wordSpacing   = "${max(0.0, textSpacing.wordSpacing  )}px"
                 renderingContext.letterSpacing = "${max(0.0, textSpacing.letterSpacing)}px"
 
-                renderingContext.measureText(text).width
+                lines.maxOf {
+                    renderingContext.measureText(it).width
+                }
             }
         }
     }

@@ -359,7 +359,7 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private val StyledText.maxFont    : Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
+    private val StyledText.maxFont    : Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
     private val StyledText.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
 
     private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
@@ -609,27 +609,49 @@ internal open class VectorRendererSvg(
     }
 
     private fun makeText(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement1>("text").apply {
-        if (textContent != text) {
-            textContent = text
+        val lines = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
+
+        if (lines.size == 1) {
+            // is this right?
+            if (numChildren != 1) {
+                clear()
+            }
+
+            if (textContent != text) {
+                textContent = text
+            }
+
+            setPosition(at)
+
+            this.style.whiteSpace = "pre"
+            this.style.setTextSpacing(textSpacing)
+
+            font?.let {
+                style.setFont(it)
+            }
+
+            adjustTextAfterDisplay(this, aligner.verticalOffset(text, font))
+
+            when (fill) {
+                null -> setDefaultFill()
+                else -> setFill(null)
+            }
+
+            setStroke(stroke)
+        } else {
+            textContent = ""
+
+            var offsetY = at.y
+
+            drawTextLines(
+                lines.map {
+                    LineInfo(StyledText(it, font, fill, stroke = stroke), Point(at.x, offsetY), textSpacing.wordSpacing).also {
+                        offsetY += lineHeightDetector.lineHeight(font) * (font?.size ?: defaultFontSize)
+                    }
+                },
+                textSpacing = textSpacing
+            )
         }
-
-        setPosition(at)
-
-        this.style.whiteSpace = "pre"
-        this.style.setTextSpacing(textSpacing)
-
-        font?.let {
-            style.setFont(it)
-        }
-
-        adjustTextAfterDisplay(this, aligner.verticalOffset(text, font))
-
-        when (fill) {
-            null -> setDefaultFill(    )
-            else -> setFill       (null)
-        }
-
-        setStroke(stroke)
     }
 
     private class StyledTextInfo(
@@ -715,9 +737,11 @@ internal open class VectorRendererSvg(
 
             endX = currentPoint.x + lineWidth
 
-            if (endX > at.x + width) {
-                // ignore whitespace beyond the line break
-                if (word.isNotBlank()) {
+            val isFromLineBreak = lineBreakRegex.matches(delimiter.text)
+
+            if (endX > at.x + width || isFromLineBreak) {
+                // ignore whitespace beyond the width line break
+                if (isFromLineBreak || word.isNotBlank()) {
                     val (startX, wordSpacing) = calcStartX(false)
 
                     lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
@@ -729,8 +753,8 @@ internal open class VectorRendererSvg(
                     }
 
                     currentPoint = Point(at.x, at.y + offsetY)
-                    endX = startX + currentLineWidth
-                    numWords = 1
+                    endX         = startX + currentLineWidth
+                    numWords     = 1
                 }
             } else {
                 ++numWords
@@ -777,6 +801,12 @@ internal open class VectorRendererSvg(
             lines += LineInfo(line, Point(startX, currentPoint.y), wordSpacing)
         }
 
+        drawTextLines(lines, lineSpacing, textSpacing)
+
+        return Point(endX, currentPoint.y)
+    }
+
+    private fun drawTextLines(lines: List<LineInfo>, lineSpacing: Float = -1f, textSpacing: TextSpacing) {
         val verticalOffset = lines.firstOrNull { it.text.isNotBlank() }?.text?.let { l ->
             aligner.verticalOffset(l.text, l.maxFont, lineSpacing)
         } ?: 0.0
@@ -792,8 +822,6 @@ internal open class VectorRendererSvg(
                 verticalOffset,
             )
         }
-
-        return Point(endX, currentPoint.y)
     }
 
     private fun drawPath(stroke: Stroke?, fill: Paint? = null, fillRule: FillRule? = null, vararg points: Point) = present(stroke, fill) {
