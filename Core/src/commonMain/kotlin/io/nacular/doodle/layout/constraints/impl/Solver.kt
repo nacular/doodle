@@ -244,8 +244,22 @@ internal class Solver {
     private val objective      = Row()
     private var artificial     = null as Row?
     private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
+    private val varCounts      = fastMutableMapOf<Variable, Int>()
+    private val guards         = fastMutableMapOf<Variable, Constraint>()
 
     val variables: Set<Variable> get() = vars.keys
+
+    fun addNegativeGuard(variable: Variable) {
+        addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required), incrementVariableCounts = false)
+    }
+
+    fun cleanupNegativeGuard(variable: Variable) {
+        if ((varCounts[variable] ?: 0) <= 0) {
+            guards[variable]?.let {
+                removeConstraint(it)
+            }
+        }
+    }
 
     /**
      * Add a constraint to the solver.
@@ -255,40 +269,63 @@ internal class Solver {
      * @throws UnsatisfiableConstraintException The given constraint is required and cannot be satisfied.
      */
     fun addConstraint(constraint: Constraint) {
+        addConstraint(constraint, incrementVariableCounts = true)
+    }
+
+    private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
         if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
 
         val tag     = Tag()
-        val row     = createRow(constraint, tag)
-        var subject = chooseSubject(row, tag)
 
-        if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
-            subject = when {
-                !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
-                else                    -> tag.marker
+        try {
+            val row = createRow(constraint, tag)
+            var subject = chooseSubject(row, tag)
+
+            if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
+                subject = when {
+                    !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
+                    else -> tag.marker
+                }
             }
+
+            when (subject.type) {
+                Invalid -> if (!addWithArtificialVariable(row)) {
+                    throw UnsatisfiableConstraintException(constraint, constraints.keys)
+                }
+
+                else -> {
+                    registerRow(subject, row)
+                    row.solveFor(subject)
+                    substitute(subject, row)
+                }
+            }
+
+            constraints[constraint] = tag
+
+            optimize(objective)
+        } catch (e: ConstraintException) {
+            removeConstraint(constraint, tag)
+
+            throw e
         }
 
-        when (subject.type) {
-            Invalid -> if (!addWithArtificialVariable(row)) {
-                throw UnsatisfiableConstraintException(constraint, constraints.keys)
-            }
-            else    -> {
-                registerRow(subject, row)
-                row.solveFor(subject)
-                substitute(subject, row)
+        if (incrementVariableCounts) {
+            constraint.expression.terms.forEach { term ->
+                varCounts[term.variable] = varCounts.getOrPut(term.variable) { 0 } + 1
             }
         }
-
-        constraints[constraint] = tag
-
-        optimize(objective)
     }
 
     fun removeConstraint(constraint: Constraint) {
         val tag = constraints.remove(constraint) ?: throw UnknownConstraintException(constraint)
 
+        removeConstraint(constraint, tag)
+    }
+
+
+    private fun removeConstraint(constraint: Constraint, tag: Tag) {
         removeConstraintEffects(constraint, tag)
 
         var row = rows[tag.marker]
@@ -302,6 +339,15 @@ internal class Solver {
                 unregisterRow(leaving, cleanup = true)
                 row.solveFor(leaving, tag.marker)
                 substitute(tag.marker, row)
+            }
+        }
+
+        constraint.expression.reduce().terms.forEach {
+            varCounts.remove(it.variable)?.let { count ->
+                when {
+                    count <= 0 -> vars.remove(it.variable)
+                    else       -> varCounts[it.variable] = count - 1
+                }
             }
         }
 

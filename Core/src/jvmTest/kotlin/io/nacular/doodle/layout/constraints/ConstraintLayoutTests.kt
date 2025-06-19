@@ -44,7 +44,7 @@ import kotlin.test.expect
  * Created by Nicholas Eddy on 3/8/22.
  */
 class ConstraintLayoutTests {
-    @Test fun foo() {
+    @Test fun `parent width correct`() {
         val child       = NamedView("child").apply { suggestWidth(10.0) }
         val parent      = container { + child }
         val grandParent = container {
@@ -455,17 +455,17 @@ class ConstraintLayoutTests {
         expect(expectedChildBounds) { child.bounds }
     }
 
-    @Test fun `foo1`() {
+    @Test fun `conditional sections work`() {
         val image = view {}
         val text  = view {}.apply { preferredSize = fixed(Size(200, 10))}
 
-        var firstBock = false
+        var firstBlock = false
 
         val layout = constrain(image, text) { image, text ->
 
             image.top eq 0
 
-            if (firstBock) {
+            if (firstBlock) {
                 image.left   greaterEq 10
                 image.left   eq        parent.centerX - 10 strength Strong
                 image.width  eq        parent.width * 0.4
@@ -489,7 +489,7 @@ class ConstraintLayoutTests {
             }
         }
 
-        var size = Size(500)
+        val size = Size(500)
 
         layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
 
@@ -500,7 +500,7 @@ class ConstraintLayoutTests {
         expect(Point(image.x, image.bounds.bottom + 20)) { text.position }
         expect(Size(image.width, text.idealSize.height)) { text.size     }
 
-        firstBock = true
+        firstBlock = true
 
         layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
 

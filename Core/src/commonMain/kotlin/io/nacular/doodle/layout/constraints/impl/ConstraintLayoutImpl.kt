@@ -390,7 +390,9 @@ internal class ConstraintLayoutImpl(
 
             // try again in case some items were unsatisfiable due to the order of delete vs insert
             failedInserts.forEach {
-                handleInsert(solver, it, updatedBounds, errorHandler)
+                if (!handleInsert(solver, it, updatedBounds, errorHandler)) {
+                    context.constraints -= it
+                }
             }
         }
 
@@ -458,17 +460,21 @@ internal class ConstraintLayoutImpl(
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                solver.addConstraint(insertedConstraint)
-
                 newVariables.forEach {
                     val variable = it.variable
 
                     if (variable.needsSynthetic) {
                         try {
                             // Add synthetic constraints that keep width and height positive
-                            solver.addConstraint(ensureNonNegative(variable))
+                            solver.addNegativeGuard(variable)
                         } catch (_: Exception) {}
                     }
+                }
+
+                solver.addConstraint(insertedConstraint)
+
+                newVariables.forEach {
+                    val variable = it.variable
 
                     try {
                         val strength = when {
@@ -487,9 +493,11 @@ internal class ConstraintLayoutImpl(
                 }
             } catch (exception: UnsatisfiableConstraintException) {
                 errorHandler(exception)
+                cleanupSynthetics(solver, insertedConstraint)
                 return false
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
+                cleanupSynthetics(solver, insertedConstraint)
             }
 
             return true
@@ -500,11 +508,12 @@ internal class ConstraintLayoutImpl(
                 solver.removeConstraint(constraint)
             } catch (_: Exception) {}
 
-            constraint.expression.terms.asSequence().map { it.variable }.filter { it.needsSynthetic }.forEach { variable ->
-                // Remove synthetic constraints that keep width and height positive
-                try {
-                    solver.removeConstraint(ensureNonNegative(variable))
-                } catch (_: Exception) {}
+            cleanupSynthetics(solver, constraint)
+        }
+
+        private fun cleanupSynthetics(solver: Solver, constraint: Constraint) {
+            constraint.expression.terms.asSequence().map { it.variable }.filter { it.needsSynthetic }.forEach {
+                solver.cleanupNegativeGuard(it)
             }
         }
 
