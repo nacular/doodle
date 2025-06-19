@@ -1652,7 +1652,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                             views   = children.asSequence().map { it.positionable },
                             min     = min,
                             max     = max,
-                            current = newBounds.size,
+                            current = newBounds.size.coerceIn(min, max),
                             insets  = insets
                         ).coerceIn(min, max).also {
                             when {
