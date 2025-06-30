@@ -100,7 +100,7 @@ public infix fun Color.opacity(value: Float): Color = Color(red, green, blue, va
 /**
  * Makes this Color lighter by the given percent.
  *
- * @param percent to lighted the color
+ * @param percent to lighten the color
  * @return the new color
  */
 public fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
