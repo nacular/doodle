@@ -311,6 +311,7 @@ internal open class VectorRendererSvg(
         textSpacing
     )
 
+    @Suppress("FunctionName")
     private fun text_(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) {
         present(stroke = stroke, fill = fill, clearFill = fill != null) {
             when {
@@ -350,7 +351,7 @@ internal open class VectorRendererSvg(
 
                     /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
 
-                    makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height), /*possible = textInfo.text.previousSibling?.previousSibling*/).also {
+                    makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height)/*, possible = textInfo.text.previousSibling?.previousSibling*/).also {
                         fillElement(it, paint, style.stroke)
                         textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                     }
