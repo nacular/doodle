@@ -1,7 +1,3 @@
-plugins {
-    kotlin("multiplatform")
-}
-
 kotlin {
     explicitApi()
 
@@ -76,7 +72,6 @@ afterEvaluate {
         }
 
         val releaseBuild = project.hasProperty("release")
-
 
         if (releaseBuild) {
             // Need to explicitly establish dependencies between tasks otherwise Gradle will fail

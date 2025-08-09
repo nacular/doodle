@@ -38,10 +38,11 @@ tasks.withType<DokkaMultiModuleTask>().configureEach {
 }
 
 subprojects {
-    apply (plugin = "maven-publish"              )
-    apply (plugin = "signing"                    )
-    apply (plugin = "org.jetbrains.dokka"        )
-    apply (plugin = "org.jetbrains.kotlinx.kover")
+    apply (plugin = "maven-publish"                              )
+    apply (plugin = "kotlin-multiplatform"                       )
+    apply (plugin = "signing"                                    )
+    apply (plugin = rootProject.libs.plugins.dokka.get().pluginId)
+    apply (plugin = rootProject.libs.plugins.kover.get().pluginId)
 
     repositories {
         mavenCentral()
@@ -49,14 +50,14 @@ subprojects {
         mavenLocal  ()
     }
 
-    val dokkaJar by tasks.creating(Jar::class) {
+    val dokkaJar by tasks.registering(Jar::class) {
         group       = JavaBasePlugin.DOCUMENTATION_GROUP
         description = "Assembles Kotlin docs with Dokka"
         archiveClassifier.set("javadoc")
         from(tasks.dokkaHtml)
     }
 
-    setupPublication(dokkaJar)
+    setupPublication(dokkaJar.get())
 
     setupSigning()
 

@@ -8,10 +8,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
 
-plugins {
-    kotlin("multiplatform")
-}
-
 kotlin {
     explicitApi()
 
