@@ -3,9 +3,11 @@ import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
+import org.gradle.plugins.signing.Sign
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -86,21 +88,18 @@ fun MavenPom.setupPom() {
 
 fun Project.setupSigning() {
     extensions.getByType<SigningExtension>().run {
-        isRequired = project.hasProperty("release")
         useGpgCmd()
 
-        if (isRequired) {
+        if (project.releaseBuild) {
             sign(extensions.getByType<PublishingExtension>().publications)
         }
     }
 }
 
 fun Project.setupPublication(dokkaJar: Jar) {
-    val releaseBuild = project.hasProperty("release")
-
     extensions.getByType<PublishingExtension>().run {
         publications.withType<MavenPublication>().all {
-            if (project.hasProperty("release") || project.hasProperty("snapshot")) {
+            if (project.releaseBuild || project.hasProperty("snapshot")) {
                 artifact(dokkaJar)
 
                 pom {
@@ -109,39 +108,16 @@ fun Project.setupPublication(dokkaJar: Jar) {
             }
         }
 
-        repositories {
-            maven {
-                url = uri(when {
-                    releaseBuild -> "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-                    else         -> "https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots"
-                })
-
-                credentials {
-                    username = findProperty("suser")?.toString()
-                    password = findProperty("spwd" )?.toString()
-                }
+        extensions.getByType<SigningExtension>().run {
+            if (releaseBuild) {
+                sign(extensions.getByType<PublishingExtension>().publications)
             }
         }
 
-        if (releaseBuild) {
-            // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
-            afterEvaluate {
-                val signJs   = getTasksByName("signJsPublication",     false).map { it.name }
-                val signJvm  = getTasksByName("signJvmPublication",    false).map { it.name }
-                val signWasm = getTasksByName("signWasmJsPublication", false).map { it.name }
-
-                val publishTasks = listOf(
-                    "KotlinMultiplatform",
-                    "Js",
-                    "Jvm",
-                    "WasmJs"
-                ).map { "publish${it}PublicationToMavenRepository" }
-
-                publishTasks.forEach {
-                    runCatching { tasks.getByName(it) }.getOrNull()
-                        ?.dependsOn(listOf("signKotlinMultiplatformPublication") + signJs + signJvm + signWasm)
-                }
-            }
+        // Workaround https://github.com/gradle/gradle/issues/26091
+        tasks.withType<AbstractPublishToMaven>().configureEach {
+            val signingTasks = tasks.withType<Sign>()
+            mustRunAfter(signingTasks)
         }
     }
 }
@@ -159,4 +135,5 @@ private fun KotlinMultiplatformExtension.compilerOptions() {
     }
 }
 
-private val HasProject.releaseBuild get() = project.hasProperty("release")
+private val Project.releaseBuild get() = hasProperty("release")
+private val HasProject.releaseBuild get() = project.releaseBuild

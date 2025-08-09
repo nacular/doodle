@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.kover)
     signing
+    alias(libs.plugins.nmcp            ) apply false
+    alias(libs.plugins.nmcp.aggregation)
 }
 
 repositories {
@@ -43,6 +45,7 @@ subprojects {
     apply (plugin = "signing"                                    )
     apply (plugin = rootProject.libs.plugins.dokka.get().pluginId)
     apply (plugin = rootProject.libs.plugins.kover.get().pluginId)
+    apply (plugin = rootProject.libs.plugins.nmcp.asProvider().get().pluginId )
 
     repositories {
         mavenCentral()
@@ -105,8 +108,18 @@ subprojects {
     }
 }
 
+nmcpAggregation {
+    centralPortal {
+        username       = findProperty("mavenCentralUsername")?.toString()
+        password       = findProperty("mavenCentralPassword")?.toString()
+        publishingType = "USER_MANAGED"
+    }
+}
 dependencies {
-    subprojects.forEach {
-        kover(project(":${it.name}"))
+    subprojects.forEach { project ->
+        project(":${project.name}").let {
+            kover          (it)
+            nmcpAggregation(it)
+        }
     }
 }

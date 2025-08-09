@@ -70,31 +70,6 @@ afterEvaluate {
                 jvmOs(name, artifact)
             }
         }
-
-        val releaseBuild = project.hasProperty("release")
-
-        if (releaseBuild) {
-            // Need to explicitly establish dependencies between tasks otherwise Gradle will fail
-            val publishTasks = pubs.keys.map { "publish${"Jvm$it"}PublicationToMavenRepository" }
-            val signingTasks = listOf(
-                "signKotlinMultiplatformPublication",
-                "signJvmPublication",
-            ) + pubs.keys.map { "sign${"Jvm$it"}Publication" }
-
-            tasks.getByName("publishKotlinMultiplatformPublicationToMavenRepository") {
-                dependsOn(signingTasks)
-            }
-
-            tasks.getByName("publishJvmPublicationToMavenRepository") {
-                dependsOn(signingTasks)
-            }
-
-            publishTasks.forEach {
-                tasks.getByName(it) {
-                    dependsOn(signingTasks)
-                }
-            }
-        }
     }
 }
 

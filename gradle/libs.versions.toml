@@ -13,6 +13,7 @@ mockkVersion      = { strictly = "1.13.13" }
 skikoVersion      = { strictly = "0.9.2"   }
 slf4jVersion      = { strictly = "2.0.9"   }
 kxBrowserVersion  = { strictly = "0.3"     }
+nmcpVersion       = { strictly = "1.0.2"   }
 
 [libraries]
 
@@ -30,8 +31,10 @@ kotlinx-browser   = { module = "org.jetbrains.kotlinx:kotlinx-browser",         
 
 [plugins]
 
-dokka             = { id = "org.jetbrains.dokka",                                version.ref = "dokkaVersion"     }
-kover             = { id = "org.jetbrains.kotlinx.kover",                        version.ref = 'koverVersion'     }
+dokka             = { id = "org.jetbrains.dokka",                                version.ref = "dokkaVersion"      }
+kover             = { id = "org.jetbrains.kotlinx.kover",                        version.ref = 'koverVersion'      }
+nmcp              = { id = "com.gradleup.nmcp",                                  version.ref = "nmcpVersion"       }
+nmcp-aggregation  = { id = "com.gradleup.nmcp.aggregation",                      version.ref = "nmcpVersion"       }
 
 [bundles]
 
