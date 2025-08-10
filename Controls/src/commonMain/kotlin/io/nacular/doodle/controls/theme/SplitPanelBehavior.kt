@@ -71,9 +71,9 @@ public abstract class CommonSplitPanelBehavior(private val divider: View = objec
 
     override fun dragged(event: PointerEvent) {
         splitPanel?.let { splitPanel ->
-            var minPosition = 0.0
-            var position    = 0.0
-            var maxPosition = 0.0
+            var minPosition: Double
+            var position   : Double
+            var maxPosition: Double
 
             when (splitPanel.orientation) {
                 Vertical   -> {

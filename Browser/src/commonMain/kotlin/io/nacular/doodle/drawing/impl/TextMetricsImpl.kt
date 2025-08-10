@@ -30,8 +30,8 @@ internal class TextMetricsImpl(
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
     private data class StyledTextInfo  (val text: StyledText,                    val textSpacing: TextSpacing = default)
-    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val textSpacing: TextSpacing)
-    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double, val textSpacing: TextSpacing)
+    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val lineSpacing: Float, val textSpacing: TextSpacing)
+    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double,                  val lineSpacing: Float, val textSpacing: TextSpacing)
 
     private val widths              = LeastRecentlyUsedCache<TextInfo,         Double> (maxSize = cacheLength)
     private val styledWidths        = LeastRecentlyUsedCache<StyledTextInfo,   Double> (maxSize = cacheLength)
@@ -57,7 +57,7 @@ internal class TextMetricsImpl(
     }
 
     override fun width(text: String, width: Double, indent: Double, font: Font?, textSpacing: TextSpacing) = wrappedWidths.getOrPut(
-        WrappedInfo(text, width, indent, font, textSpacing)
+        WrappedInfo(text, width, indent, font, 1f, textSpacing)
     ) {
         val box = htmlFactory.create<HTMLElement>()
 
@@ -68,7 +68,7 @@ internal class TextMetricsImpl(
     }
 
     override fun width(text: StyledText, width: Double, indent: Double, textSpacing: TextSpacing) = wrappedStyledWidths.getOrPut(
-        WrappedStyleInfo(text, width, indent, textSpacing)
+        WrappedStyleInfo(text, width, indent, 1f, textSpacing)
     ) {
         val box = htmlFactory.create<HTMLElement>()
 
@@ -93,7 +93,7 @@ internal class TextMetricsImpl(
         return maxHeight
     }
 
-    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = wrappedHeights.getOrPut(WrappedInfo(text, width, indent, font, textSpacing)) {
+    override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = wrappedHeights.getOrPut(WrappedInfo(text, width, indent, font, lineSpacing, textSpacing)) {
         elementRuler.height(textFactory.wrapped(
             text        = text,
             font        = font,
@@ -105,7 +105,7 @@ internal class TextMetricsImpl(
         ))
     }
 
-    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = wrappedStyledHeights.getOrPut(WrappedStyleInfo(text, width, indent, textSpacing)) {
+    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = wrappedStyledHeights.getOrPut(WrappedStyleInfo(text, width, indent, lineSpacing, textSpacing)) {
         elementRuler.height(textFactory.wrapped(
             text        = text,
             width       = width,
