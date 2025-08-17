@@ -1,6 +1,7 @@
 package io.nacular.doodle.image
 
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.aspectRatio
 
 
 /**
@@ -23,4 +24,4 @@ public inline val Image.height: Double get() = size.height
 /**
  * Ratio of Image [width]/[height].
  */
-public inline val Image.aspectRatio: Double get() = width / height
+public inline val Image.aspectRatio: Double get() = size.aspectRatio

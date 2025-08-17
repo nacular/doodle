@@ -1,14 +1,16 @@
 package io.nacular.doodle.utils
 
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.invoke
 import io.nacular.doodle.event.Interaction
 import io.nacular.doodle.event.Pointer
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.aspectRatio
 import io.nacular.doodle.system.Cursor.Companion.EResize
 import io.nacular.doodle.system.Cursor.Companion.Grab
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
@@ -29,6 +31,7 @@ import io.nacular.doodle.utils.Direction.South
 import io.nacular.doodle.utils.Direction.West
 import io.nacular.doodle.utils.Resizer.Phase.EventBubbling
 import io.nacular.doodle.utils.Resizer.Phase.EventSinking
+import kotlin.math.max
 
 /**
  * Utility for resizing/moving a View. It supports compass direction resizing and dragging.
@@ -85,6 +88,7 @@ public class Resizer(
     private var activePointer        = null as Pointer?
     private var initialPosition      = Origin
     private var ignorePropertyChange = false
+    private var viewAspectRatio      = null as Double?
 
     override fun released(event: PointerEvent) {
         if (activePointerChanged(event) && activeInteraction(event)?.state == Up) {
@@ -136,33 +140,67 @@ public class Resizer(
                 var width     = bounds.width
                 var height    = bounds.height
                 var consume   = false
-                val delta     = view.toLocal(activeInteraction.location, event.target) - initialPosition
+                val location  = view.toLocal(activeInteraction.location, event.target)
+                val delta     = location - initialPosition
 
                 when {
-                    West in dragMode && West in directions -> {
-                        width    = view.width - delta.x
+                    West.isValid -> {
+                        width    = max(0.0, view.width - delta.x)
                         x       += bounds.width - width
                         consume  = true
                     }
-                    East in dragMode && East in directions -> {
+                    East.isValid -> {
                         width   = initialSize.width + delta.x
                         consume = true
                     }
                 }
 
                 when {
-                    North in dragMode && North in directions -> {
-                        height   = view.height - delta.y
+                    North.isValid -> {
+                        height   = max(0.0, view.height - delta.y)
                         y       += bounds.height - height
                         consume  = true
                     }
-                    South in dragMode && South in directions -> {
+                    South.isValid -> {
                         height  = initialSize.height + delta.y
                         consume = true
                     }
                 }
 
-                view.suggestBounds(Rectangle(x, y, width, height))
+                /*
+                 * Attempts to perform aspect-locked scaling if a sizeAuditor is in place that prevents resizing as
+                 * requested.
+                 */
+                view.sizeAuditor?.let {
+                    if (North.isValid && (East.isValid || West.isValid) || South.isValid && (East.isValid || West.isValid)) {
+                        var s = Empty
+
+                        val updateSize = { width: Double, height: Double ->
+                            s = it(view, view.size, Size(width, height))
+                            if (North.isValid) { y = bounds.y + bounds.height - s.height }
+                            if (West.isValid ) { x = bounds.x + bounds.width  - s.width  }
+                        }
+
+                        updateSize(width, height)
+
+                        viewAspectRatio = s.aspectRatio.takeIf { it > 0 } ?: viewAspectRatio ?: 0.0
+
+                        if (viewAspectRatio!! > 0) {
+                            val offsetX = x - bounds.x
+                            val offsetY = y - bounds.y
+
+                            when {
+                                West.isValid  && location.x < offsetX || East.isValid  && location.x > offsetX + s.width  -> updateSize(width,                      width / viewAspectRatio!!)
+                                North.isValid && location.y < offsetY || South.isValid && location.y > offsetY + s.height -> updateSize(height * viewAspectRatio!!, height               )
+                            }
+                        }
+
+                        width  = s.width
+                        height = s.height
+                    }
+                }
+
+                view.suggestBounds(x, y, width, height)
 
                 if (consume) {
                     event.consume()
@@ -213,6 +251,8 @@ public class Resizer(
             }
         }
     }
+
+    private val Direction.isValid get() = this in dragMode && this in directions
 
     private fun updateCursor(interaction: Interaction, event: PointerEvent) {
         if (!manageCursor || dragMode.isNotEmpty()) {

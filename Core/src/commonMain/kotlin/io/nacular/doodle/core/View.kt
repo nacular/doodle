@@ -11,6 +11,7 @@ import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.core.Positionable.BoundsUpdateContext
+import io.nacular.doodle.core.View.SizeAuditor
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
 import io.nacular.doodle.datatransport.dragdrop.DropReceiver
@@ -155,14 +156,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
                 when {
                     s.width != old.width -> {
-                        var h = (s.width / ratio).coerceIn(min.height, max.height)
+                        val h = (s.width / ratio).coerceIn(min.height, max.height)
                         val w = (h       * ratio).coerceIn(min.width,  max.width )
 
                         Size(w, h)
                     }
                     else                  -> {
                         val w = (s.height * ratio).coerceIn(min.width,  max.width )
-                        var h = (w        / ratio).coerceIn(min.height, max.height)
+                        val h = (w        / ratio).coerceIn(min.height, max.height)
 
                         Size(w, h)
                     }
@@ -445,8 +446,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         (boundsChanged as PropertyObserversImpl).forEach { it(this, old, field) }
     }
 
-    private var allowedMinSize by observable(Empty   ) { _,_ -> layoutNeeded = true }
-    private var allowedMaxSize by observable(Infinite) { _,_ -> layoutNeeded = true }
+    internal var allowedMinSize = Empty; private set(new) {
+        field = new
+        layoutNeeded = true
+    }
+    internal var allowedMaxSize = Infinite; private set(new) {
+        field = new
+        layoutNeeded = true
+    }
 
     internal fun resetConstraints() {
         allowedMinSize = Empty
@@ -1890,3 +1897,5 @@ public fun View.scrollTo(rectangle: Rectangle) {
         }
     }
 }
+
+internal operator fun SizeAuditor.invoke(view: View, old: Size, new: Size): Size = invoke(view, old, new, view.allowedMinSize, view.allowedMaxSize)

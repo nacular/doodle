@@ -1088,8 +1088,7 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
-    @Test
-    fun `scroll to works`() {
+    @Test fun `scroll to works`() {
         val view  = view { suggestSize(Size(100)) }
 
         val panel = spyk<ScrollPanel>().apply {
@@ -1108,8 +1107,7 @@ class ViewTests {
         }
     }
 
-    @Test
-    fun `new bounds works`() {
+    @Test fun `new bounds works`() {
         val child  = view {}
         val parent = container {
             + child

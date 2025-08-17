@@ -98,4 +98,12 @@ public fun lerp(first: Size, second: Size, fraction: Float): Size = Size(
     lerp(first.height, second.height, fraction)
 )
 
+/**
+ * @return return a [Size] based on [this] that is within the given limits
+ */
 public fun Size.coerceIn(min: Size, max: Size): Size = Size(width.coerceIn(min.width, max.width), height.coerceIn(min.height, max.height))
+
+/**
+ * Ratio of [width][Size.width]/[height][Size.height].
+ */
+public val Size.aspectRatio: Double get() = width / height

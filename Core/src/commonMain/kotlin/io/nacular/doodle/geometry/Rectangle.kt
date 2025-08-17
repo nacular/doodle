@@ -1,6 +1,7 @@
 package io.nacular.doodle.geometry
 
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.layout.Insets
 import kotlin.math.max
 import kotlin.math.min
@@ -310,6 +311,12 @@ public fun Rectangle.with(size: Size): Rectangle = Rectangle(x, y, size.width, s
  * @param at the point to center
  */
 public fun Rectangle.centered(at: Point): Rectangle = at(at - Point(width / 2, height / 2))
+
+
+/**
+ * Ratio of Image [width][Rectangle.width]/[height][Rectangle.height].
+ */
+public val Rectangle.aspectRatio: Double get() = size.aspectRatio
 
 /**
  * Interpolates between 2 [Rectangle]s
