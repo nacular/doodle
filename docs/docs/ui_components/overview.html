@@ -12,7 +12,7 @@
 
 
 <script src="https://unpkg.com/kotlin-playground@1"></script><link rel="stylesheet" href="/doodle/assets/css/styles.ae3d4d5a.css">
-<script src="/doodle/assets/js/runtime~main.b445f854.js" defer="defer"></script>
+<script src="/doodle/assets/js/runtime~main.72adf7e7.js" defer="defer"></script>
 <script src="/doodle/assets/js/main.b2c734db.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -36,7 +36,7 @@ import io.nacular.doodle.controls.text.Label
 val label = Label(&quot;Some Text&quot;)
 //sampleEnd</code><div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>info</div><div class="admonitionContent_BuS1"><p>Requires a <code><a href="https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.text/-label-behavior" target="_blank" rel="noopener noreferrer">LabelBehavior</a></code> to render. This example uses <code><a href="https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion/basic-label-behavior" target="_blank" rel="noopener noreferrer">basicLabelBehavior</a></code></p></div></div></div></div></div>
 <p>Labels can also have <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.text/-styled-text" target="_blank" rel="noopener noreferrer">StyledText</a></code>, word wrapping, vertical and horizontal alignment, and change how their letters and lines are spaced.</p>
-<div class="tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Demo</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Usage</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><div class="doodle_u3ra"><div style="position:relative;height:370px"></div></div></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package label
+<div class="tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Demo</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Usage</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package label
 
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.drawing.Color.Companion.Red
@@ -392,7 +392,7 @@ fun usage(image: Image) {
     }
 //sampleEnd
 }</code></div></div></div>
-<p>You can easily have a <code><a href="https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-photo" target="_blank" rel="noopener noreferrer">Photo</a></code> that preserves its aspect ratio using the <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/preserve-aspect" target="_blank" rel="noopener noreferrer">preserveAspect</a></code> <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/-size-auditor" target="_blank" rel="noopener noreferrer">SizeAuditor</a></code>.</p>
+<p>You can easily have a <code><a href="https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-photo" target="_blank" rel="noopener noreferrer">Photo</a></code> (or any <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view" target="_blank" rel="noopener noreferrer">View</a></code>) that preserves its aspect ratio using the <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/preserve-aspect" target="_blank" rel="noopener noreferrer">preserveAspect</a></code> <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/-size-auditor" target="_blank" rel="noopener noreferrer">SizeAuditor</a></code>.</p>
 <div class="tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Aspect Photo</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Usage</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package controls
 
 import io.nacular.doodle.controls.Photo

@@ -700,7 +700,7 @@ public open class RenderManagerImpl(
 
         when (parent) {
             null -> if (display.layout?.requiresLayout(view.positionable, display.size, old, new) == true) displayPendingLayout = true
-            else -> if (parent != layingOut && parent.layout_?.requiresLayout(view.positionable, parent.size,  old, new) == true) {
+            else -> if (parent != layingOut && parent.layout_?.requiresLayout(view.positionable, parent.size, old, new) == true) {
                 pendingLayout += parent
             }
         }

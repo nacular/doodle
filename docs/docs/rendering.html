@@ -12,7 +12,7 @@
 
 
 <script src="https://unpkg.com/kotlin-playground@1"></script><link rel="stylesheet" href="/doodle/assets/css/styles.ae3d4d5a.css">
-<script src="/doodle/assets/js/runtime~main.b445f854.js" defer="defer"></script>
+<script src="/doodle/assets/js/runtime~main.72adf7e7.js" defer="defer"></script>
 <script src="/doodle/assets/js/main.b2c734db.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -1120,8 +1120,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.image.ImageLoader
-import io.nacular.doodle.image.height
-import io.nacular.doodle.image.width
+import io.nacular.doodle.image.aspectRatio
 import io.nacular.doodle.utils.Resizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -1142,7 +1141,7 @@ class AspectCroppedImageApp(
             val image = imageLoader.load(&quot;/doodle/images/photo.jpg&quot;) ?: return@launch
 
             display.children += view {
-                val aspect = image.width / image.height
+                val aspect = image.aspectRatio
 
                 render = {
                     var h = height

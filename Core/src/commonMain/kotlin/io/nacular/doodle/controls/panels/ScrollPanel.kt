@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.panels.ScrollPanelBehavior.ScrollBarType.Horiz
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
+import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.core.scrollTo
@@ -12,13 +13,14 @@ import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.IdealSizedProperty
-import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.ObservableList
@@ -189,35 +191,36 @@ public open class ScrollPanel(content: View? = null): View() {
         it.top  eq -scroll.y
         it.left eq -scroll.x
 
-        if (!ignoreLayout) {
-            contentWidthConstraints?.invoke(this, object : IdealSizedProperty() {
-                override val idealValue get() = it.idealWidth
-                override val readOnly   get() = it.width.readOnly
-                override fun toTerm()         = it.width.toTerm()
-            })
-            contentHeightConstraints?.invoke(this, object : IdealSizedProperty() {
-                override val idealValue get() = it.idealHeight
-                override val readOnly   get() = it.height.readOnly
-                override fun toTerm()         = it.height.toTerm()
-            })
-        }
-
-        ignoreLayout = false
+        contentWidthConstraints?.invoke(this, object : IdealSizedProperty() {
+            override val idealValue get() = it.idealWidth
+            override val readOnly   get() = it.width.readOnly
+            override fun toTerm()         = it.width.toTerm()
+        })
+        contentHeightConstraints?.invoke(this, object : IdealSizedProperty() {
+            override val idealValue get() = it.idealHeight
+            override val readOnly   get() = it.height.readOnly
+            override fun toTerm()         = it.height.toTerm()
+        })
     }
-
-    private var ignoreLayout = false
 
     init {
         mirrorWhenRightLeft = false
 
         this.content = content
 
-        layout = when (content) {
-            null -> constrain(view {}) {}
-            else -> constrain(content, contentConstraints)
-        }
+        layout = CustomLayout()
 
         preferredSize = { min, max -> this@ScrollPanel.content?.preferredSize(min, max) ?: min }
+    }
+
+    /**
+     * Used to avoid layouts on scroll
+     */
+    private inner class CustomLayout: ConstraintLayoutImpl(content ?: view {}, originalLambda = contentConstraints, block = { (a) -> contentConstraints(a) }) {
+        override fun requiresLayout(child: Positionable, within: Size, old: Rectangle, new: Rectangle) = when {
+            old.size.fastEquals(new.size) -> false
+            else                          -> super.requiresLayout(child, within, old, new)
+        }
     }
 
     public override var focusable: Boolean = false
@@ -317,7 +320,7 @@ public open class ScrollPanel(content: View? = null): View() {
                     false -> Point(max(0.0, min(point.x, it.width - width)), max(0.0, min(point.y, it.height - height)))
                 }
 
-                ignoreLayout = true
+//                ignoreLayout = true
                 scroll       =  newScroll
 
                 it.suggestPosition(-newScroll)

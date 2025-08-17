@@ -194,11 +194,11 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     override var insets: Insets = Insets.None
 }
 
-internal class ConstraintLayoutImpl(
-    view: View,
-    vararg others: View,
-    originalLambda: Any,
-    block: ConstraintDslContext.(List<Bounds>) -> Unit
+internal open class ConstraintLayoutImpl(
+           view          : View,
+    vararg others        : View,
+           originalLambda: Any,
+           block         : ConstraintDslContext.(List<Bounds>) -> Unit
 ): ConstraintLayout(), BoundsAttemptObserver {
     private var layingOut     = false
     private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
@@ -217,7 +217,7 @@ internal class ConstraintLayoutImpl(
 
     override fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
         updateBounds(view, new)?.let {
-            if (!layingOut && relayout && view.displayed) {
+            if (!layingOut && relayout && view.displayed && requiresLayout(view.positionable, withinSize(view), old, new)) {
                 when (val p = view.parent) {
                     null -> view.display?.relayout()
                     else -> p.relayout_()
@@ -318,6 +318,11 @@ internal class ConstraintLayoutImpl(
 
     private fun notifyOfErrors(exception: ConstraintException) {
         (exceptionThrown as SetPool).forEach { it(this, exception) }
+    }
+
+    private fun withinSize(view: View) = when (val p = view.parent) {
+        null -> view.display?.size ?: Size.Empty
+        else -> p.size
     }
 
     internal companion object {
