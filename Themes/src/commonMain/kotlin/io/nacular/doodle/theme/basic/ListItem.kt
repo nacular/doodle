@@ -136,18 +136,14 @@ public open class ListItem<T>(
     public fun update(list: ListLike, item: T, index: Int) {
         this.item     = item
         this.index    = index
+        val oldChild  = children.firstOrNull()
 
         role.index    = index
         role.listSize = list.numItems
         role.selected = list.selected(index)
 
-        val offset    = Point(insetLeft, insetTop)
-        val oldChild  = children.firstOrNull()
-
         children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, role.selected)).also { visualizer ->
             if (visualizer != oldChild) {
-                oldChild?.suggestPosition (position - offset)
-                visualizer.suggestPosition(position + offset)
                 layout = constrainLayout(children[0])
             }
         }
