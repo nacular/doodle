@@ -136,7 +136,8 @@ public open class List<T, out M: ListModel<T>>(
         protected open val model         : M,
         public         val itemVisualizer: ItemVisualizer<T, IndexedItem>? = null,
         protected      val selectionModel: SelectionModel<Int>?            = null,
-        private        val scrollCache   : Int                             = 0): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
+        private        val scrollCache   : Int                             = 0
+): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
         (selectionChanged as SetPool).forEach {

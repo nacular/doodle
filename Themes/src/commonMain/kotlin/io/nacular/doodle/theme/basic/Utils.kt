@@ -27,12 +27,15 @@ import io.nacular.doodle.utils.HorizontalAlignment
  */
 public typealias ColorMapper = (Color) -> Color
 
+/**
+ * [EditOperation] that uses a [TextField] to perform editing for [view].
+ */
 public open class GenericTextEditOperation<T, V>(
-        private val focusManager: FocusManager?,
-        private val mapper      : Encoder<T, String>,
-        private val view        : V,
-                    value       : T,
-                    current     : View): EditOperation<T> where V: View, V: Editable {
+    private val focusManager: FocusManager?,
+    private val mapper      : Encoder<T, String>,
+    private val view        : V,
+                value       : T,
+                current     : View): EditOperation<T> where V: View, V: Editable {
 
     protected open val cancelOnFocusLost : Boolean = true
     protected open val selectAllInitially: Boolean = true
@@ -64,10 +67,6 @@ public open class GenericTextEditOperation<T, V>(
                 if (selectAllInitially) { selectAll() }
             }
         }
-    }
-
-    private val changed = { _: SpinButton<T, *> ->
-        view.cancelEditing()
     }
 
     override fun invoke(): View = textField

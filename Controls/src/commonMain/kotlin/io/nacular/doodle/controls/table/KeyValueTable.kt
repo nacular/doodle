@@ -58,7 +58,7 @@ public data class ColumnInfo<K, V, T>(
  * the [model] and selection is managed via the optional [selectionModel]. Large ("infinite") lists are supported
  * efficiently, since Table recycles the Views generated to render its items.
  *
- * Note that this class assumes the given [SimpleKeyValueModel] is immutable and will not automatically respond
+ * Note that this class assumes the given [KeyValueModel] is immutable and will not automatically respond
  * to changes in the model.
  *
  * KeyValueTable provides vertical scrolling internally, so it does not need to be embedded in a [ScrollPanel] or similar component,
