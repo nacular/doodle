@@ -6,6 +6,7 @@ import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.selectbox.MutableSelectBox
 import io.nacular.doodle.controls.selectbox.MutableSelectBoxBehavior
 import io.nacular.doodle.controls.selectbox.SelectBox
+import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
@@ -18,6 +19,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.utils.Encoder
+import io.nacular.doodle.utils.PassThroughEncoder
 
 public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
     display            : Display,
@@ -59,8 +61,9 @@ public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
         }
     }
 
-    public var hoverColorMapper   : ColorMapper get() = delegate.hoverColorMapper;    set(new) { delegate.hoverColorMapper    = new }
-    public var disabledColorMapper: ColorMapper get() = delegate.disabledColorMapper; set(new) { delegate.disabledColorMapper = new }
+    public var disabledColorMapper   : ColorMapper get() = delegate.disabledColorMapper;    set(new) { delegate.disabledColorMapper    = new }
+    public var listHoverColorMapper  : ColorMapper get() = delegate.listHoverColorMapper;   set(new) { delegate.listHoverColorMapper   = new }
+    public var buttonHoverColorMapper: ColorMapper get() = delegate.buttonHoverColorMapper; set(new) { delegate.buttonHoverColorMapper = new }
 
     override fun contains             (view: SelectBox<T, M>, point: Point): Boolean = delegate.contains(view, point)
     override fun mirrorWhenRightToLeft(view: SelectBox<T, M>              ): Boolean = delegate.mirrorWhenRightToLeft(view)
@@ -100,12 +103,16 @@ public class BasicMutableSelectBoxBehavior<T, M: MutableListModel<T>>(
     }
 }
 
+/**
+ * [EditOperation] that uses a [TextField] to perform editing for [selectBox].
+ */
 public open class SelectBoxTextEditOperation<T>(
                 focusManager: FocusManager?,
                 mapper      : Encoder<T, String>,
     private val selectBox   : MutableSelectBox<T, *>,
                 value       : T,
-                current     : View): GenericTextEditOperation<T, MutableSelectBox<T, *>>(focusManager, mapper, selectBox, value, current) {
+                current     : View
+): GenericTextEditOperation<T, MutableSelectBox<T, *>>(focusManager, mapper, selectBox, value, current) {
 
     private val changed = { _: SelectBox<T, *> ->
         selectBox.cancelEditing()
@@ -115,7 +122,18 @@ public open class SelectBoxTextEditOperation<T>(
         selectBox.changed += changed
     }
 
-    override fun cancel() {
-        selectBox.changed -= changed
+    override fun complete(): Result<T> = super.complete().also { cleanup() }
+
+    override fun cancel(): Unit = super.cancel().also { cleanup() }
+
+    private fun cleanup() { selectBox.changed -= changed }
+
+    public companion object {
+        public operator fun invoke(
+            focusManager: FocusManager?,
+            selectBox   : MutableSelectBox<String, *>,
+            value       : String,
+            current     : View
+        ): SelectBoxTextEditOperation<String> = SelectBoxTextEditOperation(focusManager, PassThroughEncoder(), selectBox, value, current)
     }
 }

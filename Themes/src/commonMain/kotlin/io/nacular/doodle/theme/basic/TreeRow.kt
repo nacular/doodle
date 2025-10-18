@@ -44,32 +44,34 @@ public abstract class TreeRowIcon: View() {
     public abstract var selected: Boolean
 }
 
-public class SimpleTreeRowIcon(private val fill: Paint, private val selectedFill: Paint): TreeRowIcon() {
+public open class AnimatableTreeRowIcon(private val fill: Paint, private val selectedFill: Paint): TreeRowIcon() {
     public constructor(color: Color = Black, selectedColor: Color = White): this(color.paint, selectedColor.paint)
 
-    override var expanded: Boolean = false
-        set (new) {
-            field = new
-            rerender()
-        }
+    public var expansion: Float = 0f; set(new) {
+        field = new
+        rerender()
+    }
 
-    override var selected: Boolean = false
-        set (new) {
-            field = new
-            rerender()
-        }
+    override var expanded: Boolean = false; set (new) {
+        expansion = if (new) 1f else 0f
+    }
+
+    override var selected: Boolean = false; set (new) {
+        field = new
+        rerender()
+    }
 
     override fun render(canvas: Canvas) {
-        val transform = when {
-            expanded -> Identity.rotate(Point(width / 2, height / 2), 90 * degrees)
-            else     -> Identity
+        val transform = when(expansion) {
+            0f   -> Identity
+            else -> Identity.rotate(Point(width / 2, height / 2), expansion * 90 * degrees)
         }
 
         val centeredRect = bounds.atOrigin.inset(6.0)
 
         val path = ConvexPolygon(centeredRect.position,
-                                 Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
-                                 Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
+            Point(centeredRect.right, centeredRect.y + centeredRect.height / 2),
+            Point(centeredRect.x, centeredRect.bottom)).rounded(1.0)
 
         val paint = (if (selected) selectedFill else fill).let { if (enabled) it else disabledPaintMapper(it) }
 
@@ -85,6 +87,10 @@ public class SimpleTreeRowIcon(private val fill: Paint, private val selectedFill
             rerender()
         }
     }
+}
+
+public class SimpleTreeRowIcon(fill: Paint, selectedFill: Paint): AnimatableTreeRowIcon(fill, selectedFill) {
+    public constructor(color: Color = Black, selectedColor: Color = White): this(color.paint, selectedColor.paint)
 }
 
 public class TreeRow<T>(

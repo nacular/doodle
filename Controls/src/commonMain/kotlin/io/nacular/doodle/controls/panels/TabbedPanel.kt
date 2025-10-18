@@ -58,7 +58,7 @@ public abstract class TabbedPanelBehavior<T>: Behavior<TabbedPanel<T>> {
 /**
  * A container that manages a set of tabs, each representing one of the items it holds. This container is
  * intended to display a single item at a time based on which is selected. This class delegates
- * all rendering an configuration to its [TabbedPanelBehavior], which allows a high degree of flexibility
+ * all rendering and configuration to its [TabbedPanelBehavior], which allows a high degree of flexibility
  * regarding display and behavior.
  *
  * @constructor

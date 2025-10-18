@@ -2,6 +2,7 @@
 
 package io.nacular.doodle.theme.basic
 
+import io.nacular.doodle.controls.Accordion
 import io.nacular.doodle.controls.DynamicListModel
 import io.nacular.doodle.controls.ItemVisualizer
 import io.nacular.doodle.controls.MutableListModel
@@ -102,6 +103,7 @@ import io.nacular.doodle.theme.basic.treecolumns.BasicTreeColumnsBehavior
 import io.nacular.doodle.theme.basic.treecolumns.SimpleTreeColumnRowIcon
 import io.nacular.doodle.theme.basic.treecolumns.TreeColumnRowIcon
 import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.NoOpCompletable
 import io.nacular.doodle.utils.RotationDirection
 import io.nacular.doodle.utils.RotationDirection.Clockwise
 import io.nacular.measured.units.Angle
@@ -639,16 +641,19 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                 onBackground : Color? = null,
                 onForeground : Color? = null,
                 offBackground: Color? = null,
-                offForeground: Color? = null
+                offForeground: Color? = null,
+                animation    : (switch: Switch, block: (progress: Float) -> Unit) -> Completable = { _,block -> NoOpCompletable.also { block(1f) } }
         ): Module = basicThemeModule(name = "BasicSwitchBehavior") {
             bindBehavior<Switch>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicSwitchBehavior(
-                            onBackground ?: Blue,
-                            onForeground ?: White,
-                            offBackground?: backgroundColor,
-                            offForeground?: onForeground ?: White,
-                            focusManager = instanceOrNull()).apply {
+                        onBackground ?: Blue,
+                        onForeground ?: White,
+                        offBackground?: backgroundColor,
+                        offForeground?: onForeground ?: White,
+                        focusManager = instanceOrNull(),
+                        animation
+                    ).apply {
                         hoverColorMapper    = this@run.hoverColorMapper
                         disabledColorMapper = this@run.disabledColorMapper
                     } as Behavior<Button>
@@ -838,13 +843,16 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         }
 
         public fun basicSelectBoxBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            buttonA11yLabel    : String? = null,
-            inset              : Double? = null,
+            backgroundColor       : Color?              = null,
+            darkBackgroundColor   : Color?              = null,
+            foregroundColor       : Color?              = null,
+            cornerRadius          : Double?             = null,
+            buttonWidth           : Double?             = null,
+            buttonA11yLabel       : String?             = null,
+            inset                 : Double?             = null,
+            listHoverColorMapper  : ((Color) -> Color)? = null,
+            buttonHoverColorMapper: ((Color) -> Color)? = null,
+            disabledColorMapper   : ((Color) -> Color)? = null,
         ): Module = basicThemeModule(name = "BasicSelectBoxBehavior") {
             bindBehavior<SelectBox<Any, ListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -861,21 +869,25 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
                         inset               = inset               ?: 4.0,
                     ).apply {
-                        hoverColorMapper     = this@run.hoverColorMapper
-                        disabledColorMapper  = this@run.disabledColorMapper
+                        this.disabledColorMapper    = disabledColorMapper    ?: this@run.disabledColorMapper
+                        this.listHoverColorMapper   = listHoverColorMapper   ?: this@run.hoverColorMapper
+                        this.buttonHoverColorMapper = buttonHoverColorMapper ?: this@run.hoverColorMapper
                     }
                 }
             }
         }
 
         public fun basicMutableSelectBoxBehavior(
-            backgroundColor    : Color?  = null,
-            darkBackgroundColor: Color?  = null,
-            foregroundColor    : Color?  = null,
-            cornerRadius       : Double? = null,
-            buttonWidth        : Double? = null,
-            buttonA11yLabel    : String? = null,
-            inset              : Double? = null,
+            backgroundColor       : Color?              = null,
+            darkBackgroundColor   : Color?              = null,
+            foregroundColor       : Color?              = null,
+            cornerRadius          : Double?             = null,
+            buttonWidth           : Double?             = null,
+            buttonA11yLabel       : String?             = null,
+            inset                 : Double?             = null,
+            listHoverColorMapper  : ((Color) -> Color)? = null,
+            buttonHoverColorMapper: ((Color) -> Color)? = null,
+            disabledColorMapper   : ((Color) -> Color)? = null,
         ): Module = basicThemeModule(name = "BasicMutableSelectBoxBehavior") {
             bindBehavior<MutableSelectBox<Any, MutableListModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -892,8 +904,9 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         buttonA11yLabel     = buttonA11yLabel,
                         inset               = inset               ?: 4.0,
                     ).apply {
-                        hoverColorMapper     = this@run.hoverColorMapper
-                        disabledColorMapper  = this@run.disabledColorMapper
+                        this.disabledColorMapper    = disabledColorMapper    ?: this@run.disabledColorMapper
+                        this.listHoverColorMapper   = listHoverColorMapper   ?: this@run.hoverColorMapper
+                        this.buttonHoverColorMapper = buttonHoverColorMapper ?: this@run.hoverColorMapper
                     }
                 }
             }
@@ -956,6 +969,27 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             }
         }
 
+        public fun basicAccordionBehavior(
+            sectionProducer : SectionProducer<Any>? = null,
+            backgroundColor : Color?                = null,
+            headerColor     : Color?                = null,
+            animateExpansion: (Boolean, block: (progress: Float) -> Unit) -> Completable = { _, block -> NoOpCompletable.also { block(1f) } }
+        ): Module = basicThemeModule(name = "BasicAccordionBehavior") {
+            bindBehavior<Accordion<Any>>(BTheme::class) {
+                it.behavior = instance<BasicThemeConfig>().run {
+                    BasicAccordionBehavior(
+                        sectionProducer ?: BasicSectionProducer(
+                            sectionColor        = headerColor ?: this.backgroundColor,
+                            hoverColorMapper    = this@run.hoverColorMapper,
+                            expandedColorMapper = { it },
+                            animateExpansion    = animateExpansion,
+                        ),
+                        backgroundColor ?: this.backgroundColor,
+                    )
+                }
+            }
+        }
+
         public fun basicThemeBehaviors(): kotlin.collections.List<Module> = listOf(
             basicListBehavior(),
             basicTreeBehavior(),
@@ -985,6 +1019,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             basicGridPanelBehavior(),
             basicMenuBehavior(),
             basicTreeTableBehavior(),
+            basicAccordionBehavior(),
         )
     }
 }

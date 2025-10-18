@@ -21,11 +21,13 @@ import io.nacular.doodle.utils.autoCanceling
 
 
 public open class BasicSwitchBehavior(
-        private val onBackground : Color         = Blue,
-        private val onForeground : Color         = White,
-        private val offBackground: Color         = Lightgray,
-        private val offForeground: Color         = onForeground,
-                    focusManager : FocusManager? = null): CommonButtonBehavior<Switch>(focusManager) {
+    private val onBackground : Color         = Blue,
+    private val onForeground : Color         = White,
+    private val offBackground: Color         = Lightgray,
+    private val offForeground: Color         = onForeground,
+                focusManager : FocusManager? = null,
+                animation    : ((switch: Switch, block: (progress: Float) -> Unit) -> Completable)? = null,
+): CommonButtonBehavior<Switch>(focusManager) {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
     public var disabledColorMapper: ColorMapper = { it.lighter()    }
@@ -33,7 +35,12 @@ public open class BasicSwitchBehavior(
     private var progress = 0f
     private var activeTransition: Completable? by autoCanceling(null)
 
+    private val animation: (switch: Switch, block: (progress: Float) -> Unit) -> Completable = animation ?: { _,block -> transitionSlider(block) }
+
+    @Deprecated(message = "Migrate to animation parameter instead")
     public open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+
+    public fun transitionSlider(view: Switch, block: (Float) -> Unit): Completable = animation(view, block)
 
     override val selectionChanged: (Button, Boolean, Boolean) -> Unit = { button, _, new ->
         val start = progress
@@ -42,7 +49,7 @@ public open class BasicSwitchBehavior(
             else -> 0f
         }
 
-        activeTransition = transitionSlider {
+        activeTransition = transitionSlider(button as Switch) {
             progress = start * (1 - it) + end * it
             button.rerenderNow()
         }.apply {

@@ -42,7 +42,7 @@ public interface AnimationPlan<T> {
 public class Velocity<T>(public val change: T, public val over: Measure<Time>)
 
 /**
- * Low-level animation for values [T] that can be converted to numeric values using a [AnimationDataConverter]. This type is used by higher-level
+ * Low-level animation for values [T] that can be converted to numeric values using an [AnimationDataConverter]. This type is used by higher-level
  * APIs like [animation] and can be created using [tween] for tween animations that leverage [EasingFunction]s.
  */
 public interface NumericAnimationPlan<T, V> {

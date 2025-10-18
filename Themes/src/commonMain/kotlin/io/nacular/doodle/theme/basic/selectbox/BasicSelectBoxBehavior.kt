@@ -81,8 +81,9 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
     private val inset              : Double        = 4.0,
 ): SelectBoxBehavior<T, M>, PointerListener, KeyListener {
 
-    public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
-    public var disabledColorMapper: ColorMapper = { it.lighter()    }
+    public var disabledColorMapper   : ColorMapper = { it.lighter()    }
+    public var listHoverColorMapper  : ColorMapper = { it.darker(0.1f) }
+    public var buttonHoverColorMapper: ColorMapper = { it.darker(0.1f) }
 
     internal var buttonAlignment: (ConstraintDslContext.(Bounds) -> Unit) = fill
 
@@ -134,7 +135,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             darkBackgroundColor = darkBackgroundColor
     ) {
         init {
-            hoverColorMapper    = this@BasicSelectBoxBehavior.hoverColorMapper
+            hoverColorMapper    = this@BasicSelectBoxBehavior.buttonHoverColorMapper
             disabledColorMapper = { it }
         }
 
@@ -185,7 +186,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             row,
             index,
             itemVisualizer,
-            backgroundSelectionColor        = hoverColorMapper(this@BasicSelectBoxBehavior.backgroundColor),
+            backgroundSelectionColor        = listHoverColorMapper(this@BasicSelectBoxBehavior.backgroundColor),
             backgroundSelectionBlurredColor = null) {
         init {
             insetTop = 0.0

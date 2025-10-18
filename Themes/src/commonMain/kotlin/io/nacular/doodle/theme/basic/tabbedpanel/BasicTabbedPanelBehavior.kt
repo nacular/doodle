@@ -213,11 +213,12 @@ public interface TabProducer<T> {
     public operator fun invoke(panel: TabbedPanel<T>, item: T, index: Int): Tab<T>
 }
 
-public open class BasicTabProducer<T>(override  val tabHeight          : Double = 40.0,
-                                      protected val tabRadius          : Double = 10.0,
-                                      protected val tabColor           : Color  = Color(0xdee1e6u),
-                                      protected val selectedColorMapper: ColorMapper = { White           },
-                                      protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+public open class BasicTabProducer<T>(
+    override  val tabHeight          : Double      = 40.0,
+    protected val tabRadius          : Double      = 10.0,
+    protected val tabColor           : Color       = Color(0xdee1e6u),
+    protected val selectedColorMapper: ColorMapper = { White           },
+    protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
 ): TabProducer<T> {
     override val spacing: Double = -2 * tabRadius
 
@@ -563,9 +564,10 @@ public open class AnimatingTabContainer<T>(
 public typealias TabContainerFactory<T> = (TabbedPanel<T>, TabProducer<T>) -> TabContainer<T>
 
 public open class BasicTabbedPanelBehavior<T>(
-        private val tabProducer    : TabProducer<T>,
-        private val backgroundColor: Color = Color(0xdee1e6u),
-        private val tabContainer   : TabContainerFactory<T> = { panel, producer -> SimpleTabContainer(panel, producer) }): TabbedPanelBehavior<T>() {
+    private val tabProducer    : TabProducer<T>,
+    private val backgroundColor: Color = Color(0xdee1e6u),
+    private val tabContainer   : TabContainerFactory<T> = { panel, producer -> SimpleTabContainer(panel, producer) }
+): TabbedPanelBehavior<T>() {
 
     override fun install(view: TabbedPanel<T>) {
         view.apply {
