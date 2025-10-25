@@ -1,12 +1,12 @@
 package io.nacular.doodle.theme.basic.tree
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator
 import io.nacular.doodle.controls.theme.TreeBehavior.RowPositioner
-import io.nacular.doodle.controls.toString
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.tree.MutableTree
 import io.nacular.doodle.controls.tree.Tree
 import io.nacular.doodle.controls.tree.TreeEditor
@@ -79,7 +79,7 @@ public open class BasicTreeRowGenerator<T>(
     @Suppress("UNCHECKED_CAST")
     override fun invoke(tree: Tree<T, *>, node: T, path: Path<Int>, index: Int, current: View?): View = when (current) {
         is TreeRow<*> -> (current as TreeRow<T>).apply { update(tree, node, path, index) }
-        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: toString(StringVisualizer()), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
+        else          -> TreeRow(tree, node, path, index, tree.itemVisualizer ?: StringVisualizer(), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(tree)

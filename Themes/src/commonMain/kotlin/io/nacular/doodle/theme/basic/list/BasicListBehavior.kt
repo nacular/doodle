@@ -1,11 +1,11 @@
 package io.nacular.doodle.theme.basic.list
 
-import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
 import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
-import io.nacular.doodle.controls.toString
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -38,7 +38,7 @@ public open class BasicItemGenerator<T>(private val selectionColor: Color? = nul
                 list                            = list,
                 item                            = item,
                 index                           = index,
-                itemVisualizer                  = list.itemVisualizer ?: toString(StringVisualizer()),
+                itemVisualizer                  = list.itemVisualizer ?: StringVisualizer(),
                 backgroundSelectionColor        = selectionColor,
                 backgroundSelectionBlurredColor = selectionBlurredColor
         )

@@ -19,7 +19,7 @@ import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.ShortTypeConverter
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton
@@ -30,6 +30,7 @@ import io.nacular.doodle.controls.form.Form.Field
 import io.nacular.doodle.controls.form.Form.FieldState
 import io.nacular.doodle.controls.form.Form.Invalid
 import io.nacular.doodle.controls.form.Form.Valid
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.itemVisualizer
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.CircularRangeSlider
@@ -45,7 +46,6 @@ import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.controls.spinbutton.SpinButtonModel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
-import io.nacular.doodle.controls.toString
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.ContainerBuilder
@@ -112,10 +112,11 @@ public class TextFieldConfig<T> internal constructor(public val textField: TextF
  * @param config used to control the resulting component
  */
 public fun <T> textField(
-        pattern  : Regex = Regex(".*"),
-        encoder  : Encoder<T, String>,
-        validator: (T) -> Boolean = { true },
-        config   : TextFieldConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+    pattern  : Regex = Regex(".*"),
+    encoder  : Encoder<T, String>,
+    validator: (T) -> Boolean = { true },
+    config   : TextFieldConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> = field {
     lateinit var configObject: TextFieldConfig<T>
 
     fun invalidateField(field: Field<T>, error: Throwable, notify: Boolean = true) {
@@ -198,8 +199,8 @@ public fun check(label: View): FieldVisualizer<Boolean> = field {
 
         focusable = false
 
-        this.layout        = buttonItemLayout(button = children[1], label = children[0])
-        this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
+        layout        = buttonItemLayout(button = children[1], label = children[0])
+        preferredSize = { _, max -> Size(max.width, children.maxOf { it.idealSize.height }) }
     }
 }
 
@@ -1513,7 +1514,7 @@ public fun <T> circularRangeSlider(
  */
 public fun file(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<LocalFile> = field {
     FileSelector(allowMultiple = false, acceptedTypes = acceptedTypes).apply {
-        this.filesLoaded += { _,_,files ->
+        filesLoaded += { _, _, files ->
             files.firstOrNull()?.let { state = Valid(it) }
         }
 
@@ -1532,7 +1533,7 @@ public fun file(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<L
  */
 public fun files(acceptedTypes: Set<MimeType<*>> = emptySet()): FieldVisualizer<List<LocalFile>> = field {
     FileSelector(allowMultiple = true, acceptedTypes).apply {
-        this.filesLoaded += { _,_,files ->
+        filesLoaded += { _, _, files ->
             state = Valid(files)
         }
 
@@ -1595,9 +1596,10 @@ public class OptionListConfig<T> internal constructor() {
  * @param config used to control the resulting component
  */
 public fun <T> radioList(
-               first : T,
-        vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T> = field {
+           first : T,
+    vararg rest  : T,
+           config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> = field {
     buildRadioList(
         first            = first,
         rest             = rest,
@@ -1626,9 +1628,10 @@ public fun <T> radioList(
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalRadioList(
-               first : T,
-        vararg rest  : T,
-               config: OptionListConfig<T>.() -> Unit = {}): FieldVisualizer<T?> = field {
+           first : T,
+    vararg rest  : T,
+           config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T?> = field {
     buildRadioList(
             first            = first,
             rest             = rest,
@@ -1672,7 +1675,8 @@ public fun <T, M: ListModel<T>> selectBox(
     model             : M,
     boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
     listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-    config            : (SelectBox<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    config            : (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> = field {
     SelectBox(model, boxItemVisualizer  = boxItemVisualizer, listItemVisualizer = listItemVisualizer).also { selectBox ->
         initial.ifValid {
             model.forEachIndexed { index, item ->
@@ -1736,7 +1740,7 @@ public fun <T> selectBox(
     vararg rest  : T,
            label : (T) -> String = { "$it" },
            config: (SelectBox<T, *>) -> Unit = {}
-): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = toString(StringVisualizer(), label), config = config)
+): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = StringVisualizer(label), config = config)
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -1760,7 +1764,8 @@ public fun <T: Any> selectBox(
     listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
     unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
     unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
     buildSelectBox(
@@ -1818,8 +1823,8 @@ public fun <T: Any> selectBox(
 ): FieldVisualizer<T> = selectBox(
     first,
     *rest,
-    boxItemVisualizer           = toString(StringVisualizer(), label),
-    unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
+    boxItemVisualizer           = StringVisualizer(label),
+    unselectedBoxItemVisualizer = StringVisualizer { unselectedLabel },
     config                      = config
 )
 
@@ -1842,7 +1847,8 @@ public fun <T: Any, M: ListModel<T>> optionalSelectBox(
     listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
     unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
     unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+    config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T?> = field {
     buildSelectBox(
         model                        = SimpleListModel(listOf(null) + model.section(0 until model.size)),
         boxItemVisualizer            = boxItemVisualizer,
@@ -1881,13 +1887,14 @@ public fun <T: Any, M: ListModel<T>> optionalSelectBox(
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalSelectBox(
-    first                       : T,
+           first                       : T,
     vararg rest                        : T,
-    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}): FieldVisualizer<T?> = field {
+           boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+           listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+           unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+           unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+           config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T?> = field {
     val model = SimpleListModel(listOf(null, first) + rest)
 
     buildSelectBox(
@@ -1944,8 +1951,8 @@ public fun <T: Any> optionalSelectBox(
 ): FieldVisualizer<T?> = optionalSelectBox(
     first,
     *rest,
-    boxItemVisualizer           = toString(StringVisualizer(), label),
-    unselectedBoxItemVisualizer = toString(StringVisualizer()) { unselectedLabel },
+    boxItemVisualizer           = StringVisualizer(label),
+    unselectedBoxItemVisualizer = StringVisualizer { unselectedLabel },
     config                      = config
 )
 // endregion
@@ -1966,7 +1973,7 @@ public fun <T: Any> optionalSelectBox(
  */
 public fun <T, M: SpinButtonModel<T>> spinButton(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = toString(StringVisualizer()),
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, M>> = StringVisualizer(),
     config        : (SpinButton<T, M>) -> Unit = {}
 ): FieldVisualizer<T> = field {
     SpinButton(model, itemVisualizer = itemVisualizer).also { spinButton ->
@@ -2069,7 +2076,7 @@ public fun <T> spinButton(
     vararg rest  : T,
            label : (T) -> String = { "$it" },
            config: (SpinButton<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = toString(StringVisualizer(), label), config = config)
+): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = StringVisualizer(label), config = config)
 
 
 /**
@@ -2088,7 +2095,7 @@ public fun <T> spinButton(
     values: List<T>,
     label : (T) -> String = { "$it" },
     config: (SpinButton<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(values, toString(StringVisualizer(), label), config)
+): FieldVisualizer<T> = spinButton(values, StringVisualizer(label), config)
 
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
@@ -2122,7 +2129,7 @@ public fun spinButton(
     progression   : IntProgression,
     label         : (Int) -> String = { "$it" },
     config        : (SpinButton<Int, *>) -> Unit = {}
-): FieldVisualizer<Int> = spinButton(progression, toString(StringVisualizer(), label), config)
+): FieldVisualizer<Int> = spinButton(progression, StringVisualizer(label), config)
 
 // endregion
 
@@ -2140,8 +2147,9 @@ public fun spinButton(
  */
 public fun <T, M: ListModel<T>> optionalSingleChoiceList(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<T?> = field {
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}
+): FieldVisualizer<T?> = field {
     io.nacular.doodle.controls.list.List(
         model,
         itemVisualizer,
@@ -2188,8 +2196,9 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
 public fun <T> optionalSingleChoiceList(
     first: T,
     vararg rest : T,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T?> = optionalSingleChoiceList(
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T?> = optionalSingleChoiceList(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
     config
@@ -2206,8 +2215,9 @@ public fun <T> optionalSingleChoiceList(
  */
 public fun optionalSingleChoiceList(
     progression   : IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int?> = optionalSingleChoiceList(
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}
+): FieldVisualizer<Int?> = optionalSingleChoiceList(
     IntProgressionModel(progression),
     itemVisualizer,
     config
@@ -2224,10 +2234,11 @@ public fun optionalSingleChoiceList(
  * @param config used to control the resulting component
  */
 public fun <T, M: ListModel<T>> singleChoiceList(
-    first: T,
-    vararg rest : T,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = singleChoiceList(
+           first         : T,
+    vararg rest          : T,
+           itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+           config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> = singleChoiceList(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
     config
@@ -2242,17 +2253,20 @@ public fun <T, M: ListModel<T>> singleChoiceList(
  * @param config used to control the resulting component
  */
 public fun singleChoiceList(
-    progression: IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<Int> = singleChoiceList(
+    progression   : IntProgression,
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}
+): FieldVisualizer<Int> = singleChoiceList(
     IntProgressionModel(progression),
     itemVisualizer,
     config
 )
+
 private fun <T, M: ListModel<T>> singleChoiceList(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<T> = field {
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> = field {
 
     class ForcedSingleItemSelectionModel<T>: MultiSelectionModel<T>() {
         override fun add(item: T): Boolean {
@@ -2427,8 +2441,9 @@ public fun <T> switchList(
  */
 public fun <T, M: ListModel<T>> list(
     model         : M,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}): FieldVisualizer<List<T>> = field {
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, M>) -> Unit = {}
+): FieldVisualizer<List<T>> = field {
     io.nacular.doodle.controls.list.List(
         model,
         itemVisualizer,
@@ -2482,8 +2497,9 @@ public fun <T, M: ListModel<T>> list(
 public fun <T> list(
            first         : T,
     vararg rest          : T,
-           itemVisualizer: ItemVisualizer<T, IndexedItem> = toString(StringVisualizer()),
-           config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}): FieldVisualizer<List<T>> = list(
+           itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+           config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<List<T>> = list(
     SimpleListModel(listOf(first) + rest),
     itemVisualizer,
     config
@@ -2500,8 +2516,9 @@ public fun <T> list(
  */
 public fun list(
     progression   : IntProgression,
-    itemVisualizer: ItemVisualizer<Int, IndexedItem> = toString(StringVisualizer()),
-    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}): FieldVisualizer<List<Int>> = list(
+    itemVisualizer: ItemVisualizer<Int, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<Int, *>) -> Unit = {}
+): FieldVisualizer<List<Int>> = list(
     IntProgressionModel(progression),
     itemVisualizer,
     config
@@ -2621,7 +2638,8 @@ public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
 public fun <T> labeled(
     name        : StyledText,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
-    visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    visualizer  : NamedConfig.() -> FieldVisualizer<T>
+): FieldVisualizer<T> = field {
     container {
         lateinit var content: View
 
@@ -2652,7 +2670,8 @@ public fun <T> labeled(
 public fun <T> labeled(
     name        : String,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
-    visualizer  : NamedConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
+    visualizer  : NamedConfig.() -> FieldVisualizer<T>
+): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
 
 /**
  * Config for [labeled] controls.
@@ -2689,7 +2708,8 @@ public fun <T> labeled(
     name        : StyledText,
     help        : StyledText,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
-    visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = field {
+    visualizer  : LabeledConfig.() -> FieldVisualizer<T>
+): FieldVisualizer<T> = field {
     container {
         lateinit var content: View
 
@@ -2706,7 +2726,7 @@ public fun <T> labeled(
 
         showRequired?.let { updateRequiredText(it, nameLabel, name, content) }
 
-        this.layout = builder.layout(this, children[1])
+        layout = builder.layout(this, children[1])
     }
 }
 
@@ -2723,7 +2743,8 @@ public fun <T> labeled(
     name        : String,
     help        : String,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
-    visualizer  : LabeledConfig.() -> FieldVisualizer<T>): FieldVisualizer<T> = labeled(
+    visualizer  : LabeledConfig.() -> FieldVisualizer<T>
+): FieldVisualizer<T> = labeled(
     StyledText(name),
     StyledText(help),
     showRequired,
@@ -2802,20 +2823,23 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
     public operator fun <T, A> invoke(
         a        : Field<A>,
         onInvalid: ( ) -> Unit = {},
-        onReady  : (A) -> T): FieldVisualizer<T> = invokeInternal(a, layout = null, onInvalid, onReady)
+        onReady  : (A) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, layout = null, onInvalid, onReady)
 
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A> invoke(
         a        : Field<A>,
         layout   : ConstraintDslContext.(Bounds) -> Unit,
         onInvalid: ( ) -> Unit = {},
-        onReady  : (A) -> T): FieldVisualizer<T> = invokeInternal(a, layout, onInvalid, onReady)
+        onReady  : (A) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, layout, onInvalid, onReady)
 
     private fun <T, A> invokeInternal(
         a        : Field<A>,
         layout   : (ConstraintDslContext.(Bounds) -> Unit)?,
         onInvalid: ( ) -> Unit = {},
-        onReady  : (A) -> T): FieldVisualizer<T> = field {
+        onReady  : (A) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(a, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a ->
                 state = Valid(onReady(a))
@@ -2828,7 +2852,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         a        : Field<A>,
         b        : Field<B>,
         onInvalid: (    ) -> Unit = {},
-        onReady  : (A, B) -> T): FieldVisualizer<T> = invokeInternal(a, b, layout = null, onInvalid, onReady)
+        onReady  : (A, B) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, layout = null, onInvalid, onReady)
 
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A, B> invoke(
@@ -2836,14 +2861,16 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         b        : Field<B>,
         layout   : ConstraintDslContext.(Bounds, Bounds) -> Unit,
         onInvalid: (    ) -> Unit = {},
-        onReady  : (A, B) -> T): FieldVisualizer<T> = invokeInternal(a, b, layout, onInvalid, onReady)
+        onReady  : (A, B) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, layout, onInvalid, onReady)
 
     private fun <T, A, B> invokeInternal(
         a        : Field<A>,
         b        : Field<B>,
         layout   : (ConstraintDslContext.(Bounds, Bounds) -> Unit)?,
         onInvalid: (    ) -> Unit = {},
-        onReady  : (A, B) -> T): FieldVisualizer<T> = field {
+        onReady  : (A, B) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(a, b, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b ->
                 state = Valid(onReady(a, b))
@@ -2857,7 +2884,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         b        : Field<B>,
         c        : Field<C>,
         onInvalid: (       ) -> Unit = {},
-        onReady  : (A, B, C) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, layout = null, onInvalid, onReady)
+        onReady  : (A, B, C) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, layout = null, onInvalid, onReady)
 
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A, B, C> invoke(
@@ -2866,7 +2894,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         c        : Field<C>,
         layout   : ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit,
         onInvalid: (       ) -> Unit = {},
-        onReady  : (A, B, C) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, layout, onInvalid, onReady)
+        onReady  : (A, B, C) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, layout, onInvalid, onReady)
 
     public fun <T, A, B, C> invokeInternal(
         a        : Field<A>,
@@ -2874,7 +2903,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         c        : Field<C>,
         layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit)?,
         onInvalid: (       ) -> Unit = {},
-        onReady  : (A, B, C) -> T): FieldVisualizer<T> = field {
+        onReady  : (A, B, C) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(a, b, c, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c ->
                 state = Valid(onReady(a, b, c))
@@ -2889,7 +2919,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         c        : Field<C>,
         d        : Field<D>,
         onInvalid: (          ) -> Unit = {},
-        onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout = null, onInvalid, onReady)
+        onReady  : (A, B, C, D) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout = null, onInvalid, onReady)
 
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A, B, C, D> invoke(
@@ -2899,7 +2930,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         d        : Field<D>,
         layout   : ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit,
         onInvalid: (          ) -> Unit = {},
-        onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout, onInvalid, onReady)
+        onReady  : (A, B, C, D) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, d, layout, onInvalid, onReady)
 
     private fun <T, A, B, C, D> invokeInternal(
         a        : Field<A>,
@@ -2908,7 +2940,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         d        : Field<D>,
         layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds) -> Unit)?,
         onInvalid: (          ) -> Unit = {},
-        onReady  : (A, B, C, D) -> T): FieldVisualizer<T> = field {
+        onReady  : (A, B, C, D) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(a, b, c, d, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d ->
                 state = Valid(onReady(a, b, c, d))
@@ -2924,7 +2957,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         d        : Field<D>,
         e        : Field<E>,
         onInvalid: (             ) -> Unit = {},
-        onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout = null, onInvalid, onReady)
+        onReady  : (A, B, C, D, E) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout = null, onInvalid, onReady)
 
     /** @see Form.Companion.FormBuildContext.invoke */
     public operator fun <T, A, B, C, D, E> invoke(
@@ -2935,7 +2969,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         e        : Field<E>,
         layout   : ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit,
         onInvalid: (             ) -> Unit = {},
-        onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout, onInvalid, onReady)
+        onReady  : (A, B, C, D, E) -> T
+    ): FieldVisualizer<T> = invokeInternal(a, b, c, d, e, layout, onInvalid, onReady)
 
     private fun <T, A, B, C, D, E> invokeInternal(
         a        : Field<A>,
@@ -2945,7 +2980,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         e        : Field<E>,
         layout   : (ConstraintDslContext.(Bounds, Bounds, Bounds, Bounds, Bounds) -> Unit)?,
         onInvalid: (             ) -> Unit = {},
-        onReady  : (A, B, C, D, E) -> T): FieldVisualizer<T> = field {
+        onReady  : (A, B, C, D, E) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(a, b, c, d, e, layout, onInvalid = { field.state = Invalid(); onInvalid() }) { a, b, c, d, e ->
                 state = Valid(onReady(a, b, c, d, e))
@@ -2959,7 +2995,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
                second   : Field<*>,
         vararg rest     : Field<*>,
                onInvalid: (       ) -> Unit = {},
-               onReady  : (List<*>) -> T): FieldVisualizer<T> = field {
+               onReady  : (List<*>) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             this(first, second, *rest, onInvalid = { field.state = Invalid(); onInvalid() }) { fields ->
                 state = Valid(onReady(fields))
@@ -2974,7 +3011,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         vararg rest     : Field<*>,
                layout   : ConstraintDslContext.(List<Bounds>) -> Unit,
                onInvalid: (       ) -> Unit = {},
-               onReady  : (List<*>) -> T): FieldVisualizer<T> = invokeInternal(
+               onReady  : (List<*>) -> T
+    ): FieldVisualizer<T> = invokeInternal(
         first     = first,
         second    = second,
         rest      = rest,
@@ -2989,7 +3027,8 @@ public class FormControlBuildContext<T> internal constructor(private val field: 
         vararg rest     : Field<*>,
                layout   : (ConstraintDslContext.(List<Bounds>) -> Unit)?,
                onInvalid: (       ) -> Unit = {},
-               onReady  : (List<*>) -> T): FieldVisualizer<T> = field {
+               onReady  : (List<*>) -> T
+    ): FieldVisualizer<T> = field {
         Form {
             invokeInternal(first, second, *rest, layout = layout, onInvalid = { field.state = Invalid(); onInvalid() }) { fields ->
                 state = Valid(onReady(fields))
@@ -3015,7 +3054,8 @@ private fun <T> buildToggleList(
     vararg rest         : T,
            config       : OptionListConfig<T>.() -> Unit = {},
            layout       : (button: ToggleButton, label: View) -> Layout? = { _,_ ->null },
-           toggleBuilder: () -> ToggleButton): FieldVisualizer<List<T>> = field {
+           toggleBuilder: () -> ToggleButton
+): FieldVisualizer<List<T>> = field {
     val builder   = OptionListConfig<T>().also(config)
     val selection = mutableListOf<T>()
 
@@ -3098,8 +3138,8 @@ private fun <T> buildRadioList(
                 accessibilityLabelProvider = visualizedValue
             }
 
-            this.layout        = buttonItemLayout(button = children[1], label = children[0])
-            this.preferredSize = { _,max -> Size(max.width, children.maxOf { it.idealSize.height }) }
+            layout = buttonItemLayout(button = children[1], label = children[0])
+            preferredSize = { _, max -> Size(max.width, children.maxOf { it.idealSize.height }) }
         }
     }
 

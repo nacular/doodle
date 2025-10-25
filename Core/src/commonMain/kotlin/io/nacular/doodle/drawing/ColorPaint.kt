@@ -1,6 +1,5 @@
 package io.nacular.doodle.drawing
 
-
 /**
  * A basic [Paint] consisting of a single [Color].
  *
@@ -31,6 +30,11 @@ public class ColorPaint(public val color: Color): Paint() {
 public inline val Color.paint: ColorPaint get() = ColorPaint(this)
 
 /**
+ * Creates a new [ColorPaint] by inverting this one's color.
+ */
+public inline val ColorPaint.inverted: ColorPaint get() = color.inverted.paint
+
+/**
  * Creates a new [ColorPaint] like this one except with the given opacity.
  *
  * @param value of the new opacity
@@ -54,4 +58,10 @@ public fun ColorPaint.darker(percent: Float = 0.5f): ColorPaint = (color.darker(
 /**
  * @return a gray scale version of this [ColorPaint]
  */
-public fun ColorPaint.grayScale(): ColorPaint = (color.grayScale()).paint
+public inline val ColorPaint.grayScale: ColorPaint get() = (color.grayScale).paint
+
+/**
+ * @return a gray scale version of this [ColorPaint]
+ */
+@Deprecated(message = "Use grayScale instead.", replaceWith = ReplaceWith("grayScale"))
+public fun ColorPaint.grayScale(): ColorPaint = this.grayScale

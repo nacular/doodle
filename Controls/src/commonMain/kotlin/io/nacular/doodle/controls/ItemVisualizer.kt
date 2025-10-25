@@ -38,31 +38,56 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
 /**
  * Visualizes Strings using [Label]s.
  */
-public open class StringVisualizer(): ItemVisualizer<String, Any> {
+public open class StringVisualizer @Deprecated(message = "Use object instead") constructor(): ItemVisualizer<String, Any> {
     override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { text = item }
         else     -> Label(StyledText(item))
+    }
+
+    public companion object {
+        public object StringVisualizer: ItemVisualizer<String, Any> {
+            override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.Companion.StyledTextVisualizer.invoke(StyledText(item), previous, context)
+        }
     }
 }
 
 /**
  * Visualizes [StyledText] using [Label]s.
  */
-public open class StyledTextVisualizer(): ItemVisualizer<StyledText, Any> {
+public open class StyledTextVisualizer @Deprecated(message = "Use object instead") constructor(): ItemVisualizer<StyledText, Any> {
     override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { styledText = item }
         else     -> Label(item)
+    }
+
+    public companion object {
+        public object StyledTextVisualizer: ItemVisualizer<StyledText, Any> {
+            override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
+                is Label -> previous.apply { styledText = item }
+                else     -> Label(item)
+            }
+        }
     }
 }
 
 /**
  * Visualizes Booleans using [CheckBox]es.
  */
-public open class BooleanVisualizer(private val defaultSize: Size = Size(16)): ItemVisualizer<Boolean, Any> {
-    override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
-        is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
-        else        -> CheckBox().apply { enabled = true;  selected = item; enabled = false; }
-    }.apply { suggestSize(defaultSize) }
+public open class BooleanVisualizer(private val defaultSize: Size = Companion.defaultSize): ItemVisualizer<Boolean, Any> {
+    override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = BooleanVisualizer(item, previous, context).apply {
+        suggestSize(defaultSize)
+    }
+
+    public companion object {
+        private val defaultSize = Size(16)
+
+        public object BooleanVisualizer: ItemVisualizer<Boolean, Any> {
+            override fun invoke(item: Boolean, previous: View?, context: Any): CheckBox = when (previous) {
+                is CheckBox -> previous.apply   { enabled = true;  selected = item; enabled = false; }
+                else        -> CheckBox().apply { enabled = true;  selected = item; enabled = false; }
+            }.apply { suggestSize(defaultSize) }
+        }
+    }
 }
 
 /**
@@ -88,8 +113,18 @@ public open class ScrollPanelVisualizer(private val config: ScrollPanel.() -> Un
  * @param delegate to visualize the item's string representation
  * @param mapper to convert the item to a string
  */
+@Deprecated(message = "Use ItemVisualizer.invoke extension instead")
 public fun <T, C> toString(delegate: ItemVisualizer<String, C>, mapper: (T) -> String = { "$it" }): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
     override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(mapper(item), previous, context)
+}
+
+/**
+ * Visualizes a string representation of the item obtained from [mapper].
+ *
+ * @param mapper to convert the item to a string
+ */
+public operator fun <T, C> ItemVisualizer<String, C>.invoke(mapper: (T) -> String = { "$it" }): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
+    override fun invoke(item: T, previous: View?, context: C) = invoke(mapper(item), previous, context)
 }
 
 /**

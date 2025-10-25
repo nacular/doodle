@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.treecolumns
 
-import io.nacular.doodle.controls.StringVisualizer
-import io.nacular.doodle.controls.toString
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior.CellGenerator
@@ -47,7 +47,7 @@ public open class BasicTreeColumnRowGenerator<T>(
     @Suppress("UNCHECKED_CAST")
     override fun invoke(treeColumns: TreeColumns<T, *>, node: T, path: Path<Int>, row: Int, current: View?): View = when (current) {
         is TreeColumnRow<*> -> (current as TreeColumnRow<T>).apply { update(treeColumns, node, path, row) }
-        else                -> TreeColumnRow(treeColumns, node, path, row, treeColumns.itemVisualizer ?: toString(StringVisualizer()), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
+        else                -> TreeColumnRow(treeColumns, node, path, row, treeColumns.itemVisualizer ?: StringVisualizer(), selectionColor = selectionColor, selectionBlurredColor = selectionBlurredColor, iconFactory = iconFactory).apply {
             pointerChanged += object: PointerListener {
                 override fun released(event: PointerEvent) {
                     focusManager?.requestFocus(treeColumns)

@@ -63,3 +63,27 @@ public class Stroke(
         public operator fun invoke(color: Color, thickness: Double = 1.0): Stroke = Stroke(ColorPaint(color), thickness, null)
     }
 }
+
+/**
+ * Creates a new [Stroke] with defaults from the given [Color].
+ */
+public inline val Color.stroke: Stroke get() = Stroke(this)
+
+/**
+ * Creates a new [Stroke] with [thickness] from the given [Color].
+ *
+ * @param thickness of the stroke
+ */
+public fun Color.stroke(thickness: Double): Stroke = Stroke(this, thickness)
+
+/**
+ * Creates a new [Stroke] with defaults from the given [Paint].
+ */
+public inline val Paint.stroke: Stroke get() = Stroke(this)
+
+/**
+ * Creates a new [Stroke] with [thickness] from the given [Paint].
+ *
+ * @param thickness of the stroke
+ */
+public fun Paint.stroke(thickness: Double): Stroke = Stroke(this, thickness)

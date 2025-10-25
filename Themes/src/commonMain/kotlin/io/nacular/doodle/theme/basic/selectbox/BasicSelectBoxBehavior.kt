@@ -6,14 +6,14 @@ import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.selectbox.SelectBox
 import io.nacular.doodle.controls.selectbox.SelectBoxBehavior
-import io.nacular.doodle.controls.toString
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
@@ -153,7 +153,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         }
     }
 
-    private val itemVisualizer by lazy { toString<T, IndexedItem>(StringVisualizer()) }
+    private val itemVisualizer by lazy { StringVisualizer<T, IndexedItem>() }
 
     private val changeObserver: ChangeObserver<SelectBox<T, M>> = {
         it.list?.setSelection(setOf(it.selection))
@@ -219,7 +219,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
                 row            = item,
                 index          = index,
                 cornerRadius   = cornerRadius,
-                itemVisualizer = list.itemVisualizer ?: toString(StringVisualizer())
+                itemVisualizer = list.itemVisualizer ?: StringVisualizer()
             )
         }.apply {
             list.cellAlignment?.let { positioner = it }

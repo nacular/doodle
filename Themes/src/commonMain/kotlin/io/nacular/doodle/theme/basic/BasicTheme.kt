@@ -197,7 +197,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         itemHeight            = itemHeight            ?: 20.0,
                         numColumns            = when (it) {
                             is VerticalList        -> it.numColumns
@@ -224,7 +224,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         itemWidth             = itemWidth             ?: 20.0,
                         numRows               = when (it) {
                             is HorizontalList        -> it.numRows
@@ -255,7 +255,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         itemHeight            = itemHeight            ?: 20.0,
                         numColumns            = if (it is VerticalMutableList) it.numColumns else 1
                 ) }
@@ -276,7 +276,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenItemColor         = evenItemColor         ?: this.evenItemColor,
                         oddItemColor          = oddItemColor          ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         itemWidth             = itemWidth             ?: 20.0,
                         numRows               = it.numRows
                     )
@@ -299,7 +299,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             evenRowColor          = evenRowColor          ?: this.evenItemColor,
                             oddRowColor           = oddRowColor           ?: this.oddItemColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
-                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                             iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
                     )
                 }
@@ -321,7 +321,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                             evenRowColor          = evenRowColor          ?: this.evenItemColor,
                             oddRowColor           = oddRowColor           ?: this.oddItemColor,
                             selectionColor        = selectionColor        ?: this.selectionColor,
-                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                            selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                             iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
                 ) }
             }
@@ -346,7 +346,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         iconFactory           = iconFactory           ?: { SimpleTreeRowIcon(foregroundColor, foregroundColor.inverted) }
                     ) {
                         override fun moveColumn(table: TreeTable<Any, *>, distance: Double, block: (progress: Float) -> Unit): Completable = when (columnAnimation) {
@@ -386,7 +386,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter()
                 ) }
             }
         }
@@ -408,7 +408,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         evenRowColor          = evenRowColor          ?: this.evenItemColor,
                         oddRowColor           = oddRowColor           ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter()
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter()
                 ) }
             }
         }
@@ -427,7 +427,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         columnSeparatorColor  = columnSeparatorColor  ?: this.backgroundColor,
                         backgroundColor       = backgroundColor       ?: this.oddItemColor,
                         selectionColor        = selectionColor        ?: this.selectionColor,
-                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale().lighter(),
+                        selectionBlurredColor = selectionBlurredColor ?: this.selectionColor.grayScale.lighter(),
                         iconFactory           = iconFactory           ?: { SimpleTreeColumnRowIcon(foregroundColor, foregroundColor.inverted) }
                 ) }
             }

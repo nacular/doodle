@@ -1,12 +1,12 @@
 package io.nacular.doodle.theme.basic.spinbutton
 
-import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.controls.spinbutton.SpinButtonBehavior
 import io.nacular.doodle.controls.spinbutton.SpinButtonModel
-import io.nacular.doodle.controls.toString
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
@@ -115,7 +115,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         }
     }
 
-    private val itemVisualizer by lazy { toString<T, Any>(StringVisualizer()) }
+    private val itemVisualizer by lazy { StringVisualizer<T, Any>() }
 
     override fun changed(spinButton: SpinButton<T, M>) {}
 

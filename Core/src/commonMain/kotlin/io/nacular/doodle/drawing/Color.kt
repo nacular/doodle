@@ -116,7 +116,13 @@ public fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(pe
 /**
  * @return a gray scale version of this Color
  */
-public fun Color.grayScale(): Color {
+@Deprecated(message = "Use grayScale instead.", replaceWith = ReplaceWith("grayScale"))
+public fun Color.grayScale(): Color = grayScale
+
+/**
+ * @return a gray scale version of this Color
+ */
+public val Color.grayScale: Color get() {
     val gray = (red.toInt() * 0.2989f + blue.toInt() * 0.5870f + green.toInt() * 0.1140f).toInt().toUByte()
     return Color(gray, gray, gray)
 }
