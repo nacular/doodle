@@ -18,31 +18,58 @@ import io.nacular.doodle.utils.Orientation.Horizontal
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * A simple [SliderBehavior] that renders a bar with a round knob and ticks if enabled.
+ *
+ * @param barFill              paint used to fill the slider's bar
+ * @param knobFill             paint used to fill the slider's knob
+ * @param rangeFill            paint used to fill the section between the slider's start and knob
+ * @param grooveThicknessRatio size of the bar vs the knob diameter
+ * @param showTicks            if and how ticks are shown on the slider
+ * @param focusManager         used to request focus for the slider
+ */
 public class BasicSliderBehavior<T>(
-        private val barFill             :  (Slider<T>) -> Paint,
-        private val knobFill            :  (Slider<T>) -> Paint,
-        private val rangeFill           : ((Slider<T>) -> Paint)? = null,
-                    grooveThicknessRatio: Float                   = 0.6f,
-        private val showTicks           : TickPresentation?       = null,
-                    focusManager        : FocusManager?           = null
+    private val barFill             :  (Slider<T>) -> Paint,
+    private val knobFill            :  (Slider<T>) -> Paint,
+    private val rangeFill           : ((Slider<T>) -> Paint)? = null,
+                grooveThicknessRatio: Float                   = 0.6f,
+    private val showTicks           : TickPresentation?       = null,
+                focusManager        : FocusManager?           = null
 ): AbstractSliderBehavior<T>(focusManager) where T: Comparable<T> {
+    /**
+     * A simple [SliderBehavior] that renders a bar with a round knob and ticks if enabled.
+     *
+     * @param barFill              paint used to fill the slider's bar
+     * @param knobFill             paint used to fill the slider's knob
+     * @param rangeFill            paint used to fill the section between the slider's start and knob
+     * @param grooveThicknessRatio size of the bar vs the knob diameter
+     * @param showTicks            if and how ticks are shown on the slider
+     * @param focusManager         used to request focus for the slider
+     */
     public constructor(
-            barFill             : Paint             = Lightgray.paint,
-            knobFill            : Paint             = Blue.paint,
-            rangeFill           : Paint?            = null,
-            grooveThicknessRatio: Float             = 0.6f,
-            showTicks           : TickPresentation? = null,
-            focusManager        : FocusManager?     = null): this(barFill = { barFill }, knobFill = { knobFill }, rangeFill = rangeFill?.let { f -> { f } }, grooveThicknessRatio, showTicks, focusManager)
+        barFill             : Paint             = Lightgray.paint,
+        knobFill            : Paint             = Blue.paint,
+        rangeFill           : Paint?            = null,
+        grooveThicknessRatio: Float             = 0.6f,
+        showTicks           : TickPresentation? = null,
+        focusManager        : FocusManager?     = null
+    ): this(
+        barFill              = { barFill  },
+        knobFill             = { knobFill },
+        rangeFill            = rangeFill?.let { f -> { f } },
+        showTicks            = showTicks,
+        focusManager         = focusManager,
+        grooveThicknessRatio = grooveThicknessRatio
+    )
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
     override fun render(view: Slider<T>, canvas: Canvas) {
-        val grooveRect  : Rectangle
-        var rangeRect   : Rectangle? = null
-        val handleRect  : Rectangle
-
+        val grooveRect     : Rectangle
+        var rangeRect      : Rectangle? = null
+        val handleRect     = handleBounds(view)
         val handleSize     = handleSize(view)
         val offset         = handleSize / 2
         val handlePosition = handlePosition(view)

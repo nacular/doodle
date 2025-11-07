@@ -4,9 +4,9 @@ import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.InternalDisplay
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.RenderManager
-import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.constrain
@@ -53,7 +53,38 @@ public interface PopupManager {
      * @param constraints used to position [view]
      * @return the same [view] provided
      */
-    public fun show(view: View, relativeTo: View, constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): View
+    public fun show(
+        view       : View,
+        relativeTo : View,
+        constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit
+    ): View = show(view, relativeTo, { bounds.atOrigin }, constraints)
+
+    /**
+     * Shows [view] as though it is a pop-up, that means it is placed atop all other views in the app.
+     * The given constraints include details about the bounds of [relativeTo], which allows [view] to be positioned
+     * relative to it.
+     *
+     * ```
+     * show(view, other) { popup, anchor ->
+     *     popup.top     eq anchor.bottom + 2
+     *     popup.centerX eq anchor.center.x
+     *
+     *     // more constraints to avoid popup going outside parent if desired
+     * }
+     * ```
+     *
+     * @param view to be shown
+     * @param relativeTo this View's coordinate space
+     * @param bounds is the [Rectangle] (within [relativeTo]'s coordinates) the popup will be positioned relative to
+     * @param constraints used to position [view]
+     * @return the same [view] provided
+     */
+    public fun <T: View> show(
+        view       : View,
+        relativeTo : T,
+        bounds     : T.() -> Rectangle,
+        constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit
+    ): View
 
     /**
      * Trigger re-layout of [view] if it is currently [active].
@@ -123,7 +154,7 @@ public class PopupManagerImpl(
         }
     }
 
-    private inner class BoundedPopup(view: View, val relativeTo: View, val constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): Popup(view) {
+    private inner class BoundedPopup<T: View>(view: View, val relativeTo: T, val bounds: T.() -> Rectangle, val constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit): Popup(view) {
         private val viewList       = sequenceOf(view.positionable)
         lateinit var relativeBounds: Rectangle
         private val constraint: ConstraintDslContext.(Bounds) -> Unit = {
@@ -138,11 +169,9 @@ public class PopupManagerImpl(
         }
 
         override fun doLayout() {
-            if (!::relativeBounds.isInitialized) {
-                calculateRelativeBounds()
-            }
+            calculateRelativeBounds()
 
-            layout.layout(viewList, Size.Empty, display.size, display.size)
+            layout.layout(viewList, Empty, display.size, display.size)
         }
 
         init {
@@ -157,7 +186,7 @@ public class PopupManagerImpl(
         }
 
         private fun calculateRelativeBounds() {
-            relativeBounds = Rectangle(display.fromAbsolute(relativeTo.toAbsolute(Origin)), relativeTo.size)
+            relativeBounds = bounds(relativeTo).let { Rectangle(display.fromAbsolute(relativeTo.toAbsolute(it.position)), it.size) }
         }
     }
 
@@ -173,12 +202,13 @@ public class PopupManagerImpl(
         showInternal(view) { UnboundedPopup(it, constraints) }
     }
 
-    override fun show(
+    override fun <T: View> show(
         view       : View,
-        relativeTo : View,
-        constraints: ConstraintDslContext.(popUp: Bounds, anchor: Rectangle) -> Unit
+        relativeTo : T,
+        bounds     : T.() -> Rectangle,
+        constraints: ConstraintDslContext.(Bounds, Rectangle) -> Unit
     ): View = view.also {
-        showInternal(view) { BoundedPopup(it, relativeTo, constraints) }
+        showInternal(view) { BoundedPopup(it, relativeTo, bounds, constraints) }
     }
 
     override fun relayout(view: View) {

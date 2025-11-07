@@ -293,14 +293,16 @@ public fun Ellipse.toPath(): Path = Point(center.x, center.y - yRadius).let { to
  * @param direction to draw in
  * @return path representing the circle
  */
-public fun circle(center: Point, radius: Double, direction: RotationDirection): Path {
-    val sweep = direction == Clockwise
-
-    return path(Point(center.x, center.y - radius)).
-        arcTo(Point(center.x, center.y + radius), radius, radius, largeArch = true, sweep = sweep).
-        arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).
-        close()
-}
+public fun circle(center: Point, radius: Double, direction: RotationDirection): Path =
+    (direction == Clockwise).let { sweep ->
+        path(Point(center.x, center.y - radius)).arcTo(
+            point     = Point(center.x, center.y + radius),
+            xRadius   = radius,
+            yRadius   = radius,
+            largeArch = true,
+            sweep     = sweep
+        ).arcTo(Point(center.x, center.y - radius), radius, radius, largeArch = true, sweep = sweep).finish()
+    }
 
 /**
  * Creates ring (donut) path.
