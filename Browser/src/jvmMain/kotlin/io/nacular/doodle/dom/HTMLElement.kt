@@ -58,6 +58,7 @@ internal actual abstract class CSSStyleDeclaration: JsAny {
     actual var boxShadow: String           = ""
     actual var fontStyle: String           = ""
     actual var textAlign: String           = ""
+    actual var direction: String           = ""
     actual var textShadow: String          = ""
     actual var textIndent: String          = ""
     actual var fontFamily: String          = ""
@@ -416,3 +417,11 @@ internal actual interface AddEventListenerOptions: JsAny {
 }
 
 internal actual val document: Document get() = TODO("Not yet implemented")
+
+internal actual abstract class HTMLDataListElement : HTMLElement() {
+    actual open val options: HTMLCollection get() = TODO("Not yet implemented")
+}
+
+internal actual abstract class HTMLOptionElement: HTMLElement() {
+    actual open var value: String = ""
+}

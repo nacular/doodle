@@ -142,20 +142,23 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
         /**
          * Module that provides [Behavior]s for [Slider]s that are styled by the underlying platform to look as close to native as
          * possible.
+         *
+         * @param showTicks determines if tick marks are shown on the slider when it has [Slider.ticks].
          */
-        public fun nativeSliderBehavior(): DI.Module = DI.Module(name = "NativeSliderBehavior") {
+        public fun nativeSliderBehavior(showTicks: Boolean = false): DI.Module = DI.Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeSliderFactory> {
                 NativeSliderFactoryImpl(
-                    instance(),
-                    instance(),
-                    instance(),
-                    instanceOrNull()
+                    htmlFactory               = instance(),
+                    idGenerator               = instance(),
+                    elementRuler              = instance(),
+                    focusManager              = instanceOrNull(),
+                    nativeEventHandlerFactory = instance()
                 )
             }
 
-            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it) }
+            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it, showTicks) }
         }
 
         /**
@@ -168,18 +171,18 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
 
                 bindSingleton<NativeTextFieldFactory> {
                     NativeTextFieldFactoryImpl(
-                        instance(),
-                        instance(),
-                        instance(),
-                        instance(),
-                        instance(),
-                        instance(),
-                        instanceOrNull(),
-                        instance(),
-                        instanceOrNull(),
-                        instance(),
-                        spellCheck,
-                        autoComplete
+                        idGenerator          = instance(),
+                        fontSerializer       = instance(),
+                        systemStyler         = instance(),
+                        htmlFactory          = instance(),
+                        elementRuler         = instance(),
+                        eventHandlerFactory  = instance(),
+                        focusManager         = instanceOrNull(),
+                        textMetrics          = instance(),
+                        accessibilityManager = instanceOrNull(),
+                        scheduler            = instance(),
+                        spellCheck           = spellCheck,
+                        autoComplete         = autoComplete
                     )
                 }
                 bindSingleton<NativeTextFieldStyler> { NativeTextFieldStylerImpl(instance()) }

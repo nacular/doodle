@@ -14,6 +14,7 @@ kotlin {
             implementation(projects.controls )
             implementation(projects.animation)
 
+            implementation(libs.measured       )
             implementation(libs.datetime       )
             implementation(libs.kodein.di      )
             implementation(libs.coroutines.core)

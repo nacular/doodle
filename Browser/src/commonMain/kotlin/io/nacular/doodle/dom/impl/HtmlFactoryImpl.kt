@@ -2,10 +2,14 @@ package io.nacular.doodle.dom.impl
 
 import io.nacular.doodle.dom.Document
 import io.nacular.doodle.dom.HTMLButtonElement
+import io.nacular.doodle.dom.HTMLDataListElement
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HTMLImageElement
 import io.nacular.doodle.dom.HTMLInputElement
+import io.nacular.doodle.dom.HTMLOptionElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.setOrientation
+import io.nacular.doodle.utils.Orientation
 
 internal class HtmlFactoryImpl(override val root: HTMLElement, private val document: Document): HtmlFactory {
     override fun <T: HTMLElement> create() = create("DIV") as T
@@ -22,6 +26,9 @@ internal class HtmlFactoryImpl(override val root: HTMLElement, private val docum
         else -> possible
     }
 
-    override fun createInput (): HTMLInputElement = create("INPUT" )
-    override fun createButton(): HTMLButtonElement = create("BUTTON")
+    override fun createInput     (                        ): HTMLInputElement    = create("INPUT"   )
+    override fun createButton    (                        ): HTMLButtonElement   = create("BUTTON"  )
+    override fun createOption    (                        ): HTMLOptionElement   = create("OPTION"  )
+    override fun createDataList  (                        ): HTMLDataListElement = create("DATALIST")
+    override fun createRangeInput(orientation: Orientation): HTMLInputElement    = createInput().apply { type = "range"; setOrientation(orientation) }
 }

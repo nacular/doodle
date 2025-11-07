@@ -2,6 +2,7 @@ package io.nacular.doodle.theme.basic.range
 
 import io.nacular.doodle.controls.range.Slider
 import io.nacular.doodle.controls.theme.range.AbstractSliderBehavior
+import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
@@ -12,6 +13,7 @@ import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
+import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
 import io.nacular.doodle.utils.Orientation.Horizontal
 import kotlin.math.max
 import kotlin.math.min
@@ -53,7 +55,6 @@ public class BasicSliderBehavior<T>(
         when (view.orientation) {
             Horizontal -> {
                 grooveRect = Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize), max(0.0, view.height - grooveInset))
-                handleRect = Rectangle(handlePosition, 0.0, handleSize, handleSize)
 
                 if (rangeFill != null) {
                     rangeRect = grooveRect.run { Rectangle(x, y, handlePosition, height) }
@@ -61,7 +62,6 @@ public class BasicSliderBehavior<T>(
             }
             else       -> {
                 grooveRect = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize))
-                handleRect = Rectangle(0.0, handlePosition, handleSize, handleSize)
 
                 if (rangeFill != null) {
                     rangeRect = grooveRect.run { Rectangle(x, handlePosition, width, view.height - handlePosition - handleSize / 2) }
@@ -81,9 +81,9 @@ public class BasicSliderBehavior<T>(
         }
 
         rangeRect?.let {
-            when (clipInfo) {
-                null -> canvas.rect(rangeRect, grooveRadius, adjust(view, rangeFill!!((view))))
-                else -> canvas.clip(clipInfo.first) {
+            when {
+                clipInfo == null                     -> canvas.rect(rangeRect, grooveRadius, adjust(view, rangeFill!!(view)))
+                showTicks.location == GrooveAndRange -> canvas.clip(clipInfo.first) {
                     rect(rangeRect, grooveRadius, adjust(view, rangeFill!!((view))))
                 }
             }

@@ -23,19 +23,20 @@ import kotlin.math.abs
 public interface CircularRangeSliderBehavior<T>: Behavior<CircularRangeSlider<T>> where T: Comparable<T>
 
 public abstract class AbstractCircularRangeSliderBehavior<T>(
-        private val focusManager: FocusManager?,
-        private val startAngle  : Measure<Angle> = _270
+    private val focusManager: FocusManager?,
+                startAngle  : Measure<Angle> = _270
 ): CircularRangeSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
-    private var lastEnd       = 0f
-    private var lastStart     = 0f
-    private var draggingFirst = false
-    private val changed       : (CircularRangeSlider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { it,_,_ -> it.rerender() }
-    private val enabledChanged: (View,                   Boolean,        Boolean       ) -> Unit = { it,_,_ -> it.rerender() }
-    private val styleChanged  : (View                                                  ) -> Unit = {           it.rerender() }
+    private var lastEnd             = 0f
+    private var lastStart           = 0f
+    private var draggingFirst       = false
+    private var lastPointerPosition = Origin
 
-    private var lastPointerPosition: Point = Origin
+    private val changed             : (CircularRangeSlider<T>, ClosedRange<T>, ClosedRange<T>) -> Unit = { it,_,_ -> it.rerender() }
+    private val enabledChanged      : (View,                   Boolean,        Boolean       ) -> Unit = { it,_,_ -> it.rerender() }
+    private val styleChanged        : (View                                                  ) -> Unit = {           it.rerender() }
 
+    protected val startAngle      : Measure<Angle> = startAngle.normalize()
     protected var lastPointerAngle: Measure<Angle> = _0; private set
 
     override fun install(view: CircularRangeSlider<T>) {

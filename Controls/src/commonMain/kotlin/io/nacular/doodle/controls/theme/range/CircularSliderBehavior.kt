@@ -21,8 +21,8 @@ import kotlin.math.abs
 public interface CircularSliderBehavior<T>: Behavior<CircularSlider<T>> where T: Comparable<T>
 
 public abstract class AbstractCircularSliderBehavior<T>(
-        private   val focusManager: FocusManager?,
-        protected val startAngle  : Measure<Angle> = _270
+    private val focusManager: FocusManager?,
+                startAngle  : Measure<Angle> = _270
 ): CircularSliderBehavior<T>, PointerListener, PointerMotionListener, KeyListener where T: Comparable<T> {
 
     private lateinit var lastStart : T
@@ -30,6 +30,7 @@ public abstract class AbstractCircularSliderBehavior<T>(
     private val enabledChanged: (View,              Boolean, Boolean) -> Unit = { it,_,_ -> it.rerender() }
     private val styleChanged  : (View                               ) -> Unit = {           it.rerender() }
 
+    protected val startAngle         : Measure<Angle> = startAngle.normalize()
     protected var lastPointerPosition: Measure<Angle> = _0; private set
 
     override fun install(view: CircularSlider<T>) {

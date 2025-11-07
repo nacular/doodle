@@ -54,18 +54,16 @@ internal actual var HTMLInputElement.orient: String? get() = getAttribute("orien
         }
     }
 
-internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) {
-    when (orientation) {
-        Vertical -> {
-            orient                   = "vertical"
-            style.writingMode        = "bt-lr"
-            style._webkit_appearance = "slider-vertical"
-        }
-        else -> {
-            orient                   = null
-            style.writingMode        = ""
-            style._webkit_appearance = ""
-        }
+internal actual fun HTMLInputElement.setOrientation(orientation: Orientation) = when (orientation) {
+    Vertical -> {
+        orient                   = "vertical"
+        style.writingMode        = "bt-lr"
+        style._webkit_appearance = "slider-vertical" // FIXME: Chrome is deprecating this. Need better approach
+    }
+    else -> {
+        orient                   = null
+        style.writingMode        = ""
+        style._webkit_appearance = ""
     }
 }
 
@@ -319,3 +317,11 @@ internal actual abstract external class ResizeObserverEntry: JsAny {
 }
 
 internal actual external val document: Document
+
+internal actual abstract external class HTMLDataListElement : HTMLElement {
+    actual open val options: HTMLCollection
+}
+
+internal actual abstract external class HTMLOptionElement: HTMLElement {
+    actual open var value: String
+}

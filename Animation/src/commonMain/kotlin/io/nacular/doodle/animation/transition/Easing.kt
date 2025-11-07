@@ -1,6 +1,7 @@
 package io.nacular.doodle.animation.transition
 
 import io.nacular.doodle.animation.Velocity
+import io.nacular.doodle.geometry.Point
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.div
@@ -168,6 +169,38 @@ public fun easeInOutBounce(initialBounceFraction: Float = 0.25f): EasingFunction
         else     -> (1 + bounceOut.invoke(2 * it - 1)) / 2
     }
 }
+
+/**
+ * Creates an easing based on the given control [x,y] pairs, where the anchor points are at `[0,0]` and `[1,1]`.
+ *
+ * @param x1 the first control point `x`
+ * @param y1 the first control point `y`
+ * @param x2 the second control point `x`
+ * @param y2 the second control point `y`
+ */
+public fun cubicBezier(
+    x1: Float,
+    y1: Float,
+    x2: Float,
+    y2: Float
+): EasingFunction = when {
+    x1 == y1 && x2 == y2 -> linear
+    else                 -> getCubicBezier(x1.coerceIn(0f, 1f), y1, x2.coerceIn(0f, 1f), y2)
+}
+
+/**
+ * Creates an easing based on the given control points, where the anchor points are at `[0,0]` and `[1,1]`.
+ *
+ * @param control1 the first control point
+ * @param control2 the second control point
+ */
+public fun cubicBezier(control1: Point, control2: Point): EasingFunction = cubicBezier(
+    x1 = control1.x.toFloat(),
+    y1 = control1.y.toFloat(),
+    x2 = control2.x.toFloat(),
+    y2 = control2.y.toFloat(),
+)
+
 
 private const val c1 = 1.70158f
 private const val c2 = c1 * 1.525f

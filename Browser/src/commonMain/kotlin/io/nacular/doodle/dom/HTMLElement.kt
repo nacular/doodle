@@ -56,6 +56,7 @@ internal expect abstract external class CSSStyleDeclaration: JsAny {
     var boxShadow          : String
     var fontStyle          : String
     var textAlign          : String
+    var direction          : String
     var textShadow         : String
     var textIndent         : String
     var fontFamily         : String
@@ -365,3 +366,11 @@ internal expect abstract external class ResizeObserverEntry: JsAny {
 }
 
 internal expect val document: Document
+
+internal expect abstract external class HTMLDataListElement: HTMLElement {
+    open val options: HTMLCollection
+}
+
+internal expect abstract external class HTMLOptionElement: HTMLElement {
+    open var value: String
+}

@@ -47,6 +47,7 @@ internal actual abstract external class CSSStyleDeclaration: JsAny {
     actual var boxShadow          : String
     actual var fontStyle          : String
     actual var textAlign          : String
+    actual var direction          : String
     actual var textShadow         : String
     actual var textIndent         : String
     actual var fontFamily         : String

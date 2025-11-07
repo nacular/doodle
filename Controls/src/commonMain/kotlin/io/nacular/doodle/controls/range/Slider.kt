@@ -8,10 +8,11 @@ import io.nacular.doodle.controls.FloatTypeConverter
 import io.nacular.doodle.controls.IntTypeConverter
 import io.nacular.doodle.controls.LongTypeConverter
 import io.nacular.doodle.controls.ShortTypeConverter
-import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.utils.CharInterpolator
 import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.Orientation
@@ -56,9 +57,14 @@ public open class Slider<T>(
     public val limitsChanged: PropertyObservers<Slider<T>, ClosedRange<T>> = limitsChanged_
 
     /**
+     * The bounding [Rectangle] of the handle used to adjust the slider.
+     */
+    public val handleRectangle: Rectangle get() = behavior?.handleBounds(this) ?: bounds.atOrigin
+
+    /**
      * Behavior that controls rendering and other interactions.
      */
-    public var behavior: Behavior<Slider<T>>? by behavior()
+    public var behavior: SliderBehavior<T>? by behavior()
 
     init {
         role.orientation = orientation
