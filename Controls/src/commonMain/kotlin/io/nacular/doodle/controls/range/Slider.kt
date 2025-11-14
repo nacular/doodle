@@ -74,7 +74,7 @@ public open class Slider<T>(
         behavior?.render(this, canvas)
     }
 
-    override fun contains(point: Point): Boolean = super.contains(point) && behavior?.contains(this, point) ?: true
+    override fun contains(point: Point): Boolean = behavior?.contains(this, point) ?: super.contains(point)
 
     override fun changed(old: T, new: T) {
         changed_(old, new)

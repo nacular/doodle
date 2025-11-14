@@ -104,6 +104,13 @@ public abstract class AbstractSliderBehavior<T>(
         focusManager?.requestFocus(slider)
 
         event.consume()
+
+        handlePressed(slider)
+    }
+
+    override fun released(event: PointerEvent) {
+        @Suppress("UNCHECKED_CAST")
+        handleReleased(event.source as Slider<T>)
     }
 
     override fun pressed(event: KeyEvent) {
@@ -130,12 +137,34 @@ public abstract class AbstractSliderBehavior<T>(
         }
     }
 
+    /**
+     * @param slider to get handle position for
+     * @return the slider's handle position along it's length
+     */
     protected fun handlePosition(slider: Slider<T>): Double = handlePosition(slider, slider.orientation)
 
+    /**
+     * @param slider to get handle size for
+     * @return the handle's length perpendicular to the slider length
+     */
     protected fun handleSize(slider: Slider<T>): Double = when (slider.orientation) {
         Horizontal -> slider.height
         else       -> slider.width
     }
+
+    /**
+     * Event indicating the slider's handle has been pressed/activated with the Pointer.
+     *
+     * @param slider being acted on
+     */
+    protected open fun handlePressed(slider: Slider<T>) {}
+
+    /**
+     * Event indicating the slider's handle is no longer being pressed/activated with the Pointer.
+     *
+     * @param slider being acted on
+     */
+    protected open fun handleReleased(slider: Slider<T>) {}
 
     private fun handlePosition(slider: Slider<T>, orientation: Orientation): Double = when (val info = animationInfo[slider]) {
         null -> when (orientation) {
