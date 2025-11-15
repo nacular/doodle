@@ -85,8 +85,6 @@ internal class NativeSliderFactoryImpl internal constructor(
                 appendChild(htmlFactory.createOption().apply { value = "${25 * it}" })
             }
         })
-
-        println(outerHTML)
     }
 }
 
