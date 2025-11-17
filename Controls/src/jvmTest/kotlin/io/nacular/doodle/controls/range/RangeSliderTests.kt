@@ -10,44 +10,10 @@ import kotlin.test.expect
 /**
  * Created by Nicholas Eddy on 11/23/21.
  */
-class SliderTests {
-    @Test @JsName("snapsToTicks")
-    fun `snaps to ticks`() {
-        val slider = Slider(28.0 .. 31.0).apply {
-            ticks       = 4
-            snapToTicks = true
-        }
-
-        slider.value = 31.0
-
-        expect(31.0) { slider.value }
-
-        val slider2 = Slider(0f .. 1f).apply {
-            ticks       = 4
-            snapToTicks = true
-        }
-
-        slider2.value = 0.1f
-        expect(0f) { slider2.value }
-
-        slider2.value = 0.27f
-        expect(1/3f) { slider2.value }
-    }
-
-    @Test @JsName("snapsToTicksInt")
-    fun `snaps to ticks int`() {
-        val slider = Slider(28 .. 31)
-
-        slider.ticks       = 4
-        slider.snapToTicks = true
-        slider.value       = 31
-
-        expect(31) { slider.value }
-    }
-
+class RangeSliderTests {
     @Test @JsName("snapsToMarks")
     fun `snaps to marks`() {
-        val slider = Slider(0.0 .. 100.0).apply {
+        val slider = RangeSlider(0.0 .. 100.0).apply {
             marker = mockk {
                 val progress = slot<Float>()
 
@@ -63,12 +29,12 @@ class SliderTests {
         }
 
         listOf(
-             7 to 0.1f  * 100.0,
-            14 to 0.15f * 100.0,
-            99 to 0.15f * 100.0,
+            Pair(0,   7) to Pair(0.1f  * 100.0, 0.1f  * 100.0),
+            Pair(0,  14) to Pair(0.1f  * 100.0, 0.15f * 100.0),
+            Pair(30, 99) to Pair(0.15f * 100.0, 0.15f * 100.0),
         ).forEach { (attempted, expected) ->
-            slider.value = attempted.toDouble()
-            expect(expected, "$attempted should be $expected") { slider.value }
+            slider.value = attempted.first.toDouble() .. attempted.second.toDouble()
+            expect(expected.first .. expected.second, "$attempted should be $expected") { slider.value.start .. slider.value.endInclusive }
         }
 
         val slider2 = Slider(0f .. 1f).apply {
@@ -85,7 +51,7 @@ class SliderTests {
 
     @Test @JsName("snapsToMarksInt")
     fun `snaps to marks int`() {
-        val slider = Slider(0 .. 100).apply {
+        val slider = RangeSlider(0 .. 100).apply {
             marker = mockk {
                 val progress = slot<Float>()
 
@@ -101,25 +67,25 @@ class SliderTests {
         }
 
         listOf(
-            7  to 0.1f  * 100.0,
-            14 to 0.15f * 100.0,
-            99 to 0.15f * 100.0,
+            Pair(0,   7) to Pair(0.1f  * 100.0, 0.1f  * 100.0),
+            Pair(0,  14) to Pair(0.1f  * 100.0, 0.15f * 100.0),
+            Pair(30, 99) to Pair(0.15f * 100.0, 0.15f * 100.0),
         ).forEach { (attempted, expected) ->
-            slider.value = attempted
-            expect(expected.toInt(), "$attempted should be $expected") { slider.value }
+            slider.value = attempted.first .. attempted.second
+            expect(expected.first.toInt() .. expected.second.toInt(), "$attempted should be $expected") { slider.value.start .. slider.value.endInclusive }
         }
     }
 
     @Test @JsName("canChangeFromZero")
     fun `can change from 0`() {
-        val slider = Slider(0f .. 1f)
+        val slider = RangeSlider(0f .. 1f)
 
-        slider.value = 0f
+        slider.value = 0f .. 0f
 
-        expect(0f) { slider.value }
+        expect(0f .. 0f) { slider.value.start .. slider.value.endInclusive }
 
-        slider.value = 0.5f
+        slider.value = 0.5f .. 0.75f
 
-        expect(0.5f) { slider.value }
+        expect(0.5f .. 0.75f) { slider.value.start .. slider.value.endInclusive }
     }
 }

@@ -13,8 +13,6 @@ import io.nacular.doodle.event.KeyText.Companion.ArrowRight
 import io.nacular.doodle.event.KeyText.Companion.ArrowUp
 import io.nacular.doodle.utils.Interpolator
 import io.nacular.doodle.utils.observable
-import kotlin.math.max
-import kotlin.math.round
 
 /**
  * Base class for controls that represent sliders. These controls have a single [value] that is bound between a [range]
@@ -26,31 +24,48 @@ import kotlin.math.round
  */
 public abstract class ValueSlider<T> internal constructor(
                   model       : ConfinedValueModel<T>,
-    private   val interpolator: Interpolator<T>,
+    internal  val interpolator: Interpolator<T>,
     private   val function    : InvertibleFunction = LinearFunction,
     protected val role        : SliderRole         = SliderRole()
 ): View(role) where T: Comparable<T> {
+
+    /**
+     * Number of ticks the slider should have.
+     */
+    @Deprecated(message = "Use marker instead", replaceWith = ReplaceWith("marker"))
+    public var ticks: Int; get() = marker?.marks(model.limits, interpolator)?.toList()?.size ?: 0; set(new) {
+        marker = when {
+            new < 1 -> null
+            else    -> evenMarker(new - 2)
+        }
+    }
+
+    /**
+     * Provides marks that should show up on the slider.
+     */
+    public var marker: Marker<T>? by observable(null) { _,_ ->
+        ticksChanged ()
+        markerChanged()
+
+        refreshSnapping()
+    }
+
+    /**
+     * Determines how the slider snaps to marks.
+     */
+    public var snappingPolicy: SnappingPolicy<T>? by observable(null) { _,_ -> refreshSnapping() }
 
     /**
      * Indicates whether the slider should only take on values at the specify tick interval.
      *
      * @see ticks
      */
-    public var snapToTicks: Boolean by observable(false) { _,new ->
-        if (new) {
-            value = value // update value to ensure snapped to the closest tick
+    @Deprecated(message = "Use snappingPolicy", replaceWith = ReplaceWith("snappingPolicy"))
+    public var snapToTicks: Boolean by observable(snappingPolicy != null) { _,new ->
+        snappingPolicy = when {
+            new  -> alwaysSnap()
+            else -> null
         }
-
-        ticksChanged()
-    }
-
-    /**
-     * Number of ticks the slider should have.
-     */
-    public var ticks: Int = 0; set(new) {
-        field = max(0, new)
-
-        snapSize = if (field > 1) 1.0 / (field - 1) else null
     }
 
     /**
@@ -86,16 +101,23 @@ public abstract class ValueSlider<T> internal constructor(
      * Value of the slider as a fraction between [0-1].
      */
     public var fraction: Float get() = valueToFraction(value); internal set(new) {
-        val s = snapSize?.toFloat()
-        val frac = when {
-            s == null || !snapToTicks -> new
-            else                      -> round(new / s) * s
-        }.coerceIn(0f..1f)
+        val m = marker
+        val s = snappingPolicy
 
-        model.value = interpolator.lerp(range.start, range.endInclusive, function(frac))
+        model.value = when {
+            m != null && s != null -> m.nearest(model.limits, interpolator, new)?.takeIf { s.shouldSnapTo(it.value, from = new.value) } ?: new
+            else                   -> new
+        }.value
     }
 
+    private val Float.value get() = interpolator.lerp(range.start, range.endInclusive, function(this))
+
     private var roleBinding by binding(role.bind(model, interpolator, valueAccessibilityLabeler))
+
+    /**
+     * Update [value] to ensure snapped to the closest tick
+     */
+    private fun refreshSnapping() { value = value }
 
     /** Increases the slider's [fraction] by [percent]. */
     public fun increment(percent: Float = 0.1f) { fraction += percent }
@@ -110,19 +132,14 @@ public abstract class ValueSlider<T> internal constructor(
     protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
 
     /** Notifies of changes to [ticks] */
+    @Deprecated("Use markerChanged instead", ReplaceWith("markerChanged"))
     protected abstract fun ticksChanged()
 
-    private var snapSize: Double? = null; set(new) {
-        if (new == field) return
+    /** Notifies of changes to [marker] */
+    protected open fun markerChanged() { ticksChanged() } // TODO: make abstract
 
-        field = new
-
-        if (snapToTicks) {
-            value = value // update value to ensure snapped to the closest tick
-        }
-
-        ticksChanged()
-    }
+    /** Notifies of changes to [snappingPolicy] */
+    protected open fun snappingPolicyChanged() {}
 
     private val modelChanged: (ConfinedValueModel<T>, T, T) -> Unit = { _,old,new ->
         changed(old, new)
@@ -149,5 +166,47 @@ public abstract class ValueSlider<T> internal constructor(
         }
     }
 
-    private fun valueToFraction(value: T) = function.inverse(interpolator.progress(range.start, range.endInclusive, value))
+    internal fun valueToFraction(value: T) = function.inverse(interpolator.progress(range.start, range.endInclusive, value))
+}
+
+/**
+ * The sequence of marks for a [ValueSlider] or `emptySequence()` if it has none.
+ */
+public val <T: Comparable<T>> ValueSlider<T>.marks: Sequence<Float> get() = marker?.marks(model.limits, interpolator)?.filter { it in 0f..1f } ?: emptySequence()
+
+/**
+ * Sets the ValueSlider's marker based on the given values.
+ *
+ * @param using these values to set each mark
+ */
+public fun <T: Comparable<T>> ValueSlider<T>.mark(vararg using: T) = mark(using.toList())
+
+/**
+ * Sets the ValueSlider's marker based on the given Iterable.
+ *
+ * @param using this iterable to set each mark
+ */
+public fun <T: Comparable<T>> ValueSlider<T>.mark(using: Iterable<T>) {
+    marker = object: Marker<T> {
+        val items = using.filter { it in model.limits }.map { valueToFraction(it) }.sorted()
+
+        override fun marks(range: ClosedRange<T>, interpolator: Interpolator<T>) = items.asSequence()
+
+        override fun nearest(range: ClosedRange<T>, interpolator: Interpolator<T>, progress: Float): Float {
+            val index       = items.binarySearch(progress)
+            val insertIndex = -(index + 1)
+
+            return when {
+                index >= 0                    -> items[index]
+                insertIndex == 0              -> items.firstOrNull() ?: 0f
+                insertIndex > items.lastIndex -> items.lastOrNull () ?: 0f
+                else -> {
+                    val previous = items[insertIndex - 1]
+                    val next     = items[insertIndex    ]
+
+                    if (progress - previous < next - progress) previous else next
+                }
+            }
+        }
+    }
 }

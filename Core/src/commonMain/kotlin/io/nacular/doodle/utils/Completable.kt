@@ -96,7 +96,7 @@ public open class CompletableImpl: Completable {
         override fun added(source: ObservablePool<(source: Completable) -> Unit>, item: (source: Completable) -> Unit) {
             when {
                 source == completed && state == Completed -> item(this@CompletableImpl)
-                source == canceled && state  == Canceled  -> item(this@CompletableImpl)
+                source == canceled  && state == Canceled  -> item(this@CompletableImpl)
             }
         }
     }

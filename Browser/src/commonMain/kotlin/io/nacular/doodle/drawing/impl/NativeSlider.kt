@@ -1,6 +1,7 @@
 package io.nacular.doodle.drawing.impl
 
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.range.marks
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.ElementRuler
 import io.nacular.doodle.dom.Event
@@ -24,6 +25,7 @@ import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.Orientation.Vertical
 import io.nacular.doodle.utils.observable
+import kotlin.math.roundToInt
 
 /**
  * Created by Nicholas Eddy on 11/20/18.
@@ -101,7 +103,7 @@ internal class NativeSlider<T> internal constructor(
     private val showTicks           : Boolean,
 ): NativeEventListener where T: Comparable<T> {
 
-    private var oldSliderTicks  = -1
+    private var oldSliderMarks  = emptyList<Float>()
     private val oldSliderHeight = slider.height
 
     private val nativeEventHandler: NativeEventHandler
@@ -111,23 +113,16 @@ internal class NativeSlider<T> internal constructor(
     }
 
     private val styleChanged: (View) -> Unit = {
-        val stepSize = 100.0 / (slider.ticks - 1)
-
-        sliderElement.step = when {
-            slider.snapToTicks && slider.ticks > 1 -> "$stepSize".take(17) // Hack to avoid rounding issue that prevents final step (i.e. 100.0 / 3)
-            else                                   -> "any"
-        }
-
-        if (showTicks && oldSliderTicks != slider.ticks) {
-            oldSliderTicks = slider.ticks
+        if (showTicks && oldSliderMarks != slider.marks.toList()) {
+            oldSliderMarks = slider.marks.toList()
             when {
-                slider.ticks > 1 -> ticksElement = (ticksElement?.apply { clear() } ?: htmlFactory.createDataList()).apply {
+                oldSliderMarks.isNotEmpty() -> ticksElement = (ticksElement?.apply { clear() } ?: htmlFactory.createDataList()).apply {
                     id = idGenerator.nextId()
 
                     sliderElement.setAttribute("list", id)
 
-                    repeat(slider.ticks) {
-                        appendChild(htmlFactory.createOption().apply { value = "${stepSize * it}" })
+                    oldSliderMarks.forEach {
+                        appendChild(htmlFactory.createOption().apply { value = "${(it * 100).roundToInt()}" })
                     }
 
                     boundsChanged(slider, Empty, slider.bounds)
@@ -162,7 +157,7 @@ internal class NativeSlider<T> internal constructor(
         // Explicitly assuming the relative dimensions of the slider don't change based on its orientation.
         // This is done b/c it is challenging to get the real dimensions of a native vertical slider
 
-        val ticksPresent = showTicks && slider.ticks > 1
+        val ticksPresent = ticksElement != null
         val widthRatio   = if (ticksPresent && defaultSizeWithTicks.width  > 0) defaultSize.width  / defaultSizeWithTicks.width  else 1.0
         val heightRatio  = if (ticksPresent && defaultSizeWithTicks.height > 0) defaultSize.height / defaultSizeWithTicks.height else 1.0
 
@@ -217,8 +212,8 @@ internal class NativeSlider<T> internal constructor(
 
             preferredSize = { _,_ ->
                 when {
-                    slider.ticks > 1 -> sizeWithTicks
-                    else             -> size
+                    ticksElement != null -> sizeWithTicks
+                    else                 -> size
                 }
             }
         }
@@ -277,6 +272,8 @@ internal class NativeSlider<T> internal constructor(
         sliderElement.value.toDoubleOrNull()?.let {
             adapter[slider] = (it / 100).toFloat()
         }
+
+        sliderElement.value = "${slider.fraction * 100}".take(17)
 
         return true
     }

@@ -3,6 +3,7 @@ package io.nacular.doodle.theme.basic.range
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.circle
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.layout.Insets
@@ -43,63 +44,75 @@ public data class TickPresentation(val gap: Double = 1.0, val location: TickLoca
 public data class CircularTickPresentation(val radiusRatio: Float = 0.1f, val location: TickLocation = GrooveAndRange)
 
 internal fun getSnapClip(
-    ticks           : Int,
+    marks           : Sequence<Float>,
     orientation     : Orientation,
     grooveRect      : Rectangle,
     grooveRadius    : Double,
     tickPresentation: TickPresentation
-): Pair<Path, TickLocation>? = when {
-    ticks < 1 -> null
-    else      -> {
-        val snapSize  = if (orientation == Horizontal) grooveRect.width / (ticks - 1) else grooveRect.height / (ticks - 1)
-        val tickInset = tickPresentation.gap / 2
+): Pair<Path, TickLocation>? {
+    val ticks     = marks.toMutableList()
+    var offset    = 0.0
+    val tickInset = tickPresentation.gap / 2
 
-        (0 until ticks).map {
-            when (orientation) {
-                Horizontal -> Rectangle(
-                    x      = grooveRect.x + it * snapSize,
-                    y      = grooveRect.y,
-                    width  = snapSize,
-                    height = grooveRect.height
-                ).inset(Insets(left = tickInset, right = tickInset)).toPath(grooveRadius)
-                else       -> Rectangle(
-                    x      = grooveRect.x,
-                    y      = grooveRect.y + it * snapSize,
-                    width  = grooveRect.width,
-                    height = snapSize
-                ).inset(Insets(top = tickInset, bottom = tickInset)).toPath(grooveRadius)
-            }
-        }.foldRight(Rectangle.Empty.toPath()) { a, b -> a + b } to tickPresentation.location
+    return when {
+        ticks.isEmpty() -> null
+        else            -> {
+            if (ticks.last() < 1f) ticks += 1f
+
+            ticks.toList().map { tick ->
+                when (orientation) {
+                    Horizontal -> (tick * grooveRect.width).let {
+                        Rectangle(
+                            x      = grooveRect.x + offset,
+                            y      = grooveRect.y,
+                            width  = it - offset,
+                            height = grooveRect.height
+                        ).also { offset = it.right - grooveRect.x }.inset(Insets(left = tickInset, right = tickInset)).toPath(grooveRadius)
+                    }
+                    else       -> (tick * grooveRect.height).let {
+                        Rectangle(
+                            x      = grooveRect.x,
+                            y      = grooveRect.y + offset,
+                            width  = grooveRect.width,
+                            height = it - offset
+                        ).also { offset = it.bottom - grooveRect.y }.inset(Insets(top = tickInset, bottom = tickInset)).toPath(grooveRadius)
+                    }
+                }
+            }.foldRight(Empty.toPath()) { a, b -> a + b } to tickPresentation.location
+        }
     }
 }
 
 internal fun getCircularSnapClip(
-    ticks           : Int,
+    marks           : Sequence<Float>,
     center          : Point,
     outerRadius     : Double,
     innerRadius     : Double,
     startAngle      : Measure<Angle>,
     tickPresentation: CircularTickPresentation
-): Pair<Path, TickLocation>? = when {
-    ticks < 1 -> null
-    else      -> {
-        val tickAngle            = 360 * degrees / (ticks - 1)
-        val tickRadius           = tickPresentation.radiusRatio * (outerRadius - innerRadius)
-        val radiusToHandleCenter = innerRadius + (outerRadius - innerRadius) / 2
+): Pair<Path, TickLocation>? {
+    val ticks = marks.toList()
 
-        val list = (0 until ticks - 1).map {
-            val angle = startAngle + tickAngle * it
+    return when {
+        ticks.isEmpty() -> null
+        else -> {
+            val tickRadius = tickPresentation.radiusRatio * (outerRadius - innerRadius)
+            val radiusToHandleCenter = innerRadius + (outerRadius - innerRadius) / 2
 
-            circle(
-                center    = center + Point(radiusToHandleCenter * cos(angle), radiusToHandleCenter * sin(angle)),
-                radius    = tickRadius,
-                direction = Clockwise,
-            )
-        }.toMutableList()
+            val list = ticks.map {
+                val angle = startAngle + 360 * degrees * it
 
-        list.add(0, circle(center, innerRadius, Clockwise       ))
-        list.add(   circle(center, outerRadius, CounterClockwise))
+                circle(
+                    center = center + Point(radiusToHandleCenter * cos(angle), radiusToHandleCenter * sin(angle)),
+                    radius = tickRadius,
+                    direction = Clockwise,
+                )
+            }.toMutableList()
 
-        list.reduce { a, b -> a + b } to tickPresentation.location
+            list.add(0, circle(center, innerRadius, Clockwise))
+            list.add(circle(center, outerRadius, CounterClockwise))
+
+            list.reduce { a, b -> a + b } to tickPresentation.location
+        }
     }
 }

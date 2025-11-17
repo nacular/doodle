@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme.basic.range
 
 import io.nacular.doodle.controls.range.RangeSlider
+import io.nacular.doodle.controls.range.marks
 import io.nacular.doodle.controls.theme.range.AbstractRangeSliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -71,7 +72,7 @@ public class BasicRangeSliderBehavior<T>(
 
         val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
 
-        when (val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, grooveRadius, it) }) {
+        when (val clipInfo = showTicks?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }) {
             null -> {
                 canvas.rect(grooveRect, grooveRadius, adjust(view, barFill  (view)))
                 canvas.rect(rangeRect,                adjust(view, rangeFill(view)))

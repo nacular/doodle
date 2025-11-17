@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme.basic.range
 
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.range.marks
 import io.nacular.doodle.controls.theme.range.AbstractSliderBehavior
 import io.nacular.doodle.controls.theme.range.SliderBehavior
 import io.nacular.doodle.drawing.Canvas
@@ -98,7 +99,7 @@ public class BasicSliderBehavior<T>(
 
         val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
 
-        val clipInfo = showTicks?.let { getSnapClip(view.ticks, view.orientation, grooveRect, grooveRadius, it) }
+        val clipInfo = showTicks?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }
 
         when (clipInfo) {
             null -> canvas.rect(grooveRect, grooveRadius, adjust(view, barFill(view)))

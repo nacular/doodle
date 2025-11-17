@@ -8,7 +8,6 @@ import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.intersect
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import kotlin.reflect.KClass
 
 /**
  * Created by Nicholas Eddy on 2/12/18.
@@ -41,7 +40,7 @@ public class BasicConfinedRangeModel<T: Comparable<T>>(limit: ClosedRange<T>, ra
     override var range: ClosedRange<T> = range; set(new) {
         val old = field
 
-            field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) ..maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
+        field = minOf(limits.endInclusive, maxOf(new.start, limits.start)) ..maxOf(limits.start, minOf(new.endInclusive, limits.endInclusive))
 
         if (old != field) {
             rangeChanged_(old, field)
@@ -140,7 +139,7 @@ internal abstract class NumberTypeConverter<T: Number>: Interpolator<T> {
 }
 
 internal object IntTypeConverter: NumberTypeConverter<Int>() {
-    override fun lerp  (start: Int, end: Int, progress: Float) = io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt()
+    override fun lerp    (start: Int, end: Int, progress: Float) = io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt()
     override fun progress(start: Int, end: Int, value   : Int  ) = ((value - start).toDouble() / (end - start)).toFloat()
 }
 
@@ -167,18 +166,4 @@ internal object ShortTypeConverter: NumberTypeConverter<Short>() {
 internal object ByteTypeConverter: NumberTypeConverter<Byte>() {
     override fun lerp    (start: Byte, end: Byte, progress: Float) = io.nacular.doodle.utils.lerp(start.toDouble(), end.toDouble(), progress).roundToInt().toByte()
     override fun progress(start: Byte, end: Byte, value   : Byte ) = ((value - start).toDouble() / (end - start)).toFloat()
-}
-
-internal fun <T: Any> numberTypeConverter(type: KClass<T>): Interpolator<T> = object: Interpolator<T> {
-    override fun lerp(start: T, end: T, progress: Float): T = when (type) {
-        Int::class    -> io.nacular.doodle.utils.lerp((start as Int   ).toDouble(), (end as Int   ).toDouble(), progress).roundToInt()            as T
-        Float::class  -> io.nacular.doodle.utils.lerp((start as Float ).toDouble(), (end as Float ).toDouble(), progress)                         as T
-        Double::class -> io.nacular.doodle.utils.lerp((start as Double),            (end as Double),            progress)                         as T
-        Long::class   -> io.nacular.doodle.utils.lerp((start as Long  ).toDouble(), (end as Long  ).toDouble(), progress).roundToLong()           as T
-        Short::class  -> io.nacular.doodle.utils.lerp((start as Short ).toDouble(), (end as Short ).toDouble(), progress).roundToInt ().toShort() as T
-        Byte::class   -> io.nacular.doodle.utils.lerp((start as Byte  ).toDouble(), (end as Byte  ).toDouble(), progress).roundToInt ().toByte () as T
-        else -> start
-    }
-
-    override fun progress(start: T, end: T, value: T): Float = (((value as Number).toDouble() - (start as Number).toDouble()) / ((end as Number).toDouble() - start.toDouble())).toFloat()
 }

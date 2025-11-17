@@ -23,7 +23,7 @@ import io.nacular.doodle.utils.autoCanceling
 import io.nacular.doodle.utils.lerp
 
 /**
- * Created by Nicholas Eddy on 2/13/18.
+ * Behavior used to render/manager [Slider]s.
  */
 public interface SliderBehavior<T>: Behavior<Slider<T>> where T: Comparable<T> {
     public fun Slider<T>.setFraction(value: Float) { fraction = value }
@@ -90,8 +90,6 @@ public abstract class AbstractSliderBehavior<T>(
             progress        = 0f
         } ?: AnimationInfo(handlePosition(slider, Horizontal), handlePosition(slider, Vertical), 0f).also { animationInfo[slider] = it }
 
-        slider.fraction = fraction(slider, event.location)
-
         info.completable = animateHandleMove {
             animationInfo[slider]?.progress = it
             slider.rerender()
@@ -100,6 +98,9 @@ public abstract class AbstractSliderBehavior<T>(
                 animationInfo.remove(slider)
             }
         }
+
+        // needs to be done after animation setup
+        slider.fraction = fraction(slider, event.location)
 
         focusManager?.requestFocus(slider)
 

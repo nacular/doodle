@@ -22,6 +22,9 @@ import io.nacular.doodle.utils.lerp
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Behavior used to render/manager [RangeSlider]s.
+ */
 public interface RangeSliderBehavior<T>: Behavior<RangeSlider<T>> where T: Comparable<T> {
     /**
      * The bounding [Rectangle] of the start handle used to adjust [slider]. This defaults
@@ -117,8 +120,6 @@ public abstract class AbstractRangeSliderBehavior<T>(
             0f
         ).also { animationInfo[slider] = it }
 
-        updateFraction(slider, event, draggingFirst)
-
         info.completable = animateHandleMove {
             when {
                 draggingFirst -> animationInfo[slider]?.startProgress = it
@@ -130,6 +131,9 @@ public abstract class AbstractRangeSliderBehavior<T>(
                 animationInfo.remove(slider)
             }
         }
+
+        // needs to be done after animation setup
+        updateFraction(slider, event, draggingFirst)
 
         focusManager?.requestFocus(slider)
 

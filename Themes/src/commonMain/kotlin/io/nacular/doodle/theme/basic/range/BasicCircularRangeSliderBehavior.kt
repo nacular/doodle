@@ -1,6 +1,7 @@
 package io.nacular.doodle.theme.basic.range
 
 import io.nacular.doodle.controls.range.CircularRangeSlider
+import io.nacular.doodle.controls.range.marks
 import io.nacular.doodle.controls.theme.range.AbstractCircularRangeSliderBehavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color.Companion.Blue
@@ -87,7 +88,7 @@ public class BasicCircularRangeSliderBehavior<T>(
         val endHandleAngle       = endHandleAngle(view)
         val endHandleCenter      = center + Point(radiusToHandleCenter * cos(endHandleAngle), radiusToHandleCenter * sin(endHandleAngle))
 
-        val clipInfo = showTicks?.let { getCircularSnapClip(view.ticks, center, outerRadius, innerRadius, startAngle, it) }
+        val clipInfo = showTicks?.let { getCircularSnapClip(view.marks, center, outerRadius, innerRadius, startAngle, it) }
 
         when (clipInfo) {
             null -> canvas.path(ring(center, innerRadius, outerRadius), adjust(view, barFill(view)))

@@ -9,6 +9,7 @@ import io.nacular.doodle.controls.IntTypeConverter
 import io.nacular.doodle.controls.LongTypeConverter
 import io.nacular.doodle.controls.ShortTypeConverter
 import io.nacular.doodle.controls.theme.range.RangeSliderBehavior
+import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
@@ -57,17 +58,17 @@ public open class RangeSlider<T>(
     /**
      * The bounding [Rectangle] of the start handle used to adjust the slider.
      */
-    public val startHandleRectangle: Rectangle get() = behavior?.startHandleBounds(this) ?: bounds.atOrigin
+    public val startHandleRectangle: Rectangle get() = (behavior as? RangeSliderBehavior<T>)?.startHandleBounds(this) ?: bounds.atOrigin
 
     /**
      * The bounding [Rectangle] of the end handle used to adjust the slider.
      */
-    public val endHandleRectangle: Rectangle get() = behavior?.endHandleBounds(this) ?: bounds.atOrigin
+    public val endHandleRectangle: Rectangle get() = (behavior as? RangeSliderBehavior<T>)?.endHandleBounds(this) ?: bounds.atOrigin
 
     /**
      * Behavior that controls rendering and other interactions.
      */
-    public var behavior: RangeSliderBehavior<T>? by behavior()
+    public var behavior: Behavior<RangeSlider<T>>? by behavior() // FIXME: Move to RangeSliderBehavior<T>
 
     override fun render(canvas: Canvas) {
         behavior?.render(this, canvas)
