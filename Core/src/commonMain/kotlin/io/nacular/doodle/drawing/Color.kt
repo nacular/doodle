@@ -103,7 +103,7 @@ public infix fun Color.opacity(value: Float): Color = Color(red, green, blue, va
  * @param percent to lighten the color
  * @return the new color
  */
-public fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
+public infix fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(percent).toRgb()
 
 /**
  * Makes this Color darker by the given percent.
@@ -111,7 +111,7 @@ public fun Color.lighter(percent: Float = 0.5f): Color = HslColor(this).lighter(
  * @param percent to darken the color
  * @return the new color
  */
-public fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(percent).toRgb()
+public infix fun Color.darker(percent: Float = 0.5f): Color = HslColor(this).darker(percent).toRgb()
 
 /**
  * @return a gray scale version of this Color
@@ -197,12 +197,20 @@ public class HslColor(hue: Measure<Angle>, public val saturation: Float, public 
 }
 
 /**
- * Makes this color lighter by the given percent.
+ * Creates a new color like this one except with the given opacity.
  *
- * @param percent to lighted the color
+ * @param value of the new opacity
  * @return the new color
  */
-public fun HslColor.lighter(percent: Float = 0.5f): HslColor {
+public fun HslColor.opacity(value: Float): HslColor = HslColor(hue, saturation, lightness, value)
+
+/**
+ * Makes this color lighter by the given percent.
+ *
+ * @param percent to lighten the color
+ * @return the new color
+ */
+public infix fun HslColor.lighter(percent: Float = 0.5f): HslColor {
     require(percent in 0f .. 1f)
 
     return if (percent == 0f) this else HslColor(hue, saturation, lightness + (1f - lightness) * percent, opacity)
@@ -214,7 +222,7 @@ public fun HslColor.lighter(percent: Float = 0.5f): HslColor {
  * @param percent to darken the color
  * @return the new color
  */
-public fun HslColor.darker(percent: Float = 0.5f): HslColor {
+public infix fun HslColor.darker(percent: Float = 0.5f): HslColor {
     require(percent in 0f .. 1f)
 
     return if (percent == 0f) this else HslColor(hue, saturation, lightness * (1f - percent), opacity)
@@ -319,6 +327,18 @@ public class HsvColor(hue: Measure<Angle>, public val saturation: Float, public 
  * @return the new color
  */
 public fun HsvColor.opacity(value: Float): HsvColor = HsvColor(hue, saturation, this.value, value)
+
+/**
+ * Creates a new color like this one except with the given lightness ([value]).
+ *
+ * @param value of the new lightness
+ * @return the new color
+ */
+public infix fun HsvColor.lightness(value: Float): HsvColor {
+    require(value in 0f .. 1f)
+
+    return if (value == this.value) this else HsvColor(hue, saturation, value, opacity)
+}
 
 /** @return an RGB version of this Color */
 public fun HsvColor.toRgb(): Color {
