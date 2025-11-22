@@ -132,8 +132,10 @@ public open class CommonLabelBehavior(
         }
     }
 
-    override fun measureText(label: Label): Size = when {
-        label.wrapsWords -> textMetrics.size(label.styledText, label.width, lineSpacing = label.lineSpacing, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
+    override fun measureText(label: Label): Size = measureText(label, label.width)
+
+    override fun measureText(label: Label, assumeWidth: Double): Size = when {
+        label.wrapsWords -> textMetrics.size(label.styledText, assumeWidth, lineSpacing = label.lineSpacing, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
         else             -> textMetrics.size(label.styledText, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
     }
 }

@@ -8,10 +8,13 @@ import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.controls.theme.CommonLabelBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.WindowGroupImpl
+import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.system.impl.NativeScrollHandlerFinder
@@ -294,9 +297,20 @@ public class NativeTheme internal constructor(behaviors: Iterable<BehaviorResolv
         }
 
         /**
+         * Module that provides [Behavior]s for [Label]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
+        public fun nativeLabelBehavior(foregroundColor: Color? = null): Module = Module(name = "NativeLabelBehavior") {
+            bindBehavior<Label>(NTheme::class) {
+                it.behavior = CommonLabelBehavior(instance(), foregroundColor)
+            }
+        }
+
+        /**
          * @return list of common modules for native styles.
          */
         public fun nativeThemeBehaviors(fileSelectorPrompt: String): List<Module> = listOf(
+            nativeLabelBehavior       (),
             nativeButtonBehavior      (),
             nativeSliderBehavior      (),
             nativeSwitchBehavior      (),

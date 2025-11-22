@@ -19,6 +19,8 @@ public interface LabelBehavior: Behavior<Label> {
     public val Label.textSize: Size get() = textSize_
 
     public fun measureText(label: Label): Size
+
+    public fun measureText(label: Label, assumeWidth: Double = label.width): Size = measureText(label)
 }
 
 public open class Label(
@@ -55,11 +57,9 @@ public open class Label(
     /**
      * Text displayed by the label with styles.
      */
-    public var styledText: StyledText
-        get(   ) = visibleStyledText
-        set(new) {
-            actualStyledText = new
-        }
+    public var styledText: StyledText get() = visibleStyledText; set(new) {
+        actualStyledText = new
+    }
 
     /**
      * Determines if the Label will wrap text when its width is too short to
@@ -99,8 +99,26 @@ public open class Label(
     public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
 
     internal var textSize_ = Empty; private set(new) {
-        field         = new
-        preferredSize = fixed(new)
+        field = new
+
+        var cachedSize  = Empty
+        var cachedWidth = 0.0
+
+        preferredSize = { min, max ->
+            when {
+                wrapsWords && width !in min.width .. max.width -> {
+                    when (max.width) {
+                        cachedWidth -> cachedSize
+                        else        -> {
+                            cachedWidth = max.width
+                            (behavior?.measureText(this@Label, assumeWidth = max.width) ?: new).also { cachedSize = it }
+                        }
+                    }
+                }
+                else                             -> new
+            }
+        }
+
         suggestSize(new)
     }
 

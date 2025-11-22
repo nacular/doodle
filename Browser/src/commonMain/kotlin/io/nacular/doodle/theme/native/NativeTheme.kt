@@ -8,10 +8,13 @@ import io.nacular.doodle.controls.buttons.Switch
 import io.nacular.doodle.controls.files.FileSelector
 import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.controls.theme.CommonLabelBehavior
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.window
+import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.impl.GraphicsSurfaceFactory
 import io.nacular.doodle.drawing.impl.NativeButtonFactory
 import io.nacular.doodle.drawing.impl.NativeButtonFactoryImpl
@@ -37,7 +40,7 @@ import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
-import org.kodein.di.DI
+import org.kodein.di.DI.Module
 import org.kodein.di.bind
 import org.kodein.di.bindSingleton
 import org.kodein.di.erasedSet
@@ -50,7 +53,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
 
     @Suppress("MemberVisibilityCanBePrivate")
     public companion object {
-        private val CommonNativeModule = DI.Module(allowSilentOverride = true, name = "CommonNativeModule") {
+        private val CommonNativeModule = Module(allowSilentOverride = true, name = "CommonNativeModule") {
 
             // TODO: Can this be handled better?
             bindSingleton { instance<GraphicsSurfaceFactory<*>>() as RealGraphicsSurfaceFactory }
@@ -68,7 +71,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
             }
         }
 
-        private val NativeCheckBoxRadioButtonBehavior = DI.Module(name = "NativeCheckBoxRadioButtonBehavior") {
+        private val NativeCheckBoxRadioButtonBehavior = Module(name = "NativeCheckBoxRadioButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeCheckBoxRadioButtonFactory> {
@@ -86,7 +89,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
         /**
          * Module for injecting the [NativeTheme].
          */
-        public val NativeTheme: DI.Module = DI.Module(name = "NativeTheme") {
+        public val NativeTheme: Module = Module(name = "NativeTheme") {
             importOnce(Modules.ThemeModule, allowOverride = true)
 
             bind<NativeTheme>() with singleton { NativeTheme(Instance(erasedSet<BehaviorResolver>()).toList()) }
@@ -96,7 +99,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [Button]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeButtonBehavior(): DI.Module = DI.Module(name = "NativeButtonBehavior") {
+        public fun nativeButtonBehavior(): Module = Module(name = "NativeButtonBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeButtonFactory> {
@@ -120,8 +123,8 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [ScrollPanel]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false, managedScrolling: Boolean = true): DI.Module =
-            DI.Module(name = "NativeScrollPanelBehavior") {
+        public fun nativeScrollPanelBehavior(smoothScrolling: Boolean = false, managedScrolling: Boolean = true): Module =
+            Module(name = "NativeScrollPanelBehavior") {
                 importOnce(CommonNativeModule, allowOverride = true)
 
                 bindSingleton<NativeScrollPanelFactory> {
@@ -145,7 +148,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          *
          * @param showTicks determines if tick marks are shown on the slider when it has [Slider.ticks].
          */
-        public fun nativeSliderBehavior(showTicks: Boolean = false): DI.Module = DI.Module(name = "NativeSliderBehavior") {
+        public fun nativeSliderBehavior(showTicks: Boolean = false): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeSliderFactory> {
@@ -165,8 +168,8 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [TextField]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeTextFieldBehavior(spellCheck: Boolean = false, autoComplete: Boolean = true): DI.Module =
-            DI.Module(name = "NativeTextFieldBehavior") {
+        public fun nativeTextFieldBehavior(spellCheck: Boolean = false, autoComplete: Boolean = true): Module =
+            Module(name = "NativeTextFieldBehavior") {
                 importOnce(CommonNativeModule, allowOverride = true)
 
                 bindSingleton<NativeTextFieldFactory> {
@@ -194,7 +197,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [HyperLink]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeHyperLinkBehavior(): DI.Module = DI.Module(name = "NativeHyperLinkBehavior") {
+        public fun nativeHyperLinkBehavior(): Module = Module(name = "NativeHyperLinkBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeHyperLinkFactory> {
@@ -220,7 +223,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [CheckBox]es that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeCheckBoxBehavior(): DI.Module = DI.Module(name = "NativeCheckBoxBehavior") {
+        public fun nativeCheckBoxBehavior(): Module = Module(name = "NativeCheckBoxBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
             bindBehavior<CheckBox>(NTheme::class) {
@@ -233,7 +236,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [RadioButton]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeRadioButtonBehavior(): DI.Module = DI.Module(name = "NativeRadioButtonBehavior") {
+        public fun nativeRadioButtonBehavior(): Module = Module(name = "NativeRadioButtonBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
             bindBehavior<RadioButton>(NTheme::class) {
@@ -246,7 +249,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [Switch]es that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeSwitchBehavior(): DI.Module = DI.Module(name = "NativeSwitchBehavior") {
+        public fun nativeSwitchBehavior(): Module = Module(name = "NativeSwitchBehavior") {
             importOnce(NativeCheckBoxRadioButtonBehavior, allowOverride = true)
 
             bindBehavior<Switch>(NTheme::class) {
@@ -259,7 +262,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [FileSelector]s that are styled by the underlying platform to look as close to native as
          * possible.
          */
-        public fun nativeFileSelectorBehavior(): DI.Module = DI.Module(name = "NativeFileSelectorBehavior") {
+        public fun nativeFileSelectorBehavior(): Module = Module(name = "NativeFileSelectorBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeFileSelectorFactory> {
@@ -277,18 +280,29 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
         }
 
         /**
+         * Module that provides [Behavior]s for [Label]s that are styled by the underlying platform to look as close to native as
+         * possible.
+         */
+        public fun nativeLabelBehavior(foregroundColor: Color? = null): Module = Module(name = "NativeLabelBehavior") {
+            bindBehavior<Label>(NTheme::class) {
+                it.behavior = CommonLabelBehavior(instance(), foregroundColor)
+            }
+        }
+
+        /**
          * @return list of common modules for native styles.
          */
-        public fun nativeThemeBehaviors(): List<DI.Module> = listOf(
-            nativeButtonBehavior     (),
-            nativeSliderBehavior     (),
-            nativeSwitchBehavior     (),
-            nativeCheckBoxBehavior   (),
-            nativeTextFieldBehavior  (),
-            nativeHyperLinkBehavior  (),
-            nativeScrollPanelBehavior(),
-            nativeRadioButtonBehavior(),
-            nativeFileSelectorBehavior(),
+        public fun nativeThemeBehaviors(): List<Module> = listOf(
+            nativeLabelBehavior       (),
+            nativeButtonBehavior      (),
+            nativeSliderBehavior      (),
+            nativeSwitchBehavior      (),
+            nativeCheckBoxBehavior    (),
+            nativeTextFieldBehavior   (),
+            nativeHyperLinkBehavior   (),
+            nativeScrollPanelBehavior (),
+            nativeRadioButtonBehavior (),
+            nativeFileSelectorBehavior()
         )
     }
 }

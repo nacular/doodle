@@ -147,7 +147,7 @@ public class StarRater(
         updateDimensions { tempStar.boundingRectangle.size }
 
         var starCenter = Point(
-            tempStar.points.minBy { it.x }.x + starSize.width / 2,
+            tempStar.points.minBy { it.x }.x + starSize.width  / 2,
             tempStar.points.minBy { it.y }.y + starSize.height / 2
         )
 
@@ -182,7 +182,7 @@ public class StarRater(
     }
 
     private fun updateDimensions(widthComputation: () -> Size) {
-        starSize  = widthComputation()
+        starSize   = widthComputation()
         fillBounds = when(max) {
             1    -> Rectangle(width, height)
             else -> {
