@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdoodle_docs=globalThis.webpackChunkdoodle_docs||[]).push([[6366],{6366:(e,c,o)=>{o.d(c,{createArchitectureServices:()=>s.S});var s=o(8980);o(7960)}}]);
