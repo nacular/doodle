@@ -17,7 +17,8 @@ internal class UserPreferencesImpl(window: Window): UserPreferences {
 
     init {
         isDark.addListener {
-            (colorSchemeChanged as PropertyObserversImpl)(old, colorScheme)
+            @Suppress("UNCHECKED_CAST")
+            (colorSchemeChanged as PropertyObserversImpl<UserPreferences, ColorScheme>)(old, colorScheme)
 
             old = colorScheme
         }

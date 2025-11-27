@@ -126,7 +126,8 @@ public open class ScrollPanel(content: View? = null): View() {
             (layout as? ConstraintLayout)?.also { updateConstraints(it) }
         }
 
-        (contentChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+        @Suppress("UNCHECKED_CAST")
+        (contentChanged as PropertyObserversImpl<ScrollPanel, View?>).forEach { it(this, old, new) }
     }
 
     /** Notifies of changes to [content]. */
@@ -148,7 +149,8 @@ public open class ScrollPanel(content: View? = null): View() {
 
     /** The current scroll offset. */
     public var scroll: Point by observable(Origin) { old, new ->
-        (scrollChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+        @Suppress("UNCHECKED_CAST")
+        (scrollChanged as PropertyObserversImpl<ScrollPanel, Point>).forEach { it(this, old, new) }
     }; private set
 
     /**

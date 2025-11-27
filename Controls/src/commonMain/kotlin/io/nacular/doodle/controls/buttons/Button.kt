@@ -31,9 +31,12 @@ public abstract class Button protected constructor(
             model: ButtonModel   = ButtonModelImpl(),
             role : ButtonRole    = ButtonRole()): View(accessibilityRole = role) {
 
-    private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl)(old, new) }
-    private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl)(old, new) }
-    private val pointerOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (pointerOverChanged as PropertyObserversImpl)(old, new) }
+    @Suppress("UNCHECKED_CAST")
+    private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl<Button, Boolean>)(old, new) }
+    @Suppress("UNCHECKED_CAST")
+    private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl<Button, Boolean>)(old, new) }
+    @Suppress("UNCHECKED_CAST")
+    private val pointerOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (pointerOverChanged as PropertyObserversImpl<Button, Boolean>)(old, new) }
     private val modelFired          = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
 
     private fun registerModel(model: ButtonModel) {
@@ -54,7 +57,8 @@ public abstract class Button protected constructor(
     public val textChanged: PropertyObservers<Button, String> = PropertyObserversImpl(this)
 
     /** Text displayed on the button */
-    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>) { _,new ->
+    @Suppress("UNCHECKED_CAST")
+    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>) { _, new ->
         if (accessibilityLabel == null) {
             accessibilityLabel = new
         }

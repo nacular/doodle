@@ -60,7 +60,8 @@ public open class ToggleButton protected constructor(
 
     public val selectedChanged: PropertyObservers<ToggleButton, Boolean> = PropertyObserversImpl<ToggleButton, Boolean>(this)
 
-    private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl)(old, new) }
+    @Suppress("UNCHECKED_CAST")
+    private val selectedChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (selectedChanged as PropertyObserversImpl<ToggleButton, Boolean>)(old, new) }
 
     init {
         super.model.selectedChanged += selectedChanged_

@@ -443,7 +443,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         settingActualBounds = false
 
-        (boundsChanged as PropertyObserversImpl).forEach { it(this, old, field) }
+        @Suppress("UNCHECKED_CAST")
+        (boundsChanged as PropertyObserversImpl<View, Rectangle>).forEach { it(this, old, field) }
     }
 
     internal var allowedMinSize = Empty; private set(new) {
@@ -543,7 +544,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * intersects with the View as expected after transformation.  So no additional handling is necessary in general.
      * The default is [Identity]
      */
-    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl) { old, new ->
+    @Suppress("UNCHECKED_CAST")
+    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl<View, AffineTransform>) { old, new ->
         resolvedTransformDirty = true
 
         boundingBox = getBoundingBox(bounds)
@@ -556,7 +558,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
      */
-    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl) { old, new ->
+    @Suppress("UNCHECKED_CAST")
+    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl<View, Camera>) { old, new ->
         resolvedTransformDirty = true
 
         renderManager?.cameraChanged(this, old, new)
@@ -585,6 +588,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
+    @Suppress("UNCHECKED_CAST")
     public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>) { old, new ->
         renderManager?.zOrderChanged(this, old, new)
     }
@@ -593,6 +597,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val visibilityChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether this View is visible. The default is `true`. */
+    @Suppress("UNCHECKED_CAST")
     public var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
         renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
@@ -607,6 +612,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * [visible] might still be `true`). This property also does not affect how events (i.e.
      * pointer and keyboard) are sent to the View.
      */
+    @Suppress("UNCHECKED_CAST")
     public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>) { old, new ->
         renderManager?.opacityChanged(this, old, new)
     }
@@ -634,12 +640,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val focusabilityChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether this View is focusable  The default is `true`.  */
+    @Suppress("UNCHECKED_CAST")
     public open var focusable: Boolean by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
 
     /** Notifies changes to [hasFocus] */
     public val focusChanged: BooleanObservers = PropertyObserversImpl(this)
 
     /** Whether the View has focus or not.  The default is `false`.  */
+    @Suppress("UNCHECKED_CAST")
     public var hasFocus: Boolean by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
         private set
 
@@ -647,6 +655,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * View that contains this one as a child, or `null`.  A top-level Views will also return `null`; but they will also have
      * [displayed] `== true`; so parent alone isn't sufficient to determine whether a View is in the display hierarchy.
      */
+    @Suppress("UNCHECKED_CAST")
     public var parent: View? = null
         // [Performance]
         // No check to prevent setting self as parent since View is the only place where this method is called and this is already
@@ -661,7 +670,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
             old?.children?.remove(this)
 
-            (parentChanged as PropertyObserversImpl)(old, new)
+            (parentChanged as PropertyObserversImpl<View, View?>)(old, new)
         }
 
     /** Notifies changes to [parent] */
@@ -822,6 +831,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * NOTE: the framework does not notify of clipping due to siblings that overlap with a View (or ancestors).
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
+    @Suppress("UNCHECKED_CAST")
     public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
         renderManager?.displayRectHandlingChanged(this, old, new)
     }
@@ -904,6 +914,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     @JsName("fireCursorChanged")
     protected fun cursorChanged(old: Cursor?, new: Cursor?) {
+        @Suppress("UNCHECKED_CAST")
         (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
 
         // Notify relevant children that their cursor has changed
@@ -916,6 +927,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected fun enabledChanged(old: Boolean, new: Boolean, filter: (View) -> Boolean) {
         accessibilityManager?.syncEnabled(this)
 
+        @Suppress("UNCHECKED_CAST")
         (enabledChanged as PropertyObserversImpl<View, Boolean>)(old, new)
 
         // Notify relevant children that their enabled state has changed
@@ -1465,6 +1477,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         addedToDisplay()
 
+        @Suppress("UNCHECKED_CAST")
         (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
     }
 
@@ -1488,6 +1501,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityManager = null
         removedFromDisplay()
 
+        @Suppress("UNCHECKED_CAST")
         (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }
     }
 

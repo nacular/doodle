@@ -62,6 +62,7 @@ public class ColorPicker(color: Color): View() {
     public val changed: PropertyObservers<ColorPicker, Color> = changed_
 
     private class ColorRect(color: HsvColor): View() {
+        @Suppress("UNCHECKED_CAST")
         var color = color
             set(new) {
                 if (field == new) { return }
@@ -74,7 +75,7 @@ public class ColorPicker(color: Color): View() {
 
                 rerender()
 
-                (changed as PropertyObserversImpl).invoke(old, new)
+                (changed as PropertyObserversImpl<ColorRect, HsvColor>).invoke(old, new)
             }
 
         private var selection = color.saturation to 1f - color.value
@@ -229,6 +230,7 @@ public class ColorPicker(color: Color): View() {
     private class HueStrip(hue: Measure<Angle>): Strip((hue / (360 * degrees)).toFloat()) {
         private lateinit var fill: LinearGradientPaint
 
+        @Suppress("UNCHECKED_CAST")
         var hue = hue; set(new) {
             if (field == new) { return }
 
@@ -237,7 +239,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = (new / (360 * degrees)).toFloat()
 
-            (changed as PropertyObserversImpl)(old, field)
+            (changed as PropertyObserversImpl<HueStrip, Measure<Angle>>)(old, field)
         }
 
         init {
@@ -283,6 +285,7 @@ public class ColorPicker(color: Color): View() {
             rerender()
         }
 
+        @Suppress("UNCHECKED_CAST")
         var value = color.opacity; set(new) {
             if (field == new) { return }
 
@@ -291,7 +294,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = new
 
-            (changed as PropertyObserversImpl)(old, field)
+            (changed as PropertyObserversImpl<OpacityStrip, Float>)(old, field)
         }
 
         init {

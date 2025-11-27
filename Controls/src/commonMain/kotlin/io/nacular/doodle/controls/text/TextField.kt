@@ -88,6 +88,7 @@ public open class TextField(text: String = ""): TextInput(text) {
     /**
      * Optional character to mask text shown in the field. This only affects [displayText].
      */
+    @Suppress("UNCHECKED_CAST")
     public var mask: Char? = null
         set(new) {
             if (field == new) return
@@ -107,8 +108,9 @@ public open class TextField(text: String = ""): TextInput(text) {
      * Indicates what a TextField will be used for. Behaviors can use this to change the way
      * it is displayed, or which keyboard is shown for it on mobile devices.
      */
+    @Suppress("UNCHECKED_CAST")
     public var purpose: Purpose by observableStyleProperty(Text) { old, new ->
-        (purposeChanged as PropertyObserversImpl)(old, new)
+        (purposeChanged as PropertyObserversImpl<TextField, Purpose>)(old, new)
     }
 
     /**

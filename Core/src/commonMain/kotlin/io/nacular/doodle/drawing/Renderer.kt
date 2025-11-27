@@ -4,7 +4,6 @@ import io.nacular.doodle.drawing.Renderer.FillRule
 import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Polygon
-import io.nacular.doodle.geometry.star
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Measure
 
@@ -244,7 +243,7 @@ public inline fun Renderer.wedge(center: Point, radius: Double, sweep: Measure<A
  * @param length of the line
  * @param stroke used for line
  */
-public inline fun Renderer.horizontalLine(start: Point, length: Double, stroke: Stroke) = line(start, Point(start.x + length, start.y), stroke)
+public inline fun Renderer.horizontalLine(start: Point, length: Double, stroke: Stroke): Unit = line(start, Point(start.x + length, start.y), stroke)
 
 /**
  * Draws a vertical line at [start] with [length].
@@ -253,4 +252,4 @@ public inline fun Renderer.horizontalLine(start: Point, length: Double, stroke: 
  * @param length of the line
  * @param stroke used for line
  */
-public inline fun Renderer.verticalLine(start: Point, length: Double, stroke: Stroke) = line(start, Point(start.x, start.y + length), stroke)
+public inline fun Renderer.verticalLine(start: Point, length: Double, stroke: Stroke): Unit = line(start, Point(start.x, start.y + length), stroke)

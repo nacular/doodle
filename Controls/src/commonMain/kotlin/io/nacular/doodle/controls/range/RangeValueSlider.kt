@@ -186,7 +186,7 @@ public val <T: Comparable<T>> RangeValueSlider<T>.marks: Sequence<Float> get() =
  *
  * @param using these values to set each mark
  */
-public fun <T: Comparable<T>> RangeValueSlider<T>.mark(vararg using: T) = mark(using.toList())
+public fun <T: Comparable<T>> RangeValueSlider<T>.mark(vararg using: T): Unit = mark(using.toList())
 
 /**
  * Sets the RangeValueSlider's marker based on the given Iterable.

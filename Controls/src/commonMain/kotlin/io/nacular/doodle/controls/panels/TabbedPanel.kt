@@ -105,10 +105,12 @@ public class TabbedPanel<T>(
     public val numItems: Int get() = items.size
 
     /** The currently selected item/tab. Defaults to `0`. */
-    public var selection: Int? by observable(0, selectionChanged as PropertyObserversImpl)
+    @Suppress("UNCHECKED_CAST")
+    public var selection: Int? by observable(0, selectionChanged as PropertyObserversImpl<TabbedPanel<T>, Int?>)
 
     /** The location of the tabs. */
-    public var orientation: BoxOrientation by observable(orientation, orientationChanged as PropertyObserversImpl)
+    @Suppress("UNCHECKED_CAST")
+    public var orientation: BoxOrientation by observable(orientation, orientationChanged as PropertyObserversImpl<TabbedPanel<T>, BoxOrientation>)
 
     /** Component responsible for controlling the presentation and behavior of the panel. */
     public var behavior: TabbedPanelBehavior<T>? by behavior { _,_ ->

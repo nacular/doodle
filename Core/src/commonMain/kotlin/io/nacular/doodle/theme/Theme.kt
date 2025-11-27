@@ -92,7 +92,8 @@ public abstract class InternalThemeManager internal constructor(): ThemeManager 
 public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() {
     override val themes: ObservableSet<Theme> = ObservableSet()
 
-    override var selected: Theme? by observable(null) { old,new ->
+    @Suppress("UNCHECKED_CAST")
+    override var selected: Theme? by observable(null) { old, new ->
         old?.deselected()
 
         new?.apply {
@@ -101,7 +102,7 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
             this.install(scene)
         }
 
-        (selectionChanged as PropertyObserversImpl).forEach { it(this, old, new) }
+        (selectionChanged as PropertyObserversImpl<ThemeManager, Theme?>).forEach { it(this, old, new) }
     }
 
     override val selectionChanged: PropertyObservers<ThemeManager, Theme?> = PropertyObserversImpl<ThemeManager, Theme?>(this)
