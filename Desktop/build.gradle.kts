@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+
 kotlin {
     explicitApi()
 
-    jvmTargets("11")
+    jvmTargets(JVM_11)
 
     val osName = System.getProperty("os.name")
     val targetOs = when {

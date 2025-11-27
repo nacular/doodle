@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind.MODULE_UMD
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.HasProject
 
@@ -53,12 +55,12 @@ fun KotlinMultiplatformExtension.wasmJsTargets() {
     }
 }
 
-fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: String = "11") {
+fun KotlinMultiplatformExtension.jvmTargets(jvmTarget: JvmTarget = JVM_11) {
     compilerOptions()
 
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = jvmTarget
+        compilerOptions {
+            this.jvmTarget.set(jvmTarget)
         }
     }
 }
