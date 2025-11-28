@@ -35,3 +35,7 @@ kotlin {
         }
     }
 }
+
+tasks.named<Test>("jvmTest") {
+    dependsOn(":core:compileJvmTestJava")
+}

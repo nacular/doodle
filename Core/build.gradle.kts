@@ -97,7 +97,6 @@ kotlin {
                     implementationConfigurationName,
                     runtimeOnlyConfigurationName
                 )
-
             }
         }
     }
