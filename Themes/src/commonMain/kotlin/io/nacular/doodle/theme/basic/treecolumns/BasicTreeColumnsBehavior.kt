@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.treecolumns
 
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.treecolumns.TreeColumns
 import io.nacular.doodle.controls.treecolumns.TreeColumnsBehavior

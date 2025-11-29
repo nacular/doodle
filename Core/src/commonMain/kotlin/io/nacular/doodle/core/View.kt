@@ -676,14 +676,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Notifies changes to [parent] */
     public val parentChanged: PropertyObservers<View, View?> = PropertyObserversImpl(this)
 
-    @Deprecated("Use parentChanged property instead", ReplaceWith("parentChanged"))
-    public val parentChange: PropertyObservers<View, View?> get() = parentChanged
-
     /** Notifies changes to [displayed] */
     public val displayChanged: BooleanObservers = PropertyObserversImpl(this)
-
-    @Deprecated("Use displayChanged property instead", ReplaceWith("displayChanged"))
-    public val displayChange: BooleanObservers get() = displayChanged
 
     /**
      * Is `true` if the View is currently within the [Display].

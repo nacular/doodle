@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.spinbutton
 
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.spinbutton.SpinButton

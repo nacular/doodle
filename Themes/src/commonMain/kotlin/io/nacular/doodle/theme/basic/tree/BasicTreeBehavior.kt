@@ -1,7 +1,7 @@
 package io.nacular.doodle.theme.basic.tree
 
 import io.nacular.doodle.controls.EditOperation
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.text.TextField
 import io.nacular.doodle.controls.theme.TreeBehavior
 import io.nacular.doodle.controls.theme.TreeBehavior.RowGenerator

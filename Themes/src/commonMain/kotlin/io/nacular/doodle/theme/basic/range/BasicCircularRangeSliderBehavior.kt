@@ -128,32 +128,6 @@ public class BasicCircularRangeSliderBehavior<T>(
          * @param knobFill     for the knobs at the start/end of the slider's range
          * @param rangeFill    for the slider's range region
          * @param thickness    of the slider
-         * @param focusManager used to manage focus
-         */
-        @Deprecated("Use non-inlined version instead") public inline operator fun <T> invoke(
-            barFill      : Paint         = Lightgray.paint,
-            knobFill     : Paint         = Blue.paint,
-            rangeFill    : Paint?        = knobFill,
-            thickness    : Double        = 20.0,
-            focusManager : FocusManager? = null,
-        ): BasicCircularRangeSliderBehavior<T> where T: Number, T: Comparable<T> {
-            return BasicCircularRangeSliderBehavior(
-                barFill       = barFill,
-                startKnobFill = knobFill,
-                endKnobFill   = knobFill,
-                rangeFill     = rangeFill,
-                thickness     = thickness,
-                focusManager  = focusManager
-            )
-        }
-
-        /**
-         * Creates a basic behavior for rendering [CircularRangeSlider]s.
-         *
-         * @param barFill      for the slider's background
-         * @param knobFill     for the knobs at the start/end of the slider's range
-         * @param rangeFill    for the slider's range region
-         * @param thickness    of the slider
          * @param showTicks    indicates if/how ticks should be drawn
          * @param startAngle   where the slider's 0 position should be
          * @param focusManager used to manage focus

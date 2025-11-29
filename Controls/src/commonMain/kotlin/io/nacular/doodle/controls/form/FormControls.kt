@@ -19,7 +19,7 @@ import io.nacular.doodle.controls.MultiSelectionModel
 import io.nacular.doodle.controls.ShortTypeConverter
 import io.nacular.doodle.controls.SimpleListModel
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.ButtonGroup
 import io.nacular.doodle.controls.buttons.CheckBox
 import io.nacular.doodle.controls.buttons.RadioButton

@@ -35,10 +35,7 @@ public open class BasicSwitchBehavior(
     private var progress = 0f
     private var activeTransition: Completable? by autoCanceling(null)
 
-    private val animation: (switch: Switch, block: (progress: Float) -> Unit) -> Completable = animation ?: { _,block -> transitionSlider(block) }
-
-    @Deprecated(message = "Migrate to animation parameter instead")
-    public open fun transitionSlider(block: (Float) -> Unit): Completable = NoOpCompletable.also { block(1f) }
+    private val animation: (switch: Switch, block: (progress: Float) -> Unit) -> Completable = animation ?: { _,block -> NoOpCompletable.also { block(1f) } }
 
     public fun transitionSlider(view: Switch, block: (Float) -> Unit): Completable = animation(view, block)
 

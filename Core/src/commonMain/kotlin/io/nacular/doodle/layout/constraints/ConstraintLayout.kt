@@ -724,18 +724,6 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
-    @Deprecated(message = "use strength infix instead", replaceWith = ReplaceWith("strength(strength)"), level = DeprecationLevel.ERROR)
-    public operator fun Result<Constraint>.rangeTo(strength: Strength): Result<Constraint> {
-        this.getOrNull()?.strength = strength
-        return this
-    }
-
-    @Deprecated(message = "use strength infix instead", replaceWith = ReplaceWith("strength(strength)"), level = DeprecationLevel.ERROR)
-    public operator fun List<Result<Constraint>>.rangeTo(strength: Strength): List<Result<Constraint>> {
-        this.forEach { it.getOrNull()?.strength = strength }
-        return this
-    }
-
     public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
         top == 0.0 && left == 0.0 -> this
         else                      -> withOffset(top = { top }, left = { left })

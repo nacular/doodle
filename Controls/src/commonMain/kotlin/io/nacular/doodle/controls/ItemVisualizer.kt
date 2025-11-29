@@ -38,35 +38,17 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
 /**
  * Visualizes Strings using [Label]s.
  */
-public open class StringVisualizer @Deprecated(message = "Use object instead") constructor(): ItemVisualizer<String, Any> {
-    override fun invoke(item: String, previous: View?, context: Any): Label = when (previous) {
-        is Label -> previous.apply { text = item }
-        else     -> Label(StyledText(item))
-    }
-
-    public companion object {
-        public object StringVisualizer: ItemVisualizer<String, Any> {
-            override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.Companion.StyledTextVisualizer.invoke(StyledText(item), previous, context)
-        }
-    }
+public object StringVisualizer: ItemVisualizer<String, Any> {
+    override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.invoke(StyledText(item), previous, context)
 }
 
 /**
  * Visualizes [StyledText] using [Label]s.
  */
-public open class StyledTextVisualizer @Deprecated(message = "Use object instead") constructor(): ItemVisualizer<StyledText, Any> {
+public object StyledTextVisualizer: ItemVisualizer<StyledText, Any> {
     override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { styledText = item }
         else     -> Label(item)
-    }
-
-    public companion object {
-        public object StyledTextVisualizer: ItemVisualizer<StyledText, Any> {
-            override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
-                is Label -> previous.apply { styledText = item }
-                else     -> Label(item)
-            }
-        }
     }
 }
 
@@ -105,17 +87,6 @@ public open class ScrollPanelVisualizer(private val config: ScrollPanel.() -> Un
         is ScrollPanel -> previous.also { it.content = item }
         else           -> ScrollPanel(item)
     }.also(config)
-}
-
-/**
- * Visualizes a string representation of the item (obtained from [mapper]) using [delegate].
- *
- * @param delegate to visualize the item's string representation
- * @param mapper to convert the item to a string
- */
-@Deprecated(message = "Use ItemVisualizer.invoke extension instead")
-public fun <T, C> toString(delegate: ItemVisualizer<String, C>, mapper: (T) -> String = { "$it" }): ItemVisualizer<T, C> = object: ItemVisualizer<T, C> {
-    override fun invoke(item: T, previous: View?, context: C) = delegate.invoke(mapper(item), previous, context)
 }
 
 /**

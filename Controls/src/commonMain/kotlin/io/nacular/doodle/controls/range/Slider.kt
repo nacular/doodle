@@ -85,7 +85,7 @@ public open class Slider<T>(
         limitsChanged_(old, new)
     }
 
-    override fun ticksChanged() {
+    override fun markerChanged() {
         styleChanged { true }
     }
 

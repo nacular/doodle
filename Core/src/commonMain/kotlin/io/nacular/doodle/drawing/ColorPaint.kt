@@ -59,9 +59,3 @@ public fun ColorPaint.darker(percent: Float = 0.5f): ColorPaint = (color.darker(
  * @return a gray scale version of this [ColorPaint]
  */
 public inline val ColorPaint.grayScale: ColorPaint get() = (color.grayScale).paint
-
-/**
- * @return a gray scale version of this [ColorPaint]
- */
-@Deprecated(message = "Use grayScale instead.", replaceWith = ReplaceWith("grayScale"))
-public fun ColorPaint.grayScale(): ColorPaint = this.grayScale

@@ -30,21 +30,9 @@ public abstract class ValueSlider<T> internal constructor(
 ): View(role) where T: Comparable<T> {
 
     /**
-     * Number of ticks the slider should have.
-     */
-    @Deprecated(message = "Use marker instead", replaceWith = ReplaceWith("marker"))
-    public var ticks: Int; get() = marker?.marks(model.limits, interpolator)?.toList()?.size ?: 0; set(new) {
-        marker = when {
-            new < 1 -> null
-            else    -> evenMarker(new - 2)
-        }
-    }
-
-    /**
      * Provides marks that should show up on the slider.
      */
     public var marker: Marker<T>? by observable(null) { _,_ ->
-        ticksChanged ()
         markerChanged()
 
         refreshSnapping()
@@ -54,19 +42,6 @@ public abstract class ValueSlider<T> internal constructor(
      * Determines how the slider snaps to marks.
      */
     public var snappingPolicy: SnappingPolicy<T>? by observable(null) { _,_ -> refreshSnapping() }
-
-    /**
-     * Indicates whether the slider should only take on values at the specify tick interval.
-     *
-     * @see ticks
-     */
-    @Deprecated(message = "Use snappingPolicy", replaceWith = ReplaceWith("snappingPolicy"))
-    public var snapToTicks: Boolean by observable(snappingPolicy != null) { _,new ->
-        snappingPolicy = when {
-            new  -> alwaysSnap()
-            else -> null
-        }
-    }
 
     /**
      * Model that represents the slider's [value] and [range].
@@ -131,12 +106,8 @@ public abstract class ValueSlider<T> internal constructor(
     /** Notifies of changes to [range] */
     protected abstract fun limitsChanged(old: ClosedRange<T>, new: ClosedRange<T>)
 
-    /** Notifies of changes to [ticks] */
-    @Deprecated("Use markerChanged instead", ReplaceWith("markerChanged"))
-    protected abstract fun ticksChanged()
-
     /** Notifies of changes to [marker] */
-    protected open fun markerChanged() { ticksChanged() } // TODO: make abstract
+    protected abstract fun markerChanged()
 
     /** Notifies of changes to [snappingPolicy] */
     protected open fun snappingPolicyChanged() {}

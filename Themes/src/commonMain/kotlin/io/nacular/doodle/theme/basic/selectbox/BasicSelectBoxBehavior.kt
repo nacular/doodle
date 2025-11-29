@@ -6,7 +6,7 @@ import io.nacular.doodle.controls.ListModel
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.SimpleIndexedItem
 import io.nacular.doodle.controls.SingleItemSelectionModel
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
 import io.nacular.doodle.controls.list.List

@@ -68,7 +68,7 @@ public open class CircularSlider<T>(
         limitsChanged_(old, new)
     }
 
-    override fun ticksChanged() {
+    override fun markerChanged() {
         styleChanged { true }
     }
 

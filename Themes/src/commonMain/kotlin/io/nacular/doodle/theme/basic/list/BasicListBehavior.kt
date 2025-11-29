@@ -1,6 +1,6 @@
 package io.nacular.doodle.theme.basic.list
 
-import io.nacular.doodle.controls.StringVisualizer.Companion.StringVisualizer
+import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
