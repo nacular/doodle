@@ -16,6 +16,7 @@ import io.nacular.doodle.dom.setDomPosition
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.dom.setLineHeight
 import io.nacular.doodle.dom.setOverflow
+import io.nacular.doodle.dom.setSelectable
 import io.nacular.doodle.dom.setTextAlignment
 import io.nacular.doodle.dom.setTextDecoration
 import io.nacular.doodle.dom.setTextIndent
@@ -42,6 +43,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         element.style.setTextSpacing(textSpacing)
+        element.style.setSelectable (false      )
 
         if (element == possible) {
             element.style.setTextDecoration(null)
@@ -72,11 +74,12 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return createBoxed(text, textSpacing, possible)
     }
 
-    override fun create(text: StyledText, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
-        text,
-        textSpacing,
-        possible,
-    ).also { it.style.setLineHeight(lineSpacing) }
+    override fun create(
+        text       : StyledText,
+        lineSpacing: Float,
+        textSpacing: TextSpacing,
+        possible   : HTMLElement?
+    ): HTMLElement = create(text, textSpacing, possible).also { it.style.setLineHeight(lineSpacing) }
 
     override fun wrapped(
         text       : String,
@@ -99,7 +102,15 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: String, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?) = create(
+    override fun wrapped(
+        text       : String,
+        font       : Font?,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing,
+        possible   : HTMLElement?
+    ) = create(
         text        = text,
         font        = font,
         possible    = possible,
@@ -111,7 +122,15 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         applyWrap(it, indent)
     }
 
-    override fun wrapped(text: StyledText, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?) = wrapped(
+    override fun wrapped(
+        text       : StyledText,
+        width      : Double,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing,
+        possible   : HTMLElement?
+    ) = wrapped(
         text        = text,
         indent      = indent,
         possible    = possible,
@@ -122,7 +141,14 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         it.style.setWidth(width)
     }
 
-    override fun wrapped(text: StyledText, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?) = create(
+    override fun wrapped(
+        text       : StyledText,
+        indent     : Double,
+        alignment  : TextAlignment,
+        lineSpacing: Float,
+        textSpacing: TextSpacing,
+        possible   : HTMLElement?
+    ) = create(
         text        = text,
         possible    = possible,
         textSpacing = textSpacing,
@@ -188,6 +214,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
 
         element.style.setTextDecoration(style.decoration)
+        element.style.setSelectable    (style.selectable)
     }
 
     private companion object {

@@ -75,6 +75,7 @@ internal expect abstract external class CSSStyleDeclaration: JsAny {
     var marginBottom       : String
     var outlineWidth       : String
     var letterSpacing      : String
+    var pointerEvents      : String
     var backgroundSize     : String
     var textDecoration     : String
     var backgroundImage    : String

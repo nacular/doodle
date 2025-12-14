@@ -19,10 +19,10 @@ import kotlin.math.min
  * Created by Nicholas Eddy on 10/31/17.
  */
 public class TextDecoration(
-        public val lines    : Set<Line>  = emptySet(),
-        public val color    : Color?     = null,
-        public val style    : Style      = Solid,
-        public val thickness: Thickness? = null
+    public val lines    : Set<Line>  = emptySet(),
+    public val color    : Color?     = null,
+    public val style    : Style      = Solid,
+    public val thickness: Thickness? = null
 ) {
     public enum class Line  { Under, Over, Through }
     public enum class Style { Solid, Double, Dotted, Dashed, Wavy }
@@ -97,6 +97,7 @@ public interface Style {
     public val background: Paint?
     public val decoration: TextDecoration?
     public val stroke    : Stroke?
+    public val selectable: Boolean get() = false
 }
 
 public class StyledText private constructor(internal val data: MutableList<MutablePair<String, StyleImpl>>): Iterable<Pair<String, Style>> {
@@ -106,6 +107,7 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         background = style.background,
         decoration = style.decoration,
         stroke     = style.stroke,
+        selectable = style.selectable
     ))))
 
     public constructor(
@@ -114,12 +116,15 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         foreground: Paint?          = null,
         background: Paint?          = null,
         decoration: TextDecoration? = null,
-        stroke    : Stroke?         = null): this(mutableListOf(MutablePair(text, StyleImpl(
-            font       = font,
-            foreground = foreground,
-            background = background,
-            decoration = decoration,
-            stroke     = stroke
+        stroke    : Stroke?         = null,
+        selectable: Boolean         = false
+    ): this(mutableListOf(MutablePair(text, StyleImpl(
+        font       = font,
+        foreground = foreground,
+        background = background,
+        decoration = decoration,
+        stroke     = stroke,
+        selectable = selectable
     ))))
 
     public data class MutablePair<A, B>(var first: A, var second: B) {
@@ -216,13 +221,15 @@ public class StyledText private constructor(internal val data: MutableList<Mutab
         override var background: Paint?          = null,
         override var decoration: TextDecoration? = null,
         override var stroke    : Stroke?         = null,
+        override var selectable: Boolean         = false,
     ): Style {
         constructor(other: Style): this(
             font       = other.font,
             foreground = other.foreground,
             background = other.background,
             decoration = other.decoration,
-            stroke     = other.stroke
+            stroke     = other.stroke,
+            selectable = other.selectable
         )
     }
 }
@@ -240,11 +247,17 @@ public enum class Target {
 
 // region Font
 
+/**
+ * @return a new [StyledText] with the contents of [text] and this font.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
 public operator fun Font?.invoke(text: () -> String    ): StyledText = StyledText(text = text(), font = this)
 
+/**
+ * @return sets the font for all segments without a font in [StyledText] returned by [text] to this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().apply {
@@ -260,11 +273,17 @@ public operator fun Font?.invoke(text: () -> StyledText): StyledText = text().ap
 // region Color
 
 
+/**
+ * @return a new [StyledText] with the contents of [text] and painted (based on [target]) with this Color.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
 public operator fun Color?.invoke(target: Target = Foreground, text: () -> String): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
 
+/**
+ * @return paints all unpainted segments (based on [target]) in [StyledText] returned by [text] with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public operator fun Color?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = this?.let { ColorPaint(it) }.invoke(target, text)
@@ -273,6 +292,9 @@ public operator fun Color?.invoke(target: Target = Foreground, text: () -> Style
 
 // region Paint
 
+/**
+ * @return a new [StyledText] with the contents of [text] and painted (based on [target]) with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
@@ -280,6 +302,9 @@ public operator fun Paint?.invoke(target: Target = Foreground, text:() -> String
     StyledText(text = text(), background = if (target == Background) it else null, foreground = if (target == Foreground) it else null)
 }
 
+/**
+ * @return paints all unpainted segments (based on [target]) in [StyledText] returned by [text] with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public operator fun Paint?.invoke(target: Target = Foreground, text: () -> StyledText): StyledText = text().apply {
@@ -295,11 +320,17 @@ public operator fun Paint?.invoke(target: Target = Foreground, text: () -> Style
 
 // region TextDecoration
 
+/**
+ * @return a new [StyledText] with the contents of [text] and decorated with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
 public operator fun TextDecoration?.invoke(text: () -> String): StyledText = StyledText(text = text(), decoration = this)
 
+/**
+ * @return decorates all undecorated segments in [StyledText] returned by [text] with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public operator fun TextDecoration?.invoke(text: () -> StyledText): StyledText = text().apply {
@@ -314,13 +345,17 @@ public operator fun TextDecoration?.invoke(text: () -> StyledText): StyledText =
 
 // region Stroke
 
+/**
+ * @return a new [StyledText] with the contents of [text] and stroked with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 @JvmName("invokeString")
-public operator fun Stroke?.invoke(text:() -> String): StyledText = this.let {
-    StyledText(text = text(), stroke = this)
-}
+public operator fun Stroke?.invoke(text: () -> String): StyledText = StyledText(text = text(), stroke = this)
 
+/**
+ * @return strokes all unstroked segments in [StyledText] returned by [text] with this one.
+ */
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public operator fun Stroke?.invoke(text: () -> StyledText): StyledText = text().apply {
@@ -333,4 +368,40 @@ public operator fun Stroke?.invoke(text: () -> StyledText): StyledText = text().
 
 // endregion
 
+// region selection
+
 public operator fun String.rangeTo(styled: StyledText): StyledText = StyledText(this) + styled
+
+/**
+ * @return [StyledText] that is selectable with the contents returned by [text]
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("selectableString")
+public fun selectable(text: () -> String): StyledText = StyledText(text = text(), selectable = true)
+
+/**
+ * @return makes the [StyledText] returned by [text] selectable.
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public fun selectable(text: () -> StyledText): StyledText = text().apply {
+    data.forEach { (_, style) ->
+        style.selectable = true
+    }
+}
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("nonselectableString")
+public fun nonselectable(text: () -> String): StyledText = StyledText(text = text(), selectable = false)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public fun nonselectable(text: () -> StyledText): StyledText = text().apply {
+    data.forEach { (_, style) ->
+        style.selectable = false
+    }
+}
+
+// endregion
