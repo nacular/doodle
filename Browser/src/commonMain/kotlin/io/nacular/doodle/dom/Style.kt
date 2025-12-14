@@ -227,6 +227,17 @@ internal fun Style.setPerspectiveTransform(transform: SquareMatrix<Double>? = nu
     }
 }
 
+internal fun Style.setSelectable(selectable: Boolean) {
+    _ms_user_select             = if (selectable) "text" else ""
+    _moz_user_select            = if (selectable) "text" else ""
+    _khtml_user_select          = if (selectable) "text" else ""
+    _webkit_user_select         = if (selectable) "text" else ""
+    _webkit_touch_callout       = if (selectable) "text" else ""
+    _webkit_tap_highlight_color = if (selectable) "auto" else ""
+    userSelect                  = if (selectable) "text" else ""
+    pointerEvents               = if (selectable) "auto" else ""
+}
+
 internal sealed class Display(val value: String)
 internal class None       : Display("none"        )
 internal class Block      : Display("block"       )

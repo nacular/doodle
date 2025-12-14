@@ -65,6 +65,7 @@ internal actual abstract external class CSSStyleDeclaration: JsAny {
     actual var borderRadius       : String
     actual var marginBottom       : String
     actual var outlineWidth       : String
+    actual var pointerEvents      : String
     actual var letterSpacing      : String
     actual var backgroundSize     : String
     actual var textDecoration     : String

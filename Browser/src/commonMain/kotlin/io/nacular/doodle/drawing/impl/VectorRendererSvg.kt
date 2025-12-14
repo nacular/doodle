@@ -56,6 +56,7 @@ import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.setRX
 import io.nacular.doodle.dom.setRY
 import io.nacular.doodle.dom.setRadius
+import io.nacular.doodle.dom.setSelectable
 import io.nacular.doodle.dom.setStart
 import io.nacular.doodle.dom.setStopColor
 import io.nacular.doodle.dom.setStopOffset
@@ -356,6 +357,8 @@ internal open class VectorRendererSvg(
                         textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                     }
                 }
+
+                element.style.setSelectable(style.selectable)
             }
         }
     }
@@ -624,13 +627,14 @@ internal open class VectorRendererSvg(
 
             setPosition(at)
 
-            this.style.whiteSpace = "pre"
-            this.style.setTextSpacing(textSpacing)
+            style.whiteSpace = "pre"
+            style.setTextSpacing(textSpacing)
 
             font?.let {
                 style.setFont(it)
             }
 
+            style.setSelectable(false)
             adjustTextAfterDisplay(this, aligner.verticalOffset(text, font))
 
             when (fill) {
@@ -812,7 +816,7 @@ internal open class VectorRendererSvg(
             aligner.verticalOffset(l.text, l.maxFont, lineSpacing)
         } ?: 0.0
 
-        lines.filter { it.text.isNotBlank() }.forEachIndexed { index, (text, at, wordSpacing) ->
+        lines.filter { it.text.isNotBlank() }.forEachIndexed { _,(text, at, wordSpacing) ->
             textInternal(
                 text,
                 at,

@@ -74,6 +74,7 @@ internal actual abstract class CSSStyleDeclaration: JsAny {
     actual var marginBottom: String        = ""
     actual var outlineWidth: String        = ""
     actual var letterSpacing: String       = ""
+    actual var pointerEvents: String       = ""
     actual var backgroundSize: String      = ""
     actual var textDecoration: String      = ""
     actual var backgroundImage: String     = ""
