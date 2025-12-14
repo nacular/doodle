@@ -296,7 +296,7 @@ public fun lerp(first: Vector2D, second: Vector2D, fraction: Float): Vector2D = 
 public infix fun Vector3D.interiorAngle(other: Vector3D): Measure<Angle> = acos(this * other / (magnitude() * other.magnitude())) * radians
 
 internal class VectorImpl(override val x: Double = 0.0, override val y: Double = 0.0, override val z: Double = 0.0): Vector2D, Vector3D {
-    override inline fun as2d() = this
+    override inline fun as2d() = Vector2D(x, y)
     override inline fun as3d() = this
 
     private val magnitude: Double by lazy { sqrt(x.pow(2) + y.pow(2) + z.pow(2)) }

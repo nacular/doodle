@@ -98,9 +98,12 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override val sizeChanged  : PropertyObservers<Display, Size>    = PropertyObserversImpl<Display, Size>   (this)
     override val cursorChanged: PropertyObservers<Display, Cursor?> = PropertyObserversImpl<Display, Cursor?>(this)
-    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
 
-    override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
+    @Suppress("UNCHECKED_CAST")
+    override var size by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
+
+    @Suppress("UNCHECKED_CAST")
+    override var cursor: Cursor? by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 

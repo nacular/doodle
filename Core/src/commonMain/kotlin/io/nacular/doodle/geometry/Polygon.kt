@@ -76,21 +76,21 @@ public abstract class ConvexPolygon: Polygon() {
     private class Line(val start: Point, val end: Point)
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
-    override val area: Double by lazy {
+    override val area: Double by lazy { abs(area) }
+
+    public val signedArea: Double by lazy {
         var area = 0.0              // Accumulates area in the loop
-        var j    = points.size - 1  // The last vertex is the 'previous' one to the first
         var i    = 0
 
         while (i < points.size) {
             val ith = points[i]
-            val jth = points[j]
+            val jth = points[(i+1) % points.size]
 
-            area += (jth.x + ith.x) * (jth.y - ith.y)
-            j = i  //j is previous vertex to i
-            i++
+            area += ith.x * jth.y - jth.x * ith.y
+            ++i
         }
 
-        abs(area / 2)
+        area / 2
     }
 
     override val empty: Boolean by lazy { area == 0.0 }
@@ -152,6 +152,25 @@ public fun ConvexPolygon.reversed(): ConvexPolygon = ConvexPolygonImpl(points.re
  * @param transform to apply to each point
  */
 public fun ConvexPolygon.map(transform: (Point) -> Point): ConvexPolygon = ConvexPolygonImpl(points.map(transform))
+
+public val ConvexPolygon.centroid: Point get() {
+    var x = 0.0
+    var y = 0.0
+    var i = 0
+
+    while (i < points.size) {
+        val current = points[i]
+        val next    = points[(i+1) % points.size]
+
+        val lastTerm = (current.x * next.y - next.x * current.y)
+
+        x += (current.x + next.x) * lastTerm
+        y += (current.y + next.y) * lastTerm
+        ++i
+    }
+
+    return Point(x, y) / (6 * signedArea)
+}
 
 private class ConvexPolygonImpl(override val points: List<Point>): ConvexPolygon() {
     constructor(first: Point, second: Point, third: Point, vararg remaining: Point): this(listOf(first, second, third) + remaining)

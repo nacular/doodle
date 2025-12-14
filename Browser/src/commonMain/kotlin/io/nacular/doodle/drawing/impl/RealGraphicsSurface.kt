@@ -128,7 +128,7 @@ internal class RealGraphicsSurface private constructor(
     // FIXME: popups will have negative index, so use that fact for now to differentiate
     private val isPopup: Boolean get() = index < 0
 
-    private val realIndex:Int get() {
+    private val realIndex: Int get() {
         return when {
             isPopup -> index
             else    -> {
