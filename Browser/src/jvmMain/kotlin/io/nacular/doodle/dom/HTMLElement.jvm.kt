@@ -1,5 +1,3 @@
-//@file:Suppress(PropertyName", "ObjectPropertyName")
-
 package io.nacular.doodle.dom
 
 import io.nacular.doodle.geometry.Size
@@ -27,7 +25,6 @@ internal actual abstract class CSSStyleSheet: StyleSheet() {
 }
 
 internal actual fun CSSStyleSheet.tryInsertRule(rule: String, index: Int): Int = 0
-
 
 internal actual val CSSStyleSheet.numStyles: Int get() = 0
 

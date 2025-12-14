@@ -92,9 +92,10 @@ import kotlin.random.Random
  * @param creator block that constructs the application
  */
 public inline fun <reified T: Application> application(
-                 allowDefaultDarkMode: Boolean     = false,
-                 modules             : List<Module> = emptyList(),
-        noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
+             allowDefaultDarkMode: Boolean     = false,
+             modules             : List<Module> = emptyList(),
+    noinline creator             : NoArgBindingDI<*>.() -> T
+): Application = createApplication(DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, allowDefaultDarkMode, modules)
 
@@ -114,7 +115,8 @@ public inline fun <reified T: Application> application(
              root                : Any,
              allowDefaultDarkMode: Boolean      = false,
              modules             : List<Module> = emptyList(),
-    noinline creator             : NoArgBindingDI<*>.() -> T): Application = createApplication(DI.direct {
+    noinline creator             : NoArgBindingDI<*>.() -> T
+): Application = createApplication(DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
@@ -125,16 +127,18 @@ public inline fun <reified T: Application> nestedApplication(
              root                : Any,
              allowDefaultDarkMode: Boolean      = false,
              modules             : List<Module> = emptyList(),
-    noinline creator             : NoArgBindingDI<*>.() -> T): Application = createNestedApplication(view, DI.direct {
+    noinline creator             : NoArgBindingDI<*>.() -> T
+): Application = createNestedApplication(view, DI.direct {
     bind<Application> { singleton(creator = creator) }
 }, root, allowDefaultDarkMode, modules)
 
 /** @suppress */
 @Internal
 public fun createApplication(
-        injector            : DirectDI,
-        allowDefaultDarkMode: Boolean,
-        modules             : List<Module>): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
+    injector            : DirectDI,
+    allowDefaultDarkMode: Boolean,
+    modules             : List<Module>
+): Application = ApplicationHolderImpl(injector, allowDefaultDarkMode = allowDefaultDarkMode, modules = modules)
 
 /** @suppress */
 @Internal
@@ -142,7 +146,8 @@ public fun createApplication(
     injector            : DirectDI,
     root                : Any,
     allowDefaultDarkMode: Boolean,
-    modules             : List<Module>): Application = ApplicationHolderImpl(injector, root as HTMLElement, allowDefaultDarkMode, modules)
+    modules             : List<Module>
+): Application = ApplicationHolderImpl(injector, root as HTMLElement, allowDefaultDarkMode, modules)
 
 /** @suppress */
 @Internal
@@ -151,14 +156,16 @@ public fun createNestedApplication(
     injector            : DirectDI,
     root                : Any,
     allowDefaultDarkMode: Boolean,
-    modules             : List<Module>): Application = NestedApplicationHolder(view, injector, root as HTMLElement, allowDefaultDarkMode, modules)
+    modules             : List<Module>
+): Application = NestedApplicationHolder(view, injector, root as HTMLElement, allowDefaultDarkMode, modules)
 
 private class NestedApplicationHolder(
     view                : ApplicationView,
     previousInjector    : DirectDI,
     root                : HTMLElement,
     allowDefaultDarkMode: Boolean = false,
-    modules             : List<Module> = emptyList()): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
+    modules             : List<Module> = emptyList()
+): ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules, isNested = true) {
 
     init {
         (injector.instanceOrNull<PointerLocationResolver>() as? PointerLocationResolverImpl)?.also { it.owner = view } // TODO: Find better way to handle this
@@ -180,7 +187,8 @@ private open class ApplicationHolderImpl protected constructor(
     private val root                : HTMLElement,
                 allowDefaultDarkMode: Boolean      = false,
                 modules             : List<Module> = emptyList(),
-    private val isNested            : Boolean      = false): Application {
+    private val isNested            : Boolean      = false
+): Application {
 
     private var focusManager        : FocusManager? = null
 
@@ -207,9 +215,12 @@ private open class ApplicationHolderImpl protected constructor(
     protected var injector = DI.direct {
         extend(previousInjector, copy = Copy.All)
 
-        if (!isNested && root != document.body) {
+        if (!isNested) {
             root.startMonitoringSize()
-            root.tabIndex = 0
+
+            if (root != document.body) {
+                root.tabIndex = 0
+            }
         }
 
         val idPrefix = when (root) {

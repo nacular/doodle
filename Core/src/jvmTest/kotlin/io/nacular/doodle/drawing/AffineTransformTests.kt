@@ -39,10 +39,10 @@ class AffineTransformTests {
 
     @Test fun `point transforms work`() {
         listOf(
-                Point(1, 1) to Vector3D( 1, 1, 0) to Identity,
-                Point(1, 1) to Vector3D( 2, 1, 1) to Identity.scale           (x = 2.0),
-                Point(1, 1) to Vector3D( 1,-1, 1) to Identity.flipVertically  (       ),
-                Point(1, 1) to Vector3D(-1, 1, 1) to Identity.flipHorizontally(       ),
+            Point(1, 1) to Vector3D( 1, 1, 0) to Identity,
+            Point(1, 1) to Vector3D( 2, 1, 0) to Identity.scale           (x = 2.0),
+            Point(1, 1) to Vector3D( 1,-1, 0) to Identity.flipVertically  (       ),
+            Point(1, 1) to Vector3D(-1, 1, 0) to Identity.flipHorizontally(       ),
         ).forEach { (points, transform) ->
             expect(points.second) {
                 transform(points.first)
@@ -56,7 +56,7 @@ class AffineTransformTests {
         val cos   = cos(angle)
         val sin   = sin(angle)
 
-        expect(point.run { Vector3D(x * cos - y * sin, x * sin + y * cos, 1.0) }) {
+        expect(point.run { Vector3D(x * cos - y * sin, x * sin + y * cos, 0.0) }) {
             Identity.rotate(angle)(point)
         }
     }

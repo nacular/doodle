@@ -10,27 +10,13 @@ private val SIZE_OBSERVERS = mutableMapOf<HTMLElement, ResizeObserver>()
 
 internal actual fun HTMLElement.startMonitoringSize() {
     SIZE_OBSERVERS.getOrPut(this) {
-//        try {
-            ResizeObserver { entries, _ ->
-                (0..entries.length).forEach {
-                    entries[it]?.let {
-                        it.target.onresize?.let { it(Event("onresize")) }
-                    }
+        ResizeObserver { entries, _ ->
+            repeat(entries.length) { i ->
+                entries[i]?.let { entry ->
+                    entry.target.onresize?.let { it(Event("onresize")) }
                 }
-            }.also { it.observe(this) }
-
-
-//            val observer = js(
-//         """new ResizeObserver(function(entries) {
-//                for (var i = 0; i < entries.length; ++i) {
-//                    var entry = entries[i]
-//                    if (entry.target.onresize) { entry.target.onresize(new Event("onresize")) }
-//                }
-//            })""")
-//
-//            observer.observe(this)
-
-//        } catch (ignored: Throwable) {}
+            }
+        }.also { it.observe(this) }
     }
 }
 
@@ -228,8 +214,6 @@ internal actual external class Document: JsAny {
     actual fun addEventListener   (to: String, listener: (Event) -> Unit)
     actual fun removeEventListener(to: String, listener: (Event) -> Unit)
     actual fun getSelection       (): Selection?
-//    internal actual fun getCaretFromPoint  (point: Point): CaretPosition?
-//    internal actual fun elementFromPoint   (point: Point): Element?
 
     actual fun createElement  (localName: String): Element
     actual fun createElement  (localName: String, options: ElementCreationOptions): Element
