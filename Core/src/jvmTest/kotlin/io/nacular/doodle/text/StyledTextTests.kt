@@ -12,21 +12,21 @@ import kotlin.test.expect
  */
 class StyledTextTests {
     @Test fun `equals works`  () =
-        expect(StyledText("foo", foreground = ColorPaint(Color.Red))) {
-            StyledText(
+        expect(AnnotatedString("foo", foreground = ColorPaint(Color.Red))) {
+            AnnotatedString(
                 "foo",
                 foreground = ColorPaint(Color.Red)
             )
         }
     @Test fun `hashcode works`() =
-        expect(StyledText("foo", foreground = ColorPaint(Color.Red)).hashCode()) {
-            StyledText(
+        expect(AnnotatedString("foo", foreground = ColorPaint(Color.Red)).hashCode()) {
+            AnnotatedString(
                 "foo",
                 foreground = ColorPaint(Color.Red)
             ).hashCode()
         }
     @Test fun `substring works`() {
-        val text = StyledText("abc").. Red { "def" } .. Black { "ghijk" }
+        val text = AnnotatedString("abc").. Red { "def" } .. Black { "ghijk" }
 
         val text2 = text.subString(3 .. 7)
 

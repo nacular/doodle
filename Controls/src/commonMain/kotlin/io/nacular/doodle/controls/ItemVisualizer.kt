@@ -5,7 +5,7 @@ import io.nacular.doodle.controls.panels.ScrollPanel
 import io.nacular.doodle.controls.text.Label
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 
 /**
  * Provides a mapping between an item and a [View] to represent it.
@@ -39,15 +39,15 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
  * Visualizes Strings using [Label]s.
  */
 public object StringVisualizer: ItemVisualizer<String, Any> {
-    override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.invoke(StyledText(item), previous, context)
+    override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.invoke(AnnotatedString(item), previous, context)
 }
 
 /**
- * Visualizes [StyledText] using [Label]s.
+ * Visualizes [AnnotatedString] using [Label]s.
  */
-public object StyledTextVisualizer: ItemVisualizer<StyledText, Any> {
-    override fun invoke(item: StyledText, previous: View?, context: Any): Label = when (previous) {
-        is Label -> previous.apply { styledText = item }
+public object StyledTextVisualizer: ItemVisualizer<AnnotatedString, Any> {
+    override fun invoke(item: AnnotatedString, previous: View?, context: Any): Label = when (previous) {
+        is Label -> previous.apply { annotatedText = item }
         else     -> Label(item)
     }
 }

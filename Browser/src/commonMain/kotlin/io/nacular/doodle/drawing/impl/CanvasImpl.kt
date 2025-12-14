@@ -61,7 +61,7 @@ import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.splitMatches
@@ -138,7 +138,7 @@ internal open class CanvasImpl(
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>,                 fill: Paint ) = vectorRenderer.wedge(center, radius, sweep, rotation,         fill)
     override fun wedge(center: Point, radius: Double, sweep: Measure<Angle>, rotation: Measure<Angle>, stroke: Stroke, fill: Paint?) = vectorRenderer.wedge(center, radius, sweep, rotation, stroke, fill)
 
-    override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
+    override fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing) {
         when {
             isSimple(text) -> { updateRenderPosition(); completeOperation(createStyledTextGlyph(text, at, textSpacing)) }
             else           -> vectorRenderer.text(text, at, textSpacing)
@@ -230,7 +230,7 @@ internal open class CanvasImpl(
         }
     }
 
-    override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
+    override fun wrapped(text: AnnotatedString, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {
         when {
             isSimple(text) -> {
                 updateRenderPosition()
@@ -387,10 +387,10 @@ internal open class CanvasImpl(
 
     private val Stroke.isSimple: Boolean get() = !visible || (fill.isSimple && (dashes?.size ?: 0) <= 1 && (lineCap == null || lineCap == Square))
 
-    private fun isSimple(text: StyledText): Boolean = text.all { (_,style) ->
-        val simpleForeground = isSimpleText(style.foreground, style.stroke)
-        val simpleBackground = style.background?.isSimple != false
-        val noStroke         = style.stroke == null
+    private fun isSimple(text: AnnotatedString): Boolean = text.all { (_,annotation) ->
+        val simpleForeground = isSimpleText(annotation.foreground, annotation.stroke)
+        val simpleBackground = annotation.background?.isSimple != false
+        val noStroke         = annotation.stroke == null
 
         simpleForeground && simpleBackground && noStroke
     }
@@ -558,7 +558,7 @@ internal open class CanvasImpl(
     )
 
     private fun String.firstWord    (): String     = splitMatches("""\s""".toRegex()).matches.firstOrNull()?.match ?: ""
-    private fun StyledText.firstWord(): StyledText = this.subString(0 .. text.firstWord().length)
+    private fun AnnotatedString.firstWord(): AnnotatedString = this.subString(0 .. text.firstWord().length)
 
     private fun createWrappedTextGlyph(
         stroke     : Stroke?,
@@ -590,7 +590,7 @@ internal open class CanvasImpl(
 
     private fun lineSpacing(lineSpacing: Float, font: Font?) = lineSpacing.takeIf { it >= 0f } ?: lineHeightDetector.lineHeight(font)
 
-    private fun createStyledTextGlyph(text: StyledText, at: Point, textSpacing: TextSpacing) = textFactory.create(
+    private fun createStyledTextGlyph(text: AnnotatedString, at: Point, textSpacing: TextSpacing) = textFactory.create(
         text        = text,
         lineSpacing = lineHeightDetector.lineHeight(text.maxFont),
         textSpacing = textSpacing,
@@ -599,9 +599,9 @@ internal open class CanvasImpl(
         style.translate(at)
     }
 
-    private val StyledText.maxFont: Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
+    private val AnnotatedString.maxFont: Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
 
-    private fun createWrappedStyleTextGlyph(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
+    private fun createWrappedStyleTextGlyph(text: AnnotatedString, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
         val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), textSpacing) else 0.0
 
         val element = textFactory.wrapped(

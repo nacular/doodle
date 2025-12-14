@@ -11,7 +11,7 @@ import io.nacular.doodle.drawing.Color.Companion.Red
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.text.rangeTo
 import kotlin.test.Test
@@ -35,10 +35,10 @@ class LabelTests {
     fun `set styled text`() {
         Label().let { label ->
             styledText().let {
-                label.styledText = it
+                label.annotatedText = it
 
                 assertEquals(it.text, label.text)
-                assertEquals(it, label.styledText)
+                assertEquals(it, label.annotatedText)
             }
         }
     }
@@ -49,7 +49,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(textSize)
-            it.styledText = styledText()
+            it.annotatedText = styledText()
 
             assertEquals(textSize, it.idealSize)
         }
@@ -61,7 +61,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.styledText = styledText()
+            it.annotatedText = styledText()
             it.wrapsWords = true
 
             assertEquals(wrappedSize, it.idealSize)
@@ -74,7 +74,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(textSize)
-            it.styledText = styledText()
+            it.annotatedText = styledText()
             it.suggestSize(Empty)
 
             assertEquals(textSize, it.idealSize)
@@ -87,7 +87,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.styledText = styledText()
+            it.annotatedText = styledText()
             it.wrapsWords = true
             it.suggestSize(Empty)
 
@@ -101,7 +101,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.styledText = styledText()
+            it.annotatedText = styledText()
             it.wrapsWords = true
             it.forceSize(Empty)
 
@@ -114,17 +114,17 @@ class LabelTests {
         Label().apply {
             val rawStyledText = "blank ".. Red { "red" } .. " blank"
 
-            styledText = rawStyledText
+            annotatedText = rawStyledText
 
             listOf(Red, Blue).forEach {
                 foregroundColor = it
 
-                expect(it { rawStyledText }) { styledText }
+                expect(it { rawStyledText }) { annotatedText }
             }
 
             foregroundColor = null
 
-            expect(rawStyledText) { styledText }
+            expect(rawStyledText) { annotatedText }
         }
     }
 
@@ -136,21 +136,21 @@ class LabelTests {
             val font3         = mockk<Font>()
             val rawStyledText = "blank ".. font1 { "font1" } .. " blank"
 
-            styledText = rawStyledText
+            annotatedText = rawStyledText
 
             listOf(font2, font3).forEach {
                 font = it
 
-                expect(it { rawStyledText }) { styledText }
+                expect(it { rawStyledText }) { annotatedText }
             }
 
             font = null
 
-            expect(rawStyledText) { styledText }
+            expect(rawStyledText) { annotatedText }
         }
     }
 
-    private fun styledText(): StyledText {
+    private fun styledText(): AnnotatedString {
         val font = mockk<Font>()
 
         return "foo bar "..font {"some simple" }.." text"

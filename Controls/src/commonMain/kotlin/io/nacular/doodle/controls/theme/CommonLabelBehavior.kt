@@ -6,14 +6,13 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.rect
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.text.Style
+import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextDecoration
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.ChangeObserver
@@ -96,19 +95,19 @@ public open class CommonLabelBehavior(
             }
 
             val renderedText = when {
-                view.enabled -> styledText
-                else         -> styledText.mapStyle {
-                    object: Style {
-                        override val font       get() = it.font
-                        override val foreground get() = when (val paint = it.foreground) {
+                view.enabled -> annotatedText
+                else         -> annotatedText.mapStyle {
+                    Annotation(
+                        font = it.font,
+                        foreground = when (val paint = it.foreground) {
                             is ColorPaint -> disabledColorMapper(paint.color).paint
                             else          -> paint
-                        }
-                        override val background get() = when (val paint = it.background) {
+                        },
+                        background = when (val paint = it.background) {
                             is ColorPaint -> disabledColorMapper(paint.color).paint
                             else          -> paint
-                        }
-                        override val decoration: TextDecoration? get() = when (val d = it.decoration) {
+                        },
+                        decoration = when (val d = it.decoration) {
                             null -> null
                             else -> TextDecoration(
                                 d.lines,
@@ -116,10 +115,10 @@ public open class CommonLabelBehavior(
                                 d.style,
                                 d.thickness
                             )
-                        }
-
-                        override val stroke: Stroke? get() = it.stroke
-                    }
+                        },
+                        stroke     = it.stroke,
+                        selectable = it.selectable
+                    )
                 }
             }
 
@@ -135,7 +134,7 @@ public open class CommonLabelBehavior(
     override fun measureText(label: Label): Size = measureText(label, label.width)
 
     override fun measureText(label: Label, assumeWidth: Double): Size = when {
-        label.wrapsWords -> textMetrics.size(label.styledText, assumeWidth, lineSpacing = label.lineSpacing, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
-        else             -> textMetrics.size(label.styledText, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
+        label.wrapsWords -> textMetrics.size(label.annotatedText, assumeWidth, lineSpacing = label.lineSpacing, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
+        else             -> textMetrics.size(label.annotatedText, textSpacing = TextSpacing(letterSpacing = label.letterSpacing, wordSpacing = label.wordSpacing))
     }
 }

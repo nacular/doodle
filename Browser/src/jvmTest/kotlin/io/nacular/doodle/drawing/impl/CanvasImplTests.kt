@@ -53,7 +53,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment.Start
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -333,7 +333,7 @@ class CanvasImplTests {
     }
 
     @Test fun `renders simple styled text`() {
-        val text = StyledText("some text")
+        val text = AnnotatedString("some text")
         val at   = Point(34, 89)
 
         validateRender { renderParent, _, textFactory, _, _ ->
@@ -352,8 +352,8 @@ class CanvasImplTests {
 
     @Test fun `renders complex styled text`() = validateRender { _,_,_,renderer,_ ->
         complexFills.forEach { fill ->
-            val text1 = StyledText("some text", foreground = fill)
-            val text2 = StyledText("some text", background = fill)
+            val text1 = AnnotatedString("some text", foreground = fill)
+            val text2 = AnnotatedString("some text", background = fill)
             val at    = Point(34, 89)
 
             text(text1, at)
@@ -421,7 +421,7 @@ class CanvasImplTests {
     }
 
     @Test fun `renders simple wrapped styled text`() {
-        val text  = StyledText("some text")
+        val text  = AnnotatedString("some text")
         val at    = Point(150, 89)
 
         validateRender { renderParent, _, textFactory, _, _ ->
@@ -449,8 +449,8 @@ class CanvasImplTests {
 
     @Test fun `renders complex wrapped styled text`() = validateRender { _,_,_,renderer,_ ->
         complexFills.forEach { fill ->
-            val text1 = StyledText("some text", foreground = fill)
-            val text2 = StyledText("some text", background = fill)
+            val text1 = AnnotatedString("some text", foreground = fill)
+            val text2 = AnnotatedString("some text", background = fill)
             val at    = Point(150, 89)
 
             wrapped(text = text1, at = at, width = 100.0, indent = 50.0)

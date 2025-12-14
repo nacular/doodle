@@ -23,7 +23,7 @@ import io.nacular.doodle.drawing.impl.RealGraphicsSurface
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Task
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.TextAlignment.Start
 
@@ -73,7 +73,7 @@ internal class DocumentImpl(
         }
     }
 
-    override fun inline(text: StyledText) {
+    override fun inline(text: AnnotatedString) {
         root.add(textFactory.wrapped(text, alignment = Start, lineSpacing = 1f, textSpacing = default).apply {
             style.setDomPosition(Static())
             style.setDisplay (Inline())

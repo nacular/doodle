@@ -12,7 +12,7 @@ import io.nacular.doodle.dom.wordSpacing
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
@@ -29,9 +29,9 @@ internal class TextMetricsImpl(
     private val noFontSupport : Boolean = false,
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
-    private data class StyledTextInfo  (val text: StyledText,                    val textSpacing: TextSpacing = default)
+    private data class StyledTextInfo  (val text: AnnotatedString, val textSpacing: TextSpacing = default)
     private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val lineSpacing: Float, val textSpacing: TextSpacing)
-    private data class WrappedStyleInfo(val text: StyledText, val width: Double, val indent: Double,                  val lineSpacing: Float, val textSpacing: TextSpacing)
+    private data class WrappedStyleInfo(val text: AnnotatedString, val width: Double, val indent: Double, val lineSpacing: Float, val textSpacing: TextSpacing)
 
     private val widths              = LeastRecentlyUsedCache<TextInfo,         Double> (maxSize = cacheLength)
     private val styledWidths        = LeastRecentlyUsedCache<StyledTextInfo,   Double> (maxSize = cacheLength)
@@ -52,7 +52,7 @@ internal class TextMetricsImpl(
         textWidth(text, font, textSpacing)
     }
 
-    override fun width(text: StyledText, textSpacing: TextSpacing) = styledWidths.getOrPut(StyledTextInfo(text, textSpacing)) {
+    override fun width(text: AnnotatedString, textSpacing: TextSpacing) = styledWidths.getOrPut(StyledTextInfo(text, textSpacing)) {
         textWidth(text, textSpacing)
     }
 
@@ -67,7 +67,7 @@ internal class TextMetricsImpl(
         elementRuler.width(box)
     }
 
-    override fun width(text: StyledText, width: Double, indent: Double, textSpacing: TextSpacing) = wrappedStyledWidths.getOrPut(
+    override fun width(text: AnnotatedString, width: Double, indent: Double, textSpacing: TextSpacing) = wrappedStyledWidths.getOrPut(
         WrappedStyleInfo(text, width, indent, 1f, textSpacing)
     ) {
         val box = htmlFactory.create<HTMLElement>()
@@ -83,7 +83,7 @@ internal class TextMetricsImpl(
         elementRuler.height(textFactory.create(text.takeUnless { it.isBlank() } ?: " ", font, textSpacing = default))
     }
 
-    override fun height(text: StyledText, textSpacing: TextSpacing) = styledHeights.getOrPut(StyledTextInfo(text, textSpacing)) {
+    override fun height(text: AnnotatedString, textSpacing: TextSpacing) = styledHeights.getOrPut(StyledTextInfo(text, textSpacing)) {
         var maxHeight = 0.0
 
         text.forEach { (string, style) ->
@@ -105,7 +105,7 @@ internal class TextMetricsImpl(
         ))
     }
 
-    override fun height(text: StyledText, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = wrappedStyledHeights.getOrPut(WrappedStyleInfo(text, width, indent, lineSpacing, textSpacing)) {
+    override fun height(text: AnnotatedString, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = wrappedStyledHeights.getOrPut(WrappedStyleInfo(text, width, indent, lineSpacing, textSpacing)) {
         elementRuler.height(textFactory.wrapped(
             text        = text,
             width       = width,
@@ -137,7 +137,7 @@ internal class TextMetricsImpl(
         }
     }
 
-    private fun textWidth(text: StyledText, textSpacing: TextSpacing): Double {
+    private fun textWidth(text: AnnotatedString, textSpacing: TextSpacing): Double {
         var width       = 0.0
         var font        = null as Font?
         var runningText = ""

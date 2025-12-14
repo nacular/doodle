@@ -105,8 +105,8 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
-import io.nacular.doodle.text.Style
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
+import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.IdGenerator
 import io.nacular.doodle.utils.TextAlignment
@@ -322,11 +322,11 @@ internal open class VectorRendererSvg(
         }
     }
 
-    override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
+    override fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing) {
         textInternal(text, at, textSpacing, aligner.verticalOffset(text.text, text.maxFont))
     }
 
-    private fun textInternal(text: StyledText, at: Point, textSpacing: TextSpacing, yOffset: Double) {
+    private fun textInternal(text: AnnotatedString, at: Point, textSpacing: TextSpacing, yOffset: Double) {
         if (text.count > 0) {
             syncShadows  ()
             updateRootSvg() // Done here since present normally does this
@@ -363,8 +363,8 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private val StyledText.maxFont    : Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
-    private val StyledText.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
+    private val AnnotatedString.maxFont    : Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
+    private val AnnotatedString.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
 
     private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
         // shift text down since no other way to get baseline alignment to work
@@ -386,7 +386,7 @@ internal open class VectorRendererSvg(
     ) {
         syncShadows()
 
-        wrappedText(StyledText(text, font, foreground = fill), at, indent, width, alignment, lineSpacing, textSpacing)
+        wrappedText(AnnotatedString(text, font, foreground = fill), at, indent, width, alignment, lineSpacing, textSpacing)
     }
 
     override fun wrapped(
@@ -403,11 +403,11 @@ internal open class VectorRendererSvg(
     ) {
         syncShadows()
 
-        wrappedText(StyledText(text, font, foreground = fill, stroke = stroke), at, indent, width, alignment, lineSpacing, textSpacing)
+        wrappedText(AnnotatedString(text, font, foreground = fill, stroke = stroke), at, indent, width, alignment, lineSpacing, textSpacing)
     }
 
     override fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         at         : Point,
         width      : Double,
         indent     : Double,
@@ -650,7 +650,7 @@ internal open class VectorRendererSvg(
 
             drawTextLines(
                 lines.map {
-                    LineInfo(StyledText(it, font, fill, stroke = stroke), Point(at.x, offsetY), textSpacing.wordSpacing).also {
+                    LineInfo(AnnotatedString(it, font, fill, stroke = stroke), Point(at.x, offsetY), textSpacing.wordSpacing).also {
                         offsetY += lineHeightDetector.lineHeight(font) * (font?.size ?: defaultFontSize)
                     }
                 },
@@ -661,13 +661,13 @@ internal open class VectorRendererSvg(
 
     private class StyledTextInfo(
         val text: SVGTextElement1,
-        val segments: Map<SVGTSpanElement, Style>,
+        val segments: Map<SVGTSpanElement, Annotation>,
         val maxFontSize: Int
     )
 
-    private fun makeStyledText(text: StyledText, at: Point, textSpacing: TextSpacing): StyledTextInfo {
+    private fun makeStyledText(text: AnnotatedString, at: Point, textSpacing: TextSpacing): StyledTextInfo {
         var maxFontSize = defaultFontSize
-        val segments = mutableMapOf<SVGTSpanElement, Style>()
+        val segments = mutableMapOf<SVGTSpanElement, Annotation>()
 
         val textElement = createOrUse<SVGTextElement1>("text").apply {
             setPosition(at)
@@ -683,24 +683,24 @@ internal open class VectorRendererSvg(
         return StyledTextInfo(textElement, segments, maxFontSize)
     }
 
-    private fun makeTextSegment(text: String, style: Style, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
+    private fun makeTextSegment(text: String, annotation: Annotation, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
         if (textContent != text) {
             textContent = text
         }
 
         this.style.whiteSpace = "pre"
         this.style.setTextSpacing(textSpacing)
-        this.style.setTextDecoration(style.decoration)
+        this.style.setTextDecoration(annotation.decoration)
 
-        style.font?.let {
+        annotation.font?.let {
             this.style.setFont(it)
         }
     }
 
-    private data class LineInfo(val text: StyledText, val position: Point, val wordSpacing: Double)
+    private data class LineInfo(val text: AnnotatedString, val position: Point, val wordSpacing: Double)
 
     private fun wrappedText(
-        text       : StyledText,
+        text       : AnnotatedString,
         at         : Point,
         indent     : Double,
         width      : Double,
@@ -710,8 +710,8 @@ internal open class VectorRendererSvg(
     ): Point {
         val lines              = mutableListOf<LineInfo>()
         val (words, remaining) = text.text.splitMatches("""\s""".toRegex()).run { matches to remaining }
-        var line               = StyledText("")
-        var lineTest           : StyledText
+        var line               = AnnotatedString("")
+        var lineTest           : AnnotatedString
         var currentPoint       = at + Point(x = indent)
         var endX               = currentPoint.x
         var currentLineWidth   = 0.0
@@ -736,7 +736,7 @@ internal open class VectorRendererSvg(
         var offsetY     = 0.0
         var maxFontSize = 0
 
-        val handleWord = { delimiter: StyledText, word: StyledText ->
+        val handleWord = { delimiter: AnnotatedString, word: AnnotatedString ->
             lineTest      = line.copy() + delimiter.copy() + word.copy()
             val lineWidth = textMetrics.width(lineTest, textSpacing)
 
@@ -781,7 +781,7 @@ internal open class VectorRendererSvg(
         }
 
         var startCharIndex    = 0
-        var previousDelimiter = StyledText("")
+        var previousDelimiter = AnnotatedString("")
 
         for (chunk in words) {
             val word        = text.subString(startCharIndex until startCharIndex + chunk.match.length)

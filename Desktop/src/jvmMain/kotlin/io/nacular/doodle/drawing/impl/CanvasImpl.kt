@@ -47,7 +47,8 @@ import io.nacular.doodle.skia.skia
 import io.nacular.doodle.skia.skia33
 import io.nacular.doodle.skia.skia44
 import io.nacular.doodle.skia.textStyle
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
+import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextDecoration.Line.Over
 import io.nacular.doodle.text.TextDecoration.Line.Through
 import io.nacular.doodle.text.TextDecoration.Line.Under
@@ -238,9 +239,9 @@ internal class CanvasImpl(
         stroke     : Stroke,
         fill       : Paint?,
         textSpacing: TextSpacing
-    ) = text(StyledText(text, font, fill, stroke = stroke), at, textSpacing)
+    ) = text(AnnotatedString(text, font, fill, stroke = stroke), at, textSpacing)
 
-    override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
+    override fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing) {
         val shadowParagraph by lazy { text.fill(textSpacing = textSpacing) }
 
         draw({
@@ -298,7 +299,7 @@ internal class CanvasImpl(
     }
 
     override fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         at         : Point,
         width      : Double,
         indent     : Double,
@@ -657,9 +658,9 @@ internal class CanvasImpl(
     }
 
     private fun drawWithBlurredBackground(
-        text  : StyledText,
+        text  : AnnotatedString,
         at    : Point,
-        block : (StyledText, TextStyle.(io.nacular.doodle.text.Style) -> Unit) -> Paragraph,
+        block : (AnnotatedString, TextStyle.(Annotation) -> Unit) -> Paragraph,
         fill  : () -> Paragraph,
         stroke: () -> Paragraph,
     ) {
@@ -756,7 +757,7 @@ internal class CanvasImpl(
         return ImageFilter.makeBlend(BlendMode.SRC_IN, bg = null, f3, crop = null)
     }
 
-    private fun StyledText.fill(
+    private fun AnnotatedString.fill(
         alignment  : TextAlignment = Start,
         lineHeight : Float         = 1f,
         textSpacing: TextSpacing,
@@ -785,7 +786,7 @@ internal class CanvasImpl(
         }
     }
 
-    private fun StyledText.stroke(
+    private fun AnnotatedString.stroke(
         alignment  : TextAlignment = Start,
         lineHeight : Float         = 1f,
         textSpacing: TextSpacing,
@@ -795,13 +796,13 @@ internal class CanvasImpl(
         foreground = it.stroke?.skia() ?: Transparent.paint.skia()
     }
 
-    private fun StyledText.paragraph(
+    private fun AnnotatedString.paragraph(
         alignment  : TextAlignment = Start,
         lineHeight : Float         = 1f,
         textSpacing: TextSpacing,
         indent     : Double        = 0.0,
         width      : Double?       = null,
-        paint      : TextStyle.(io.nacular.doodle.text.Style) -> Unit,
+        paint      : TextStyle.(Annotation) -> Unit,
     ): Paragraph {
         val builder = ParagraphBuilder(ParagraphStyle().apply {
             this.alignment = alignment.skia
