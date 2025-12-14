@@ -15,7 +15,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.image.Image
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.measured.units.Angle
@@ -52,7 +52,7 @@ private class TestCanvas: Canvas {
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {}
 
-    override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {}
+    override fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing) {}
 
     override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {}
 
@@ -60,7 +60,7 @@ private class TestCanvas: Canvas {
 
     override fun wrapped(text: String, at: Point, width: Double, stroke: Stroke, fill: Paint?, font: Font?, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
 
-    override fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
+    override fun wrapped(text: AnnotatedString, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing) {}
 
     override fun image(image: Image, destination: Rectangle, opacity: Float, radius: Double, source: Rectangle) {}
 

@@ -12,7 +12,7 @@ import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.TextAlignment
@@ -180,7 +180,7 @@ public interface CommonCanvas: Renderer {
      * @param text to draw
      * @param at this point
      */
-    public fun text(text: StyledText, at: Point = Origin, textSpacing: TextSpacing = default)
+    public fun text(text: AnnotatedString, at: Point = Origin, textSpacing: TextSpacing = default)
 
     /**
      * Draws wrapped plain text.
@@ -247,7 +247,7 @@ public interface CommonCanvas: Renderer {
      * @param textSpacing of text
      */
     public fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         at         : Point         = Origin,
         width      : Double,
         indent     : Double        = 0.0,

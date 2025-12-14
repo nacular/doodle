@@ -6,7 +6,7 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.invoke
 import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
@@ -24,26 +24,26 @@ public interface LabelBehavior: Behavior<Label> {
 }
 
 public open class Label(
-    styledText         : StyledText        = StyledText(""),
+    annotatedText         : AnnotatedString        = AnnotatedString(""),
     verticalAlignment  : VerticalAlignment = Middle,
     horizontalAlignment: TextAlignment     = Center
 ): View() {
     /**
      * Text displayed by the Label.
      */
-    public var text: String get() = styledText.text; set(new) {
-        styledText = StyledText(new)
+    public var text: String get() = annotatedText.text; set(new) {
+        annotatedText = AnnotatedString(new)
     }
 
     // this a clone of actualStyledText with the Label's styling applied
-    private var visibleStyledText = styledText; set(value) {
+    private var visibleStyledText = annotatedText; set(value) {
         field = value
         foregroundColor?.invoke { field }
         font?.invoke            { field }
     }
 
     // this is the styled-text that is set by a caller
-    private var actualStyledText = styledText; set(new) {
+    private var actualStyledText = annotatedText; set(new) {
         val old           = visibleStyledText
         field             = new
         visibleStyledText = field.copy()
@@ -57,7 +57,7 @@ public open class Label(
     /**
      * Text displayed by the label with styles.
      */
-    public var styledText: StyledText get() = visibleStyledText; set(new) {
+    public var annotatedText: AnnotatedString get() = visibleStyledText; set(new) {
         actualStyledText = new
     }
 
@@ -173,12 +173,12 @@ public open class Label(
             text               : String,
             verticalAlignment  : VerticalAlignment = Middle,
             horizontalAlignment: TextAlignment     = Center,
-        ): Label = Label(StyledText(text), verticalAlignment, horizontalAlignment)
+        ): Label = Label(AnnotatedString(text), verticalAlignment, horizontalAlignment)
 
         public operator fun invoke(
-            styledText         : StyledText        = StyledText(""),
+            annotatedText         : AnnotatedString        = AnnotatedString(""),
             verticalAlignment  : VerticalAlignment = Middle,
             horizontalAlignment: TextAlignment     = Center,
-        ): Label = Label(styledText, verticalAlignment, horizontalAlignment)
+        ): Label = Label(annotatedText, verticalAlignment, horizontalAlignment)
     }
 }

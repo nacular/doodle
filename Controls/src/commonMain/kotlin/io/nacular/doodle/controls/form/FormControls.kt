@@ -65,7 +65,7 @@ import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.CharInterpolator
 import io.nacular.doodle.utils.Encoder
@@ -263,7 +263,7 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
  *
  * @param text used to annotate the switch
  */
-public fun switch(text: StyledText): FieldVisualizer<Boolean> = switch(Label(text))
+public fun switch(text: AnnotatedString): FieldVisualizer<Boolean> = switch(Label(text))
 
 /**
  * Creates a [Switch] control that is bound to a [Field] (of type [Boolean]).
@@ -2560,7 +2560,7 @@ public class NamedConfig internal constructor(public val label: Label) {
  *
  * @see labeled
  */
-public sealed class RequiredIndicatorStyle(internal val text: StyledText)
+public sealed class RequiredIndicatorStyle(internal val text: AnnotatedString)
 
 /**
  * Always appends the indicator.
@@ -2568,11 +2568,11 @@ public sealed class RequiredIndicatorStyle(internal val text: StyledText)
  * @see labeled
  * @param text to append to field name
  */
-public class Always(text: StyledText): RequiredIndicatorStyle(text) {
+public class Always(text: AnnotatedString): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String = "*"): this(StyledText(text))
+    public constructor(text: String = "*"): this(AnnotatedString(text))
 }
 
 /**
@@ -2581,11 +2581,11 @@ public class Always(text: StyledText): RequiredIndicatorStyle(text) {
  * @see labeled
  * @param text to append to field name
  */
-public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
+public class WhenInvalid(text: AnnotatedString): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String = "*"): this(StyledText(text))
+    public constructor(text: String = "*"): this(AnnotatedString(text))
 }
 
 /**
@@ -2596,11 +2596,11 @@ public class WhenInvalid(text: StyledText): RequiredIndicatorStyle(text) {
  * @param text to append to field name
  * @param focusTarget to monitor for focus events, or `null` if the [labeled] content is the right target.
  */
-public class WhenInvalidFocusLost(text: StyledText, internal val focusTarget: View? = null): RequiredIndicatorStyle(text) {
+public class WhenInvalidFocusLost(text: AnnotatedString, internal val focusTarget: View? = null): RequiredIndicatorStyle(text) {
     /**
      * @param text to append to field name
      */
-    public constructor(text: String = "*"): this(StyledText(text))
+    public constructor(text: String = "*"): this(AnnotatedString(text))
 }
 
 /**
@@ -2610,14 +2610,14 @@ public class WhenInvalidFocusLost(text: StyledText, internal val focusTarget: Vi
  * @see labeled
  * @param text to append to field name
  */
-public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
+public class WhenManuallySet(text: AnnotatedString): RequiredIndicatorStyle(text) {
 
     internal val indicatorVisibilityChanged: ChangeObserversImpl<WhenManuallySet> = ChangeObserversImpl(this)
 
     /**
      * @param text to append to field name
      */
-    public constructor(text: String = "*"): this(StyledText(text))
+    public constructor(text: String = "*"): this(AnnotatedString(text))
 
     /**
      * Used to explicitly set the required indicator's visibility.
@@ -2636,7 +2636,7 @@ public class WhenManuallySet(text: StyledText): RequiredIndicatorStyle(text) {
  * @param visualizer being decorated
  */
 public fun <T> labeled(
-    name        : StyledText,
+    name        : AnnotatedString,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : NamedConfig.() -> FieldVisualizer<T>
 ): FieldVisualizer<T> = field {
@@ -2671,7 +2671,7 @@ public fun <T> labeled(
     name        : String,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : NamedConfig.() -> FieldVisualizer<T>
-): FieldVisualizer<T> = labeled(StyledText(name), showRequired, visualizer)
+): FieldVisualizer<T> = labeled(AnnotatedString(name), showRequired, visualizer)
 
 /**
  * Config for [labeled] controls.
@@ -2705,8 +2705,8 @@ public class LabeledConfig internal constructor(public val name: Label, public v
  * @param visualizer being decorated
  */
 public fun <T> labeled(
-    name        : StyledText,
-    help        : StyledText,
+    name        : AnnotatedString,
+    help        : AnnotatedString,
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : LabeledConfig.() -> FieldVisualizer<T>
 ): FieldVisualizer<T> = field {
@@ -2745,8 +2745,8 @@ public fun <T> labeled(
     showRequired: RequiredIndicatorStyle? = WhenInvalid(),
     visualizer  : LabeledConfig.() -> FieldVisualizer<T>
 ): FieldVisualizer<T> = labeled(
-    StyledText(name),
-    StyledText(help),
+    AnnotatedString(name),
+    AnnotatedString(help),
     showRequired,
     visualizer
 )
@@ -3181,7 +3181,7 @@ private fun <T: Any, M: ListModel<T?>> buildSelectBox(
     }
 }
 
-private class NonInteractiveLabel(text: StyledText): Label(text) {
+private class NonInteractiveLabel(text: AnnotatedString): Label(text) {
     init {
         focusable     = false
         textAlignment = Start
@@ -3230,22 +3230,22 @@ private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26
 private fun <T> FieldInfo<T>.updateRequiredText(
     showRequired: RequiredIndicatorStyle,
     label       : Label,
-    name        : StyledText,
+    name        : AnnotatedString,
     content     : View
 ) {
     if ((showRequired is Always || (showRequired is WhenInvalid && state is Invalid<T>)) && showRequired.text.isNotBlank()) {
-        label.styledText = name.copy() + showRequired.text
+        label.annotatedText = name.copy() + showRequired.text
     }
 
     when (showRequired) {
         is WhenInvalidFocusLost -> (showRequired.focusTarget ?: content).focusChanged += { _,_,focused ->
             if (!focused && state is Invalid<T> && showRequired.text.isNotBlank()) {
-                label.styledText = name.copy() + showRequired.text
+                label.annotatedText = name.copy() + showRequired.text
             }
         }
         is WhenManuallySet -> showRequired.indicatorVisibilityChanged += {
             if (showRequired.indicatorVisible) {
-                label.styledText = name.copy() + showRequired.text
+                label.annotatedText = name.copy() + showRequired.text
             }
         }
         else              -> {}
@@ -3255,8 +3255,8 @@ private fun <T> FieldInfo<T>.updateRequiredText(
         when {
             it.state is Invalid<T> &&
                     showRequired.text.isNotBlank() &&
-                    (showRequired !is WhenInvalidFocusLost || !content.hasFocus) -> label.styledText = name.copy() + showRequired.text
-            showRequired !is Always && showRequired !is WhenManuallySet          -> label.styledText = name.copy()
+                    (showRequired !is WhenInvalidFocusLost || !content.hasFocus) -> label.annotatedText = name.copy() + showRequired.text
+            showRequired !is Always && showRequired !is WhenManuallySet          -> label.annotatedText = name.copy()
         }
     }
 }

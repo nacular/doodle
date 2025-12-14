@@ -8,7 +8,7 @@ import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 
@@ -33,12 +33,12 @@ internal interface VectorRenderer: Renderer {
     fun text(text: String, font: Font? = null, at: Point,                 fill: Paint,         textSpacing: TextSpacing)
     fun text(text: String, font: Font? = null, at: Point, stroke: Stroke, fill: Paint? = null, textSpacing: TextSpacing)
 
-    fun text(text: StyledText, at: Point, textSpacing: TextSpacing)
+    fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing)
 
     fun wrapped(text: String, at: Point, width: Double,                 fill: Paint,         font: Font? = null, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
     fun wrapped(text: String, at: Point, width: Double, stroke: Stroke, fill: Paint? = null, font: Font? = null, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 
-    fun wrapped(text: StyledText, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
+    fun wrapped(text: AnnotatedString, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing)
 }
 
 internal typealias VectorRendererFactory = (CanvasContext) -> VectorRenderer

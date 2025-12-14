@@ -22,7 +22,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
 import io.nacular.doodle.skia.skia
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.theme.native.toAwt
 import io.nacular.doodle.utils.TextAlignment
@@ -202,14 +202,14 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
     override fun ellipse(ellipse: Ellipse, stroke: Stroke, fill: Paint?) = ellipse_(ellipse, stroke,        fill)
 
     override fun text(text: String, font: Font?, at: Point, fill: Paint, textSpacing: TextSpacing) {
-        text(StyledText(text, font, foreground = fill), at, textSpacing)
+        text(AnnotatedString(text, font, foreground = fill), at, textSpacing)
     }
 
     override fun text(text: String, font: Font?, at: Point, stroke: Stroke, fill: Paint?, textSpacing: TextSpacing) {
-        text(StyledText(text, font, foreground = fill), at, textSpacing)
+        text(AnnotatedString(text, font, foreground = fill), at, textSpacing)
     }
 
-    override fun text(text: StyledText, at: Point, textSpacing: TextSpacing) {
+    override fun text(text: AnnotatedString, at: Point, textSpacing: TextSpacing) {
         graphics.drawString(text.attributedString().iterator, at.x.toInt(), at.y.toInt())
     }
 
@@ -224,7 +224,7 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        drawWrappedText(graphics, StyledText(text, font), Rectangle(at.x, at.y, width, height))
+        drawWrappedText(graphics, AnnotatedString(text, font), Rectangle(at.x, at.y, width, height))
     }
 
     override fun wrapped(
@@ -239,11 +239,11 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) {
-        drawWrappedText(graphics, StyledText(text, font), Rectangle(at.x, at.y, width, height))
+        drawWrappedText(graphics, AnnotatedString(text, font), Rectangle(at.x, at.y, width, height))
     }
 
     override fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         at         : Point,
         width      : Double,
         indent     : Double,
@@ -348,14 +348,14 @@ internal class SwingCanvas(private val graphics: Graphics2D, private val default
         graphics.clip = oldClip
     }
 
-    private fun drawWrappedText(g: Graphics2D, text: StyledText, bounds: Rectangle) {
+    private fun drawWrappedText(g: Graphics2D, text: AnnotatedString, bounds: Rectangle) {
         val context  = FontRenderContext(null, true, false)
         val measurer = LineBreakMeasurer(text.attributedString().iterator, context)
 
         measurer.nextLayout(bounds.width.toFloat())
     }
 
-    private fun StyledText.attributedString(textSpacing: TextSpacing = TextSpacing()) = AttributedString(text).apply {
+    private fun AnnotatedString.attributedString(textSpacing: TextSpacing = TextSpacing()) = AttributedString(text).apply {
         var start = 0
 
         forEach {

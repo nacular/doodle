@@ -8,7 +8,7 @@ import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.impl.ElementRulerImpl
 import io.nacular.doodle.dom.setLineHeight
 import io.nacular.doodle.drawing.Font
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 
@@ -34,7 +34,7 @@ internal class TextVerticalAlignerImpl(
 
         var offsetY = (font?.size ?: defaultFontSize).toDouble()
 
-        textFactoryImpl.createBoxed(StyledText(text, font), TextSpacing(), null).also {
+        textFactoryImpl.createBoxed(AnnotatedString(text, font), TextSpacing(), null).also {
             it.style.setLineHeight(lineSpacing)
 
             val (top, height) = elementRuler.measure(it) {

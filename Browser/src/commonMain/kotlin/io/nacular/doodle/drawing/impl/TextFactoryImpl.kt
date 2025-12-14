@@ -25,8 +25,8 @@ import io.nacular.doodle.dom.setWidth
 import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.TextFactory
-import io.nacular.doodle.text.Style
-import io.nacular.doodle.text.StyledText
+import io.nacular.doodle.text.AnnotatedString
+import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 
@@ -62,11 +62,11 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         possible
     ).also { it.style.setLineHeight(lineSpacing) }
 
-    override fun create(text: StyledText, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
+    override fun create(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
-            text.first().also { (text, style) ->
-                return create(text, style.font, textSpacing, possible).also {
-                    applyStyle(it, style)
+            text.first().also { (text, annotation) ->
+                return create(text, annotation.font, textSpacing, possible).also {
+                    applyStyle(it, annotation)
                 }
             }
         }
@@ -75,7 +75,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     }
 
     override fun create(
-        text       : StyledText,
+        text       : AnnotatedString,
         lineSpacing: Float,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
@@ -123,7 +123,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     }
 
     override fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         width      : Double,
         indent     : Double,
         alignment  : TextAlignment,
@@ -142,7 +142,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     }
 
     override fun wrapped(
-        text       : StyledText,
+        text       : AnnotatedString,
         indent     : Double,
         alignment  : TextAlignment,
         lineSpacing: Float,
@@ -165,7 +165,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
     }
 
-    fun createBoxed(text: StyledText, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
+    fun createBoxed(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse("B", possible)
 
         element.clear()
@@ -194,8 +194,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
     }
 
-    private fun applyStyle(element: HTMLElement, style: Style) {
-        style.foreground?.let {
+    private fun applyStyle(element: HTMLElement, annotation: Annotation) {
+        annotation.foreground?.let {
             when (it) {
                 is ColorPaint -> element.style.setColor(it.color)
                 else          -> { /* TODO: Implement */ }
@@ -204,7 +204,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             element.style.setColor(null)
         }
 
-        style.background?.let {
+        annotation.background?.let {
             when (it) {
                 is ColorPaint -> element.style.setBackgroundColor(it.color)
                 else          -> { /* TODO: Implement */ }
@@ -213,8 +213,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             element.style.setBackgroundColor(null)
         }
 
-        element.style.setTextDecoration(style.decoration)
-        element.style.setSelectable    (style.selectable)
+        element.style.setTextDecoration(annotation.decoration)
+        element.style.setSelectable    (annotation.selectable)
     }
 
     private companion object {
