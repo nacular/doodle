@@ -142,9 +142,9 @@ internal class TextMetricsImpl(
         var font        = null as Font?
         var runningText = ""
 
-        text.filter { it.first.isNotBlank() }.forEach { (string, style) ->
+        text.filter { it.first.isNotEmpty() }.forEach { (string, style) ->
             if (style.font != font) {
-                if (runningText.isNotBlank()) {
+                if (runningText.isNotEmpty()) {
                     width += textWidth(runningText, font, textSpacing)
                 }
 
@@ -155,7 +155,7 @@ internal class TextMetricsImpl(
             }
         }
 
-        if (runningText.isNotBlank()) {
+        if (runningText.isNotEmpty()) {
             width += textWidth(runningText, font, textSpacing)
         }
 
