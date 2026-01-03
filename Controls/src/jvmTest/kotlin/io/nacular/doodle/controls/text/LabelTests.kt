@@ -34,7 +34,7 @@ class LabelTests {
     @Test @JsName("setStyledText")
     fun `set styled text`() {
         Label().let { label ->
-            styledText().let {
+            annotatedString().let {
                 label.annotatedText = it
 
                 assertEquals(it.text, label.text)
@@ -49,7 +49,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(textSize)
-            it.annotatedText = styledText()
+            it.annotatedText = annotatedString()
 
             assertEquals(textSize, it.idealSize)
         }
@@ -61,7 +61,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.annotatedText = styledText()
+            it.annotatedText = annotatedString()
             it.wrapsWords = true
 
             assertEquals(wrappedSize, it.idealSize)
@@ -74,7 +74,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(textSize)
-            it.annotatedText = styledText()
+            it.annotatedText = annotatedString()
             it.suggestSize(Empty)
 
             assertEquals(textSize, it.idealSize)
@@ -87,7 +87,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.annotatedText = styledText()
+            it.annotatedText = annotatedString()
             it.wrapsWords = true
             it.suggestSize(Empty)
 
@@ -101,7 +101,7 @@ class LabelTests {
 
         Label().let {
             it.behavior   = createBehavior(wrappedSize)
-            it.annotatedText = styledText()
+            it.annotatedText = annotatedString()
             it.wrapsWords = true
             it.forceSize(Empty)
 
@@ -150,7 +150,7 @@ class LabelTests {
         }
     }
 
-    private fun styledText(): AnnotatedString {
+    private fun annotatedString(): AnnotatedString {
         val font = mockk<Font>()
 
         return "foo bar "..font {"some simple" }.." text"

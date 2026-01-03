@@ -412,12 +412,13 @@ private fun UInt.toHex(): String {
 }
 
 private fun UInt.toRgb(): RGB {
-    require(this <= 0xffffffu) { "hex value must be in 0 .. 0xffffffu" }
+    require(this <= 0xffffffu) { "hex value ($this) must be in 0 .. 0xffffffu" }
 
     return RGB(
-            (this and 0xff0000u shr 16).toUByte(),
-            (this and 0x00ff00u shr  8).toUByte(),
-            (this and 0x0000ffu       ).toUByte())
+        (this and 0xff0000u shr 16).toUByte(),
+        (this and 0x00ff00u shr  8).toUByte(),
+        (this and 0x0000ffu       ).toUByte()
+    )
 }
 
 private class RGB(val red: UByte, var green: UByte, var blue: UByte)

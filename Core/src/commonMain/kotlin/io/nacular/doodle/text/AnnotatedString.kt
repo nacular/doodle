@@ -136,6 +136,30 @@ public class AnnotatedString private constructor(internal val data: MutableList<
         public var decoration: TextDecoration? = decoration; internal set
         public var stroke    : Stroke?         = stroke;     internal set
         public var selectable: Boolean         = selectable; internal set
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Annotation) return false
+
+            if (selectable != other.selectable) return false
+            if (font       != other.font      ) return false
+            if (foreground != other.foreground) return false
+            if (background != other.background) return false
+            if (decoration != other.decoration) return false
+            if (stroke     != other.stroke    ) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = selectable.hashCode()
+            result = 31 * result + (font?.hashCode() ?: 0)
+            result = 31 * result + (foreground?.hashCode() ?: 0)
+            result = 31 * result + (background?.hashCode() ?: 0)
+            result = 31 * result + (decoration?.hashCode() ?: 0)
+            result = 31 * result + (stroke?.hashCode() ?: 0)
+            return result
+        }
     }
 
     internal data class MutablePair<A, B>(var first: A, var second: B) {

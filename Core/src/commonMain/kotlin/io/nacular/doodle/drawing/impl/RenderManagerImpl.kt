@@ -479,8 +479,10 @@ public open class RenderManagerImpl(
                 releaseResources(it.parent, it)
             }
 
-            pendingCleanup[view]?.forEach {
-                releaseResources(view, it)
+            pendingCleanup[view]?.let {
+                do {
+                    releaseResources(view, it.first())
+                } while (it.isNotEmpty())
             }
 
             views               -= view

@@ -16,7 +16,6 @@ import kotlin.math.sqrt
  * A [Shape] defined by a set of line segments that connect to enclose a region.
  */
 public abstract class Polygon: Shape {
-
     /** Points representing the vertices */
     public abstract val points: List<Point>
 
@@ -67,19 +66,54 @@ public abstract class Polygon: Shape {
 
         Rectangle(Point(minX, minY), Size(maxX - minX, maxY - minY))
     }
-}
 
-/**
- * A Polygon with internal angles all <= 180°
- */
-public abstract class ConvexPolygon: Polygon() {
-    private class Line(val start: Point, val end: Point)
+    override val area: Double by lazy { abs(signedArea) }
+
+    public open val centroid: Point by lazy {
+        when {
+            // TODO: Handle self-intersecting case
+//          /*selfIntersecting*/ false -> {
+//              val triangles = (2 until points.size).map { ConvexPolygon(points.first(), points[it - 1], points[it]) }
+//              val centroids = triangles.map { it.centroid }
+//              val areas = triangles.map { it.signedArea }
+//              val totalArea = areas.sum()
+//
+//              Point(
+//                  x = centroids.mapIndexed { index, it -> it.x * areas[index] }.sum() / totalArea,
+//                  y = centroids.mapIndexed { index, it -> it.y * areas[index] }.sum() / totalArea,
+//              )
+//          }
+            else -> {
+                when (points.size) {
+                    3 -> Point(points.sumOf { it.x } / 3, points.sumOf { it.y } / 3)
+                    else -> {
+                        var x = 0.0
+                        var y = 0.0
+                        var i = 0
+
+                        while (i < points.size) {
+                            val ith = points[i]
+                            val jth = points[(i + 1) % points.size]
+
+                            val lastTerm = (ith.x * jth.y - jth.x * ith.y)
+
+                            x += (ith.x + jth.x) * lastTerm
+                            y += (ith.y + jth.y) * lastTerm
+                            ++i
+                        }
+
+                        Point(x, y) / (6 * signedArea)
+                    }
+                }
+            }
+        }
+    }
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
-    override val area: Double by lazy { abs(area) }
+    protected val signedArea: Double by lazy { abs(area) }
 
     public val signedArea: Double by lazy {
-        var area = 0.0              // Accumulates area in the loop
+        var area = 0.0 // Accumulates area in the loop
         var i    = 0
 
         while (i < points.size) {
@@ -92,6 +126,13 @@ public abstract class ConvexPolygon: Polygon() {
 
         area / 2
     }
+}
+
+/**
+ * A Polygon with internal angles all <= 180°
+ */
+public abstract class ConvexPolygon: Polygon() {
+    private class Line(val start: Point, val end: Point)
 
     override val empty: Boolean by lazy { area == 0.0 }
 
