@@ -5,12 +5,12 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Vector2D
+import io.nacular.doodle.geometry.lerp
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.fill
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
-import io.nacular.doodle.utils.lerp
 
 /**
  * [Presenter][CarouselBehavior.Presenter] that shows items in a continuous stream with
@@ -26,82 +26,71 @@ public class LinearPresenter<T>(
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill,
 ): ConstraintBasedPresenter<T>(itemConstraints) {
 
+    private fun PresentedItem.center(carouselSize: Size) = boundsFromConstraint(this, carouselSize, forceSetup = true)
+
+    private fun PresentedItem.leftOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
+        when (orientation) {
+            Horizontal -> it.at(x = rectangle.x - it.width  - spacing(carouselSize))
+            else       -> it.at(y = rectangle.y - it.height - spacing(carouselSize))
+        }
+    }
+
+    private fun PresentedItem.rightOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
+        when (orientation) {
+            Horizontal -> it.at(x = rectangle.right  + spacing(carouselSize))
+            else       -> it.at(y = rectangle.bottom + spacing(carouselSize))
+        }
+    }
+
     override fun present(
         carousel         : Carousel<T, *>,
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (Position) -> PresentedItem?
     ): Presentation {
-        val spacing = spacing(carousel.size)
-        val results = mutableListOf<PresentedItem>()
-
-        var currentPosition = position
-
-        var firstBounds   = null as Rectangle?
-        var currentBounds = null as Rectangle?
-        var nextItem      = null as PresentedItem?
+        val results         = mutableListOf<PresentedItem>()
+        var currentBounds   = null as Rectangle?
+        var selectedBounds  = null as Rectangle?
+        var currentPosition = position as Position?
 
         // FIXME: Handle under/over shooting better
 
-        do {
-            results += (
-                nextItem ?:
-                items(currentPosition) ?:
-                items(currentPosition.next!!.also { currentPosition = it })
-            )!!.apply {
-                bounds = when (val b = currentBounds) {
-                    null -> {
-                        nextItem = currentPosition.next?.let(items)
+        carousel.item(position)?.let { selected ->
+            results += selected
 
-                        when (val n = nextItem) {
-                            null -> boundsFromConstraint(this, carousel.size)
-                            else -> calcBounds(this, n, carousel.size, progressToNext, spacing)
-                        }.also { firstBounds = it }
-                    }
+            var nextCenter   = null as Rectangle?
+            val centerBounds = selected.center(carousel.size)
+            currentPosition  = currentPosition?.next
 
-                    else -> {
-                        nextItem = null
-                        boundsFromConstraint(this, carousel.size, forceSetup = true).run {
-                            when (orientation) {
-                                Horizontal -> at(x = b.right  + spacing)
-                                else       -> at(y = b.bottom + spacing)
-                            }
-                        }
-                    }
-                }
-
+            val nextItem = carousel.item(currentPosition)?.apply {
+                nextCenter    = center(carousel.size)
+                bounds        = lerp(rightOf(nextCenter, centerBounds, carousel.size), nextCenter, progressToNext)
                 currentBounds = bounds
+            }?.also {
+                if (it.bounds.x < carousel.width) results += it
             }
-        } while (
-            currentBounds!!.farEdge + spacing < carousel.size.extent &&
-            currentPosition.next?.let {
-                currentPosition = it
-                if (it == position && currentBounds.x == firstBounds!!.x) null else it
-            } != null
-        )
 
-        currentBounds   = firstBounds
-        currentPosition = position
+            selected.bounds = when (nextItem) {
+                null -> centerBounds
+                else -> lerp(centerBounds, selected.leftOf(centerBounds, nextCenter!!, carousel.size), progressToNext)
+            }
 
-        while (
-            currentBounds!!.offset - spacing > 0 &&
-            currentPosition.previous?.let {
-                currentPosition = it
-                if (it == position && currentBounds.x == firstBounds!!.x) null else it
-            } != null
-        ) {
-            results.add(items(currentPosition)!!.apply {
-                bounds = boundsFromConstraint(this, carousel.size, forceSetup = true).run {
-                    when (orientation) {
-                        Horizontal -> at(x = currentBounds!!.x - width  - spacing)
-                        else       -> at(y = currentBounds!!.y - height - spacing)
-                    }
-                }
-
-                currentBounds = bounds
-            })
+            selectedBounds = selected.bounds
         }
+
+        // Add remaining to right
+        results += currentPosition?.allNext?.asSequence()?.mapNotNull { carousel.item(it)?.apply {
+            bounds        = rightOf(center(carousel.size), currentBounds!!, carousel.size)
+            currentBounds = bounds
+        } }?.takeWhile { it.bounds.x < carousel.size.width }?.toList() ?: emptyList()
+
+        currentBounds = selectedBounds
+
+        // Add remaining to left
+        results += position.allPrevious.asSequence().mapNotNull { carousel.item(it)?.apply {
+            bounds        = leftOf(center(carousel.size), currentBounds!!, carousel.size)
+            currentBounds = bounds
+        } }.takeWhile { it.bounds.right > 0 }.toList()
 
         return Presentation(items = results)
     }
@@ -110,7 +99,6 @@ public class LinearPresenter<T>(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
     ): Distance {
         val spacing = spacing(carousel.size)
 
@@ -119,9 +107,9 @@ public class LinearPresenter<T>(
             else       -> Vector2D(y = 1)
         }
 
-        return when (val current = items(position)) {
+        return when (val current = carousel.item(position)) {
             null -> Distance(direction, 0.0)
-            else -> when (val next = position.next?.let(items)) {
+            else -> when (val next = position.next?.let(carousel::item)) {
                 null -> Distance(direction, 0.0)
                 else -> {
                     val initial                    = boundsFromConstraint(current, carousel.size)
@@ -140,40 +128,6 @@ public class LinearPresenter<T>(
         }
     }
 
-    private val Size.extent: Double get() = when (orientation) {
-        Horizontal -> width
-        else       -> height
-    }
-
-    private val Rectangle.offset: Double get() = when (orientation) {
-        Horizontal -> x
-        else       -> y
-    }
-
-    private val Rectangle.farEdge: Double get() = when (orientation) {
-        Horizontal -> right
-        else       -> bottom
-    }
-
-    private fun calcBounds(item: PresentedItem, nextItem: PresentedItem, viewPort: Size, progressToNext: Float, spacing: Double): Rectangle {
-        val initial = boundsFromConstraint(item, viewPort)
-
-        if (progressToNext == 0f) {
-            return initial
-        }
-
-        val nextItemBoundsWhenSelected = boundsFromConstraint(nextItem, viewPort)
-        val nextItemBounds             = when (orientation) {
-            Horizontal -> nextItemBoundsWhenSelected.at(x = initial.right  + spacing)
-            else       -> nextItemBoundsWhenSelected.at(y = initial.bottom + spacing)
-        }
-
-        return when (orientation) {
-            Horizontal -> initial.at(x = lerp(initial.x, initial.x - (nextItemBounds.x - nextItemBoundsWhenSelected.x), progressToNext))
-            else       -> initial.at(y = lerp(initial.y, initial.y - (nextItemBounds.y - nextItemBoundsWhenSelected.y), progressToNext))
-        }
-    }
-
     public companion object {
         /**
          * Create a new [LinearPresenter].
@@ -183,6 +137,7 @@ public class LinearPresenter<T>(
         public operator fun <T> invoke(
             orientation    : Orientation = Horizontal,
             spacing        : Double,
-            itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill): LinearPresenter<T> = LinearPresenter(orientation, { spacing }, itemConstraints)
+            itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill
+        ): LinearPresenter<T> = LinearPresenter(orientation, { spacing }, itemConstraints)
     }
 }

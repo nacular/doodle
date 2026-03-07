@@ -114,6 +114,8 @@ public open class Carousel<T, M: ListModel<T>>(
         public val itemChanged: Boolean = previous != index || boundsAlreadyChanged
 
         public fun rerenderNow() { view.rerenderNow() }
+
+        public fun idealSize(min: Size, max: Size): Size = view.preferredSize(view, min, max)
     }
 
     /**
@@ -146,6 +148,24 @@ public open class Carousel<T, M: ListModel<T>>(
         override val previous: Position? get() = previousIndex(index)?.let { PositionImpl(it, displayIndex - 1) }
         override val next    : Position? get() = nextIndex    (index)?.let { PositionImpl(it, displayIndex + 1) }
 
+        override val allNext get() = sequence {
+            var result = next
+
+            while (result != null) {
+                yield(result)
+                result = result.next
+            }
+        }.iterator()
+
+        override val allPrevious get() = sequence {
+            var result = previous
+
+            while (result != null) {
+                yield(result)
+                result = result.previous
+            }
+        }.iterator()
+
         override fun compareTo(other: Position) = compareValues(index, other.index)
     }
 
@@ -157,17 +177,15 @@ public open class Carousel<T, M: ListModel<T>>(
         val zOrder   : Int
     )
 
-    private class CarouselItemImpl(
-        index               : Int,
-        selected            : Boolean,
-        override val numItems            : Int,
-        override val targetItem          : Int,
-        override val nearestItem         : Int,
-        override val displayIndex      : Int,
-        override val progressToNextItem  : Float,
-        override val progressToTargetItem: Float,
-        override val previousSelectedItem: Int,
-    ): SimpleIndexedItem(index, selected), CarouselItem
+    private inner class CarouselItemImpl(position: Position, progress: Float): SimpleIndexedItem(position.index, position.index == targetItem), CarouselItem {
+        override val numItems             get() = this@Carousel.numItems
+        override val targetItem           get() = this@Carousel.targetItem
+        override val nearestItem          get() = this@Carousel.nearestItem
+        override val displayIndex               = position.displayIndex
+        override val progressToNextItem   get() = this@Carousel.progressToNextItem
+        override val progressToTargetItem       = progress
+        override val previousSelectedItem get() = this@Carousel.previousSelectedItem
+    }
 
     private class ClipContainer: Container() {
         var clipPath: ClipPath? get() = childrenClipPath; set(new) {
@@ -459,19 +477,7 @@ public open class Carousel<T, M: ListModel<T>>(
                 offsetWithinFrame = moveOffset - previousFrameOffset
 
                 // TODO: Cache this and avoid calling pathToNext if insufficient movement has happened since the last call
-                val toNextFrame = presenter.distanceToNext(this, PositionImpl(nearestItem, 0), offsetWithinFrame) { position ->
-                    model[position.index].getOrNull()?.let {
-                        val dataChild = getItem(position, it, progressToTargetItem)
-                        PresentedItem(
-                            dataChild.previousIndex,
-                            index                = position.index,
-                            view                 = dataChild.view,
-                            cache                = dataChild.cache,
-                            boundsAlreadyChanged = dataChild.boundsChanged,
-                            clipPath = null
-                        )
-                    }
-                }
+                val toNextFrame = presenter.distanceToNext(this, PositionImpl(nearestItem, 0), offsetWithinFrame)
 
                 dataChildren.forEach { it.used = false }
 
@@ -641,6 +647,19 @@ public open class Carousel<T, M: ListModel<T>>(
         behavior?.render(this, canvas)
     }
 
+    internal fun item(at: Position) = model[at.index].getOrNull()?.let {
+        getItem(at, it, progressToTargetItem).run {
+            PresentedItem(
+                view                 = view,
+                index                = at.index,
+                cache                = cache,
+                previous             = previousIndex,
+                clipPath             = null,
+                boundsAlreadyChanged = boundsChanged
+            )
+        }
+    }
+
     internal fun update() {
         if (updating) return
         updating = true
@@ -668,24 +687,7 @@ public open class Carousel<T, M: ListModel<T>>(
             }
 
             presenter?.let { p ->
-                val stage = p.present(
-                    this,
-                    PositionImpl(nearestItem, 0),
-                    progressToNextItem,
-                    supplementaryChildren
-                ) { position ->
-                    model[position.index].getOrNull()?.let {
-                        val dataChild = getItem(position, it, progressToTargetItem)
-                        PresentedItem(
-                            dataChild.previousIndex,
-                            index                = position.index,
-                            view                 = dataChild.view,
-                            cache                = dataChild.cache,
-                            boundsAlreadyChanged = dataChild.boundsChanged,
-                            clipPath = null
-                        )
-                    }
-                }
+                val stage = p.present(this, PositionImpl(nearestItem, 0), progressToNextItem, supplementaryChildren)
 
                 dataChildren.forEach { it.used = false }
 
@@ -849,25 +851,15 @@ public open class Carousel<T, M: ListModel<T>>(
         }
 
         return DataChild(
+            index         = position.index,
+            cache         = recycledChild?.cache,
+            clipPath      = recycledChild?.clipPath,
             previousIndex = recycledChild?.index,
             view          = itemVisualizer(
                 value,
                 recycledChild?.view,
-                CarouselItemImpl(
-                    index                = position.index,
-                    numItems             = numItems,
-                    selected             = position.index == targetItem,
-                    targetItem           = targetItem,
-                    nearestItem          = nearestItem,
-                    displayIndex       = position.displayIndex,
-                    progressToNextItem   = progressToNextItem,
-                    previousSelectedItem = previousSelectedItem,
-                    progressToTargetItem = progress,
-                )
+                CarouselItemImpl(position, progress)
             ),
-            clipPath = recycledChild?.clipPath,
-            index    = position.index,
-            cache    = recycledChild?.cache
         )
     }
 
