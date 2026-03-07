@@ -2,7 +2,6 @@ package io.nacular.doodle.controls.carousel
 
 import io.nacular.doodle.controls.carousel.Carousel.ItemMarkers
 import io.nacular.doodle.controls.carousel.Carousel.PresentedItem
-import io.nacular.doodle.controls.carousel.CarouselBehavior.Presenter
 import io.nacular.doodle.core.Behavior
 import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Vector2D
@@ -42,6 +41,16 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
              * NOTE: The position given might be one seen before if wrapping happens
              */
             public abstract val next: Position?
+
+            /**
+             * an [Iterator] over all remaining [Positions][Presenter.Position]
+             */
+            public abstract val allNext: Iterator<Position>
+
+            /**
+             * an [Iterator] over all previous [Positions][Presenter.Position]
+             */
+            public abstract val allPrevious: Iterator<Position>
         }
 
         /**
@@ -57,7 +66,6 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
          * @param position indicating the item currently in the "selected" position
          * @param progressToNext indicates how close (percent `[0-1]`) the carousel is to the next position
          * @param supplementalViews list of supplemental Views within the Carousel (based on previous calls)
-         * @param items lambda for creating/recycling [PresentedItem]
          * @return a presentation based on the state provided
          */
         public abstract fun present(
@@ -65,7 +73,6 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
             position         : Position,
             progressToNext   : Float,
             supplementalViews: List<View>,
-            items            : (at: Position) -> PresentedItem?
         ): Presentation
 
         public class Distance(public val direction: Vector2D, public val magnitude: Double)
@@ -82,20 +89,23 @@ public interface CarouselBehavior<T>: Behavior<Carousel<T, *>> {
          * @param carousel being updated
          * @param position indicating the item currently in the "selected" position
          * @param offset from the item at [position]
-         * @param items lambda for creating/recycling [PresentedItem]
          * @returns a [Distance] that describes the direction and distance from the current [position] to the next.
          */
         public abstract fun distanceToNext(
             carousel: Carousel<T, *>,
             position: Position,
             offset  : Vector2D,
-            items   : (Position) -> PresentedItem?
         ): Distance
 
         /**
          * Indicate that the stage is outdated and suggest the [Carousel] invoke [present].
          */
         public fun Carousel<T, *>.update(): Unit = update()
+
+        /**
+        * Creates/recycles [PresentedItem] given a [Position]
+        */
+        public fun Carousel<T, *>.item(at: Position?): PresentedItem? = at?.let { item(at) }
     }
 
     /**

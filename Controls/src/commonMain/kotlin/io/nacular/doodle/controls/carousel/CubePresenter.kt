@@ -65,24 +65,23 @@ public class CubePresenter<T>(
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (Position) -> PresentedItem?
     ): Presentation {
         val results              = mutableListOf<PresentedItem>()
         val globalCamera         = camera(carousel.size)
         val newSupplementalViews = mutableListOf<View>()
 
-        val currentItem = (items(position) ?: position.next?.let(items))?.apply {
+        val currentItem = (carousel.item(position) ?: position.next?.let(carousel::item))?.apply {
             setBounds(this, carousel.size)
 
             results += this
         } ?: return Presentation(items = results, newSupplementalViews)
 
-        val capLocation = when {
-            orientation == Horizontal && globalCamera.position.y < currentItem.y             -> Top
-            orientation == Horizontal && globalCamera.position.y > currentItem.bounds.bottom -> Bottom
-            orientation == Vertical   && globalCamera.position.x < currentItem.x             -> Left
-            orientation == Vertical   && globalCamera.position.x > currentItem.bounds.right  -> Right
-            else                                                                             -> null
+        val capLocation = when (orientation) {
+            Horizontal if globalCamera.position.y < currentItem.y             -> Top
+            Horizontal if globalCamera.position.y > currentItem.bounds.bottom -> Bottom
+            Vertical   if globalCamera.position.x < currentItem.x             -> Left
+            Vertical   if globalCamera.position.x > currentItem.bounds.right  -> Right
+            else                                                              -> null
         }
 
         val cap = capLocation?.let {
@@ -102,7 +101,7 @@ public class CubePresenter<T>(
             (orientation == Horizontal && globalCamera.position.x < currentItem.x) ||
             (orientation == Vertical   && globalCamera.position.y < currentItem.y)) {
 
-            position.previous?.let(items)?.let { previousItem ->
+            position.previous?.let(carousel::item)?.let { previousItem ->
                 results += previousItem
 
                 setBounds(previousItem, carousel.size) {
@@ -140,7 +139,7 @@ public class CubePresenter<T>(
 
         var subsequentItem: VisualItem? = null
 
-        when (val next = position.next?.let(items)) {
+        when (val next = position.next?.let(carousel::item)) {
             null -> {
                 currentItem.transform = Identity
 
@@ -219,7 +218,7 @@ public class CubePresenter<T>(
                 subsequentItem = if (
                     (orientation == Horizontal && globalCamera.position.x > currentItem.bounds.right  ) ||
                     (orientation == Vertical   && globalCamera.position.y > currentItem.bounds.bottom)) {
-                    position.next?.next?.let(items)?.let { subsequentItem ->
+                    position.next?.next?.let(carousel::item)?.let { subsequentItem ->
                         results += subsequentItem
 
                         setBounds(subsequentItem, carousel.size) {
@@ -282,7 +281,7 @@ public class CubePresenter<T>(
         }
 
         if (subsequentItem is CubeCap) {
-            newSupplementalViews += subsequentItem as CubeCap
+            newSupplementalViews += subsequentItem
         }
 
         return Presentation(items = results, newSupplementalViews)
@@ -292,7 +291,6 @@ public class CubePresenter<T>(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
     ): Distance = when (orientation) {
         Horizontal -> Distance(Vector2D(x = 1), carousel.width )
         else       -> Distance(Vector2D(y = 1), carousel.height)

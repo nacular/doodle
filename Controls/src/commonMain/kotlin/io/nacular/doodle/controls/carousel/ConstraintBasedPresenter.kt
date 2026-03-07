@@ -19,7 +19,7 @@ public abstract class ConstraintBasedPresenter<T>(
 ): Presenter<T>() {
 
     /**
-     * Sets the bounds of [item] based on the result of [using]. This method
+     * Sets the bounds of [item] based on the result of [adjust]. This method
      * tries to handle cases where the item being constrained adjusts its size after
      * a bounds change. This would be the case for an item that maintains an aspect ratio
      * for example. The calculation is run a second time in these cases to allow any

@@ -23,17 +23,16 @@ public class DissolvePresenter<T>(
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
-        val currentItem = (items(position) ?: items(position.next!!))!!.apply {
+        val currentItem = (carousel.item(position) ?: carousel.item(position.next!!))!!.apply {
             setBounds(this, carousel.size)
 
             results += this
         }
 
-        when (val next = position.next?.let(items)) {
+        when (val next = position.next?.let(carousel::item)) {
             null -> currentItem.opacity = 1f
             else -> next.apply {
                 results += this
@@ -47,12 +46,7 @@ public class DissolvePresenter<T>(
         return Presentation(items = results)
     }
 
-    override fun distanceToNext(
-        carousel: Carousel<T, *>,
-        position: Position,
-        offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
-    ): Distance = when {
+    override fun distanceToNext(carousel: Carousel<T, *>, position: Position, offset: Vector2D): Distance = when {
         offset.x >= offset.y -> Distance(Vector2D(x = 1), carousel.width )
         else                 -> Distance(Vector2D(y = 1), carousel.height)
     }

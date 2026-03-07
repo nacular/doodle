@@ -44,7 +44,7 @@ public open class DampedTransitioner<T>(
     private val dampLevel       : Measure<InverseUnits<Time>> = 10 / seconds
 ): Transitioner<T> {
 
-    private inner class AnimationTask(var task: Task): CompletableImpl() {
+    private class AnimationTask(var task: Task): CompletableImpl() {
         public override fun completed() = super.completed()
 
         override fun cancel() {

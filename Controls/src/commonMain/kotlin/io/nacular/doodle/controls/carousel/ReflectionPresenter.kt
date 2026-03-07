@@ -42,7 +42,6 @@ public class ReflectionPresenter<T>(
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (at: Position) -> PresentedItem?
     ): Presentation {
         val floor              = mutableListOf<View>()
         val results            = mutableListOf<PresentedItem>()
@@ -57,7 +56,7 @@ public class ReflectionPresenter<T>(
         )
         val viewRect = Rectangle(size = carousel.size)
 
-        items(position)?.apply {
+        carousel.item(position)?.apply {
             results += this
             setBounds(this, carousel.size)
             transform = globalTransform
@@ -67,7 +66,7 @@ public class ReflectionPresenter<T>(
             }
         }?.let { current ->
             if (progressToNext != 0f) {
-                reflection(carousel, current, position, items)?.also {
+                reflection(carousel, current, position)?.also {
                     results += it
 
                     if (current.clipPath != null) {
@@ -76,7 +75,7 @@ public class ReflectionPresenter<T>(
                 }
 
                 position.next?.let { nextPosition ->
-                    items(nextPosition)?.apply {
+                    carousel.item(nextPosition)?.apply {
                         results += this
                         setBounds(this, carousel.size) { it.run { at(x = x + carousel.width) } }
                         transform = globalTransform * Identity.rotateY(around = Point(carousel.width, 0), -_90)
@@ -85,7 +84,7 @@ public class ReflectionPresenter<T>(
                             clipPath = PolyClipPath((globalCamera.projection * transform)(viewRect.at(x = carousel.width)))
                         }
 
-                        reflection(carousel, this, nextPosition, items)?.also { reflection ->
+                        reflection(carousel, this, nextPosition)?.also { reflection ->
                             results += reflection
 
                             if (clipPath != null) {
@@ -112,15 +111,14 @@ public class ReflectionPresenter<T>(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
     ): Distance = Distance(Vector2D(x = 1), carousel.width)
 
-    private fun reflection(carousel: Carousel<T, *>, source: PresentedItem, position: Position, items: (at: Position) -> PresentedItem?): PresentedItem? = items(position)?.apply {
+    private fun reflection(carousel: Carousel<T, *>, source: PresentedItem, position: Position): PresentedItem? = carousel.item(position)?.apply {
         bounds    = source.bounds
         transform = source.transform * Identity.flipVertically(at = carousel.height)
     }
 
     private fun getExistingFloor(existingSupplementalViews: List<View>, index: Int) = existingSupplementalViews.getOrNull(index)?.let {
-        if (it is ReflectionPresenter<*>.Floor) it else Floor()
+        it as? ReflectionPresenter<*>.Floor ?: Floor()
     } ?: Floor()
 }

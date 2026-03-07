@@ -40,22 +40,21 @@ public class SlicerPresenter<T>(
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (at: Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
         when (progressToNext) {
-            0f -> items(position)?.apply {
+            0f -> carousel.item(position)?.apply {
                 results += this
                 setBounds(this, carousel.size)
             }
-            1f -> position.next?.let(items)?.apply {
+            1f -> position.next?.let(carousel::item)?.apply {
                 results += this
                 setBounds(this, carousel.size)
             }
             else -> {
                 when (val next = position.next) {
-                    null -> items(position)?.apply {
+                    null -> carousel.item(position)?.apply {
                         results += this
                         setBounds(this, carousel.size)
                     }
@@ -77,7 +76,7 @@ public class SlicerPresenter<T>(
                                 else     -> Rectangle(offset,                 sliceWidth * slice, sliceLength,    sliceWidth + 1)
                             }
 
-                            items(position)?.apply {
+                            carousel.item(position)?.apply {
                                 results  += this
 
                                 when (bounds) {
@@ -101,7 +100,7 @@ public class SlicerPresenter<T>(
                                 clipPath = PolyClipPath(clipRect)
                             }
 
-                            items(next)?.apply {
+                            carousel.item(next)?.apply {
                                 results  += this
                                 when (bounds) {
                                     null -> setBounds(this, carousel.size) {
@@ -137,12 +136,7 @@ public class SlicerPresenter<T>(
         return Presentation(results)
     }
 
-    override fun distanceToNext(
-        carousel: Carousel<T, *>,
-        position: Position,
-        offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
-    ): Distance = when (orientation) {
+    override fun distanceToNext(carousel: Carousel<T, *>, position: Position, offset: Vector2D): Distance = when (orientation) {
         Horizontal -> Distance(Vector2D(x = 1), carousel.width )
         else       -> Distance(Vector2D(y = 1), carousel.height)
     }

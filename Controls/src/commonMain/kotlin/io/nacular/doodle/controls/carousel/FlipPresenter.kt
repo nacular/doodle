@@ -32,14 +32,13 @@ public class FlipPresenter<T>(
         position         : Position,
         progressToNext   : Float,
         supplementalViews: List<View>,
-        items            : (Position) -> PresentedItem?
     ): Presentation {
         val results = mutableListOf<PresentedItem>()
 
         val globalCamera = camera(carousel.size)
         var faceUp       = true
 
-        items(position)?.apply {
+        carousel.item(position)?.apply {
             setBounds(this, carousel.size)
 
             camera    = globalCamera
@@ -58,7 +57,7 @@ public class FlipPresenter<T>(
         }
 
         if (!faceUp) {
-            position.next?.let(items)?.apply {
+            position.next?.let(carousel::item)?.apply {
                 setBounds(this, carousel.size)
                 camera    = globalCamera
                 transform = when (orientation) {
@@ -77,7 +76,6 @@ public class FlipPresenter<T>(
         carousel: Carousel<T, *>,
         position: Position,
         offset  : Vector2D,
-        items   : (Position) -> PresentedItem?
     ): Distance = when (orientation) {
         Horizontal -> Distance(Vector2D(x = 1), carousel.width )
         else       -> Distance(Vector2D(y = 1), carousel.height)
