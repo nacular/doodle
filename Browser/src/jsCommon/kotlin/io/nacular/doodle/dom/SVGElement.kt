@@ -16,6 +16,7 @@ internal actual abstract external class SVGPatternElement       : SVGElement
 internal actual abstract external class SVGGradientElement      : SVGElement
 internal actual abstract external class SVGLinearGradientElement: SVGGradientElement
 internal actual abstract external class SVGRadialGradientElement: SVGGradientElement
+internal actual abstract external class SVGAElement             : SVGElement
 
 internal actual abstract external class SVGGraphicsElement: SVGElement
 

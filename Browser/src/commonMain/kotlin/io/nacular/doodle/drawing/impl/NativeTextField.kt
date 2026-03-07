@@ -147,8 +147,6 @@ internal class NativeTextField(
 
     var size = Empty
 
-    val preferredSize: Size get() = Size(defaultSize.width, (textField.font?.size?.toDouble() ?: defaultSize.height) + 2 * borderSize.height + 4)
-
     private val selection get() = (inputElement.selectionStart ?: 0) .. (inputElement.selectionEnd ?: 0)
 
     private var ignoreSync     = false
@@ -303,6 +301,8 @@ internal class NativeTextField(
             mobileKeyboardManager.show()
         }
     }
+
+    fun preferredSize(min: Size, max: Size): Size = Size(defaultSize.width.coerceIn(min.width, max.width), (textField.font?.size?.toDouble() ?: defaultSize.height) + 2 * borderSize.height + 4)
 
     fun discard() {
         textField.apply {

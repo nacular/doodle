@@ -13,6 +13,7 @@ internal actual abstract class SVGGradientElement      : SVGElement()
 internal actual abstract class SVGGraphicsElement      : SVGElement()
 internal actual abstract class SVGLinearGradientElement: SVGGradientElement()
 internal actual abstract class SVGRadialGradientElement: SVGGradientElement()
+internal actual abstract class SVGAElement             : SVGElement()
 
 @Suppress("FunctionName")
 internal actual fun SVGElement.getBBox_(options: BoundingBoxOptions): DOMRect = getBBox(object: SVGBoundingBoxOptions {

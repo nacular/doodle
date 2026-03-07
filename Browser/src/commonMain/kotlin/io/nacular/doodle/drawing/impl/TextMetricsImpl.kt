@@ -61,7 +61,7 @@ internal class TextMetricsImpl(
     ) {
         val box = htmlFactory.create<HTMLElement>()
 
-        box.appendChild(textFactory.wrapped(text, font, width, indent, alignment = Start, lineSpacing = 1f, textSpacing = textSpacing))
+        box.appendChild(textFactory.wrapped(text, font, url = null, width, indent, alignment = Start, lineSpacing = 1f, textSpacing = textSpacing))
         box.style.setWidth(width)
 
         elementRuler.width(box)
@@ -122,7 +122,7 @@ internal class TextMetricsImpl(
                            (textSpacing.letterSpacing >= 0.0 && noLetterSpacingSupport)
 
         return when {
-            notSupported -> elementRuler.size(textFactory.create(text, font, textSpacing)).width
+            notSupported -> elementRuler.size(textFactory.create(text, font, url = null, textSpacing)).width
             else         -> {
                 val lines = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
 

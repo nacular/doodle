@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing.impl
 
+import io.nacular.doodle.dom.HTMLAnchorElement
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Inline
@@ -31,11 +32,22 @@ import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.utils.TextAlignment
 
 internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactory {
-    override fun create(text: String, font: Font?, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
+    override fun create(text: String, font: Font?, url: String?, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse(TEXT_ELEMENT, possible)
 
-        if (element.textContent != text) {
-            element.textContent = text
+        val subElement = when (url) {
+            null -> element
+            else -> (htmlFactory.createOrUse(A_ELEMENT, possible?.firstChild as? HTMLElement) as HTMLAnchorElement).apply {
+                href = url
+                style.font     = "inherit"
+                style.position = "initial"
+
+                element.appendChild(this)
+            }
+        }
+
+        if (subElement.textContent != text) {
+            subElement.textContent = text
         }
 
         font?.let {
@@ -44,6 +56,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         element.style.setTextSpacing(textSpacing)
         element.style.setSelectable (false      )
+
+        if (url != null) {
+            element.style.pointerEvents = "auto"
+        }
 
         if (element == possible) {
             element.style.setTextDecoration(null)
@@ -55,9 +71,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    override fun create(text: String, font: Font?, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
+    override fun create(text: String, font: Font?, url: String?, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
         text,
         font,
+        url,
         textSpacing,
         possible
     ).also { it.style.setLineHeight(lineSpacing) }
@@ -65,8 +82,8 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     override fun create(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
             text.first().also { (text, annotation) ->
-                return create(text, annotation.font, textSpacing, possible).also {
-                    applyStyle(it, annotation)
+                return create(text, annotation.font, annotation.url, textSpacing, possible).also {
+                    applyAnnotation(it, annotation)
                 }
             }
         }
@@ -84,6 +101,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     override fun wrapped(
         text       : String,
         font       : Font?,
+        url        : String?,
         width      : Double,
         indent     : Double,
         alignment  : TextAlignment,
@@ -92,6 +110,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         possible   : HTMLElement?
     ) = wrapped(
         text        = text,
+        url         = url,
         font        = font,
         indent      = indent,
         alignment   = alignment,
@@ -105,6 +124,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     override fun wrapped(
         text       : String,
         font       : Font?,
+        url        : String?,
         indent     : Double,
         alignment  : TextAlignment,
         lineSpacing: Float,
@@ -112,6 +132,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         possible   : HTMLElement?
     ) = create(
         text        = text,
+        url         = url,
         font        = font,
         possible    = possible,
         textSpacing = textSpacing,
@@ -174,13 +195,13 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         element.style.setBackgroundColor(null)
         element.style.setOverflow(Visible())
 
-        text.forEach { (text, style) ->
-            element.add(create(text, style.font, textSpacing).also { element ->
+        text.forEach { (text, annotation) ->
+            element.add(create(text, annotation.font, annotation.url, textSpacing).also { element ->
                 element.style.setDisplay    (Inline()   )
                 element.style.setDomPosition(Static()   )
                 element.style.setTextSpacing(textSpacing)
 
-                applyStyle(element, style)
+                applyAnnotation(element, annotation)
             })
         }
 
@@ -194,7 +215,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
     }
 
-    private fun applyStyle(element: HTMLElement, annotation: Annotation) {
+    private fun applyAnnotation(element: HTMLElement, annotation: Annotation) {
         annotation.foreground?.let {
             when (it) {
                 is ColorPaint -> element.style.setColor(it.color)
@@ -215,9 +236,14 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
         element.style.setTextDecoration(annotation.decoration)
         element.style.setSelectable    (annotation.selectable)
+
+        if (annotation.url != null) {
+            element.style.pointerEvents = "auto"
+        }
     }
 
     private companion object {
+        private const val A_ELEMENT    = "A"
         private const val TEXT_ELEMENT = "PRE"
     }
 }

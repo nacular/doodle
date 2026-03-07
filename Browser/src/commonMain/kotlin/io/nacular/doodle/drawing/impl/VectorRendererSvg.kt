@@ -4,6 +4,7 @@ import io.nacular.doodle.dom.BoundingBoxOptions
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.Node
+import io.nacular.doodle.dom.SVGAElement
 import io.nacular.doodle.dom.SVGCircleElement
 import io.nacular.doodle.dom.SVGElement
 import io.nacular.doodle.dom.SVGEllipseElement
@@ -338,27 +339,29 @@ internal open class VectorRendererSvg(
                 adjustTextAfterDisplay(it, yOffset)
             }
 
-            textInfo.segments.forEach { (element, style) ->
-                style.foreground?.let {
-                    fillElement(element, it, style.stroke)
+            textInfo.segments.forEach { (element, annotation) ->
+                annotation.foreground?.let {
+                    fillElement(element, it, annotation.stroke)
                 } ?: element.setDefaultFill()
 
-                style.stroke?.let {
+                annotation.stroke?.let {
                     strokeElement(element, it)
                 } ?: element.setStroke(null)
 
-                style.background?.let { paint ->
+                annotation.background?.let { paint ->
                     val bbox = element.getBBox_(BoundingBoxOptions())
 
                     /* The x positioning fails on Webkit b/c of https://bugs.webkit.org/show_bug.cgi?id=211282 */
 
                     makeRect(Rectangle(bbox.x, bbox.y, bbox.width, bbox.height)/*, possible = textInfo.text.previousSibling?.previousSibling*/).also {
-                        fillElement(it, paint, style.stroke)
+                        fillElement(it, paint, annotation.stroke)
                         textInfo.text.parent?.insertBefore(it, textInfo.text.previousSibling ?: textInfo.text)
                     }
                 }
 
-                element.style.setSelectable(style.selectable)
+                element.style.setSelectable(annotation.selectable)
+
+                if (annotation.url != null) element.style.pointerEvents = "auto"
             }
         }
     }
@@ -684,16 +687,28 @@ internal open class VectorRendererSvg(
     }
 
     private fun makeTextSegment(text: String, annotation: Annotation, textSpacing: TextSpacing) = createOrUse<SVGTSpanElement>("tspan").apply {
-        if (textContent != text) {
-            textContent = text
+        val subElement = when (val url = annotation.url) {
+            null -> this
+            else -> (svgFactory<SVGAElement>("a")).also {
+                it.style.font     = "inherit"
+                it.style.position = "initial"
+
+                it.setAttribute("href", url)
+
+                appendChild(it)
+            }
         }
 
-        this.style.whiteSpace = "pre"
-        this.style.setTextSpacing(textSpacing)
-        this.style.setTextDecoration(annotation.decoration)
+        if (subElement.textContent != text) {
+            subElement.textContent = text
+        }
+
+        style.whiteSpace = "pre"
+        style.setTextSpacing(textSpacing)
+        style.setTextDecoration(annotation.decoration)
 
         annotation.font?.let {
-            this.style.setFont(it)
+            style.setFont(it)
         }
     }
 

@@ -33,7 +33,7 @@ private class NativeTextFieldBehaviorWrapper(
     override fun install(view: TextField) {
         super<TextFieldBehavior>.install(view)
 
-        view.preferredSize = { _,_ -> nativePeer.preferredSize }
+        view.preferredSize = { min, max -> nativePeer.preferredSize(min, max) }
     }
 
     override fun uninstall(view: TextField) {
@@ -52,7 +52,7 @@ internal class NativeTextFieldBehavior(nativeTextFieldFactory: NativeTextFieldFa
     override fun install(view: TextField) {
         super.install(view)
 
-        view.preferredSize = { _,_ -> nativePeer.preferredSize }
+        view.preferredSize = { min, max -> nativePeer.preferredSize(min, max) }
     }
 
     override fun render(view: TextField, canvas: Canvas) {
