@@ -93,14 +93,16 @@ public class AnnotatedString private constructor(internal val data: MutableList<
         background: Paint?          = null,
         decoration: TextDecoration? = null,
         stroke    : Stroke?         = null,
-        selectable: Boolean         = false
+        selectable: Boolean         = false,
+        url       : String?         = null,
     ): this(mutableListOf(MutablePair(text, Annotation(
         font       = font,
         foreground = foreground,
         background = background,
         decoration = decoration,
         stroke     = stroke,
-        selectable = selectable
+        selectable = selectable,
+        url        = url
     ))))
 
     /**
@@ -112,6 +114,7 @@ public class AnnotatedString private constructor(internal val data: MutableList<
      * @property decoration for that segment
      * @property stroke     for that segment
      * @property selectable for that segment
+     * @property url        for that segment
      */
     public class Annotation(
         font      : Font?           = null,
@@ -119,7 +122,8 @@ public class AnnotatedString private constructor(internal val data: MutableList<
         background: Paint?          = null,
         decoration: TextDecoration? = null,
         stroke    : Stroke?         = null,
-        selectable: Boolean         = false
+        selectable: Boolean         = false,
+        url       : String?         = null,
     ) {
         internal fun copy(): Annotation = Annotation(
             font       = font,
@@ -128,6 +132,7 @@ public class AnnotatedString private constructor(internal val data: MutableList<
             decoration = decoration,
             stroke     = stroke,
             selectable = selectable,
+            url        = url
         )
 
         public var font      : Font?           = font;       internal set
@@ -136,6 +141,7 @@ public class AnnotatedString private constructor(internal val data: MutableList<
         public var decoration: TextDecoration? = decoration; internal set
         public var stroke    : Stroke?         = stroke;     internal set
         public var selectable: Boolean         = selectable; internal set
+        public var url       : String?         = url;        internal set
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -147,17 +153,19 @@ public class AnnotatedString private constructor(internal val data: MutableList<
             if (background != other.background) return false
             if (decoration != other.decoration) return false
             if (stroke     != other.stroke    ) return false
+            if (url        != other.url       ) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result = selectable.hashCode()
-            result = 31 * result + (font?.hashCode() ?: 0)
+            result = 31 * result + (font?.hashCode      () ?: 0)
             result = 31 * result + (foreground?.hashCode() ?: 0)
             result = 31 * result + (background?.hashCode() ?: 0)
             result = 31 * result + (decoration?.hashCode() ?: 0)
-            result = 31 * result + (stroke?.hashCode() ?: 0)
+            result = 31 * result + (stroke?.hashCode    () ?: 0)
+            result = 31 * result + (url?.hashCode       () ?: 0)
             return result
         }
     }
@@ -249,24 +257,6 @@ public class AnnotatedString private constructor(internal val data: MutableList<
 
         return true
     }
-
-//    internal data class AnnotationImpl(
-//        override var font      : Font?           = null,
-//        override var foreground: Paint?          = null,
-//        override var background: Paint?          = null,
-//        override var decoration: TextDecoration? = null,
-//        override var stroke    : Stroke?         = null,
-//        override var selectable: Boolean         = false,
-//    ): Annotation {
-//        constructor(other: Annotation): this(
-//            font       = other.font,
-//            foreground = other.foreground,
-//            background = other.background,
-//            decoration = other.decoration,
-//            stroke     = other.stroke,
-//            selectable = other.selectable
-//        )
-//    }
 }
 
 /**
@@ -279,6 +269,8 @@ public enum class Target {
     Background,
     Foreground
 }
+
+public operator fun String.rangeTo(styled: AnnotatedString): AnnotatedString = AnnotatedString(this) + styled
 
 // region Font
 
@@ -405,8 +397,6 @@ public operator fun Stroke?.invoke(text: () -> AnnotatedString): AnnotatedString
 
 // region selection
 
-public operator fun String.rangeTo(styled: AnnotatedString): AnnotatedString = AnnotatedString(this) + styled
-
 /**
  * @return [AnnotatedString] that is selectable with the contents returned by [text]
  */
@@ -436,6 +426,42 @@ public fun nonselectable(text: () -> String): AnnotatedString = AnnotatedString(
 public fun nonselectable(text: () -> AnnotatedString): AnnotatedString = text().apply {
     data.forEach { (_, annotation) ->
         annotation.selectable = false
+    }
+}
+
+// endregion
+
+// region url
+
+/**
+ * @return [AnnotatedString] that has a url with the contents returned by [text]
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("addLink")
+public fun link(to: String, text: () -> String): AnnotatedString = AnnotatedString(text = text(), url = to)
+
+/**
+ * @return adds url to the [AnnotatedString] returned by [text].
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public fun link(to: String, text: () -> AnnotatedString): AnnotatedString = text().apply {
+    data.forEach { (_, annotation) ->
+        annotation.url = to
+    }
+}
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("removeLink")
+public fun unlink(text: () -> String): AnnotatedString = AnnotatedString(text = text(), url = null)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public fun unlink(text: () -> AnnotatedString): AnnotatedString = text().apply {
+    data.forEach { (_, annotation) ->
+        annotation.url = null
     }
 }
 

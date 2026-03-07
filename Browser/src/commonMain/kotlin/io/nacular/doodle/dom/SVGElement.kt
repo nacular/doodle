@@ -23,6 +23,7 @@ internal expect abstract external class SVGPatternElement       : SVGElement
 internal expect abstract external class SVGGradientElement      : SVGElement
 internal expect abstract external class SVGLinearGradientElement: SVGGradientElement
 internal expect abstract external class SVGRadialGradientElement: SVGGradientElement
+internal expect abstract external class SVGAElement             : SVGElement
 
 internal class BoundingBoxOptions(
     var fill   : Boolean? = true,

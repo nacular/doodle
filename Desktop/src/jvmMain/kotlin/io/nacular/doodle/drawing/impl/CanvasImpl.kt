@@ -812,9 +812,9 @@ internal class CanvasImpl(
                 builder.addPlaceholder(PlaceholderStyle(indent.toFloat(), 0f, BASELINE, IDEOGRAPHIC, 0f))
             }
 
-            this.forEach { (text, style) ->
-                builder.pushStyle(style.font.newTextStyle.apply {
-                    paint(style)
+            this.forEach { (text, annotation) ->
+                builder.pushStyle(annotation.font.newTextStyle.apply {
+                    paint(annotation)
 
                     if (lineHeight                >= 0f ) { height = lineHeight }
                     if (textSpacing.wordSpacing   >= 0.0) { this.wordSpacing   = textSpacing.wordSpacing.toFloat()   }
