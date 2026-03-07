@@ -2,6 +2,7 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
+import io.nacular.doodle.core.bottom
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.WidthSource.Children
 import io.nacular.doodle.layout.WidthSource.Parent
@@ -25,6 +26,7 @@ public class ListLayout(
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         var maxWidth         = 0.0
         var y                = insets.top
+        var h                = 0.0
         val horizontalInsets = insets.run { left + right  }
 
         views.filter { it.visible }.forEach {
@@ -36,9 +38,10 @@ public class ListLayout(
             it.updateBounds(insets.left, y, Size(widths.first, minHeight), Size(widths.second, maxHeight))
 
             y        += it.bounds.height + spacing
+            h         = it.bottom
             maxWidth  = max(it.bounds.width, maxWidth)
         }
 
-        return Size(maxWidth, y - spacing + insets.bottom)
+        return Size(maxWidth, h + insets.bottom)
     }
 }

@@ -5,6 +5,7 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.core.View
+import io.nacular.doodle.core.position
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -893,7 +894,6 @@ public class Constrainer {
 
         override var bounds          = Rectangle.Empty
         override val visible         = true
-        override val position  get() = bounds.position
         override val idealSize get() = probe?.idealSize ?: Size.Empty
 
         private var x        : Double  = 0.0
@@ -916,29 +916,23 @@ public class Constrainer {
 
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
             bounds = Rectangle(x, y, max.width, max.height)
-            probe?.updateBounds(x, y, min, max)
 
             return bounds.size
         }
 
         override fun updatePosition(x: Double, y: Double) {
             bounds = bounds.at(x, y)
-
-            probe?.updatePosition(x, y)
         }
 
-        override fun updateBounds(block: BoundsUpdateContext.() -> Unit) = when (val p = probe) {
-            null -> {
-                x         = bounds.x
-                y         = bounds.y
-                maxWidth  = null
-                maxHeight = null
+        override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
+            x         = bounds.x
+            y         = bounds.y
+            maxWidth  = null
+            maxHeight = null
 
-                block(this)
+            block(this)
 
-                Rectangle(x, y, maxWidth ?: bounds.width, maxHeight ?: bounds.height).also { bounds = it }.size
-            }
-            else -> p.updateBounds(block).also { bounds = p.bounds }
+            return Rectangle(x, y, maxWidth ?: bounds.width, maxHeight ?: bounds.height).also { bounds = it }.size
         }
 
         override fun toString() = "FakePositionable"

@@ -25,12 +25,12 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
                        verticalAlignment: VerticalAlignment   = Top): this(justification, spacing, spacing, verticalAlignment)
 
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
-        var y            = insets.top
-        var height       = 0.0
-        val itemList     = mutableListOf<Positionable>()
-        var lineWidth    = 0.0
-        var lineHeight   = 0.0
-        val maxLineWidth = current.width - insets.left - insets.right
+        var y              = insets.top
+        var height         = 0.0
+        val itemList       = mutableListOf<Positionable>()
+        var lineWidth      = 0.0
+        var lineHeight     = 0.0
+        val availableWidth = current.width - insets.left - insets.right
 
         views.filter { it.visible }.forEach { child ->
             val childBounds = child.updateBounds(child.bounds.x, child.bounds.y, Size.Empty, Size.Infinite)
@@ -39,7 +39,7 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
 
             val temp = lineWidth + childBounds.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
 
-            if (temp > maxLineWidth) {
+            if (temp > availableWidth) {
                 layoutLine(itemList, current, insets, lineWidth, y, lineHeight)
 
                 itemList.clear()
@@ -84,9 +84,7 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
                 else   -> lineY +  lineHeight - it.bounds.height
             }
 
-            it.bounds.at(startX, y).apply {
-                it.updatePosition(x, y)
-            }
+            it.updatePosition(startX, y)
 
             startX += it.bounds.width + horizontalSpacing
         }

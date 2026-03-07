@@ -13,8 +13,23 @@ import io.nacular.doodle.layout.Insets.Companion.None
  * @see View
  */
 public interface Positionable {
-    /** The current screen location */
-    public val position: Point
+
+    public interface BoundsUpdateContext {
+        public fun setX        (value: Double)
+        public fun setY        (value: Double)
+        public fun setWidth    (value: Double) { setMinWidth(value); setMaxWidth(value) }
+        public fun setWidth    (min: Double, max: Double) { setMinWidth(min); setMaxWidth(max) }
+        public fun setWidth    (within: ClosedFloatingPointRange<Double>): Unit = setWidth(within.start, within.endInclusive)
+        public fun setHeight   (value: Double) { setMinHeight(value); setMaxHeight(value) }
+        public fun setHeigh    (min: Double, max: Double) { setMinHeight(min); setMaxHeight(max) }
+        public fun setHeigh    (within: ClosedFloatingPointRange<Double>): Unit = setHeigh(within.start, within.endInclusive)
+        public fun setPosition (x: Double, y: Double) { setX(x); setY(y) }
+        public fun setPosition (point: Point): Unit = setPosition(point.x, point.y)
+        public fun setMinWidth (value: Double)
+        public fun setMaxWidth (value: Double)
+        public fun setMinHeight(value: Double)
+        public fun setMaxHeight(value: Double)
+    }
 
     /** The current screen location/size */
     public val bounds: Rectangle
@@ -101,17 +116,22 @@ public interface Positionable {
         updateBounds(x, y, size, size)
     }
 
-    public interface BoundsUpdateContext {
-        public fun setX        (value: Double)
-        public fun setY        (value: Double)
-        public fun setMinWidth (value: Double)
-        public fun setMaxWidth (value: Double)
-        public fun setMinHeight(value: Double)
-        public fun setMaxHeight(value: Double)
-    }
-
     public fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size
 }
+
+/** The current screen location */
+public val Positionable.position: Point get() = bounds.position
+public val Positionable.size: Size get() = bounds.size
+
+public val Positionable.x: Double get() = bounds.x
+public val Positionable.y: Double get() = bounds.y
+public val Positionable.width: Double get() = bounds.width
+public val Positionable.height: Double get() = bounds.height
+
+public val Positionable.right: Double get() = bounds.right
+public val Positionable.bottom: Double get() = bounds.bottom
+
+public val Positionable.center: Point get() = bounds.center
 
 /**
  * The result of [Layout.item].
@@ -156,7 +176,7 @@ public interface Layout {
 
     /**
      * Determines the best size to contain the [views] given the constraints. The default implementation relies on [layout]
-     * with current = [max] for the answer.
+     * for the answer.
      *
      * @param views being contained
      * @param min the smallest size to fit the views in

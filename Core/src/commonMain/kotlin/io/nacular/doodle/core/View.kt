@@ -1126,7 +1126,21 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected open fun doLayout(min: Size, current: Size, max: Size) {
         if (!needsLayout) return
 
-        layout?.let { doLayout(it, min = min, max = max, current = current) }
+        layout?.let {
+            doLayout(it, min = min, max = max, current = current)
+
+            val isConstrained = (boundsChangeAttempted as BoundsAttemptObserverPool).any()
+
+            if (min != max || isConstrained) {
+                val prefSize = preferredSize(min, max).coerceIn(min, max)
+
+                if (prefSize != size || isConstrained) {
+                    parent?.let {
+                        renderManager?.layout(it)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -1557,7 +1571,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override val visible   get() = this@View.visible
-        override val position  get() = this@View.newBounds.position
         override val bounds    get() = this@View.newBounds
         override val idealSize get() = this@View.idealSize
 

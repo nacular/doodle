@@ -2,7 +2,7 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.View
+import io.nacular.doodle.core.position
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
@@ -175,8 +175,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
 
 /**
  * [Layout] that stacks children vertically with optional spacing. It scales Views
- * up to fit the parent's width and take up as much vertical room as possible. But
- * it respects [minimum height][View.minimumSize], and won't make Views shorter.
+ * up to fit the parent's width and take up as much vertical room as possible.
  *
  * @param spacing between Views
  */
@@ -184,8 +183,7 @@ public class FlexColumn(spacing: Double): Layout by FlexLayout(orientation = Ver
 
 /**
  * [Layout] that stacks children horizontally with optional spacing. It scales Views
- * up to fit the parent's height and take up as much horizontal room as possible. But
- * it respects [minimum width][View.minimumSize], and won't make Views narrower.
+ * up to fit the parent's height and take up as much horizontal room as possible.
  *
  * @param spacing between Views
  */
