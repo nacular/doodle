@@ -23,7 +23,6 @@ import io.nacular.doodle.layout.constraints.Strength.Companion.Light
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
-import io.nacular.doodle.layout.constraints.Term
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -122,7 +121,6 @@ internal class ReflectionVariable(
     }
 
     override val name     get() = delegate.name
-    override val readOnly get() = invoke()
     override var constrained = false
 
     override fun invoke() = delegate()
@@ -131,7 +129,9 @@ internal class ReflectionVariable(
         delegate.set(mapper(value))
     }
 
-    override fun toTerm(): Term = VariableTerm(this)
+    override fun toTerm(): VariableTerm = VariableTerm(this)
+    override val terms: Array<VariableTerm> by lazy { arrayOf(toTerm()) }
+    override val constant: Double get() = invoke()
 
     override fun toString(): String = when (target) {
         is PositionableView -> target.view.toString().takeIf { it != "[object Object]" } ?: target.view::class.simpleName ?: "??"

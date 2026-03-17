@@ -110,8 +110,6 @@ public abstract class Polygon: Shape {
     }
 
     // https://en.wikipedia.org/wiki/Shoelace_formula
-    protected val signedArea: Double by lazy { abs(area) }
-
     public val signedArea: Double by lazy {
         var area = 0.0 // Accumulates area in the loop
         var i    = 0

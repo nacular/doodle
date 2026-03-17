@@ -296,13 +296,13 @@ class DisplayImplTests {
         val paint     = mockk<Paint>()
 
         verify(exactly = 0) {
-            skiaLayer.needRedraw()
+            skiaLayer.needRender()
         }
 
         display.fill(paint)
 
         verify(exactly = 1) {
-            skiaLayer.needRedraw()
+            skiaLayer.needRender()
         }
 
         val canvas = mockk<Canvas>()

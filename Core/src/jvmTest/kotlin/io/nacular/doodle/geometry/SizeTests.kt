@@ -54,7 +54,7 @@ class SizeTests {
     }
 
     @Test fun `coerce in aspect works`() = listOf(
-        (800 by 600) to (0 by 795) to (793 by 795) to Size(561 * 600.0 / 800, 561.0)
+        (800 by 600) to (0 by 795) to (793 by 795) to Size(795 * 800.0 / 600, 795.0)
     ).forEach { (a, result) ->
         val (b,    max) = a
         val (size, min) = b

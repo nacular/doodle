@@ -194,13 +194,15 @@ public open class ScrollPanel(content: View? = null): View() {
         it.left eq -scroll.x
 
         contentWidthConstraints?.invoke(this, object : IdealSizedProperty() {
+            override val terms      get() = it.width.terms
+            override val constant   get() = it.width.constant
             override val idealValue get() = it.idealWidth
-            override val readOnly   get() = it.width.readOnly
             override fun toTerm()         = it.width.toTerm()
         })
         contentHeightConstraints?.invoke(this, object : IdealSizedProperty() {
+            override val terms      get() = it.height.terms
+            override val constant   get() = it.height.constant
             override val idealValue get() = it.idealHeight
-            override val readOnly   get() = it.height.readOnly
             override fun toTerm()         = it.height.toTerm()
         })
     }
