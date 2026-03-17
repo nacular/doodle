@@ -496,20 +496,15 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * @param max the largest size this View is allowed to be
      * @return a value that respects [min] and [max]
      */
-    internal fun preferredSize_(min: Size, max: Size): Size {
-        allowedMinSize = min.coerceIn(Empty,          Infinite)
-        allowedMaxSize = max.coerceIn(allowedMinSize, Infinite)
+    internal fun preferredSize_(min: Size, max: Size): Size = when (min) {
+        max  -> min
+        else -> {
+            val prefSize = preferredSize(allowedMinSize, allowedMaxSize)
 
-        return when (min) {
-            max  -> min
-            else -> {
-                val prefSize = preferredSize(allowedMinSize, allowedMaxSize)
-
-                when (val r = sizeAuditor) {
-                    null -> prefSize
-                    else -> r(this, size, prefSize, allowedMinSize, allowedMaxSize)
-                }.coerceIn(allowedMinSize, allowedMaxSize)
-            }
+            when (val r = sizeAuditor) {
+                null -> prefSize
+                else -> r(this, size, prefSize, allowedMinSize, allowedMaxSize)
+            }.coerceIn(allowedMinSize, allowedMaxSize)
         }
     }
 
@@ -1554,6 +1549,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal inner class PositionableView: Positionable, BoundsUpdateContext {
+        var persist: Boolean by observable(true) { _,new ->
+            if (new) tempBounds = null
+        }
+
         val view get() = this@View
 
         private var x        : Double  = view.x
@@ -1571,21 +1570,24 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override val visible   get() = this@View.visible
-        override val bounds    get() = this@View.newBounds
+        override val bounds    get() = tempBounds ?: this@View.newBounds
         override val idealSize get() = this@View.idealSize
+        private  var tempBounds      = null as Rectangle?
 
         override fun preferredSize(min: Size, max: Size) = this@View.preferredSize(min, max)
 
         override fun contains(point: Point) = point in this@View
 
         override fun updatePosition(x: Double, y: Double) {
-            val size = newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
-
-            actualBounds = Rectangle(x, y, size.width, size.height)
+            updateBounds {
+                setPosition(x, y)
+            }
         }
 
-        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = this@View.preferredSize_(min, max).also {
-            actualBounds = Rectangle(x, y, it.width, it.height)
+        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = updateBounds {
+            setPosition(x, y)
+            setWidth(min.width,  max.width )
+            setHeigh(min.height, max.height)
         }
 
         override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
@@ -1598,28 +1600,35 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
             block(this)
 
-            when {
-                minWidth == null && maxWidth == null && minHeight == null && maxHeight == null -> {
-                    val size = newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
-
-                    actualBounds = Rectangle(x, y, size.width, size.height)
+            return when {
+                minWidth == null && maxWidth == null && minHeight == null && maxHeight == null -> Rectangle(
+                    Point(x, y),
+                    newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
+                )
+                else -> Rectangle(
+                    Point(x, y),
+                    when {
+                        minWidth == null && maxWidth == null -> newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
+                        else -> preferredSize_(
+                            Size(minWidth ?: allowedMinSize.width, minHeight ?: allowedMinSize.height).also {
+                                if (persist) {
+                                    allowedMinSize = it.coerceIn(Empty, Infinite)
+                                }
+                            },
+                            Size(maxWidth ?: allowedMaxSize.width, maxHeight ?: allowedMaxSize.height).also {
+                                if (persist) {
+                                    allowedMaxSize = it.coerceIn(allowedMinSize, Infinite)
+                                }
+                            }
+                        )
+                    }
+                )
+            }.also {
+                when {
+                    persist -> actualBounds = it
+                    else    -> tempBounds   = it
                 }
-                else -> {
-                    val size = this@View.preferredSize_(
-                        Size(minWidth ?: allowedMinSize.width, minHeight ?: allowedMinSize.height),
-                        Size(maxWidth ?: allowedMaxSize.width, maxHeight ?: allowedMaxSize.height)
-                    )
-
-                    actualBounds = Rectangle(
-                        x,
-                        y,
-                        if (minWidth  == null && maxWidth  == null) newBounds.size.coerceIn(allowedMinSize, allowedMaxSize).width  else size.width,
-                        if (minHeight == null && maxHeight == null) newBounds.size.coerceIn(allowedMinSize, allowedMaxSize).height else size.height
-                    )
-                }
-            }
-
-            return actualBounds.size
+            }.size
         }
 
         override fun toString() = view.toString()
@@ -1676,17 +1685,30 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 null -> newBounds.size
                 else -> when (val s = preferredSizeCache(min, max)) {
                     null                                               -> {
+                        var needsReset = mutableSetOf<PositionableView>()
+
                         l.preferredSize(
-                            views   = children.asSequence().map { it.positionable },
+                            views   = children.asSequence().map {
+                                it.positionable.also {
+                                    if (it.persist) {
+                                        needsReset.add(it)
+                                        it.persist = false
+                                    }
+                                }
+                            },
                             min     = min,
                             max     = max,
-                            current = newBounds.size.coerceIn(min, max),
+                            current = size.coerceIn(min, max),
                             insets  = insets
-                        ).coerceIn(min, max).also {
+                        ).also {
+                            println("${this::class.simpleName}.idealSize -> $it -> ${it.coerceIn(min, max)}")
+                        }.coerceIn(min, max).also {
                             when {
                                 min == Empty && max == Infinite -> idealSizeCache = it
                                 else                            -> preferredSizeCache[min to max] = it
                             }
+                        }.also {
+                            needsReset.forEach { it.persist = true }
                         }
                     }
                     else -> s

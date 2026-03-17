@@ -15,6 +15,7 @@ import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
@@ -188,14 +189,7 @@ public abstract class ConstraintLayout internal constructor(): Layout {
 /**
  * Simple value within a [Bounds] set.
  */
-public abstract class Property internal constructor() {
-    /**
-     * Provides the Property's value directly, and does not treat it as
-     * a variable when used in a [Constraint]. This means the Property won't be
-     * altered to try and satisfy the constraint.
-     */
-    public abstract val readOnly: Double
-
+public abstract class Property internal constructor(): Expression() {
     internal abstract fun toTerm(): Term
 }
 
@@ -417,15 +411,15 @@ public class ConstraintDslContext internal constructor() {
      */
     public val Property.preserve: Result<Constraint> get() = this eq this.readOnly
 
-//    public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
-//    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
-//    public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
-//    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
-//
-//    public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
-//    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
-//    public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
-//    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
+    public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
+    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
+    public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
+    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
+
+    public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
+    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
+    public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
+    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
 
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
@@ -440,18 +434,18 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
-//    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-//    public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
-//    public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
-//    public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
-//
-//    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-//    public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
-//    public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
-//    public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
+    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
+    public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
+    public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
+
+    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
+    public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
+    public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
 
     public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
-    public operator fun Expression.plus(constant: Number    ): Expression = Expression(terms, constant = this.constant + constant.toDouble())
+    public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms, constant = this.constant + constant.toDouble())
     public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
     public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant)
 
@@ -479,56 +473,49 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-//    private class LocalVariable(override val name: String, ) : Variable {
-//        private var value = 0.0
-//        override var constrained = false
-//        override val needsSynthetic = false
-//        override val needsStability = false
-//
-//        override fun invoke() = value
-//
-//        override fun invoke(value: Double) {
-//            this.value = value
-//        }
-//
-//        override fun toString() = name
-//    }
-//
-//    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
-//    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-//    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
-//    public fun min(a: Expression, b: Expression): Expression {
-//        // see: https://or.stackexchange.com/questions/1160/how-to-linearize-min-function-as-a-constraint
-//
-//        val x = VariableTerm(LocalVariable("x"))
-//        val y = VariableTerm(LocalVariable("y"))
-//        val m = 1_000_000_000
-//
-//        x lessEq    a
-//        x lessEq    b
-//        x greaterEq a - m * y
-//        x greaterEq b - m * (1 - y)
-//
-//        return x + 0
-//    }
-//
-//    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
-//    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-//    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
-//    public fun max(a: Expression, b: Expression): Expression {
-//        // see: https://or.stackexchange.com/questions/711/how-to-formulate-linearize-a-maximum-function-in-a-constraint
-//
-//        val x = VariableTerm(LocalVariable("x"))
-//        val y = VariableTerm(LocalVariable("y"))
-//        val m = 1_000_000_000
-//
-//        x greaterEq a
-//        x greaterEq b
-//        x lessEq    a + m * (1 - y)
-//        x lessEq    b + m * y
-//
-//        return x + 0
-//    }
+    private class LocalVariable(override val name: String, ) : Variable {
+        private var  value          = 0.0
+        override var constrained    = false
+        override val needsSynthetic = false
+
+        override fun invoke() = value
+
+        override fun invoke(value: Double) {
+            this.value = value
+        }
+
+        override fun toString() = name
+    }
+
+    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
+    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
+    public fun min(a: Expression, b: Expression): Expression = minOf(a, b)
+    public fun minOf(vararg expressions: Expression): Expression {
+        val x = VariableTerm(LocalVariable("__min_of_$expressions"))
+
+        expressions.forEach {
+            x lessEq    it
+            x greaterEq it strength Weak
+        }
+
+        return x + 0
+    }
+
+    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
+    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
+    public fun max(a: Expression, b: Expression): Expression = maxOf(a, b)
+    public fun maxOf(vararg expressions: Expression): Expression {
+        val x = VariableTerm(LocalVariable("__max_of_$expressions"))
+
+        expressions.forEach {
+            x greaterEq it
+            x lessEq    it strength Weak
+        }
+
+        return x + 0
+    }
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
@@ -542,18 +529,18 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.times(property  : Property  ): Term       = property   * this.toDouble()
     public operator fun Number.times(expression: Expression): Expression = expression * this.toDouble()
 
-//    public fun min(a: Number, b: Term      ): Expression = min(b, a)
-//    public fun min(a: Number, b: Property  ): Expression = min(b, a)
-//    public fun min(a: Number, b: Expression): Expression = min(b, a)
-//
-//    public fun max(a: Number, b: Term      ): Expression = max(b, a)
-//    public fun max(a: Number, b: Property  ): Expression = max(b, a)
-//    public fun max(a: Number, b: Expression): Expression = max(b, a)
+    public fun min(a: Number, b: Term      ): Expression = min(b, a)
+    public fun min(a: Number, b: Property  ): Expression = min(b, a)
+    public fun min(a: Number, b: Expression): Expression = min(b, a)
+
+    public fun max(a: Number, b: Term      ): Expression = max(b, a)
+    public fun max(a: Number, b: Property  ): Expression = max(b, a)
+    public fun max(a: Number, b: Expression): Expression = max(b, a)
 
     public class NonlinearExpressionException : Exception()
 
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
-    public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
+    public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(*terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
     public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
     public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, Required))
 
@@ -868,7 +855,7 @@ public fun <T: Positionable> Iterable<T>.constrain(
 ): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
         this(view.bounds, within(index, view), forceSetup = false, probe = view, using).apply {
-            view.updatePosition(x, y)
+            view.updateBounds(this)
         }
     }
 }

@@ -43,8 +43,10 @@ import kotlin.math.abs
  * @property terms (or variable-coefficient pairs) within the expression
  * @property constant value for the expression
  */
-public open class Expression internal constructor(terms: Array<out Term>, internal val constant: Double = 0.0) {
-    internal val terms = terms.filterIsInstance<VariableTerm>().toTypedArray()
+public abstract class Expression internal constructor() {
+    internal abstract val terms: Array<VariableTerm>
+
+    internal abstract val constant: Double
 
     /**
      * Computed value of this expression
@@ -122,8 +124,12 @@ public open class Expression internal constructor(terms: Array<out Term>, intern
     internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
 
     internal companion object {
-        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = Expression(terms, constant)
+        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = ExpressionImpl(terms, constant)
     }
+}
+
+internal class ExpressionImpl(terms: Array<out Term>, override val constant: Double = 0.0) : Expression() {
+    override val terms: Array<VariableTerm> = terms.filterIsInstance<VariableTerm>().toTypedArray()
 }
 
 /**

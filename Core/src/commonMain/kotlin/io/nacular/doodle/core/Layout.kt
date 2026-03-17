@@ -69,7 +69,7 @@ public interface Positionable {
      *
      * @param position to set
      */
-    public fun updatePosition(position: Point) { updatePosition(position.x, position.y) }
+    public fun updatePosition(position: Point): Unit = updatePosition(position.x, position.y)
 
     /**
      * Asks the item to choose a size within [min] and [max]
@@ -80,7 +80,7 @@ public interface Positionable {
      */
     public fun updateSize(min: Size, max: Size): Size = updateBounds(position.x, position.y, min, max)
 
-    public fun updateSize(size: Size) { updateBounds(Rectangle(position, size)) }
+    public fun updateSize(size: Size) { updateBounds { setWidth(size.width); setHeight(size.height) } }
 
     /**
      * Sets the item's [position] and asks it to choose a size within [min] and [max]
@@ -111,9 +111,11 @@ public interface Positionable {
      * @param height
      */
     public fun updateBounds(x: Double, y: Double, width: Double, height: Double) {
-        val size = Size(width, height)
-
-        updateBounds(x, y, size, size)
+        updateBounds {
+            setPosition(x, y)
+            setWidth(width)
+            setHeight(height)
+        }
     }
 
     public fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size

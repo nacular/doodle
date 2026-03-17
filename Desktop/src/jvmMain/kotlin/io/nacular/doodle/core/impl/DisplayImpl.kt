@@ -162,7 +162,7 @@ internal class DisplayImpl(
     override fun paintNeeded() {
         if ((renderJob == null || renderJob?.isActive != true) && !shutDown){
             renderJob = appScope.launch(uiDispatcher) {
-                skiaLayer.needRedraw()
+                skiaLayer.needRender()
             }
         }
     }

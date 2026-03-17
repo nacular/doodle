@@ -272,86 +272,10 @@ internal class Solver {
         addConstraint(constraint, incrementVariableCounts = true)
     }
 
-    private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
-        if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
-            throw DuplicateConstraintException(constraint)
-        }
-
-        val tag     = Tag()
-
-        try {
-            val row = createRow(constraint, tag)
-            var subject = chooseSubject(row, tag)
-
-            if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
-                subject = when {
-                    !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
-                    else -> tag.marker
-                }
-            }
-
-            when (subject.type) {
-                Invalid -> if (!addWithArtificialVariable(row)) {
-                    throw UnsatisfiableConstraintException(constraint, constraints.keys)
-                }
-
-                else -> {
-                    registerRow(subject, row)
-                    row.solveFor(subject)
-                    substitute(subject, row)
-                }
-            }
-
-            constraints[constraint] = tag
-
-            optimize(objective)
-        } catch (e: ConstraintException) {
-            removeConstraint(constraint, tag)
-
-            throw e
-        }
-
-        if (incrementVariableCounts) {
-            constraint.expression.terms.forEach { term ->
-                varCounts[term.variable] = varCounts.getOrPut(term.variable) { 0 } + 1
-            }
-        }
-    }
-
     fun removeConstraint(constraint: Constraint) {
         val tag = constraints.remove(constraint) ?: throw UnknownConstraintException(constraint)
 
         removeConstraint(constraint, tag)
-    }
-
-
-    private fun removeConstraint(constraint: Constraint, tag: Tag) {
-        removeConstraintEffects(constraint, tag)
-
-        var row = rows[tag.marker]
-
-        when {
-            row != null -> unregisterRow(tag.marker, cleanup = true)
-            else        -> {
-                    row     = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
-                val leaving = rows.entries.find { it.value == row }?.key ?: throw InternalSolverError("internal solver error")
-
-                unregisterRow(leaving, cleanup = true)
-                row.solveFor(leaving, tag.marker)
-                substitute(tag.marker, row)
-            }
-        }
-
-        constraint.expression.reduce().terms.forEach {
-            varCounts.remove(it.variable)?.let { count ->
-                when {
-                    count <= 0 -> vars.remove(it.variable)
-                    else       -> varCounts[it.variable] = count - 1
-                }
-            }
-        }
-
-        optimize(objective)
     }
 
     fun addEditVariable(variable: Variable, strength: Strength) {
@@ -398,6 +322,105 @@ internal class Solver {
         }
     }
 
+    /**
+     * Update the values of the external solver variables.
+     */
+    fun updateVariables() {
+        for ((variable, symbol) in vars) {
+            rows[symbol]?.let {
+                variable(it.constant)
+            }
+        }
+    }
+
+    fun isUnderConstrained(v: Variable): Boolean {
+        val symbol = vars[v     ] ?: return true  // unknown variable = free
+        val row    = rows[symbol] ?: return true  // no row = non-basic = free
+
+        return row.cells.any { (sym, coefficient) ->
+            coefficient != 0.0 && when (sym.type) {
+                Slack    -> sym !in rows.keys  // free slack = inequality has room
+                External -> sym !in rows.keys  // free user variable
+                else     -> false
+            }
+        }
+    }
+
+    private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
+        if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
+            throw DuplicateConstraintException(constraint)
+        }
+
+        val tag     = Tag()
+
+        try {
+            val row = createRow(constraint, tag)
+            var subject = chooseSubject(row, tag)
+
+            if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
+                subject = when {
+                    !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
+                    else -> tag.marker
+                }
+            }
+
+            when (subject.type) {
+                Invalid -> if (!addWithArtificialVariable(row)) {
+                    throw UnsatisfiableConstraintException(constraint, constraints.keys)
+                }
+
+                else -> {
+                    registerRow(subject, row)
+                    row.solveFor(subject)
+                    substitute(subject, row)
+                }
+            }
+
+            constraints[constraint] = tag
+
+            optimize(objective)
+        } catch (e: ConstraintException) {
+            removeConstraint(constraint, tag)
+
+            throw e
+        }
+
+        if (incrementVariableCounts) {
+            constraint.expression.terms.forEach { term ->
+                varCounts[term.variable] = varCounts.getOrPut(term.variable) { 0 } + 1
+            }
+        }
+    }
+
+    private fun removeConstraint(constraint: Constraint, tag: Tag) {
+        removeConstraintEffects(constraint, tag)
+
+        var row = rows[tag.marker]
+
+        when {
+            row != null -> unregisterRow(tag.marker, cleanup = true)
+            else        -> {
+                row     = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
+                val leaving = rows.entries.find { it.value == row }?.key ?: throw InternalSolverError("internal solver error")
+
+                unregisterRow(leaving, cleanup = true)
+                row.solveFor(leaving, tag.marker)
+                substitute(tag.marker, row)
+            }
+        }
+
+        constraint.expression.reduce().terms.forEach {
+            varCounts.remove(it.variable)?.let { count ->
+                when {
+                    count <= 0 -> vars.remove(it.variable)
+                    else       -> varCounts[it.variable] = count - 1
+                }
+            }
+        }
+
+        optimize(objective)
+    }
+
     private fun updateRow(row: Row?, tag: Tag, delta: Double) {
         @Suppress("NAME_SHADOWING") var row = row
 
@@ -435,17 +458,6 @@ internal class Solver {
         }
 
         dualOptimize()
-    }
-
-    /**
-     * Update the values of the external solver variables.
-     */
-    fun updateVariables() {
-        for ((variable, symbol) in vars) {
-            rows[symbol]?.let {
-                variable(it.constant)
-            }
-        }
     }
 
     private fun removeConstraintEffects(constraint: Constraint, tag: Tag) {
