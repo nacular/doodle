@@ -21,8 +21,8 @@ public interface Positionable {
         public fun setWidth    (min: Double, max: Double) { setMinWidth(min); setMaxWidth(max) }
         public fun setWidth    (within: ClosedFloatingPointRange<Double>): Unit = setWidth(within.start, within.endInclusive)
         public fun setHeight   (value: Double) { setMinHeight(value); setMaxHeight(value) }
-        public fun setHeigh    (min: Double, max: Double) { setMinHeight(min); setMaxHeight(max) }
-        public fun setHeigh    (within: ClosedFloatingPointRange<Double>): Unit = setHeigh(within.start, within.endInclusive)
+        public fun setHeight   (min: Double, max: Double) { setMinHeight(min); setMaxHeight(max) }
+        public fun setHeight   (within: ClosedFloatingPointRange<Double>): Unit = setHeight(within.start, within.endInclusive)
         public fun setPosition (x: Double, y: Double) { setX(x); setY(y) }
         public fun setPosition (point: Point): Unit = setPosition(point.x, point.y)
         public fun setMinWidth (value: Double)
