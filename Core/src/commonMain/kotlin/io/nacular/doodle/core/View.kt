@@ -1586,8 +1586,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = updateBounds {
             setPosition(x, y)
-            setWidth(min.width,  max.width )
-            setHeigh(min.height, max.height)
+            setWidth (min.width,  max.width )
+            setHeight(min.height, max.height)
         }
 
         override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
@@ -1700,9 +1700,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                             max     = max,
                             current = size.coerceIn(min, max),
                             insets  = insets
-                        ).also {
-                            println("${this::class.simpleName}.idealSize -> $it -> ${it.coerceIn(min, max)}")
-                        }.coerceIn(min, max).also {
+                        ).coerceIn(min, max).also {
                             when {
                                 min == Empty && max == Infinite -> idealSizeCache = it
                                 else                            -> preferredSizeCache[min to max] = it
