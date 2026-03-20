@@ -359,8 +359,8 @@ public class DuplicateConstraintException(public val constraint: Constraint): Co
  * Indicates a [Constraint] is unsatisfiable.
  */
 public class UnsatisfiableConstraintException(
-    public val constraint: Constraint,
-    public val existingConstraints: Collection<Constraint>
+    public val constraint         : Constraint,
+               existingConstraints: Collection<Constraint>
 ): ConstraintException("""
     Failed Constraint: $constraint
     
@@ -487,12 +487,12 @@ public class ConstraintDslContext internal constructor() {
         override fun toString() = name
     }
 
-    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
-    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
-    public fun min(a: Expression, b: Expression): Expression = minOf(a, b)
-    public fun minOf(vararg expressions: Expression): Expression {
-        val x = VariableTerm(LocalVariable("__min_of_$expressions"))
+    public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
+    public fun min(a: Expression, b: Number                             ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
+    public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
+        val expressions = listOf(a, b, *rest)
+        val x           = VariableTerm(LocalVariable("min($expressions)"))
 
         expressions.forEach {
             x lessEq    it
@@ -505,9 +505,9 @@ public class ConstraintDslContext internal constructor() {
     public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
     public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
-    public fun max(a: Expression, b: Expression): Expression = maxOf(a, b)
-    public fun maxOf(vararg expressions: Expression): Expression {
-        val x = VariableTerm(LocalVariable("__max_of_$expressions"))
+    public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
+        val expressions = listOf(a, b, *rest)
+        val x           = VariableTerm(LocalVariable("max($expressions)"))
 
         expressions.forEach {
             x greaterEq it
@@ -841,7 +841,7 @@ public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: C
 public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
- * Applies the given constraints to the Positionables as though they were each within the Rectangle provided by [within].
+ * Applies the given constraints to the [Positionable]s as though they were each within the Rectangle provided by [within].
  *
  * @param using this constraint for each View
  * @param within this rectangle
@@ -872,9 +872,10 @@ public class Constrainer {
 
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
-    private var parentSize = Size.Empty
-    private val solver     = Solver()
-    private val context    = ConstraintDslContext()
+    private var parentSize      = Size.Empty
+    private val solver          = Solver()
+    private val secondarySolver = Solver()
+    private val context         = ConstraintDslContext()
 
     private class FakePositionable: Positionable, BoundsUpdateContext {
         var probe = null as Positionable?
@@ -926,7 +927,7 @@ public class Constrainer {
     }
 
     private val fakePositionable = FakePositionable()
-    private val fakeBounds       = BoundsImpl(fakePositionable, context)
+    private val fakeBounds       = BoundsImpl(fakePositionable, context, secondarySolver)
     private val blocks           = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
@@ -984,7 +985,7 @@ public class Constrainer {
             this.using     = using
             parentSize     = within.size
             context.updateParent(size = within.size, min = within.size, max = within.size, insets = None)
-            setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
+            setupSolver(solver, context, blocks = blocks, secondarySolver = secondarySolver) { /*ignore*/ }
         }
 
         solve(

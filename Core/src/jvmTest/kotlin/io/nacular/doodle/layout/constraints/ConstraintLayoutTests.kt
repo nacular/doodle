@@ -35,6 +35,8 @@ import io.nacular.doodle.utils.SetPool
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 import io.nacular.measured.units.times
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.expect
@@ -127,6 +129,35 @@ class ConstraintLayoutTests {
         expect(Rectangle(         200, 1200)) { child1.bounds }
     }
 
+    @Test fun foo() {
+        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
+        val child2 = NamedView("child2")
+        val child3 = NamedView("child3")
+        val child4 = NamedView("child4")
+
+        val container = container {
+            + listOf(child1, child2, child3, child4)
+
+            layout = constrain(child1, child2, child3) { a, b, c ->
+//                a.left   eq 0
+//                a.width  eq 400
+//                a.width lessEq parent.width / 3
+
+//                b.left   eq a.right
+//                b.width eq 0
+
+//                c.left   eq b.right
+
+                a.width + b.width + c.width eq parent.width
+            }
+        }
+
+        container.forceSize(Size(1200))
+        container.doLayout_()
+
+        expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
+    }
+
     @Test fun `widths sum`() {
         val child1 = NamedView("child1").apply { suggestWidth(400.0) }
         val child2 = NamedView("child2")
@@ -135,23 +166,23 @@ class ConstraintLayoutTests {
 
         val container = container {
             + listOf(child1, child2, child3, child4)
-        }
 
-        container.layout = constrain(child1, child2, child3) { a, b, c ->
-            a.top    eq 0
-            a.left   eq 0
-            a.width  lessEq parent.width / 3
-            a.height eq     parent.height
+            layout = constrain(child1, child2, child3) { a, b, c ->
+                a.top    eq 0
+                a.left   eq 0
+                a.width  lessEq parent.width / 3
+                a.height eq     parent.height
 
-            b.top    eq a.top
-            b.left   eq a.right
-            b.height eq a.height
+                b.top    eq a.top
+                b.left   eq a.right
+                b.height eq a.height
 
-            c.top    eq a.top
-            c.left   eq b.right
-            c.height eq a.height
+                c.top    eq a.top
+                c.left   eq b.right
+                c.height eq a.height
 
-            a.width + b.width + c.width eq parent.width
+                a.width + b.width + c.width eq parent.width
+            }
         }
 
         container.forceSize(Size(1200))
@@ -509,55 +540,53 @@ class ConstraintLayoutTests {
         expect(image.width / 2) { image.height }
     }
 
-//    @Test fun `min works`() {
-//        val child1    = object: View() { override fun toString() = "child1" }
-//        val child2    = object: View() { override fun toString() = "child2" }
-//        val child3    = object: View() { override fun toString() = "child3" }
-//        val container = container {
-//            + listOf(child1, child2, child3)
-//        }
-//
-//        val w1 = 100.1
-//        val w2 = 1000.0
-//
-//        container.layout = constrain(child1, child2, child3) { a, b, c ->
-//            a.width eq w1
-//            b.width eq w2
-//
-//            c.width eq min(a.width, b.width)
-//        }
-//
-//        container.doLayout_()
-//
-//        expect(w1         ) { child1.width }
-//        expect(w2         ) { child2.width }
-//        expect(min(w1, w2)) { child3.width }
-//    }
-//
-//    @Test fun `max works`() {
-//        val child1    = object: View() { override fun toString() = "child1" }
-//        val child2    = object: View() { override fun toString() = "child2" }
-//        val child3    = object: View() { override fun toString() = "child3" }
-//        val container = container {
-//            + listOf(child1, child2, child3)
-//        }
-//
-//        val w1 = 1000.0
-//        val w2 = 1000.1
-//
-//        container.layout = constrain(child1, child2, child3) { a, b, c ->
-//            a.width eq w1
-//            b.width eq w2
-//
-//            c.width eq max(a.width, b.width)
-//        }
-//
-//        container.doLayout_()
-//
-//        expect(w1         ) { child1.width }
-//        expect(w2         ) { child2.width }
-//        expect(max(w1, w2)) { child3.width }
-//    }
+    @Test fun `min works`() {
+        val w1     = 100.1
+        val w2     = 100.0
+
+        val child1 = NamedView("child1")
+        val child2 = NamedView("child2")
+        val child3 = NamedView("child3")
+
+        container {
+            + listOf(child1, child2, child3)
+
+            layout = constrain(child1, child2, child3) { a, b, c ->
+                a.width eq w1
+                b.width eq w2
+
+                c.width eq min(a.width, b.width)
+            }
+        }.doLayout_()
+
+        expect(w1         ) { child1.width }
+        expect(w2         ) { child2.width }
+        expect(min(w1, w2)) { child3.width }
+    }
+
+    @Test fun `max works`() {
+        val w1     = 1000.0
+        val w2     = 1000.1
+
+        val child1 = NamedView("child1")
+        val child2 = NamedView("child2")
+        val child3 = NamedView("child3")
+
+        container {
+            + listOf(child1, child2, child3)
+
+            layout = constrain(child1, child2, child3) { a, b, c ->
+                a.width eq w1
+                b.width eq w2
+
+                c.width eq max(a.width, b.width)
+            }
+        }.doLayout_()
+
+        expect(w1         ) { child1.width }
+        expect(w2         ) { child2.width }
+        expect(max(w1, w2)) { child3.width }
+    }
 
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
