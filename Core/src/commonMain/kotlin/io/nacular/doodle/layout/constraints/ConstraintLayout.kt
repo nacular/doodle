@@ -473,7 +473,7 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    private class LocalVariable(override val name: String, ) : Variable {
+    private open class LocalVariable(override val name: String): Variable {
         private var  value          = 0.0
         override var constrained    = false
         override val needsSynthetic = false
@@ -485,6 +485,13 @@ public class ConstraintDslContext internal constructor() {
         }
 
         override fun toString() = name
+    }
+
+    private class ReadOnlyVariableRef(referent: Expression) : LocalVariable("readOnly -> $referent")
+
+    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name), ReadOnlyVariable {
+        override var constrained    = source.constrained
+        override val needsSynthetic = false
     }
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
@@ -515,6 +522,21 @@ public class ConstraintDslContext internal constructor() {
         }
 
         return x + 0
+    }
+
+    public fun readonly(e: Expression): Expression {
+        val newExpression = ExpressionImpl(e.terms.map {
+            when (it.variable) {
+                is ReadOnlyVariableRef -> it
+                else                   -> VariableTerm(LocalReadOnlyVariable("readOnly($it)", it.variable))
+            }
+        }.toTypedArray(), e.constant)
+
+        val readOnly = VariableTerm(ReadOnlyVariableRef(e))
+
+        readOnly eq newExpression
+
+        return readOnly + 0
     }
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
