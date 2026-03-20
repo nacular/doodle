@@ -9,6 +9,7 @@ import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -346,15 +347,30 @@ internal class Solver {
         }
     }
 
+    fun computeRange(v: Variable, min: Double, max: Double): ClosedFloatingPointRange<Double> {
+        try {
+            addEditVariable(v, Weak)
+        } catch (_: DuplicateEditVariableException) {}
+
+        val minVal = suggestValue(v, min).let { rows[vars[v]]?.constant ?: 0.0 }
+        val maxVal = suggestValue(v, max).let { rows[vars[v]]?.constant ?: 0.0 }
+
+        try {
+            removeEditVariable(v)
+        } catch (_: Exception) {}
+
+        return minVal .. maxVal
+    }
+
     private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
         if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
 
-        val tag     = Tag()
+        val tag = Tag()
 
         try {
-            val row = createRow(constraint, tag)
+            val row     = createRow(constraint, tag)
             var subject = chooseSubject(row, tag)
 
             if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
@@ -381,7 +397,6 @@ internal class Solver {
             optimize(objective)
         } catch (e: ConstraintException) {
             removeConstraint(constraint, tag)
-
             throw e
         }
 
@@ -400,7 +415,7 @@ internal class Solver {
         when {
             row != null -> unregisterRow(tag.marker, cleanup = true)
             else        -> {
-                row     = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
+                row         = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
                 val leaving = rows.entries.find { it.value == row }?.key ?: throw InternalSolverError("internal solver error")
 
                 unregisterRow(leaving, cleanup = true)

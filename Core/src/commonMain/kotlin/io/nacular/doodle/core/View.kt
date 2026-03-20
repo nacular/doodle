@@ -53,7 +53,7 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
-import io.nacular.doodle.layout.constraints.impl.BoundsAttemptObserver
+import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
@@ -71,7 +71,6 @@ import io.nacular.doodle.utils.PropertyObservers
 import io.nacular.doodle.utils.PropertyObserversImpl
 import io.nacular.doodle.utils.SetPool
 import io.nacular.doodle.utils.SquareMatrix
-import io.nacular.doodle.utils.WeakReference
 import io.nacular.doodle.utils.diff.Delete
 import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
@@ -177,24 +176,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private inner class ChildObserversImpl: SetPool<ChildObserver<View>>() {
         operator fun invoke(differences: Differences<View>) = this.forEach { it(this@View, differences) }
     }
-
-    private class BoundsAttemptObserverPool: Pool<BoundsAttemptObserver>, Iterable<BoundsAttemptObserver> {
-        private val observers = mutableSetOf<WeakReference<BoundsAttemptObserver>>()
-
-        override fun plusAssign(item: BoundsAttemptObserver) {
-            observers += WeakReference(item)
-        }
-
-        override fun minusAssign(item: BoundsAttemptObserver) {
-            // no-op
-        }
-
-        override fun iterator(): Iterator<BoundsAttemptObserver> = observers
-            .asSequence()
-            .mapNotNull { reference -> reference.invoke() }
-            .iterator()
-    }
-
 
     // region Accessibility
 
@@ -384,11 +365,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val boundsChanged: PropertyObservers<View, Rectangle> = PropertyObserversImpl(this)
 
     /**
-     * Work-around to support ConstraintLayout
-     */
-    internal val boundsChangeAttempted: Pool<BoundsAttemptObserver> = BoundsAttemptObserverPool()
-
-    /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
      */
@@ -401,8 +377,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         newBounds = auditedNew
 
         if (new == actualBounds) return
-
-        notifyAttemptedBoundsChange(auditedNew)
     }
 
     public val idealSize: Size get() = preferredSize(Empty, Infinite)
@@ -413,10 +387,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var newBounds: Rectangle = Rectangle.Empty; set(new) {
         if (field.fastEqual(new)) return
 
-        field = when {
-            (boundsChangeAttempted as BoundsAttemptObserverPool).any() -> new
-            else -> new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
-        }
+        field = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)
@@ -950,14 +921,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         layoutNeeded = true
         field        = new
 
-        // re-layout parent if we are in a constraint layout; otherwise, just re-layout
-        when {
-            (boundsChangeAttempted as BoundsAttemptObserverPool).any() -> when (val p = parent) {
-                null -> display?.relayout()
-                else -> p.relayout()
-            }
-            else -> relayout()
-        }
+        relayout()
     }
 
     internal val childrenChanged_ get() = childrenChanged
@@ -1124,16 +1088,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         layout?.let {
             doLayout(it, min = min, max = max, current = current)
 
-            val isConstrained = (boundsChangeAttempted as BoundsAttemptObserverPool).any()
-
-            if (min != max || isConstrained) {
-                val prefSize = preferredSize(min, max).coerceIn(min, max)
-
-                if (prefSize != size || isConstrained) {
-                    parent?.let {
-                        renderManager?.layout(it)
-                    }
-                }
+            if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
+                parent?.relayout()
+            } else if (layout is ConstraintLayout) {
+                println("WOULD'VE DONE IT, BUT SKIPPED")
             }
         }
     }
@@ -1532,19 +1490,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             val transformedPoints = resolvedTransform(bounds.points.map { it.as3d() }).map { it.as2d() }
 
             ConvexPolygon(transformedPoints[0], transformedPoints[1], transformedPoints[2], transformedPoints[3]).boundingRectangle
-        }
-    }
-
-    private fun notifyAttemptedBoundsChange(new: Rectangle) {
-        (boundsChangeAttempted as BoundsAttemptObserverPool).forEach {
-            it.boundsChangeAttempted(
-                this,
-                actualBounds,
-                new,
-                new.position != position ||
-                allowedMaxSize.width  == allowedMinSize.width  && new.width  != allowedMinSize.width ||
-                allowedMaxSize.height == allowedMinSize.height && new.height != allowedMinSize.height
-            )
         }
     }
 

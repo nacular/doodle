@@ -45,7 +45,7 @@ internal interface BoundsAttemptObserver {
 }
 
 @Suppress("PrivatePropertyName")
-internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext): Bounds {
+internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext, private val solver: Solver): Bounds {
     private var x__      = target.bounds.x
     private var y__      = target.bounds.y
     private var width__  = target.bounds.width
@@ -58,13 +58,13 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     private var width_  get() = target.bounds.width;  set(value) { width__  = value }
     private var height_ get() = target.bounds.height; set(value) { height__ = value }
 
-    val top_     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
-    val left_    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
+    val top_     by lazy { ReflectionVariable(target, ::y_, id = Y_ID ) }
+    val left_    by lazy { ReflectionVariable(target, ::x_, id = X_ID ) }
 
     override val top     by lazy { with(context) { 0 + top_  } }
     override val left    by lazy { with(context) { 0 + left_ } }
-    override val width   by lazy {                     ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
-    override val height  by lazy {                     ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
+    override val width   by lazy { ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
+    override val height  by lazy { ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
 
     override val right   by lazy { with(context) { left + width      } }
     override val bottom  by lazy { with(context) { top  + height     } }
@@ -80,20 +80,26 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
     fun commit() {
-        val x         = if (left_.constrained ) x__      else x_
-        val y         = if (top_.constrained  ) y__      else y_
-        val minWidth  = if (width.constrained ) width__  else 0.0
-        val maxWidth  = if (width.constrained ) width__  else POSITIVE_INFINITY
-        val minHeight = if (height.constrained) height__ else 0.0
-        val maxHeight = if (height.constrained) height__ else POSITIVE_INFINITY
+        val x = if (left_.constrained ) x__ else x_
+        val y = if (top_.constrained  ) y__ else y_
 
         when {
             !(width.constrained || height.constrained) -> target.updatePosition(x, y)
-            else -> target.updateBounds {
+            else                                       -> target.updateBounds {
                 setX(x)
                 setY(y)
-                if (width.constrained ) { setMinWidth (minWidth ); setMaxWidth (maxWidth ) }
-                if (height.constrained) { setMinHeight(minHeight); setMaxHeight(maxHeight) }
+                if (width.constrained) {
+                    when {
+                        solver.isUnderConstrained(width) -> setWidth(solver.computeRange(width, 0.0, Double.MAX_VALUE))
+                        else                             -> setWidth(width__                                           )
+                    }
+                }
+                if (height.constrained) {
+                    when {
+                        solver.isUnderConstrained(height) -> setHeight(solver.computeRange(height, 0.0, Double.MAX_VALUE))
+                        else                              -> setHeight(height__                                           )
+                    }
+                }
             }
         }
     }
@@ -171,11 +177,13 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     var min = Size.Empty; private set
     var max = min;        private set
 
+    override var insets = Insets.None
+
     fun update(size: Size, min: Size, max: Size, insets: Insets) {
-        width_  = size.width
-        height_ = size.height
-        this.min = min
-        this.max = max
+        width_      = size.width
+        height_     = size.height
+        this.min    = min
+        this.max    = max
         this.insets = insets
     }
 
@@ -190,8 +198,6 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     override val center  by lazy { Position(centerX, centerY) }
     override val edges   by lazy { Edges(null, null, right, bottom) }
     override val size    by lazy { with(context) { Area (width + 0, height + 0) } }
-
-    override var insets: Insets = Insets.None
 }
 
 internal open class ConstraintLayoutImpl(
@@ -228,11 +234,12 @@ internal open class ConstraintLayoutImpl(
 
     internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
 
-    private val solver       = Solver()
-    private val blocks       = mutableListOf(block)
-    private val context      = ConstraintDslContext()
-    private val blockTracker = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
-    private val viewBounds   = mutableMapOf<View, BoundsImpl>()
+    private val solver          = Solver()
+    private val secondarySolver = Solver()
+    private val blocks          = mutableListOf(block)
+    private val context         = ConstraintDslContext()
+    private val blockTracker    = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
+    private val viewBounds      = mutableMapOf<View, BoundsImpl>()
 
     override val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit> = SetPool()
 
@@ -245,7 +252,7 @@ internal open class ConstraintLayoutImpl(
 
         context.updateParent(current, min = min, max = max, insets = insets)
 
-        setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
+        setupSolver(solver, context, updatedBounds, blockTracker.values, secondarySolver, ::notifyOfErrors)
         solve      (solver, activeBounds, updatedBounds, blockTracker.values.asSequence().flatMap { it.constraints }, ::notifyOfErrors)
 
         layingOut = false
@@ -279,7 +286,6 @@ internal open class ConstraintLayoutImpl(
         return this
     }
 
-    @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
         blockTracker.remove(views to constraintBlock)?.let {
             blocks -= it.block
@@ -288,7 +294,6 @@ internal open class ConstraintLayoutImpl(
         val remaining = blockTracker.flatMap { entry -> entry.key.first }.toSet()
 
         views.filter { it !in remaining }.forEach {
-            it.boundsChangeAttempted -= this
             it.boundsChanged         -= boundsChanged
             viewBounds               -= it
 
@@ -299,11 +304,10 @@ internal open class ConstraintLayoutImpl(
     }
 
     private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
-        view.boundsChangeAttempted += this
         view.boundsChanged         += boundsChanged
 
         viewBounds.getOrPut(view) {
-            BoundsImpl(view.positionable, context).also { bounds ->
+            BoundsImpl(view.positionable, context, solver).also { bounds ->
                 view.positionable.bounds.let {
                     if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
                         updatedBounds[bounds.top_  ] = it.y
@@ -327,11 +331,12 @@ internal open class ConstraintLayoutImpl(
 
     internal companion object {
         fun setupSolver(
-            solver       : Solver,
-            context      : ConstraintDslContext,
-            updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
-            blocks       : Collection<BlockInfo>,
-            errorHandler : (ConstraintException) -> Unit
+            solver         : Solver,
+            context        : ConstraintDslContext,
+            updatedBounds  : MutableMap<ReflectionVariable, Double> = mutableMapOf(),
+            blocks         : Collection<BlockInfo>,
+            secondarySolver: Solver? = null,
+            errorHandler   : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
 
@@ -349,9 +354,10 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
-            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = true } }
+            context.constraints.forEach { it.expression.terms.forEach { it.variable.constrained = true } }
 
-            val failedInserts = mutableListOf<Constraint>()
+            val failedInserts          = mutableListOf<Constraint>()
+            val failedSecondaryInserts by lazy { mutableListOf<Constraint>() }
 
             var previousDelete: Delete<Constraint>? = null
 
@@ -359,6 +365,7 @@ internal open class ConstraintLayoutImpl(
                 when (difference) {
                     is Delete -> {
                         handlePreviousDelete(solver, previousDelete)
+                        secondarySolver?.let { handlePreviousDelete(it, previousDelete) }
                         previousDelete = difference
                     }
                     is Insert -> {
@@ -369,18 +376,37 @@ internal open class ConstraintLayoutImpl(
                                     doTrying(errorHandler) {
                                         solver.updateConstant(it.items[index], insertedConstraint)
                                     }
+                                    doTrying({}) {
+                                        secondarySolver?.apply { updateConstant(it.items[index], insertedConstraint) }
+                                    }
                                 } else {
                                     // handle delete
-                                    handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
+                                    handlePreviousDelete(solver, previousDelete)
+                                    secondarySolver?.let { handlePreviousDelete(secondarySolver, previousDelete) }
+
+                                    previousDelete = null
+
                                     // handle insert
                                     if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
                                         failedInserts += insertedConstraint
+                                    }
+
+                                    secondarySolver?.let {
+                                        if (!handleInsert(secondarySolver, insertedConstraint, updatedBounds, holdVariables = false)) {
+                                            failedSecondaryInserts += insertedConstraint
+                                        }
                                     }
                                 }
                             }.ifNull {
                                 // handle insert
                                 if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
                                     failedInserts += insertedConstraint
+                                }
+
+                                secondarySolver?.let {
+                                    if (!handleInsert(secondarySolver, insertedConstraint, updatedBounds, holdVariables = false)) {
+                                        failedSecondaryInserts += insertedConstraint
+                                    }
                                 }
                             }
                         }
@@ -392,10 +418,18 @@ internal open class ConstraintLayoutImpl(
             }
 
             handlePreviousDelete(solver, previousDelete)
+            secondarySolver?.let { handlePreviousDelete(it, previousDelete) }
 
             // try again in case some items were unsatisfiable due to the order of delete vs insert
             failedInserts.forEach {
-                if (!handleInsert(solver, it, updatedBounds, errorHandler)) {
+                if (!handleInsert(solver, it, updatedBounds, holdVariables = true, errorHandler)) {
+                    context.constraints -= it
+                }
+            }
+
+            // try again in case some items were unsatisfiable due to the order of delete vs insert
+            failedSecondaryInserts.forEach {
+                if (!handleInsert(secondarySolver!!, it, updatedBounds, holdVariables = false)) {
                     context.constraints -= it
                 }
             }
@@ -460,6 +494,7 @@ internal open class ConstraintLayoutImpl(
             solver            : Solver,
             insertedConstraint: Constraint,
             updatedBounds     : MutableMap<ReflectionVariable, Double>,
+            holdVariables     : Boolean = true,
             errorHandler      : (ConstraintException) -> Unit = {}
         ): Boolean {
             try {
@@ -478,21 +513,24 @@ internal open class ConstraintLayoutImpl(
 
                 solver.addConstraint(insertedConstraint)
 
-                newVariables.forEach {
-                    val variable = it.variable
+                if (holdVariables) {
+                    newVariables.forEach {
+                        val variable = it.variable
 
-                    try {
-                        val strength = when {
-                            variable in updatedBounds -> Light
-                            else                      -> Weak
+                        try {
+                            val strength = when {
+                                variable in updatedBounds -> Light
+                                else                      -> Weak
+                            }
+
+                            solver.addEditVariable(variable, strength)
+                        } catch (_: Exception) {
                         }
 
-                        solver.addEditVariable(variable, strength)
-                    } catch (_: Exception) {}
-
-                    if (variable() != 0.0) {
-                        doTrying(errorHandler) {
-                            solver.suggestValue(variable, variable())
+                        if (variable() != 0.0) {
+                            doTrying(errorHandler) {
+                                solver.suggestValue(variable, variable())
+                            }
                         }
                     }
                 }
@@ -530,8 +568,6 @@ internal open class ConstraintLayoutImpl(
             } catch (_: UnknownEditVariableException) {
             } catch (_: UnknownConstraintException  ) {}
         }
-
-        private fun ensureNonNegative(variable: Variable) = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
 
         private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
             previousDelete?.let {
