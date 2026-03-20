@@ -156,3 +156,7 @@ internal interface Variable {
     operator fun invoke(             ): Double
     operator fun invoke(value: Double)
 }
+
+internal interface ReadOnlyVariable: Variable {
+    val source: Variable
+}

@@ -7,6 +7,7 @@ import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
+import io.nacular.doodle.layout.constraints.ReadOnlyVariable
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
@@ -242,6 +243,8 @@ internal class Solver {
     private val vars           = fastMutableMapOf<Variable, Symbol>()
     private val edits          = fastMutableMapOf<Variable, EditInfo>()
     private val infeasibleRows = mutableListOf<Symbol>()
+    private val readonlyVars   = fastMutableMapOf<Variable, MutableSet<ReadOnlyVariable>>()
+    private val readonlyConstraintDeps = fastMutableMapOf<Variable, MutableSet<Constraint>>()
     private val objective      = Row()
     private var artificial     = null as Row?
     private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
@@ -327,11 +330,50 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
+        val updatedConstraints = mutableSetOf<Constraint>()
+
+        for ((variable, symbol) in vars) {
+            if (variable is ReadOnlyVariable) continue // source will be written via its own entry
+            rows[symbol]?.let { row ->
+                val newValue = row.constant
+                if (newValue != variable()) {
+                    variable(newValue)
+                    readonlyConstraintDeps[variable]?.let { updatedConstraints += it }
+                }
+            }
+        }
+
+        // Re-anchor constraints that baked in this source's value
+        updatedConstraints.forEach { constraint ->
+            val updated = constraint.withReadOnlyValuesResolved()
+            updateConstant(constraint, updated)
+        }
+
+        // Last round to finalize values
         for ((variable, symbol) in vars) {
             rows[symbol]?.let {
                 variable(it.constant)
             }
         }
+    }
+
+    private fun Constraint.withReadOnlyValuesResolved(): Constraint {
+        var extraConstant = 0.0
+
+        for (term in expression.terms) {
+            if (term.variable is ReadOnlyVariable) {
+                extraConstant += term.coefficient * term.variable.source()
+            }
+        }
+
+        // Replace the expression's constant with the freshly resolved value,
+        // keeping all non-readonly terms intact
+        val resolved = Expression(
+            terms    = expression.terms.filter { it.variable !is ReadOnlyVariable }.toTypedArray(),
+            constant = expression.constant + extraConstant
+        )
+
+        return Constraint(resolved, operator, strength)
     }
 
     fun isUnderConstrained(v: Variable): Boolean {
@@ -548,11 +590,21 @@ internal class Solver {
 
         for (term in expression.terms) {
             if (!nearZero(term.coefficient)) {
-                val symbol = getVarSymbol(term.variable)
+                when (val variable = term.variable) {
+                    is ReadOnlyVariable -> {
+                        row.add(term.coefficient * variable.source())
+                        // Register this dependency
+                        readonlyVars.getOrPut(variable.source) { fastMutableSetOf() }.add(variable)
+                        readonlyConstraintDeps.getOrPut(variable.source) { fastMutableSetOf() }.add(constraint)
+                    }
+                    else -> {
+                        val symbol = getVarSymbol(term.variable)
 
-                when (val otherRow = rows[symbol]) {
-                    null -> row.insert(symbol,   term.coefficient)
-                    else -> row.insert(otherRow, term.coefficient)
+                        when (val otherRow = rows[symbol]) {
+                            null -> row.insert(symbol, term.coefficient)
+                            else -> row.insert(otherRow, term.coefficient)
+                        }
+                    }
                 }
             }
         }
