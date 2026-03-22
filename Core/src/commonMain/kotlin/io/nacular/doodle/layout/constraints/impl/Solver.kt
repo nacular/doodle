@@ -10,7 +10,6 @@ import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.ReadOnlyVariable
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
-import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -23,7 +22,10 @@ import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
 import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.MAX_VALUE
+import kotlin.Double.Companion.NEGATIVE_INFINITY
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.abs
+import kotlin.math.min
 
 
 /**
@@ -334,6 +336,11 @@ internal class Solver {
     fun updateVariables() {
         for ((variable, symbol) in vars) {
             if (symbol in readonlySymbols) continue
+
+            if (variable.toString() == "child1.width_") {
+                val a = "child1.width symbol: ${symbol.hashCode()}" +"\n"+ "row: ${rows[symbol]}" +"\n"+ "symbol in readonlySymbols: ${symbol in readonlySymbols}"
+            }
+
             rows[symbol]?.let { row ->
                 variable(row.constant)
             }
@@ -366,8 +373,13 @@ internal class Solver {
     }
 
     fun isUnderConstrained(v: Variable): Boolean {
-        val symbol = vars[v     ] ?: return true  // unknown variable = free
-        val row    = rows[symbol] ?: return true  // no row = non-basic = free
+        val symbol = vars[v] ?: return true  // unknown variable = free
+
+        return isUnderConstrained(symbol)
+    }
+
+    private fun isUnderConstrained(symbol: Symbol): Boolean {
+        val row = rows[symbol] ?: return true  // no row = non-basic = free
 
         return row.cells.any { (sym, coefficient) ->
             coefficient != 0.0 && when (sym.type) {
@@ -378,27 +390,52 @@ internal class Solver {
         }
     }
 
-    fun computeRange(v: Variable, min: Double, max: Double): ClosedFloatingPointRange<Double> {
-        var editVariableAdded = false
+    fun computeRange(variable: Variable, min: Double = NEGATIVE_INFINITY, max: Double = POSITIVE_INFINITY): ClosedFloatingPointRange<Double> {
+        val nominal = variable()
+        val symbol  = vars[variable] ?: return nominal..nominal
+        val row     = rows[symbol  ] ?: return nominal..nominal
 
-        try {
-            addEditVariable(v, Weak)
-            editVariableAdded = true
-        } catch (_: DuplicateEditVariableException) {}
+        var maxIncrease = max - nominal
+        var maxDecrease = nominal - min
 
-        val initialValue = v()
-        val minVal       = suggestValue(v, min).let { rows[vars[v]]?.constant ?: 0.0 }
-        val maxVal       = suggestValue(v, max).let { rows[vars[v]]?.constant ?: 0.0 }
-        suggestValue(v, initialValue)
+        // For each non-basic symbol in variable's row, do a ratio test across ALL basic rows that contain that symbol
+        for ((symbol, variableRowCoefficient) in row.cells) {
+            if (variableRowCoefficient == 0.0) continue
 
-        if (editVariableAdded) {
-            try {
-                removeEditVariable(v)
-            } catch (_: Exception) {
+            val symRow = rows[symbol]
+
+            // If symbol is a basic slack, its row constant directly gives the bound
+            if (symbol.type == Slack && symRow == null) {
+                // non-basic slack at 0, can only increase → bounds v in one direction
+                if (variableRowCoefficient < 0) {
+                    maxIncrease = min(maxIncrease, 0.0)  // already at upper bound
+                } else {
+                    maxDecrease = min(maxDecrease, 0.0)  // already at lower bound
+                }
+            }
+
+            // For each basic row that contains this symbol
+            for ((basicSymbol, basicRow) in rows) {
+                val basicRowCoefficient = basicRow.cells[symbol] ?: continue
+
+                if (basicRowCoefficient == 0.0 || basicSymbol == symbol) continue  // skip self-referential row
+
+                // If this row's basic variable is an external free variable, it can absorb the movement — skip it
+                if (basicSymbol.type == External && isUnderConstrained(basicSymbol)) continue
+
+                // Simpler: the ratio test directly on basicRow.constant / combined coeff:
+                val effectiveCoefficient = basicRowCoefficient / variableRowCoefficient
+                val limit                = basicRow.constant   / effectiveCoefficient
+
+                if (effectiveCoefficient > 0) {
+                    maxDecrease = min(maxDecrease, limit)
+                } else {
+                    maxIncrease = min(maxIncrease, -limit)
+                }
             }
         }
 
-        return minVal .. maxVal
+        return (nominal - maxDecrease).cleanUp() .. (nominal + maxIncrease).cleanUp()
     }
 
     private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
@@ -887,4 +924,6 @@ internal class Solver {
     } ?: Symbol()
 
     private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
+
+    private fun Double.cleanUp() = if (nearZero(this)) 0.0 else this
 }

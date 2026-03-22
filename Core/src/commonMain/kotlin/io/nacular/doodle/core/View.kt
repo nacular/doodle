@@ -1086,8 +1086,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         layout?.let {
             doLayout(it, min = min, max = max, current = current)
 
-            if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
-                parent?.relayout()
+            parent?.let { parent ->
+                if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
+                    parent.relayout()
+                }
             }
         }
     }

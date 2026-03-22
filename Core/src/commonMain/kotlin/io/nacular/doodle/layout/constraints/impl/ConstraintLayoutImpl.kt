@@ -58,11 +58,8 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     private var width_  get() = target.bounds.width;  set(value) { width__  = value }
     private var height_ get() = target.bounds.height; set(value) { height__ = value }
 
-    val top_     by lazy { ReflectionVariable(target, ::y_, id = Y_ID ) }
-    val left_    by lazy { ReflectionVariable(target, ::x_, id = X_ID ) }
-
-    override val top     by lazy { with(context) { 0 + top_  } }
-    override val left    by lazy { with(context) { 0 + left_ } }
+    override val top     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
+    override val left    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
     override val width   by lazy { ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
     override val height  by lazy { ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
 
@@ -71,17 +68,17 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override val centerX by lazy { with(context) { left + width  / 2 } }
     override val centerY by lazy { with(context) { top  + height / 2 } }
 
+    override val size    by lazy { Area (width, height                                   ) }
+    override val edges   by lazy { with(context) { Edges(top + 0, left + 0, right, bottom) } }
     override val center  by lazy { Position(centerX, centerY) }
-    override val edges   by lazy { with(context) { Edges(top   + 0, left   + 0, right, bottom) } }
-    override val size    by lazy { with(context) { Area (width + 0, height + 0               ) } }
 
     override val idealSize get() = target.idealSize
 
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
     fun commit() {
-        val x = if (left_.constrained ) x__ else x_
-        val y = if (top_.constrained  ) y__ else y_
+        val x = if (left.constrained ) x__ else x_
+        val y = if (top.constrained  ) y__ else y_
 
         when {
             !(width.constrained || height.constrained) -> target.updatePosition(x, y)
@@ -127,8 +124,9 @@ internal class ReflectionVariable(
     }
 
     override val name     get() = delegate.name
-    override var constrained = false
-    override var isReadOnly  = false
+    override val variable get() = this
+    override var isReadOnly     = false
+    override var constrained    = false
 
     override fun invoke() = delegate()
 
@@ -188,17 +186,17 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
         this.insets = insets
     }
 
-    override val width   by lazy { with(context) { 0 + ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) } }
-    override val height  by lazy { with(context) { 0 + ReflectionVariable(delegate = ::height_, id = HEIGHT_ID) } }
+    override val width   by lazy { ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) }
+    override val height  by lazy { ReflectionVariable(delegate = ::height_, id = HEIGHT_ID) }
 
     override val right   by lazy { with(context) { 0 + width      } }
     override val centerX by lazy { with(context) { 0 + width  / 2 } }
     override val bottom  by lazy { with(context) { 0 + height     } }
     override val centerY by lazy { with(context) { 0 + height / 2 } }
 
-    override val center  by lazy { Position(centerX, centerY) }
+    override val center  by lazy { Position(centerX, centerY      ) }
     override val edges   by lazy { Edges(null, null, right, bottom) }
-    override val size    by lazy { with(context) { Area (width + 0, height + 0) } }
+    override val size    by lazy { Area (width, height            ) }
 }
 
 internal open class ConstraintLayoutImpl(
@@ -216,8 +214,8 @@ internal open class ConstraintLayoutImpl(
     }
 
     private fun updateBounds(view: View, new: Rectangle) = viewBounds[view]?.also {
-        updatedBounds[it.top_  ] = new.y
-        updatedBounds[it.left_ ] = new.x
+        updatedBounds[it.top   ] = new.y
+        updatedBounds[it.left  ] = new.x
         updatedBounds[it.width ] = new.width
         updatedBounds[it.height] = new.height
     }
@@ -235,12 +233,11 @@ internal open class ConstraintLayoutImpl(
 
     internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
 
-    private val solver          = Solver()
-    private val secondarySolver = Solver()
-    private val blocks          = mutableListOf(block)
-    private val context         = ConstraintDslContext()
-    private val blockTracker    = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
-    private val viewBounds      = mutableMapOf<View, BoundsImpl>()
+    private val solver       = Solver()
+    private val blocks       = mutableListOf(block)
+    private val context      = ConstraintDslContext()
+    private val blockTracker = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
+    private val viewBounds   = mutableMapOf<View, BoundsImpl>()
 
     override val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit> = SetPool()
 
@@ -253,7 +250,7 @@ internal open class ConstraintLayoutImpl(
 
         context.updateParent(current, min = min, max = max, insets = insets)
 
-        setupSolver(solver, context, updatedBounds, blockTracker.values, secondarySolver, ::notifyOfErrors)
+        setupSolver(solver, context, updatedBounds, blockTracker.values, null, ::notifyOfErrors)
         solve      (solver, activeBounds, updatedBounds, blockTracker.values.asSequence().flatMap { it.constraints }, ::notifyOfErrors)
 
         layingOut = false
@@ -308,11 +305,11 @@ internal open class ConstraintLayoutImpl(
         view.boundsChanged         += boundsChanged
 
         viewBounds.getOrPut(view) {
-            BoundsImpl(view.positionable, context, secondarySolver).also { bounds ->
+            BoundsImpl(view.positionable, context, solver).also { bounds ->
                 view.positionable.bounds.let {
                     if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
-                        updatedBounds[bounds.top_  ] = it.y
-                        updatedBounds[bounds.left_ ] = it.x
+                        updatedBounds[bounds.top   ] = it.y
+                        updatedBounds[bounds.left  ] = it.x
                         updatedBounds[bounds.width ] = it.width
                         updatedBounds[bounds.height] = it.height
                     }
@@ -340,10 +337,12 @@ internal open class ConstraintLayoutImpl(
             errorHandler   : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
+            val oldEdits       = context.edits
 
             context.constraints.forEach { it.expression.terms.map { it.variable.constrained = false } }
 
             context.constraints = mutableListOf()
+            context.edits       = mutableListOf()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
@@ -418,6 +417,23 @@ internal open class ConstraintLayoutImpl(
                 }
             }
 
+            compare(oldEdits, context.edits).forEach { difference ->
+                when (difference) {
+                    is Delete -> {
+                        difference.items.forEach { solver.removeEditVariable(it.property) }
+                    }
+                    is Insert -> {
+                        difference.items.forEach {
+                            doTrying(errorHandler) {
+                                solver.addEditVariable(it.property, it.strength)
+                                solver.suggestValue(it.property, it.value)
+                            }
+                        }
+                    }
+                    else -> {}
+                }
+            }
+
             handlePreviousDelete(solver, previousDelete)
             secondarySolver?.let { handlePreviousDelete(it, previousDelete) }
 
@@ -443,6 +459,7 @@ internal open class ConstraintLayoutImpl(
             bounds      : Sequence<BoundsImpl>,
             errorHandler: (ConstraintException) -> Unit
         ) {
+            if (false) {
             updatedBounds.removeAll { variable, _ -> variable !in solver.variables }
 
             activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
@@ -474,18 +491,19 @@ internal open class ConstraintLayoutImpl(
 
             activeBounds.putAll(updatedBounds)
 
-            updatedBounds.clear()
+            updatedBounds.clear() }
 
             solver.updateVariables()
 
             bounds.forEach { it.commit() }
 
+            if (false) {
             // Hold anything that changes. These should all have Weak strength
             updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
                 try {
                     solver.suggestValue(variable, value)
                 } catch (_: Exception) {}
-            }
+            } }
 
             // Cleanup holds
             updatedBounds.clear()
