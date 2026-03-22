@@ -202,7 +202,9 @@ class PopupManagerTests {
         val oldBounds = view.bounds
         val newBounds = Rectangle(10, 10, 10, 10)
 
-        every { positionable.bounds } answers { newBounds }
+        every { positionable.x_    } answers { newBounds.x    }
+        every { positionable.y_    } answers { newBounds.y    }
+        every { positionable.size_ } answers { newBounds.size }
 
         viewBoundsChanged.captured(view, oldBounds, newBounds)
 

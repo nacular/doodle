@@ -3,9 +3,7 @@ package io.nacular.doodle.layout.constraints
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.core.View
-import io.nacular.doodle.core.position
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
@@ -190,6 +188,7 @@ public abstract class ConstraintLayout internal constructor(): Layout {
  * Simple value within a [Bounds] set.
  */
 public abstract class Property internal constructor(): Expression() {
+    internal abstract val variable: Variable
     internal abstract fun toTerm(): Term
 }
 
@@ -220,7 +219,7 @@ public class Position internal constructor(internal val left: Expression, intern
 /**
  * 2-Dimensional value within a [Bounds] set.
  */
-public class Area internal constructor(internal val width: Expression, internal val height: Expression) {
+public class Area internal constructor(internal val width: Property, internal val height: Property) {
     /**
      * Provides the Area's value directly, and does not treat it as
      * a variable when used in a [Constraint]. This means the Area won't be
@@ -260,10 +259,10 @@ public interface AllowsForcedMutation<T, V> {
  */
 public interface Bounds {
     /** The rectangle's top edge */
-    public val top: Expression
+    public val top: Property
 
     /** The rectangle's left edge */
-    public val left: Expression
+    public val left: Property
 
     /** The rectangle's vertical extent */
     public val height: Property
@@ -375,6 +374,7 @@ public class UnsatisfiableConstraintException(
 @Suppress("MemberVisibilityCanBePrivate")
 public class ConstraintDslContext internal constructor() {
     internal var constraints = mutableListOf<Constraint>()
+    internal var edits       = mutableListOf<Edit>()
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -386,6 +386,10 @@ public class ConstraintDslContext internal constructor() {
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
         else                             -> Result.success(constraint).also { constraints += constraint }
+    }
+
+    private fun add(edit: Edit) {
+        edits += edit
     }
 
     public operator fun Property.plus(expression: Expression): Expression = expression + this
@@ -406,10 +410,19 @@ public class ConstraintDslContext internal constructor() {
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
      * ```
+     * this eq this.preserve Required
+     * ```
+     */
+    public val Property.preserve: Unit get() = this preserve Required
+
+    /**
+     * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
+     *
+     * ```
      * this eq this.readOnly
      * ```
      */
-    public val Property.preserve: Result<Constraint> get() = this eq this.readOnly
+    public infix fun Property.preserve(strength: Strength) { add(Edit(this.variable, this.readOnly, strength)) }
 
     public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
     public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
@@ -618,11 +631,6 @@ public class ConstraintDslContext internal constructor() {
         left eq point.x
     )
 
-    public val Position.preserve: List<Result<Constraint>> get() = listOf(
-        top  eq top.readOnly,
-        left eq left.readOnly
-    )
-
     public operator fun Position.plus(point: Point): Position = Position(
         top  = top  + point.y,
         left = left + point.x
@@ -653,11 +661,12 @@ public class ConstraintDslContext internal constructor() {
         height eq size.height
     )
 
-    public val Area.preserve: List<Result<Constraint>>
-        get() = listOf(
-            width eq width.readOnly,
-            height eq height.readOnly
-        )
+    public val Area.preserve: Unit get() = this preserve Required
+
+    public infix fun Area.preserve(strength: Strength) {
+        width  preserve strength
+        height preserve strength
+    }
 
     public operator fun Edges.plus(value: Number): Edges = this + Insets(-(value.toDouble()))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(value.toDouble())
@@ -707,8 +716,6 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
-    public val Edges.preserve: List<Result<Constraint>> get() = this eq this.readOnly
-
     public infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
     public infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
@@ -742,8 +749,19 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public fun Bounds.withOffset(top: () -> Double = { 0.0 }, left: () -> Double = { 0.0 }): Bounds = object: Bounds by this {
-        override val top  get() = this@withOffset.top  - top ()
-        override val left get() = this@withOffset.left - left()
+        override val top  get() = object: Property() {
+            override val terms    get() = this@withOffset.top.terms
+            override val constant get() = this@withOffset.top.constant + top()
+            override val variable get() = this@withOffset.top.variable
+            override fun toTerm() = this@withOffset.top.toTerm()
+
+        }
+        override val left get() = object: Property() {
+            override val terms    get() = this@withOffset.left.terms
+            override val constant get() = this@withOffset.left.constant + left()
+            override val variable get() = this@withOffset.left.variable
+            override fun toTerm() = this@withOffset.left.toTerm()
+        }
 
         private val t = this.top
         private val l = this.left
@@ -999,8 +1017,8 @@ public class Constrainer {
             fakePositionable.bounds = rectangle
             fakeBounds.reset()
 
-            updatedBounds[fakeBounds.top_  ] = rectangle.y
-            updatedBounds[fakeBounds.left_ ] = rectangle.x
+            updatedBounds[fakeBounds.top   ] = rectangle.y
+            updatedBounds[fakeBounds.left  ] = rectangle.x
             updatedBounds[fakeBounds.width ] = rectangle.width
             updatedBounds[fakeBounds.height] = rectangle.height
         }

@@ -26,6 +26,7 @@ import io.nacular.doodle.geometry.times
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Task
@@ -104,14 +105,15 @@ class ConstraintLayoutTests {
         }
 
         container.layout = constrain(child1, child2) { a, b ->
-            a.top     eq     0
-            a.left    eq     0
-            a.width   lessEq parent.width / 3
-            a.height  eq     parent.height
+            a.top     eq       0
+            a.left    eq       0
+            a.width   preserve Weak
+            a.width   lessEq   parent.width / 3
+            a.height  eq       parent.height
 
-            b.top     eq     a.top
-            b.left    eq     a.right
-            b.height  eq     a.height
+            b.top     eq       a.top
+            b.left    eq       a.right
+            b.height  eq       a.height
 
             a.width + b.width eq parent.width
         }
@@ -129,35 +131,6 @@ class ConstraintLayoutTests {
         expect(Rectangle(         200, 1200)) { child1.bounds }
     }
 
-    @Test fun foo() {
-        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
-        val child2 = NamedView("child2")
-        val child3 = NamedView("child3")
-        val child4 = NamedView("child4")
-
-        val container = container {
-            + listOf(child1, child2, child3, child4)
-
-            layout = constrain(child1, child2, child3) { a, b, c ->
-//                a.left   eq 0
-//                a.width  eq 400
-//                a.width lessEq parent.width / 3
-
-//                b.left   eq a.right
-//                b.width eq 0
-
-//                c.left   eq b.right
-
-                a.width + b.width + c.width eq parent.width
-            }
-        }
-
-        container.forceSize(Size(1200))
-        container.doLayout_()
-
-        expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
-    }
-
     @Test fun `widths sum`() {
         val child1 = NamedView("child1").apply { suggestWidth(400.0) }
         val child2 = NamedView("child2")
@@ -168,18 +141,20 @@ class ConstraintLayoutTests {
             + listOf(child1, child2, child3, child4)
 
             layout = constrain(child1, child2, child3) { a, b, c ->
-                a.top    eq 0
-                a.left   eq 0
-                a.width  lessEq parent.width / 3
-                a.height eq     parent.height
+//                a.top    eq       0
+                a.left   eq       0
+                a.width  preserve Weak
+                a.width  lessEq   parent.width / 3
+//                a.height eq       parent.height
 
-                b.top    eq a.top
-                b.left   eq a.right
-                b.height eq a.height
+//                b.top    eq       a.top
+                b.left   eq       a.right
+//                b.height eq       a.height
 
-                c.top    eq a.top
-                c.left   eq b.right
-                c.height eq a.height
+//                c.top    eq       a.top
+                c.left   eq       b.right
+//                c.height eq       a.height
+//                c.width  preserve Weak
 
                 a.width + b.width + c.width eq parent.width
             }
@@ -188,7 +163,7 @@ class ConstraintLayoutTests {
         container.forceSize(Size(1200))
         container.doLayout_()
 
-        expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
+        expect(400.0, 800.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
 
         child1.suggestWidth(200.0)
         container.doLayout_()
@@ -219,6 +194,8 @@ class ConstraintLayoutTests {
         }
 
         layout.layout(sequenceOf(view).map { it.positionable }, Empty, Size(100), Infinite)
+
+        view.positionable.finalize()
 
         val solver = Solver()
 
@@ -252,7 +229,6 @@ class ConstraintLayoutTests {
             layout = constrain(parent) {
                 it.top    eq     0
                 it.bottom lessEq this.parent.bottom
-
                 it.width  eq 500 strength Medium
                 it.height eq 500 strength Medium
             }
@@ -289,14 +265,15 @@ class ConstraintLayoutTests {
         }
 
         container.layout = constrain(view1, view2) { v1, v2 ->
+            v1.top    eq 0
             v1.left   eq 23
             v1.height eq 100
 
-            v2.top eq v1.bottom
+            v2.top    eq v1.bottom
         }
 
         view1.suggestX     (67.0)
-        view1.forceHeight(67.0)
+        view1.forceHeight  (67.0)
         view2.suggestY     (67.0)
         view3.suggestWidth (67.0)
 
@@ -330,6 +307,7 @@ class ConstraintLayoutTests {
         }
 
         val constraints: ConstraintDslContext.(Bounds, Bounds, Bounds) -> Unit = { v1, v2, v3 ->
+            v1.top    eq 0
             v1.left   eq 23
             v1.height eq 100
 
@@ -462,7 +440,8 @@ class ConstraintLayoutTests {
         val child     = view {}.apply { forceSize(childSize) }
 
         val layout = constrain(child) {
-            it.center eq parent.center
+            it.size   preserve Weak
+            it.center eq       parent.center
         }
 
         val parentSize          = Size(200)
@@ -474,7 +453,9 @@ class ConstraintLayoutTests {
         )
 
         val doLayout = {
+            child.positionable.reset()
             layout.layout(sequenceOf(child).map { it.positionable }, parentSize, parentSize, parentSize)
+            child.positionable.finalize()
         }
 
         doLayout()
@@ -522,7 +503,9 @@ class ConstraintLayoutTests {
 
         val size = Size(500)
 
-        layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
+        layout.layout(sequenceOf(image.positionable, text.positionable).map { it.also { it.reset() } }, Empty, size, Infinite)
+
+        listOf(image, text).forEach { it.positionable.finalize() }
 
         expect(Point(10.0, 0.0)) { image.position }
         expect(size.width - 2 * 10) { image.width }
@@ -533,7 +516,9 @@ class ConstraintLayoutTests {
 
         firstBlock = true
 
-        layout.layout(sequenceOf(image.positionable, text.positionable), Empty, size, Infinite)
+        layout.layout(sequenceOf(image.positionable, text.positionable).map { it.also { it.reset() } }, Empty, size, Infinite)
+
+        listOf(image, text).forEach { it.positionable.finalize() }
 
         expect(true) { image.x > 10.0 }
         expect(size.width * 0.4) { image.width }
