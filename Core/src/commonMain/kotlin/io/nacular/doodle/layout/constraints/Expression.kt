@@ -152,6 +152,7 @@ internal interface Variable {
     val name          : String
     val needsSynthetic: Boolean
     var constrained   : Boolean
+    var isReadOnly    : Boolean
 
     operator fun invoke(             ): Double
     operator fun invoke(value: Double)

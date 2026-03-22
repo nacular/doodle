@@ -128,6 +128,7 @@ internal class ReflectionVariable(
 
     override val name     get() = delegate.name
     override var constrained = false
+    override var isReadOnly  = false
 
     override fun invoke() = delegate()
 
@@ -137,7 +138,7 @@ internal class ReflectionVariable(
 
     override fun toTerm(): VariableTerm = VariableTerm(this)
     override val terms: Array<VariableTerm> by lazy { arrayOf(toTerm()) }
-    override val constant: Double get() = invoke()
+    override val constant = 0.0
 
     override fun toString(): String = when (target) {
         is PositionableView -> target.view.toString().takeIf { it != "[object Object]" } ?: target.view::class.simpleName ?: "??"
@@ -307,7 +308,7 @@ internal open class ConstraintLayoutImpl(
         view.boundsChanged         += boundsChanged
 
         viewBounds.getOrPut(view) {
-            BoundsImpl(view.positionable, context, solver).also { bounds ->
+            BoundsImpl(view.positionable, context, secondarySolver).also { bounds ->
                 view.positionable.bounds.let {
                     if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
                         updatedBounds[bounds.top_  ] = it.y
