@@ -477,6 +477,7 @@ public class ConstraintDslContext internal constructor() {
         private var  value          = 0.0
         override var constrained    = false
         override val needsSynthetic = false
+        override var isReadOnly     = false
 
         override fun invoke() = value
 
@@ -492,6 +493,7 @@ public class ConstraintDslContext internal constructor() {
     private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name), ReadOnlyVariable {
         override var constrained    = source.constrained
         override val needsSynthetic = false
+        override var isReadOnly     = true
     }
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)

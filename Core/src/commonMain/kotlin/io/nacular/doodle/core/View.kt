@@ -10,7 +10,6 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.LookupResult.Empty
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
-import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.core.View.SizeAuditor
 import io.nacular.doodle.datatransport.dragdrop.DragOperation
 import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
@@ -53,7 +52,6 @@ import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
-import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.SystemPointerEvent.Type.Click
 import io.nacular.doodle.system.SystemPointerEvent.Type.Down
@@ -1090,8 +1088,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
             if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
                 parent?.relayout()
-            } else if (layout is ConstraintLayout) {
-                println("WOULD'VE DONE IT, BUT SKIPPED")
             }
         }
     }
