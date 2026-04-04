@@ -33,11 +33,10 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
         val availableWidth = current.width - insets.left - insets.right
 
         views.filter { it.visible }.forEach { child ->
-            val childBounds = child.updateBounds(child.bounds.x, child.bounds.y, Size.Empty, Size.Infinite)
+            child.size = child.idealSize
+            lineHeight = max(lineHeight, child.height)
 
-            lineHeight = max(lineHeight, childBounds.height)
-
-            val temp = lineWidth + childBounds.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
+            val temp = lineWidth + child.width + if (itemList.isNotEmpty()) horizontalSpacing else 0.0
 
             if (temp > availableWidth) {
                 layoutLine(itemList, current, insets, lineWidth, y, lineHeight)
@@ -84,7 +83,8 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
                 else   -> lineY +  lineHeight - it.bounds.height
             }
 
-            it.updatePosition(startX, y)
+            it.x = startX
+            it.y = y
 
             startX += it.bounds.width + horizontalSpacing
         }

@@ -2,6 +2,7 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
@@ -43,17 +44,17 @@ public class TileLayout(private val orientation: Orientation, private val spacin
 
         children.forEachIndexed { i, child ->
             when (orientation) {
-                Horizontal -> child.updateBounds(
+                Horizontal -> child.bounds = Rectangle(
                     insets.left + i % numCols * (tileLength + spacing),
                     insets.top  + i / numCols * (tileLength + spacing),
-                    size,
-                    size
+                    size.width,
+                    size.width
                 )
-                else -> child.updateBounds(
+                else -> child.bounds = Rectangle(
                     insets.left + i / numCols * (tileLength + spacing),
                     insets.top  + i % numCols * (tileLength + spacing),
-                    size,
-                    size
+                    size.width,
+                    size.width
                 )
             }
         }

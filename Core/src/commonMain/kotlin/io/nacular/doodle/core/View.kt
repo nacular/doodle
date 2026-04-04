@@ -373,14 +373,17 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
         newBounds = auditedNew
-
-        if (new == actualBounds) return
     }
 
     public val idealSize: Size get() = preferredSize(Empty, Infinite)
 
     @Internal
     public val prospectiveBounds: Rectangle get() = newBounds
+
+    internal fun audit(size: Size): Size = when (val auditor = sizeAuditor) {
+        null -> size
+        else -> auditor(this, this.size, size, allowedMinSize, allowedMaxSize)
+    }.coerceIn(allowedMinSize, allowedMaxSize)
 
     private var newBounds: Rectangle = Rectangle.Empty; set(new) {
         if (field.fastEqual(new)) return
@@ -457,25 +460,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         needsLayout                                                                -> null
         else                                                                       -> preferredSizeCache[min to max]
     }*/
-
-    /**
-     * Called whenever the View's parent wishes to update it's size.
-     *
-     * @param min the smallest size this View is allowed to be
-     * @param max the largest size this View is allowed to be
-     * @return a value that respects [min] and [max]
-     */
-    internal fun preferredSize_(min: Size, max: Size): Size = when (min) {
-        max  -> min
-        else -> {
-            val prefSize = preferredSize(allowedMinSize, allowedMaxSize)
-
-            when (val r = sizeAuditor) {
-                null -> prefSize
-                else -> r(this, size, prefSize, allowedMinSize, allowedMaxSize)
-            }.coerceIn(allowedMinSize, allowedMaxSize)
-        }
-    }
 
     internal var clipCanvasToBounds_ get() = clipCanvasToBounds; set(new) { clipCanvasToBounds = new }
 
@@ -1052,20 +1036,26 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var layoutNeeded = true
     private val needsLayout get() = layoutNeeded || renderManager?.layoutNeeded(this) != false
 
-    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size): Size {
+    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) {
         if (min == allowedMinSize && max == allowedMaxSize) {
             renderManager?.performedLayout(this)
         }
 
         layoutNeeded = false
 
-        return layout.layout(
-            children.asSequence().map { it.positionable },
+        children.forEach { it.positionable.reset() } // FIXME: Workaround for ConstraintLayout
+
+        layout.layout(
+            children.asSequence().map {
+                it.positionable.also { it.reset() }
+            },
             min     = min,
             max     = max,
             current = current,
             insets  = insets
-        ).coerceIn(min, max)
+        )
+
+        children.forEach { it.positionable.finalize() } // FIXME: Workaround for ConstraintLayout
     }
 
     internal fun syncBounds() {
@@ -1491,87 +1481,40 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
-    internal inner class PositionableView: Positionable, BoundsUpdateContext {
-        var persist: Boolean by observable(true) { _,new ->
-            if (new) tempBounds = null
-        }
-
+    internal inner class PositionableView: Positionable() {
         val view get() = this@View
 
-        private var x        : Double  = view.x
-        private var y        : Double  = view.y
-        private var minWidth : Double? = null
-        private var maxWidth : Double? = null
-        private var minHeight: Double? = null
-        private var maxHeight: Double? = null
-
-        override fun setY        (value: Double) { y         = value }
-        override fun setX        (value: Double) { x         = value }
-        override fun setMinWidth (value: Double) { minWidth  = value }
-        override fun setMaxWidth (value: Double) { maxWidth  = value }
-        override fun setMinHeight(value: Double) { minHeight = value }
-        override fun setMaxHeight(value: Double) { maxHeight = value }
+        override var x_      = view.x
+        override var y_      = view.y
+        override var size_   = newBounds.size; set(value) { field = audit(value) }
+        override var minSize = view.allowedMinSize
+        override var maxSize = view.allowedMaxSize
 
         override val visible   get() = this@View.visible
-        override val bounds    get() = tempBounds ?: this@View.newBounds
         override val idealSize get() = this@View.idealSize
-        private  var tempBounds      = null as Rectangle?
 
-        override fun preferredSize(min: Size, max: Size) = this@View.preferredSize(min, max)
+        override fun preferredSize(min: Size, max: Size) = this@View.preferredSize(min, max).coerceIn(min, max)
 
         override fun contains(point: Point) = point in this@View
 
-        override fun updatePosition(x: Double, y: Double) {
-            updateBounds {
-                setPosition(x, y)
-            }
+        internal fun reset() {
+            x_      = newBounds.x
+            y_      = newBounds.y
+            size_   = newBounds.size
+            minSize = view.allowedMinSize
+            maxSize = view.allowedMaxSize
         }
 
-        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size = updateBounds {
-            setPosition(x, y)
-            setWidth (min.width,  max.width )
-            setHeight(min.height, max.height)
-        }
+        internal fun finalize() {
+            allowedMinSize = minSize
+            allowedMaxSize = maxSize
 
-        override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
-            x         = view.x
-            y         = view.y
-            minWidth  = null
-            maxWidth  = null
-            minHeight = null
-            maxHeight = null
+            val size = when (val r = sizeAuditor) {
+                null -> size_
+                else -> r(view, size, size_, allowedMinSize, allowedMaxSize)
+            }.coerceIn(allowedMinSize, allowedMaxSize)
 
-            block(this)
-
-            return when {
-                minWidth == null && maxWidth == null && minHeight == null && maxHeight == null -> Rectangle(
-                    Point(x, y),
-                    newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
-                )
-                else -> Rectangle(
-                    Point(x, y),
-                    when {
-                        minWidth == null && maxWidth == null -> newBounds.size.coerceIn(allowedMinSize, allowedMaxSize)
-                        else -> preferredSize_(
-                            Size(minWidth ?: allowedMinSize.width, minHeight ?: allowedMinSize.height).also {
-                                if (persist) {
-                                    allowedMinSize = it.coerceIn(Empty, Infinite)
-                                }
-                            },
-                            Size(maxWidth ?: allowedMaxSize.width, maxHeight ?: allowedMaxSize.height).also {
-                                if (persist) {
-                                    allowedMaxSize = it.coerceIn(allowedMinSize, Infinite)
-                                }
-                            }
-                        )
-                    }
-                )
-            }.also {
-                when {
-                    persist -> actualBounds = it
-                    else    -> tempBounds   = it
-                }
-            }.size
+            actualBounds = Rectangle(x_, y_, size.width, size.height)
         }
 
         override fun toString() = view.toString()
@@ -1628,17 +1571,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 null -> newBounds.size
                 else -> when (val s = preferredSizeCache(min, max)) {
                     null                                               -> {
-                        var needsReset = mutableSetOf<PositionableView>()
+                        children.forEach { it.positionable.reset() } // FIXME: Workaround for ConstraintLayout
 
                         l.preferredSize(
-                            views   = children.asSequence().map {
-                                it.positionable.also {
-                                    if (it.persist) {
-                                        needsReset.add(it)
-                                        it.persist = false
-                                    }
-                                }
-                            },
+                            views   = children.asSequence().map { it.positionable.also { it.reset() } },
                             min     = min,
                             max     = max,
                             current = size.coerceIn(min, max),
@@ -1648,8 +1584,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                                 min == Empty && max == Infinite -> idealSizeCache = it
                                 else                            -> preferredSizeCache[min to max] = it
                             }
-                        }.also {
-                            needsReset.forEach { it.persist = true }
                         }
                     }
                     else -> s

@@ -184,8 +184,9 @@ public open class Tree<T, out M: TreeModel<T>>(
                 model[path].onSuccess { value ->
                     c.getOrNull(index % c.size)?.let { child ->
                         rowPositioner?.let {
-                            val b = it.rowBounds(this, value, path, index)
-                            child.updateBounds(it.rowBounds(this, value, path, index))
+                            val b = it.rowBounds(this@Tree, value, path, index)
+
+                            child.bounds = it.rowBounds(this@Tree, value, path, index)
 
                             y += b.height
                             if (y > minHeight) return@forEach

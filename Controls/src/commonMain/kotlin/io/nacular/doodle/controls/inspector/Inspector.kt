@@ -77,9 +77,10 @@ public open class Inspector<T>(public val value: T, private val block: FieldFact
                             var y = 0.0
 
                             views.forEach {
-                                it.updateBounds(0.0, y, Size(current.width, 0.0), Size.Infinite).also {
-                                    y += it.height
-                                }
+                                it.x     = 0.0
+                                it.y     = y
+                                it.size  = it.preferredSize(Size(current.width, 0.0), Size.Infinite)
+                                y       += it.height
                             }
 
                             return current

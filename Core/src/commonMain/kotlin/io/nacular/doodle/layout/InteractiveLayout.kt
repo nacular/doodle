@@ -40,7 +40,7 @@ public class InteractiveLayout(private val start: Layout, private val end: Layou
         val endBounds = children.map { it.bounds }
 
         views.forEachIndexed { index, view ->
-            view.updateBounds(lerp(startBounds[index], endBounds[index], progress))
+            view.bounds = lerp(startBounds[index], endBounds[index], progress)
         }
 
         return lerp(resultStart, resultEnd, progress)

@@ -49,13 +49,14 @@ import kotlin.test.expect
 class ConstraintLayoutTests {
     @Test fun `parent width correct`() {
         val child       = NamedView("child").apply { suggestWidth(10.0) }
-        val parent      = container { + child }
+        val parent      = container { +child }
         val grandParent = container {
             + parent
 
             layout = simpleLayout { items,_,_,_,_ ->
                 items.forEach {
-                    it.updateBounds(0.0, 0.0, Size(10), Infinite)
+                    it.position = Point.Origin
+                    it.assumeAnySizeWithin(Size(10), Infinite)
                 }
 
                 Size(100)
@@ -63,7 +64,7 @@ class ConstraintLayoutTests {
         }
 
         parent.layout = constrain(child) {
-            this.parent.width greaterEq it.right.readOnly + 10
+            this.parent.width greaterEq readonly(it.right) + 10
         }
 
         grandParent.doLayout_()

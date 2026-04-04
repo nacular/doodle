@@ -14,7 +14,9 @@ public class TransformLayout(private val transform: (Positionable) -> AffineTran
 
         views.forEach {
             transform(it)(it.bounds).boundingRectangle.apply {
-                it.updateBounds(x, y, size, size)
+                it.x    = x
+                it.y    = y
+                it.size = size
             }
         }
 

@@ -289,10 +289,9 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             var width = 0.0
 
             views.forEach {
-                it.updateBounds(Rectangle(x, y, it.bounds.width, h).also {
-                    x     += it.width
-                    width += it.width
-                })
+                it.bounds  = Rectangle(x, y, it.bounds.width, h)
+                x         += it.width
+                width     += it.width
             }
 
             if (width > 0) {

@@ -79,10 +79,10 @@ public open class MonthPanel(
 
                 if (col == 0) row++
 
-                it.updateBounds(when (cellAlignment) {
+                it.bounds = when (cellAlignment) {
                     fill -> within
                     else -> constrainer(it.bounds, within = within, using = cellAlignment)
-                })
+                }
             }
 
             return current
