@@ -2,7 +2,6 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.bottom
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.WidthSource.Children
 import io.nacular.doodle.layout.WidthSource.Parent
@@ -35,7 +34,9 @@ public class ListLayout(
                 else   -> 0.0                              to POSITIVE_INFINITY - horizontalInsets
             }
 
-            it.updateBounds(insets.left, y, Size(widths.first, minHeight), Size(widths.second, maxHeight))
+            it.x    = insets.left
+            it.y    = y
+            it.size = it.preferredSize(Size(widths.first, minHeight), Size(widths.second, maxHeight))
 
             y        += it.bounds.height + spacing
             h         = it.bottom

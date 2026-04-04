@@ -501,7 +501,10 @@ public class ConstraintDslContext internal constructor() {
         override fun toString() = name
     }
 
-    private class ReadOnlyVariableRef(referent: Expression) : LocalVariable("readOnly -> $referent")
+    private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readOnly -> $referent") {
+        override val needsHold  = false
+        override var isReadOnly = true
+    }
 
     private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name), ReadOnlyVariable {
         override var constrained    = source.constrained
@@ -897,7 +900,9 @@ public fun <T: Positionable> Iterable<T>.constrain(
 ): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
         this(view.bounds, within(index, view), forceSetup = false, probe = view, using).apply {
-            view.updateBounds(this)
+            view.bounds = this
+
+            (view as? View.PositionableView)?.finalize()
         }
     }
 }
@@ -908,7 +913,7 @@ public fun <T: Positionable> Iterable<T>.constrain(
  * @suppress
  */
 @Internal
-public class Constrainer {
+public class Constrainer: Layout {
     private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
     private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
 
@@ -919,51 +924,21 @@ public class Constrainer {
     private val secondarySolver = Solver()
     private val context         = ConstraintDslContext()
 
-    private class FakePositionable: Positionable, BoundsUpdateContext {
+    private class FakePositionable: Positionable() {
         var probe = null as Positionable?
 
-        override var bounds          = Rectangle.Empty
+        override var x_      = 0.0
+        override var y_      = 0.0
+        override var size_   = Size.Empty
+        override var minSize = Size.Empty
+        override var maxSize = Size.Infinite
+
         override val visible         = true
         override val idealSize get() = probe?.idealSize ?: Size.Empty
-
-        private var x        : Double  = 0.0
-        private var y        : Double  = 0.0
-        private var minWidth : Double? = null
-        private var maxWidth : Double? = null
-        private var minHeight: Double? = null
-        private var maxHeight: Double? = null
-
-        override fun setX        (value: Double) { x         = value }
-        override fun setY        (value: Double) { y         = value }
-        override fun setMinWidth (value: Double) { minWidth  = value }
-        override fun setMaxWidth (value: Double) { maxWidth  = value }
-        override fun setMinHeight(value: Double) { minHeight = value }
-        override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override fun contains(point: Point) = true
 
         override fun preferredSize(min: Size, max: Size) = probe?.preferredSize(min, max) ?: Size.Empty
-
-        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
-            bounds = Rectangle(x, y, max.width, max.height)
-
-            return bounds.size
-        }
-
-        override fun updatePosition(x: Double, y: Double) {
-            bounds = bounds.at(x, y)
-        }
-
-        override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
-            x         = bounds.x
-            y         = bounds.y
-            maxWidth  = null
-            maxHeight = null
-
-            block(this)
-
-            return Rectangle(x, y, maxWidth ?: bounds.width, maxHeight ?: bounds.height).also { bounds = it }.size
-        }
 
         override fun toString() = "FakePositionable"
     }
@@ -1039,4 +1014,13 @@ public class Constrainer {
 
         return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }
+
+    // Only implemented to allow usage of Positionable properties
+    override fun layout(
+        views: Sequence<Positionable>,
+        min: Size,
+        current: Size,
+        max: Size,
+        insets: Insets
+    ): Size = Size.Empty
 }

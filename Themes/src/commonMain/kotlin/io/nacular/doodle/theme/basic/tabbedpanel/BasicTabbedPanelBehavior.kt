@@ -248,7 +248,9 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
         val width = max(minWidth, min(defaultWidth, maxLineWidth / children.size))
 
         children.filter { it.visible }.forEach { child ->
-            child.updateBounds(x, insets.top, Size(width, 0.0), Size(width, Double.POSITIVE_INFINITY))
+            child.x = x
+            child.y = insets.top
+            child.assumeAnySizeWithin(Size(width, 0.0), Size(width, Double.POSITIVE_INFINITY))
             x += width + spacing
         }
 
@@ -584,8 +586,8 @@ public open class BasicTabbedPanelBehavior<T>(
             layout = Layout.simpleLayout { items,_,current,_,_ ->
                 items.forEachIndexed { index, view ->
                     when (index) {
-                        0    -> view.updateBounds(Rectangle(current.width, tabProducer.tabHeight + 10))
-                        else -> view.updateBounds(Rectangle(size = current).inset(Insets(top = tabProducer.tabHeight + 10)))
+                        0    -> view.bounds = Rectangle(current.width, tabProducer.tabHeight + 10)
+                        else -> view.bounds = Rectangle(size = current).inset(Insets(top = tabProducer.tabHeight + 10))
                     }
                 }
 

@@ -12,30 +12,16 @@ import io.nacular.doodle.layout.Insets.Companion.None
  *
  * @see View
  */
-public interface Positionable {
+public abstract class Positionable internal constructor() {
 
-    public interface BoundsUpdateContext {
-        public fun setX        (value: Double)
-        public fun setY        (value: Double)
-        public fun setWidth    (value: Double) { setMinWidth(value); setMaxWidth(value) }
-        public fun setWidth    (min: Double, max: Double) { setMinWidth(min); setMaxWidth(max) }
-        public fun setWidth    (within: ClosedFloatingPointRange<Double>): Unit = setWidth(within.start, within.endInclusive)
-        public fun setHeight   (value: Double) { setMinHeight(value); setMaxHeight(value) }
-        public fun setHeight   (min: Double, max: Double) { setMinHeight(min); setMaxHeight(max) }
-        public fun setHeight   (within: ClosedFloatingPointRange<Double>): Unit = setHeight(within.start, within.endInclusive)
-        public fun setPosition (x: Double, y: Double) { setX(x); setY(y) }
-        public fun setPosition (point: Point): Unit = setPosition(point.x, point.y)
-        public fun setMinWidth (value: Double)
-        public fun setMaxWidth (value: Double)
-        public fun setMinHeight(value: Double)
-        public fun setMaxHeight(value: Double)
-    }
-
-    /** The current screen location/size */
-    public val bounds: Rectangle
+    internal abstract var x_     : Double
+    internal abstract var y_     : Double
+    internal abstract var size_  : Size
+    internal abstract var minSize: Size
+    internal abstract var maxSize: Size
 
     /** The ideal size */
-    public val idealSize: Size
+    public abstract val idealSize: Size
 
     /**
      * Preferred size within [min] and [max].
@@ -43,10 +29,10 @@ public interface Positionable {
      * @param min size allowed
      * @param max size allowed
      */
-    public fun preferredSize(min: Size, max: Size): Size
+    public abstract fun preferredSize(min: Size, max: Size): Size
 
     /** Whether this item is visible. */
-    public val visible: Boolean
+    public abstract val visible: Boolean
 
     /**
      * Checks whether this item contains [point].
@@ -54,15 +40,15 @@ public interface Positionable {
      * @param point within the item's parent
      * @return `true` IFF the point falls within the item
      */
-    public operator fun contains(point: Point): Boolean
-
+    public abstract operator fun contains(point: Point): Boolean
+/*
     /**
      * Sets item's [position] to [x] and [y]
      *
      * @param x to set
      * @param y to set
      */
-    public fun updatePosition(x: Double, y: Double)
+    public abstract fun updatePosition(x: Double, y: Double)
 
     /**
      * Sets item's [Positionable.position] to the given value
@@ -91,7 +77,7 @@ public interface Positionable {
      * @param max size
      * @return size selected
      */
-    public fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
+    public abstract fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
 
     /**
      * Sets the item's [bounds] to [rectangle]
@@ -118,22 +104,8 @@ public interface Positionable {
         }
     }
 
-    public fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size
+    public abstract fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size*/
 }
-
-/** The current screen location */
-public val Positionable.position: Point get() = bounds.position
-public val Positionable.size: Size get() = bounds.size
-
-public val Positionable.x: Double get() = bounds.x
-public val Positionable.y: Double get() = bounds.y
-public val Positionable.width: Double get() = bounds.width
-public val Positionable.height: Double get() = bounds.height
-
-public val Positionable.right: Double get() = bounds.right
-public val Positionable.bottom: Double get() = bounds.bottom
-
-public val Positionable.center: Point get() = bounds.center
 
 /**
  * The result of [Layout.item].
@@ -227,19 +199,41 @@ public interface Layout {
      */
     public fun item(of: Sequence<Positionable>, at: Point): LookupResult = Ignored
 
+    public var Positionable.x       : Double    get() = x_;                          set(value) { x_       = value                             }
+    public var Positionable.y       : Double    get() = y_;                          set(value) { y_       = value                             }
+    public var Positionable.width   : Double    get() = size_.width;                 set(value) { size     = Size(value,       size.height)    }
+    public var Positionable.height  : Double    get() = size_.height;                set(value) { size     = Size(size.width, value       )    }
+    public var Positionable.position: Point     get() = Point    (x,        y     ); set(value) { x        = value.x; y = value.y              }
+    public var Positionable.bounds  : Rectangle get() = Rectangle(position, size  ); set(value) { position = value.position; size = value.size }
+    public var Positionable.size    : Size      get() = size_;                       set(value) {
+        minSize = value
+        maxSize = value
+        size_   = value
+    }
+
+    public val Positionable.right   : Double get() = x + width;
+    public val Positionable.bottom  : Double get() = y + height
+    public val Positionable.center  : Point  get() = Point(x + width / 2, y + height / 2)
+
+    public fun Positionable.assumeAnySizeWithin(min: Size, max: Size): Size = preferredSize(min, max).also {
+        size    = it
+        minSize = min
+        maxSize = max
+    }
+
     public companion object {
         /**
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        public inline fun simpleLayout(crossinline layout: (views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
+        public inline fun simpleLayout(crossinline block: Layout.(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
             override fun layout(
                 views  : Sequence<Positionable>,
                 min    : Size,
                 current: Size,
                 max    : Size,
                 insets : Insets
-            ): Size = layout(views, min, current, max, insets)
+            ): Size = block(views, min, current, max, insets)
         }
     }
 }

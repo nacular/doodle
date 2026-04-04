@@ -288,8 +288,8 @@ public open class Table<T, M: ListModel<T>>(
 
                     resizingCol = null
 
-                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
-                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
+                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this@Table).height)
+                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this@Table).height)
 
                     delegate.layout(items, min, current, max).run {
                         val auditor = SizeAuditor { _, _, new, _, _ ->

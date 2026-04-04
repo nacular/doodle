@@ -106,9 +106,10 @@ public class Menu private constructor(
             val maxWidth = views.maxOf { it.idealSize.width }
 
             views.forEach {
-                it.updateBounds(insets.left, y, Size(maxWidth, 0.0), Size(maxWidth, Double.POSITIVE_INFINITY)).also {
-                    y += it.height
-                }
+                it.x     = insets.left
+                it.y     = y
+                it.size  = it.preferredSize(Size(maxWidth, 0.0), Size(maxWidth, Double.POSITIVE_INFINITY))
+                y       += it.height
             }
 
             Size(maxWidth + insets.right, height = y + insets.bottom)

@@ -492,8 +492,11 @@ class ViewTests {
         val child = view {}.apply { sizeAuditor = auditor }
         val parent = container {
             + child
-            layout = simpleLayout { views, min, current, max, insets ->
-                views.forEach { it.updateBounds(0.0, 0.0, Size.Empty, Size.Infinite) }
+            layout = simpleLayout { views,_,current,_,_ ->
+                views.forEach {
+                    it.position = Origin
+                    it.size     = it.idealSize
+                }
 
                 current
             }
@@ -516,8 +519,11 @@ class ViewTests {
         val child = view {}.apply { sizeAuditor = auditor }
         val parent = container {
             + child
-            layout = simpleLayout { views, _, current, _, insets ->
-                views.forEach { it.updateBounds(0.0, 0.0, min, max) }
+            layout = simpleLayout { views,_,current,_,_ ->
+                views.forEach {
+                    it.position = Origin
+                    it.size     = it.preferredSize(min, max)
+                }
 
                 current
             }
@@ -1113,15 +1119,15 @@ class ViewTests {
             + child
 
             suggestSize(Size(100))
-            layout = simpleLayout { items, min, _, max, _ ->
+            layout = simpleLayout { items,min,_,max,_ ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
                 items.forEach {
-                    it.updateBounds(it.position.x, it.position.y, min, max).apply {
-                        maxRight  = it.bounds.right
-                        maxBottom = it.bounds.bottom
-                    }
+                    it.assumeAnySizeWithin(min, max)
+
+                    maxRight  = it.right
+                    maxBottom = it.bottom
                 }
 
                 Size(maxRight, maxBottom)
@@ -1140,12 +1146,7 @@ class ViewTests {
         expect(Size(child.bounds.right, child.bounds.bottom)) { parent.idealSize }
     }
 
-    private class SubView: View() {
-        public override fun handleKeyEvent          (event: KeyEvent               ) { super.handleKeyEvent          (event   ) }
-        public override fun handlePointerEvent      (event: PointerEvent           ) { super.handlePointerEvent      (event   ) }
-        public override fun handleDisplayRectEvent  (old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent  (old, new) }
-        public override fun handlePointerMotionEvent(event: PointerEvent           ) { super.handlePointerMotionEvent(event   ) }
-    }
+    private class SubView: View()
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
         val view     = object: View() {}

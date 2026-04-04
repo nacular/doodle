@@ -1,5 +1,6 @@
 package io.nacular.doodle.layout.constraints.impl
 
+import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PositionableView
@@ -45,18 +46,18 @@ internal interface BoundsAttemptObserver {
 }
 
 @Suppress("PrivatePropertyName")
-internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext, private val solver: Solver): Bounds {
-    private var x__      = target.bounds.x
-    private var y__      = target.bounds.y
-    private var width__  = target.bounds.width
-    private var height__ = target.bounds.height
+internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext, private val solver: Solver): Bounds, Layout {
+    private var x__      = target.x
+    private var y__      = target.y
+    private var width__  = target.width
+    private var height__ = target.height
 
     // This looks strange, cut it works b/c the Solver reads variables and only updates them after computing their new
     // values. Essentially, it never does read, ..., write, ..., read; only read, ..., read, write
-    private var x_      get() = target.bounds.x;      set(value) { x__      = value }
-    private var y_      get() = target.bounds.y;      set(value) { y__      = value }
-    private var width_  get() = target.bounds.width;  set(value) { width__  = value }
-    private var height_ get() = target.bounds.height; set(value) { height__ = value }
+    private var x_      get() = target.x;      set(value) { x__      = value }
+    private var y_      get() = target.y;      set(value) { y__      = value }
+    private var width_  get() = target.width;  set(value) { width__  = value }
+    private var height_ get() = target.height; set(value) { height__ = value }
 
     override val top     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
     override val left    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
@@ -80,22 +81,26 @@ internal open class BoundsImpl(private val target: Positionable, private val con
         val x = if (left.constrained ) x__ else x_
         val y = if (top.constrained  ) y__ else y_
 
-        when {
-            !(width.constrained || height.constrained) -> target.updatePosition(x, y)
-            else                                       -> target.updateBounds {
-                setX(x)
-                setY(y)
-                if (width.constrained) {
-                    when {
-                        solver.isUnderConstrained(width) -> setWidth(solver.computeRange(width, 0.0, Double.MAX_VALUE))
-                        else                             -> setWidth(width__                                           )
-                    }
+        target.x = x
+        target.y = y
+
+        if (width.constrained) {
+            target.width = width__
+
+            if (solver.isUnderConstrained(width)) {
+                solver.computeRange(width, min = 0.0).let {
+                    target.minSize = Size(it.start,        target.minSize.height)
+                    target.maxSize = Size(it.endInclusive, target.maxSize.height)
                 }
-                if (height.constrained) {
-                    when {
-                        solver.isUnderConstrained(height) -> setHeight(solver.computeRange(height, 0.0, Double.MAX_VALUE))
-                        else                              -> setHeight(height__                                           )
-                    }
+            }
+        }
+        if (height.constrained) {
+            target.height = height__
+
+            if (solver.isUnderConstrained(height)) {
+                solver.computeRange(height, min = 0.0).let {
+                    target.minSize = Size(target.minSize.width, it.start       )
+                    target.maxSize = Size(target.maxSize.width, it.endInclusive)
                 }
             }
         }
@@ -107,6 +112,14 @@ internal open class BoundsImpl(private val target: Positionable, private val con
         width__  = target.bounds.width
         height__ = target.bounds.height
     }
+
+    override fun layout(
+        views: Sequence<Positionable>,
+        min: Size,
+        current: Size,
+        max: Size,
+        insets: Insets
+    ): Size = Size.Empty
 }
 
 internal class ReflectionVariable(
@@ -519,21 +532,17 @@ internal open class ConstraintLayoutImpl(
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                newVariables.forEach {
-                    val variable = it.variable
-
-                    if (variable.needsSynthetic) {
-                        try {
-                            // Add synthetic constraints that keep width and height positive
-                            solver.addNegativeGuard(variable)
-                        } catch (_: Exception) {}
-                    }
+                newVariables.filter { it.variable.needsSynthetic }.forEach {
+                    try {
+                        // Add synthetic constraints that keep width and height positive
+                        solver.addNegativeGuard(it.variable)
+                    } catch (_: Exception) {}
                 }
 
                 solver.addConstraint(insertedConstraint)
 
-                if (holdVariables) {
-                    newVariables.forEach {
+                if (false) {
+                    newVariables.filter { it.variable.needsHold }.forEach {
                         val variable = it.variable
 
                         try {

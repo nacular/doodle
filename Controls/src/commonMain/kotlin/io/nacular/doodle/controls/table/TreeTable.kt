@@ -576,8 +576,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     resizingCol = null
 
-                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
-                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
+                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this@TreeTable).height)
+                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this@TreeTable).height)
 
                     delegate.layout(items, min, current, max).run {
                         val auditor = SizeAuditor { _,_,new,_,_ ->

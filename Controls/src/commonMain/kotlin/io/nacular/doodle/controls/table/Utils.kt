@@ -7,6 +7,7 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
@@ -41,11 +42,10 @@ internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val 
             var x = scrollOffset
 
             views.forEachIndexed { index, view ->
-                val size = Size(columns[index].width, current.height)
-
-                view.updateBounds(x, 0.0, size, size).let {
-                    x += it.width
-                }
+                view.x     = x
+                view.y     = 0.0
+                view.size  = Size(columns[index].width, current.height)
+                x         += view.width
             }
 
             Size(x, current.height)
@@ -66,19 +66,23 @@ internal open class TablePanel(
         children  += columns.map { it.view }
         layout     = simpleLayout { views,_,current,_,_ ->
             var width      = columns[0].width
-            val firstSize  = views.first().updateBounds(0.0, 0.0, Size(width, 0.0), Size(width, POSITIVE_INFINITY))
+            val firstSize  = views.first().apply {
+                position = Point.Origin
+                size     = preferredSize(Size(width, 0.0), Size(width, POSITIVE_INFINITY))
+            }.size
             var x          = firstSize.width
             var height     = firstSize.height
             var totalWidth = firstSize.width
 
             views.drop(1).forEachIndexed { index, view ->
                 val col = columns[index + 1]
-                width   = col.width
 
-                view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, height)).also {
-                    x          += it.width
-                    totalWidth += it.width
-                }
+                width       = col.width
+                view.x      = x
+                view.y      = 0.0
+                view.size   = view.preferredSize(Size(width, 0.0), Size(width, height))
+                x          += view.width
+                totalWidth += view.width
             }
 
             preferredSize = fixed(Size(totalWidth, height))
