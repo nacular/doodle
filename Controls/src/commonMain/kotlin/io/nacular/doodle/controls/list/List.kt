@@ -231,18 +231,28 @@ public open class List<T, out M: ListModel<T>>(
     init {
         monitorsDisplayRect = true
 
-        layout = simpleLayout { _,_,_,_,_ ->
+        layout = simpleLayout { views,_,_,_,_ ->
             var maxWidth  = 0.0
             var maxHeight = 0.0
-            (firstVisibleItem .. lastVisibleItem).forEach {
-                if (it < model.size) {
-                    model[it].onSuccess { item ->
-                        children.getOrNull(it % children.size)?.let { child ->
-                            layout(child, item, it)?.let {
-                                maxWidth  = max(maxWidth,  it.width )
-                                maxHeight = max(maxHeight, it.bottom)
+
+            if (lastVisibleItem >= firstVisibleItem) {
+                run loop@{
+                    views.forEachIndexed { index, view ->
+                        val modelIndex = index + firstVisibleItem
+
+                        if (modelIndex < model.size) {
+                            model[modelIndex].onSuccess { item ->
+                                children.getOrNull(modelIndex % children.size)?.let { child ->
+                                    layout(child, item, modelIndex)?.let {
+                                        view.position = it.position
+                                        view.assume(size = it.size)
+
+                                        maxWidth  = max(maxWidth, it.width)
+                                        maxHeight = max(maxHeight, it.bottom)
+                                    }
+                                }
                             }
-                        }
+                        } else return@loop
                     }
                 }
             }
@@ -337,14 +347,12 @@ public open class List<T, out M: ListModel<T>>(
         }
     }
 
-    protected fun layout(view: View, item: T, index: Int): Rectangle? {
-        itemPositioner?.let {
-            val bounds = it.itemBounds(this@List, item, index, view)
-            view.suggestBounds(bounds)
-            return bounds
-        }
+    private fun layout(view: View, item: T, index: Int): Rectangle? = itemPositioner?.itemBounds(this, item, index, view)
 
-        return null
+    protected fun suggestBounds(view: View, item: T, index: Int) {
+        itemPositioner?.itemBounds(this, item, index, view)?.let {
+            view.suggestBounds(it)
+        }
     }
 
     protected fun update(children: kotlin.collections.MutableList<View>, index: Int) {
@@ -355,7 +363,7 @@ public open class List<T, out M: ListModel<T>>(
 
                     uiGenerator(this, item, index, children.getOrNull(i)).also { ui ->
                         children[i] = ui
-                        layout(ui, item, index)
+                        suggestBounds(ui, item, index)
 
                         if (index + 1 < numItems - 1) {
                             ui.nextInAccessibleReadOrder = children[(index + 1) % children.size]
@@ -372,7 +380,6 @@ public open class List<T, out M: ListModel<T>>(
                 if (children.size <= lastVisibleItem - firstVisibleItem) {
                     uiGenerator(this, item, index).also { ui ->
                         children.addOrAppend(index, ui)
-                        layout(ui, item, index)
                     }
                 } else {
                     update(children, index)

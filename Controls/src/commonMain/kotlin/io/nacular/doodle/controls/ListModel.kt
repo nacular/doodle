@@ -21,7 +21,7 @@ public interface ListModel<T>: Iterable<T> {
 
     /**
      * @param index to retrieve
-     * @return item found at the index or `null` if index invalid
+     * @return item found at the index or failure if index invalid
      */
     public operator fun get(index: Int): Result<T>
 
