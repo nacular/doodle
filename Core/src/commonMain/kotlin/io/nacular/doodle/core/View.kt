@@ -449,7 +449,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * Called whenever the View's size is changing, providing an opportunity to manage the final size.
      * The result of this call will still be clipped to the View's min/max allowed sizes.
      */
-    public var sizeAuditor: SizeAuditor? by observable(null) { _,new ->
+    public var sizeAuditor: SizeAuditor? = null; set(new) {
+        field = new
         new?.invoke(this, Empty, newBounds.size, allowedMinSize, allowedMaxSize)?.let {
             suggestSize(it)
         }
@@ -546,9 +547,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Whether this View is visible. The default is `true`. */
     @Suppress("UNCHECKED_CAST")
-    public var visible: Boolean by observable(true, visibilityChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+    public var visible: Boolean = true; set(new) {
+        val old = field
+        field = new
+
         renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
+        (visibilityChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, old, new) }
     }
 
     /** Notifies changes to [opacity] */

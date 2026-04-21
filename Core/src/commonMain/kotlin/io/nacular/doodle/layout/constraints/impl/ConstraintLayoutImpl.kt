@@ -45,14 +45,14 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override val width   = ReflectionVariable(target, ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID,  needsSynthetic = true)
     override val height  = ReflectionVariable(target, ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID, needsSynthetic = true)
 
-    override val right   by lazy { with(context) { left + width      } }
-    override val bottom  by lazy { with(context) { top  + height     } }
-    override val centerX by lazy { with(context) { left + width  / 2 } }
-    override val centerY by lazy { with(context) { top  + height / 2 } }
+    override val right   = with(context) { left + width      }
+    override val bottom  = with(context) { top  + height     }
+    override val centerX = with(context) { left + width  / 2 }
+    override val centerY = with(context) { top  + height / 2 }
 
-    override val size    by lazy { Area (width, height                                   ) }
-    override val edges   by lazy { with(context) { Edges(top + 0, left + 0, right, bottom) } }
-    override val center  by lazy { Position(centerX, centerY) }
+    override val size    = Area (width, height                                   )
+    override val edges   = with(context) { Edges(top + 0, left + 0, right, bottom) }
+    override val center  = Position(centerX, centerY)
 
     override val idealSize get() = target.idealSize
 
@@ -112,12 +112,7 @@ internal class ReflectionVariable(
     override val needsSynthetic: Boolean = false,
     private  val mapper        : (Double) -> Double = { it }
 ): Property(), Variable {
-    @Suppress("PrivatePropertyName")
-    private val hashCode_ by lazy {
-        var result = target?.hashCode() ?: 1
-        result = 31 * result + id
-        result
-    }
+    private val hashCode = 31 * (target?.hashCode() ?: 1) +id
 
     override val name     get() = delegate.name
     override val variable get() = this
@@ -131,7 +126,7 @@ internal class ReflectionVariable(
     }
 
     override fun toTerm(): VariableTerm = VariableTerm(this)
-    override val terms: Array<VariableTerm> by lazy { arrayOf(toTerm()) }
+    override val terms: Array<VariableTerm> = arrayOf(toTerm())
     override val constant = 0.0
 
     override fun toString(): String = when (target) {
@@ -154,7 +149,7 @@ internal class ReflectionVariable(
         return true
     }
 
-    override fun hashCode() = hashCode_
+    override fun hashCode() = hashCode
 
     companion object {
         const val X_ID      = 0
@@ -185,14 +180,14 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     override val width   = ReflectionVariable(delegate = ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID )
     override val height  = ReflectionVariable(delegate = ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID)
 
-    override val right   by lazy { with(context) { 0 + width      } }
-    override val centerX by lazy { with(context) { 0 + width  / 2 } }
-    override val bottom  by lazy { with(context) { 0 + height     } }
-    override val centerY by lazy { with(context) { 0 + height / 2 } }
+    override val right   = with(context) { 0 + width      }
+    override val centerX = with(context) { 0 + width  / 2 }
+    override val bottom  = with(context) { 0 + height     }
+    override val centerY = with(context) { 0 + height / 2 }
 
-    override val center  by lazy { Position(centerX, centerY      ) }
-    override val edges   by lazy { Edges(null, null, right, bottom) }
-    override val size    by lazy { Area (width, height            ) }
+    override val center  = Position(centerX, centerY      )
+    override val edges   = Edges(null, null, right, bottom)
+    override val size    = Area (width, height            )
 }
 
 internal open class ConstraintLayoutImpl(

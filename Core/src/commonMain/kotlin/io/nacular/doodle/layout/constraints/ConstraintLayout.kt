@@ -392,12 +392,14 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Property.plus(expression: Expression): Expression = expression + this
     public operator fun Property.plus(term      : Term      ): Expression = term + this
     public operator fun Property.plus(other     : Property  ): Expression = this.toTerm() + other
-    public operator fun Property.plus(constant  : Number    ): Expression = this.toTerm() + constant.toDouble()
+    public operator fun Property.plus(constant  : Number    ): Expression = this + constant.toDouble()
+    public operator fun Property.plus(constant  : Double    ): Expression = this.toTerm() + constant
 
     public operator fun Property.minus(expression: Expression): Expression = this + -expression
     public operator fun Property.minus(term      : Term      ): Expression = this + -term
     public operator fun Property.minus(other     : Property  ): Expression = this + -other
-    public operator fun Property.minus(constant  : Number    ): Expression = this + -constant.toDouble()
+    public operator fun Property.minus(constant  : Number    ): Expression = this - constant.toDouble()
+    public operator fun Property.minus(constant  : Double    ): Expression = this + -constant
 
     /**
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
@@ -429,50 +431,61 @@ public class ConstraintDslContext internal constructor() {
 
     public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
     public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
+    public fun min(a: Property, b: Double    ): Expression = min(1 * a, Expression(constant = b))
     public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
     public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
 
     public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
     public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
+    public fun max(a: Property, b: Double    ): Expression = max(1 * a, Expression(constant = b))
     public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
     public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
 
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
+    public operator fun Term.plus(value     : Double    ): Expression = Expression(this, constant = value)
     public operator fun Term.plus(property  : Property  ): Expression = this + property.toTerm()
     public operator fun Term.plus(expression: Expression): Expression = expression + this
 
     public operator fun Term.minus(term      : Term      ): Expression = this + -term
-    public operator fun Term.minus(constant  : Number    ): Expression = this + -constant.toDouble()
+    public operator fun Term.minus(constant  : Number    ): Expression = this -constant.toDouble()
+    public operator fun Term.minus(constant  : Double    ): Expression = this + -constant
     public operator fun Term.minus(property  : Property  ): Expression = this + -property
     public operator fun Term.minus(expression: Expression): Expression = -expression + this
 
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
+    public operator fun Term.div       (denominator: Double): Term = this * (1.0 / denominator)
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
     public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Term, b: Double    ): Expression = min(a, Expression(constant = b))
     public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
     public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
     public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
 
     public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Term, b: Double    ): Expression = max(a, Expression(constant = b))
     public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
     public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
     public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
 
-    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
-    public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms, constant = this.constant + constant.toDouble())
+    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                           )
+    public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms,               constant = this.constant + constant.toDouble())
+    public operator fun Expression.plus(constant: Double    ): Expression = Expression(*terms,               constant = this.constant + constant)
     public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
-    public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant)
+    public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant          )
 
     public operator fun Expression.minus(term    : Term      ): Expression = this + -term
     public operator fun Expression.minus(value   : Number    ): Expression = this + -value.toDouble()
+    public operator fun Expression.minus(value   : Double    ): Expression = this + -value
     public operator fun Expression.minus(property: Property  ): Expression = this + -property
     public operator fun Expression.minus(other   : Expression): Expression = this + -other
 
-    public operator fun Expression.times(coefficient: Number): Expression = Expression(
-        *Array(terms.size) { terms[it] * coefficient.toDouble() },
-        constant = constant * coefficient.toDouble()
+    public inline operator fun Expression.times(coefficient: Number): Expression = this * coefficient.toDouble()
+
+    public operator fun Expression.times(coefficient: Double): Expression = Expression(
+        *Array(terms.size) { terms[it] * coefficient },
+        constant = constant * coefficient
     ) // TODO Do we need to make a copy of the term objects in the array?
 
     public operator fun Expression.times(other: Expression): Expression = when {
@@ -482,6 +495,7 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public operator fun Expression.div(denominator: Number    ): Expression = this * (1.0 / denominator.toDouble())
+    public operator fun Expression.div(denominator: Double    ): Expression = this * (1.0 / denominator)
     public operator fun Expression.div(other      : Expression): Expression = when {
         other.isConstant -> this / other.constant
         else             -> throw NonlinearExpressionException()
@@ -517,6 +531,7 @@ public class ConstraintDslContext internal constructor() {
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
     public fun min(a: Expression, b: Number                             ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Expression, b: Double                             ): Expression = min(a, Expression(constant = b))
     public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
     public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
@@ -532,6 +547,7 @@ public class ConstraintDslContext internal constructor() {
 
     public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
     public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Expression, b: Double    ): Expression = max(a, Expression(constant = b))
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
     public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
@@ -607,41 +623,49 @@ public class ConstraintDslContext internal constructor() {
 
     public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
     public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
+    public infix fun Expression.lessEq(constant: Double    ): Result<Constraint> = this lessEq Expression(constant = constant)
     public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
     public infix fun Expression.lessEq(other   : Expression): Result<Constraint> = add(Constraint(this - other, LE, Required))
 
     public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
     public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
+    public infix fun Expression.greaterEq(constant: Double    ): Result<Constraint> = this greaterEq Expression(constant = constant)
     public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
     public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, Required))
 
     public infix fun Term.eq(term      : Term      ): Result<Constraint> = Expression(this) eq term
     public infix fun Term.eq(constant  : Number    ): Result<Constraint> = Expression(this) eq constant.toDouble()
+    public infix fun Term.eq(constant  : Double    ): Result<Constraint> = Expression(this) eq constant
     public infix fun Term.eq(property  : Property  ): Result<Constraint> = Expression(this) eq property
     public infix fun Term.eq(expression: Expression): Result<Constraint> = expression       eq this
 
     public infix fun Term.lessEq(term      : Term      ): Result<Constraint> = Expression(this) lessEq term
     public infix fun Term.lessEq(constant  : Number    ): Result<Constraint> = Expression(this) lessEq constant.toDouble()
+    public infix fun Term.lessEq(constant  : Double    ): Result<Constraint> = Expression(this) lessEq constant
     public infix fun Term.lessEq(property  : Property  ): Result<Constraint> = Expression(this) lessEq property
     public infix fun Term.lessEq(expression: Expression): Result<Constraint> = Expression(this) lessEq expression
 
     public infix fun Term.greaterEq(second    : Term      ): Result<Constraint> = Expression(this) greaterEq second
     public infix fun Term.greaterEq(constant  : Number    ): Result<Constraint> = Expression(this) greaterEq constant.toDouble()
+    public infix fun Term.greaterEq(constant  : Double    ): Result<Constraint> = Expression(this) greaterEq constant
     public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
     public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
 
     public infix fun Property.eq(term      : Term      ): Result<Constraint> = term          eq this
     public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
+    public infix fun Property.eq(constant  : Double    ): Result<Constraint> = this.toTerm() eq constant
     public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
     public infix fun Property.eq(expression: Expression): Result<Constraint> = expression    eq this
 
     public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
     public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
+    public infix fun Property.lessEq(constant  : Double    ): Result<Constraint> = this.toTerm() lessEq constant
     public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
     public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
 
     public infix fun Property.greaterEq(term      : Term      ): Result<Constraint> = this.toTerm() greaterEq term
     public infix fun Property.greaterEq(constant  : Number    ): Result<Constraint> = this.toTerm() greaterEq constant.toDouble()
+    public infix fun Property.greaterEq(constant  : Double    ): Result<Constraint> = this.toTerm() greaterEq constant
     public infix fun Property.greaterEq(second    : Property  ): Result<Constraint> = this.toTerm() greaterEq second
     public infix fun Property.greaterEq(expression: Expression): Result<Constraint> = this.toTerm() greaterEq expression
 
@@ -692,8 +716,10 @@ public class ConstraintDslContext internal constructor() {
         height preserve strength
     }
 
-    public operator fun Edges.plus(value: Number): Edges = this + Insets(-(value.toDouble()))
+    public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
+    public operator fun Edges.plus (value: Double): Edges = this + Insets(-(value))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(value.toDouble())
+    public operator fun Edges.minus(value: Double): Edges = this + Insets(value)
 
     public operator fun Edges.plus (insets: Insets): Edges = Edges(
         top?.plus (insets.top ) ?: Expression(constant = insets.top ),

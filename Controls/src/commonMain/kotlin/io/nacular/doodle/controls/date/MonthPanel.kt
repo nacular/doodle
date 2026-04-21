@@ -24,7 +24,6 @@ import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.SetObserver
 import io.nacular.doodle.utils.SetObservers
 import io.nacular.doodle.utils.SetPool
-import io.nacular.doodle.utils.observable
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -147,7 +146,8 @@ public open class MonthPanel(
      * Defines how the View representing each day should be aligned within its cell.
      * The default is to have the View fill the cell.
      */
-    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) by observable(fill) { _,_ ->
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = fill; set(new) {
+        field = new
         relayout()
     }
 

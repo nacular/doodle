@@ -598,21 +598,17 @@ internal open class VectorRendererSvg(
         context.markDirty()
     }
 
-    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = renderPosition): T {
-        val element: Node? = possible
-
-        return when {
-            element == null || element.nodeName != tag -> svgFactory(tag)
-            element is SVGElement                      -> {
-                if (tag !in containerElements) { element.clear() }
-                element.style.filter         = ""
-                element.style.textDecoration = ""
-                element.removeTransform()
-                @Suppress("UNCHECKED_CAST")
-                element as T
-            }
-            else -> throw Exception("Error") // FIXME: handle better
+    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = renderPosition): T = when {
+        possible == null || possible.nodeName != tag -> svgFactory(tag)
+        possible is SVGElement                      -> {
+            if (tag !in containerElements) { possible.clear() }
+            possible.style.filter         = ""
+            possible.style.textDecoration = ""
+            possible.removeTransform()
+            @Suppress("UNCHECKED_CAST")
+            possible as T
         }
+        else -> throw Exception("Error") // FIXME: handle better
     }
 
     private fun makeText(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement1>("text").apply {

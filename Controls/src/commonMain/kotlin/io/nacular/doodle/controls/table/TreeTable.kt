@@ -646,13 +646,12 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints = {
-                it greaterEq panel.idealSize.width
-                it eq        parent.width - verticalScrollBarWidth strength Strong
-            }
-            contentHeightConstraints = {
-                it greaterEq panel.idealSize.height
-                it eq        parent.height - horizontalScrollBarHeight strength Strong
+            contentConstraints = {
+                it.width  greaterEq panel.idealSize.width
+                it.width  eq        parent.width - verticalScrollBarWidth strength Strong
+
+                it.height greaterEq panel.idealSize.height
+                it.height eq        parent.height - horizontalScrollBarHeight strength Strong
             }
 
             scrollBarDimensionsChanged += {

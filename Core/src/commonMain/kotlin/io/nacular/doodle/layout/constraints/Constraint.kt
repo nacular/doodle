@@ -108,12 +108,7 @@ public inline operator fun Strength.minus(value: Int): Strength = this + -value
  * @property strength that determines the degree to which the relationship is enforced
  */
 public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, internal var strength: Strength = Required) {
-    private val hashCode by lazy {
-        var result = operator.hashCode()
-        result = 31 * result + expression.hashCode()
-        result = 31 * result + strength.hashCode()
-        result
-    }
+    private val hashCode = 31 * (31 * operator.hashCode() + expression.hashCode()) + strength.hashCode()
 
     override fun toString(): String = "$expression $operator ~ $strength"
 
