@@ -342,8 +342,8 @@ public class Menu private constructor(
                             menu.top eq self.y - verticalOffset strength Strong
 
                             when {
-                                anchor == Trailing && parent.width.readOnly - self.right > menu.width.readOnly - horizontalOffset ||
-                                anchor == Leading  && self.x <= menu.width.readOnly - horizontalOffset -> menu.left  eq self.right - horizontalOffset strength Strong
+                                anchor == Trailing && parent.width.value - self.right > menu.width.value - horizontalOffset ||
+                                anchor == Leading  && self.x <= menu.width.value - horizontalOffset -> menu.left  eq self.right - horizontalOffset strength Strong
                                 else                                                                   -> menu.right eq self.x     + horizontalOffset strength Strong
                             }
 

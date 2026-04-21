@@ -192,7 +192,13 @@ public interface InternalDisplay: Display {
     public fun hidePopup(view: View)
 
     public override fun relayout() {
-        layout?.layout(children.asSequence().map { it.positionable }, size, size, size, insets)
+        layout?.apply {
+            children.forEach { it.positionable.reset() }
+
+            layout(children.asSequence().map { it.positionable }, size, size, size, insets)
+
+            children.forEach { it.positionable.finalize() }
+        }
     }
 }
 

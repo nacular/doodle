@@ -123,7 +123,7 @@ public open class MutableList<T, M: MutableListModel<T>>(
                 editOperation = it.edit(this, item, index, children[i]).also {
                     it()?.let { children[i] = it }
 
-                    layout(children[i], item, index)
+                    suggestBounds(children[i], item, index)
                 }
             }
         }

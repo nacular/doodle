@@ -201,8 +201,8 @@ public interface Layout {
 
     public var Positionable.x       : Double    get() = x_;                          set(value) { x_       = value                             }
     public var Positionable.y       : Double    get() = y_;                          set(value) { y_       = value                             }
-    public var Positionable.width   : Double    get() = size_.width;                 set(value) { size     = Size(value,       size.height)    }
-    public var Positionable.height  : Double    get() = size_.height;                set(value) { size     = Size(size.width, value       )    }
+    public var Positionable.width   : Double    get() = size_.width;                 set(value) { minSize = Size(value, minSize.height); maxSize = Size(value, maxSize.height); size_ = Size(value,       size.height)    }
+    public var Positionable.height  : Double    get() = size_.height;                set(value) { minSize = Size(minSize.width, value ); maxSize = Size(maxSize.width, value ); size_ = Size(size.width, value       )    }
     public var Positionable.position: Point     get() = Point    (x,        y     ); set(value) { x        = value.x; y = value.y              }
     public var Positionable.bounds  : Rectangle get() = Rectangle(position, size  ); set(value) { position = value.position; size = value.size }
     public var Positionable.size    : Size      get() = size_;                       set(value) {
@@ -219,6 +219,12 @@ public interface Layout {
         size    = it
         minSize = min
         maxSize = max
+    }
+
+    public fun Positionable.assume(size: Size, downTo: Size = Size.Empty, upTo: Size = Size.Infinite) {
+        this.size    = size
+        this.minSize = downTo
+        this.maxSize = upTo
     }
 
     public companion object {
