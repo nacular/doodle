@@ -98,83 +98,90 @@ class ConstraintLayoutTests {
     }
 
     @Test fun `with updates`() {
-        val child1 = NamedView("child1").apply { suggestWidth(100.0) }
-        val child2 = NamedView("child2")
+        container {
+            val child1 = NamedView("child1").apply { suggestWidth(100.0) }
+            val child2 = NamedView("child2")
 
-        val container = container {
             + listOf(child1, child2)
+
+            layout = constrain(child1, child2) { a, b ->
+                a.top     eq      0
+                a.left    eq      0
+                a.width   hint    a.width.value strength Weak
+                a.width   lessEq  parent.width / 3
+                a.height  eq      parent.height
+
+                b.top     eq      a.top
+                b.left    eq      a.right
+                b.height  eq      a.height
+
+                a.width + b.width eq parent.width
+            }
+
+            forceSize(Size(1200))
+            doLayout_()
+
+            expect(Rectangle(         100, 1200)) { child1.bounds }
+            expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds }
+
+            child1.suggestWidth(200.0)
+            doLayout_()
+
+            expect(Rectangle(         200, 1200)) { child1.bounds }
+            expect(Rectangle(200, 0, 1000, 1200)) { child2.bounds }
         }
-
-        container.layout = constrain(child1, child2) { a, b ->
-            a.top     eq       0
-            a.left    eq       0
-            a.width   preserve Weak
-            a.width   lessEq   parent.width / 3
-            a.height  eq       parent.height
-
-            b.top     eq       a.top
-            b.left    eq       a.right
-            b.height  eq       a.height
-
-            a.width + b.width eq parent.width
-        }
-
-        container.forceSize(Size(1200))
-        container.doLayout_()
-
-        expect(Rectangle(100, 0, 1100, 1200)) { child2.bounds }
-        expect(Rectangle(         100, 1200)) { child1.bounds }
-
-        child1.suggestWidth(200.0)
-        container.doLayout_()
-
-        expect(Rectangle(200, 0, 1000, 1200)) { child2.bounds }
-        expect(Rectangle(         200, 1200)) { child1.bounds }
     }
 
     @Test fun `widths sum`() {
-        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
-        val child2 = NamedView("child2")
-        val child3 = NamedView("child3")
-        val child4 = NamedView("child4")
+        container {
+            val child1 = NamedView("child1").apply { suggestWidth(400.0) }
+            val child2 = NamedView("child2")
+            val child3 = NamedView("child3")
+            val child4 = NamedView("child4")
 
-        val container = container {
             + listOf(child1, child2, child3, child4)
 
             layout = constrain(child1, child2, child3) { a, b, c ->
-//                a.top    eq       0
-                a.left   eq       0
-                a.width  preserve Weak
-                a.width  lessEq   parent.width / 3
-//                a.height eq       parent.height
+                parent.width  lessEq 1200 strength Strong
+                parent.height lessEq 1200 strength Strong
 
-//                b.top    eq       a.top
-                b.left   eq       a.right
-//                b.height eq       a.height
+                a.top    eq     0
+                a.left   eq     0
+                a.width  hint   a.width.value strength Weak
+                a.width  lessEq parent.width / 3
+                a.height eq     parent.height
 
-//                c.top    eq       a.top
-                c.left   eq       b.right
-//                c.height eq       a.height
-//                c.width  preserve Weak
+                b.top    eq     a.top
+                b.left   eq     a.right
+                b.height eq     a.height
+
+                c.top    eq     a.top
+                c.left   eq     b.right
+                c.height eq     a.height
 
                 a.width + b.width + c.width eq parent.width
             }
+
+            forceSize(Size(1200))
+            doLayout_()
+//            doLayout_()
+
+            listOf(child1, child2, child3).forEach {
+                println("$it.width == ${it.width}, range: ${it.allowedMinSize.width} - ${it.allowedMaxSize.width}")
+            }
+
+            expect(400.0, 800.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
+
+            child1.suggestWidth(200.0)
+            doLayout_()
+
+            expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
+
+            child3.suggestX(500.0)
+            doLayout_()
+
+            expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
         }
-
-        container.forceSize(Size(1200))
-        container.doLayout_()
-
-        expect(400.0, 800.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
-
-        child1.suggestWidth(200.0)
-        container.doLayout_()
-
-        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
-
-        child3.suggestX(500.0)
-        container.doLayout_()
-
-        expect(200.0, 200.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
     }
 
     @Test fun `display constraints work`() {
@@ -230,8 +237,8 @@ class ConstraintLayoutTests {
             layout = constrain(parent) {
                 it.top    eq     0
                 it.bottom lessEq this.parent.bottom
-                it.width  eq 500 strength Medium
-                it.height eq 500 strength Medium
+                it.width  eq     500 strength Medium
+                it.height eq     500 strength Medium
             }
 
             forceSize(Size(1000))
@@ -407,7 +414,7 @@ class ConstraintLayoutTests {
                 main_.height   eq        minHeight + targetHeight strength Medium
 
                 footer_.top    eq        main_.bottom + 65
-                footer_.bottom lessEq    parent.bottom.readOnly   strength Strong
+                footer_.bottom lessEq    readonly(parent.bottom)  strength Strong
                 footer_.height.preserve
             }
 

@@ -19,13 +19,12 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
-import io.nacular.doodle.layout.constraints.impl.ReflectionVariable
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
 
 
 public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
-public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center }
+public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.size hint it.size.value; it.center eq parent.center }
 
 public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) strength strength }
 public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) strength strength }
@@ -213,7 +212,7 @@ public class Position internal constructor(internal val left: Expression, intern
      * a variable when used in a [Constraint]. This means the Position won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Point get() = Point(x = left.value, y = top.value)
+    public val value: Point get() = Point(x = left.value, y = top.value)
 }
 
 /**
@@ -225,7 +224,7 @@ public class Area internal constructor(internal val width: Property, internal va
      * a variable when used in a [Constraint]. This means the Area won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Size get() = Size(width = width.value, height = height.value)
+    public val value: Size get() = Size(width = width.value, height = height.value)
 }
 
 /**
@@ -242,7 +241,7 @@ public class Edges internal constructor(
      * a variable when used in a [Constraint]. This means the Edges won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Rectangle get() {
+    public val value: Rectangle get() {
         val x = left?.value ?: 0.0
         val y = top?.value  ?: 0.0
         return Rectangle(x = x, y = y, width = right.value - x, height = bottom.value - y)
@@ -388,9 +387,7 @@ public class ConstraintDslContext internal constructor() {
         else                             -> Result.success(constraint).also { constraints += constraint }
     }
 
-    private fun add(edit: Edit) {
-        edits += edit
-    }
+    private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
 
     public operator fun Property.plus(expression: Expression): Expression = expression + this
     public operator fun Property.plus(term      : Term      ): Expression = term + this
@@ -401,10 +398,6 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Property.minus(term      : Term      ): Expression = this + -term
     public operator fun Property.minus(other     : Property  ): Expression = this + -other
     public operator fun Property.minus(constant  : Number    ): Expression = this + -constant.toDouble()
-
-    public operator fun Property.times     (coefficient: Number): Term = this.toTerm() * coefficient.toDouble()
-    public operator fun Property.div       (denominator: Number): Term = this * 1.0 / denominator
-    public operator fun Property.unaryMinus(                   ): Term = this * -1.0
 
     /**
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
@@ -419,10 +412,20 @@ public class ConstraintDslContext internal constructor() {
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
      * ```
-     * this eq this.readOnly
+     * this eq this.value
      * ```
      */
-    public infix fun Property.preserve(strength: Strength) { add(Edit(this.variable, this.readOnly, strength)) }
+    public infix fun Property.preserve(strength: Strength) { this eq this.value strength strength }
+
+    public infix fun Property.hint(value: Number): Result<Edit>       = this hint value.toDouble()
+    public infix fun Property.hint(value: Double): Result<Edit>       = add(Edit(this.variable, value, Required - 1))
+
+    public infix fun Area.hint(value: Size): Result<List<Edit>> = runCatching {
+        listOf(
+            add(Edit(width.variable,  value.width,  Required - 1)),
+            add(Edit(height.variable, value.height, Required - 1))
+        ).map { it.getOrThrow() }.toList()
+    }
 
     public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
     public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
@@ -501,7 +504,7 @@ public class ConstraintDslContext internal constructor() {
         override fun toString() = name
     }
 
-    private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readOnly -> $referent") {
+    private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readonly -> $referent") {
         override val needsHold  = false
         override var isReadOnly = true
     }
@@ -542,11 +545,27 @@ public class ConstraintDslContext internal constructor() {
         return x + 0
     }
 
+    /**
+     * Provides the Expression's value, but does not treat its contents as
+     * variables when used in a [Constraint]. This means the Expression's variables won't be
+     * altered to try and satisfy the constraint.
+     *
+     * ```
+     * a eq readonly(2 * b + c)
+     * ```
+     * will be treated as
+     *
+     * ```
+     * a eq (2 * 10 + 11)
+     * ```
+     *
+     * if `b == 10` and `c == 11`
+     */
     public fun readonly(e: Expression): Expression {
         val newExpression = ExpressionImpl(e.terms.map {
             when (it.variable) {
                 is ReadOnlyVariableRef -> it
-                else                   -> VariableTerm(LocalReadOnlyVariable("readOnly($it)", it.variable))
+                else                   -> VariableTerm(LocalReadOnlyVariable("readonly($it)", it.variable))
             }
         }.toTypedArray(), e.constant)
 
@@ -557,6 +576,8 @@ public class ConstraintDslContext internal constructor() {
         return readOnly + 0
     }
 
+    public fun lerp(first: Expression, second: Expression, fraction: Float): Expression = first + (second - first) * fraction
+
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
     public operator fun Number.plus(expression: Expression): Expression = expression + this.toDouble()
@@ -566,7 +587,7 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.minus(expression: Expression): Expression = -expression + this.toDouble()
 
     public operator fun Number.times(term      : Term      ): Term       = term       * this.toDouble()
-    public operator fun Number.times(property  : Property  ): Term       = property   * this.toDouble()
+    public operator fun Number.times(property  : Property  ): Expression = property   * this.toDouble()
     public operator fun Number.times(expression: Expression): Expression = expression * this.toDouble()
 
     public fun min(a: Number, b: Term      ): Expression = min(b, a)
@@ -746,6 +767,14 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
+    public infix fun Result<Edit>.strength(strength: Strength) {
+        this.getOrNull()?.strength = strength
+    }
+
+    public infix fun Result<Edit>.strength(strength: Int) {
+        this.getOrNull()?.strength = Strength(strength)
+    }
+
     public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
         top == 0.0 && left == 0.0 -> this
         else                      -> withOffset(top = { top }, left = { left })
@@ -914,14 +943,10 @@ public fun <T: Positionable> Iterable<T>.constrain(
  */
 @Internal
 public class Constrainer: Layout {
-    private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
-    private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
-
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
     private var parentSize      = Size.Empty
     private val solver          = Solver()
-    private val secondarySolver = Solver()
     private val context         = ConstraintDslContext()
 
     private class FakePositionable: Positionable() {
@@ -944,7 +969,7 @@ public class Constrainer: Layout {
     }
 
     private val fakePositionable = FakePositionable()
-    private val fakeBounds       = BoundsImpl(fakePositionable, context, secondarySolver)
+    private val fakeBounds       = BoundsImpl(fakePositionable, context, solver)
     private val blocks           = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
@@ -991,26 +1016,20 @@ public class Constrainer: Layout {
         if (fakePositionable.bounds != rectangle) {
             fakePositionable.bounds = rectangle
             fakeBounds.reset()
-
-            updatedBounds[fakeBounds.top   ] = rectangle.y
-            updatedBounds[fakeBounds.left  ] = rectangle.x
-            updatedBounds[fakeBounds.width ] = rectangle.width
-            updatedBounds[fakeBounds.height] = rectangle.height
         }
 
         if (forceSetup || within.size != parentSize || this.using != using) {
             this.using     = using
             parentSize     = within.size
             context.updateParent(size = within.size, min = within.size, max = within.size, insets = None)
-            setupSolver(solver, context, blocks = blocks, secondarySolver = secondarySolver) { /*ignore*/ }
+
+            setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 
         solve(
-            solver        = solver,
-            activeBounds  = activeBounds,
-            updatedBounds = updatedBounds,
-            bounds        = sequenceOf(fakeBounds),
-        ) { throw it }
+            solver = solver,
+            bounds = sequenceOf(fakeBounds),
+        )
 
         return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }

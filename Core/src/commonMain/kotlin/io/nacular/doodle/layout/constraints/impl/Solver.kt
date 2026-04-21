@@ -10,6 +10,7 @@ import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.ReadOnlyVariable
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -20,11 +21,11 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.Invalid
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
-import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.MAX_VALUE
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 
@@ -91,13 +92,16 @@ internal class Solver {
     }
 
     private inner class Row {
-        var symbol: Symbol? by observable(null) {_,new ->
+        var symbol: Symbol? = null; set(new) {
+            field = new
+
             if (new == null) {
                 cells.keys.forEach {
                     unregisterSymbol(it)
                 }
             }
         }
+
         var cells   = fastMutableMapOf<Symbol, Double>(); private set
         var constant: Double
 
@@ -334,22 +338,18 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
-        for ((variable, symbol) in vars) {
-            if (symbol in readonlySymbols) continue
-
-            if (variable.toString() == "child1.width_") {
-                val a = "child1.width symbol: ${symbol.hashCode()}" +"\n"+ "row: ${rows[symbol]}" +"\n"+ "symbol in readonlySymbols: ${symbol in readonlySymbols}"
-            }
+        vars.forEach { (variable, symbol) ->
+            if (symbol in readonlySymbols) return@forEach
 
             rows[symbol]?.let { row ->
-                variable(row.constant)
+                variable(row.constant.cleanUp())
             }
         }
 
         var finalResolveRequired = false
 
-        for ((source, _) in readonlyVars) {
-            val lastValue = readonlyLastValues[source] ?: continue
+        readonlyVars.keys.forEach { source ->
+            val lastValue = readonlyLastValues[source] ?: return@forEach
             val delta = source() - lastValue
 
             if (delta != 0.0) {
@@ -364,43 +364,52 @@ internal class Solver {
 
         if (finalResolveRequired) {
             // Last round to finalize values
-            for ((variable, symbol) in vars) {
+            vars.forEach { (variable, symbol) ->
                 rows[symbol]?.let {
-                    variable(it.constant)
+                    variable(it.constant.cleanUp())
                 }
             }
         }
     }
 
-    fun isUnderConstrained(v: Variable): Boolean {
-        val symbol = vars[v] ?: return true  // unknown variable = free
+    fun isUnderConstrained(v: Variable): Boolean = vars[v]?.let { isUnderConstrained(it) } ?: true // unknown variable = free
 
-        return isUnderConstrained(symbol)
-    }
-
-    private fun isUnderConstrained(symbol: Symbol): Boolean {
-        val row = rows[symbol] ?: return true  // no row = non-basic = free
-
-        return row.cells.any { (sym, coefficient) ->
-            coefficient != 0.0 && when (sym.type) {
-                Slack    -> sym !in rows.keys  // free slack = inequality has room
-                External -> sym !in rows.keys  // free user variable
+    private fun isUnderConstrained(symbol: Symbol) = rows[symbol]?.run {
+        cells.any { (sym, coefficient) ->
+            if (coefficient == 0.0) return@any false
+            when (sym.type) {
+                Slack    -> sym !in rows
+                External -> sym !in rows
                 else     -> false
             }
-        }
-    }
+        } || run {
+            cells.forEach { (sym, coefficient) ->
+                if (coefficient == 0.0 || sym.type == Dummy) return@run false
 
-    fun computeRange(variable: Variable, min: Double = NEGATIVE_INFINITY, max: Double = POSITIVE_INFINITY): ClosedFloatingPointRange<Double> {
+                edits.values.forEach { editInfo ->
+                    if (sym != editInfo.tag.marker && sym != editInfo.tag.other)  return@run false
+                }
+            }
+
+            true
+        }
+    } ?: true
+
+    fun computeRange(variable: Variable, min: Double = -MAX_VALUE, max: Double = MAX_VALUE): ClosedFloatingPointRange<Double> {
         val nominal = variable()
         val symbol  = vars[variable] ?: return nominal..nominal
         val row     = rows[symbol  ] ?: return nominal..nominal
 
         var maxIncrease = max - nominal
         var maxDecrease = nominal - min
+        var foundBound  = false
 
         // For each non-basic symbol in variable's row, do a ratio test across ALL basic rows that contain that symbol
         for ((symbol, variableRowCoefficient) in row.cells) {
             if (variableRowCoefficient == 0.0) continue
+            if (symbol.type == Dummy) continue  // Dummy symbols are Required equality artifacts, never free
+
+            foundBound = true
 
             val symRow = rows[symbol]
 
@@ -420,6 +429,9 @@ internal class Solver {
 
                 if (basicRowCoefficient == 0.0 || basicSymbol == symbol) continue  // skip self-referential row
 
+                // Skip rows belonging to edit variable error symbols
+                if (basicSymbol.type == Error && edits.values.any { it.tag.marker == basicSymbol || it.tag.other == basicSymbol }) continue
+
                 // If this row's basic variable is an external free variable, it can absorb the movement — skip it
                 if (basicSymbol.type == External && isUnderConstrained(basicSymbol)) continue
 
@@ -435,7 +447,50 @@ internal class Solver {
             }
         }
 
-        return (nominal - maxDecrease).cleanUp() .. (nominal + maxIncrease).cleanUp()
+        val lower = (nominal - maxDecrease).cleanUp()
+        val upper = max(lower, (nominal + maxIncrease).cleanUp())
+
+        return when {
+            !foundBound -> nominal..nominal
+            lower == NEGATIVE_INFINITY || upper == POSITIVE_INFINITY -> perturbationRange(variable, min, max)
+            !isUnderConstrained(variable) -> lower..upper
+            else -> perturbationRange(variable, min, max)
+        }
+    }
+
+    private fun perturbationRange(variable: Variable, min: Double, max: Double): ClosedFloatingPointRange<Double> {
+        val nominal  = variable()
+        val sentinel = 1e10
+
+        fun probe(target: Double): Double {
+            var addedEdit = false
+
+            if (variable !in edits.keys) {
+                addEditVariable(variable, Strong)
+                addedEdit = true
+            }
+
+            suggestValue(variable, target)
+            updateVariables()
+
+            val result = variable()
+
+            suggestValue(variable, nominal)
+            updateVariables()
+
+            if (addedEdit) {
+                try {
+                    removeEditVariable(variable)
+                } catch (_: DuplicateEditVariableException) {}
+            }
+
+            return result
+        }
+
+        val lower = probe(max(min, -sentinel)).let { if (it <= -sentinel + 1) NEGATIVE_INFINITY else it.cleanUp() }
+        val upper = probe(min(max,  sentinel)).let { if (it >=  sentinel - 1) POSITIVE_INFINITY else it.cleanUp() }
+
+        return lower..max(lower, upper)
     }
 
     private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {

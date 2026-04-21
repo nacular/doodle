@@ -1043,7 +1043,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         layoutNeeded = false
 
-        children.forEach { it.positionable.reset() } // FIXME: Workaround for ConstraintLayout
+        children.forEach { it.positionable.reset() }
 
         layout.layout(
             children.asSequence().map {
@@ -1055,7 +1055,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             insets  = insets
         )
 
-        children.forEach { it.positionable.finalize() } // FIXME: Workaround for ConstraintLayout
+        children.forEach { it.positionable.finalize() }
     }
 
     internal fun syncBounds() {

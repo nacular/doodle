@@ -51,31 +51,12 @@ public abstract class Expression internal constructor() {
     /**
      * Computed value of this expression
      */
-    internal open val value: Double get() = terms.sumOf { it.value } + constant
+    public open val value: Double get() = terms.sumOf { it.value } + constant
 
     /**
      * `true` if the expression has no terms
      */
     internal open val isConstant: Boolean get() = terms.isEmpty()
-
-    /**
-     * Provides the Expression's value directly, and does not treat its contents as
-     * variables when used in a [Constraint]. This means the Expression's variables won't be
-     * altered to try and satisfy the constraint.
-     *
-     * ```
-     * a eq (2 * b + c).readOnly
-     * ```
-     * will be treated as
-     *
-     * ```
-     *
-     * a eq (2 * 10 + 11)
-     * ```
-     *
-     * if `b == 10` and `c == 11`
-     */
-    public val readOnly: Double get() = value
 
     override fun toString(): String = """
         ${terms.joinToString(" ")}${
