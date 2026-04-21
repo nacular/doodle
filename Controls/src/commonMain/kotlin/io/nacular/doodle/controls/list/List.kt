@@ -236,18 +236,23 @@ public open class List<T, out M: ListModel<T>>(
             var maxHeight = 0.0
 
             if (lastVisibleItem >= firstVisibleItem) {
+                val viewsList = views.toList() // TODO: Can this be avoided to reduce memory overhead
+
                 run loop@{
-                    views.forEachIndexed { index, view ->
+                    repeat(lastVisibleItem - firstVisibleItem + 1) { index ->
                         val modelIndex = index + firstVisibleItem
 
                         if (modelIndex < model.size) {
                             model[modelIndex].onSuccess { item ->
-                                children.getOrNull(modelIndex % children.size)?.let { child ->
+                                val viewIndex = modelIndex % children.size
+                                children.getOrNull(viewIndex)?.let { child ->
                                     layout(child, item, modelIndex)?.let {
-                                        view.position = it.position
-                                        view.assume(size = it.size)
+                                        viewsList.getOrNull(viewIndex)?.let { view ->
+                                            view.position = it.position
+                                            view.assume(size = it.size)
+                                        }
 
-                                        maxWidth  = max(maxWidth, it.width)
+                                        maxWidth  = max(maxWidth,  it.width )
                                         maxHeight = max(maxHeight, it.bottom)
                                     }
                                 }
@@ -316,13 +321,10 @@ public open class List<T, out M: ListModel<T>>(
 
             handlingRectChange = true
 
-            var updateSize = false
-
             if (oldFirst > firstVisibleItem) {
                 val end = min(oldFirst, lastVisibleItem)
 
                 (firstVisibleItem .. end).forEach { insert(children, it) }
-                updateSize = true
             }
 
             if (oldLast < lastVisibleItem) {
@@ -332,8 +334,6 @@ public open class List<T, out M: ListModel<T>>(
                 }
 
                 (start..lastVisibleItem).forEach { insert(children, it) }
-                updateSize = true
-
             }
 
             // this updates "hashing" of items into the children list (using % of list size) since the children size has changed

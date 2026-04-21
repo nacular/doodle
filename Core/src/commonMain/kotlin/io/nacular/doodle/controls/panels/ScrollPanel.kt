@@ -16,7 +16,6 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
-import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.Property
@@ -148,7 +147,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /** Notifies of changes to [content]. */
     public val contentChanged: PropertyObservers<ScrollPanel, View?> = PropertyObserversImpl(this)
 
-    public var contentConstraints: (ConstraintDslContext.(ContentSize) -> Result<Constraint>)? = null; set(new) {
+    public var contentConstraints: (ConstraintDslContext.(ContentSize) -> Unit)? = null; set(new) {
         field = new
 
         (layout as? ConstraintLayout)?.also { updateConstraints(it) }

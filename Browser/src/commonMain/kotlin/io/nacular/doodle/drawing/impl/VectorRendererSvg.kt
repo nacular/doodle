@@ -1225,7 +1225,6 @@ internal open class VectorRendererSvg(
 
                     setPatternTransform(paint.transform)
                     setBounds          (paint.bounds   )
-                    clear              (               )
                 }
 
                 renderer.completeOperation(pattern)
@@ -1521,6 +1520,6 @@ internal open class VectorRendererSvg(
     }
 
     private companion object {
-        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient", "feMerge")
+        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient", "feMerge", "pattern")
     }
 }
