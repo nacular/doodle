@@ -106,11 +106,11 @@ public open class TreeSetJs<E>(private val comparator: Comparator<E>, elements: 
 
                             parent  = from
                             from    = it
-                            element = parent!!.value
+                            element = parent.value
                         }
                     }
-                    parent?.left  == from                   -> { parent!!.left  = from.left ?: from.right; return true }
-                    parent?.right == from                   -> { parent!!.right = from.left ?: from.right; return true }
+                    parent?.left  == from                   -> { parent.left  = from.left ?: from.right; return true }
+                    parent?.right == from                   -> { parent.right = from.left ?: from.right; return true }
                     else                                    -> return false
                 }
             }
@@ -147,10 +147,8 @@ public open class TreeSetJs<E>(private val comparator: Comparator<E>, elements: 
     }
 
     protected inner class BstIterator: MutableIterator<E> {
-        private val stack by lazy {
-            mutableListOf<BstNode<E>>().also {
-                populateStack(root, it)
-            }
+        private val stack = mutableListOf<BstNode<E>>().also {
+            populateStack(root, it)
         }
 
         override fun remove() {

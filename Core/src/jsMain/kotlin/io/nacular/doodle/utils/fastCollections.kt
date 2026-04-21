@@ -201,4 +201,4 @@ public actual fun <E> fastMutableSetOf(vararg elements: E): MutableSet<E> = when
     else         -> mutableSetOf(*elements)
 }
 
-private val mapSupported by lazy { false } //window.asDynamic()["Map"] != null }
+private val mapSupported = false //by lazy { false } //window.asDynamic()["Map"] != null }

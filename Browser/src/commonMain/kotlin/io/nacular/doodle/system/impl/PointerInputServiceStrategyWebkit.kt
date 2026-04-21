@@ -89,14 +89,14 @@ internal class PointerLocationResolverImpl(
     private val window              : Window,
     private val document            : Document,
     private val htmlFactory         : HtmlFactory,
-    private val viewPortHackDetector: ViewPortHackDetector,
+    private val viewPortHackDetector: ViewPortHackDetector?,
 ): PointerLocationResolver {
     var owner: View? = null
 
     private val visualViewPortOffset get() = window.visualViewport?.run { Point(offsetLeft, offsetTop) } ?: Origin
 
     override fun invoke(event: MouseEvent): Point {
-        val viewportOffset = visualViewPortOffset
+        val viewportOffset = viewPortHackDetector?.let { visualViewPortOffset } ?: Origin
         val inputPoint     = applyViewPortHack(Point(event.clientX, event.clientY), viewportOffset)
 
         return when {
@@ -122,8 +122,8 @@ internal class PointerLocationResolverImpl(
     }
 
     private fun applyViewPortHack(point: Point, viewportOffset: Point) = when {
-        viewPortHackDetector.needsHack(viewportOffset) -> point + viewportOffset
-        else                                           -> point
+        viewPortHackDetector?.needsHack(viewportOffset) == true -> point + viewportOffset
+        else                                                    -> point
     }
 
     private fun getTopLeft(boundingBox: Rectangle, ownerSize: Size): Point {

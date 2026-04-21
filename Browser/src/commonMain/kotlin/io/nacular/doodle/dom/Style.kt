@@ -39,7 +39,9 @@ private typealias Style = CSSStyleDeclaration
 
 internal val Color.rgbaString get() = "rgba($red,$green,$blue,$opacity)"
 
-internal fun em(value: Number, force: Boolean = false) = value.toDouble().let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
+internal inline fun em(value: Number, force: Boolean = false) = em(value.toDouble(), force)
+
+internal fun em(value: Double, force: Boolean = false) = value.let { if (it != 0.0 || force) "${it}px" else "" } //"${value.toDouble() / 16}em" // TODO: Fix
 
 internal inline fun Style.setTextIndent(value: Double?) { textIndent = value?.let { em(it, true) } ?: "" }
 
@@ -54,7 +56,9 @@ internal fun Style.setTextAlignment(alignment: TextAlignment?) {
 }
 
 internal fun Style.setLineHeight(value: Float) {
-    lineHeight = if (value >= 0f) "$value" else ""
+    (if (value >= 0f) "$value" else "").also {
+        if (lineHeight != it) { lineHeight = it }
+    }
 }
 
 internal fun Style.setTextSpacing(textSpacing: TextSpacing) {
@@ -69,19 +73,26 @@ internal fun Style.setTextSpacing(textSpacing: TextSpacing) {
     }
 }
 
-internal inline fun Style.setTop   (value: Double) { top    = em(value) }
-internal inline fun Style.setLeft  (value: Double) { left   = em(value) }
-internal inline fun Style.setWidth (value: Double) { width  = em(max(0.0, value)) }
-internal inline fun Style.setHeight(value: Double) { height = em(max(0.0, value)) }
+internal inline fun Style.setTop   (value: Double) { em(value).also { if (top  != it) { top  = it } } }
+internal inline fun Style.setLeft  (value: Double) { em(value).also { if (left != it) { left = it } } }
+internal inline fun Style.setWidth (value: Double) { setWidthRaw (max(0.0, value)) }
+internal inline fun Style.setHeight(value: Double) { setHeightRaw(max(0.0, value)) }
 
-internal fun Style.setSize(value: Size) { value.run { setWidth(width); setHeight(height) } }
+private inline fun Style.setWidthRaw (value: Double) { em(value).also { if (width  != it) { width  = it } } }
+private inline fun Style.setHeightRaw(value: Double) { em(value).also { if (height != it) { height = it } } }
+
+internal fun Style.setSize(value: Size) {
+    value.run {
+        setWidthRaw (width )
+        setHeightRaw(height)
+    }
+}
 
 internal fun Style.setBounds(value: Rectangle) {
     value.run {
-        setTop   (y     )
-        setLeft  (x     )
-        setWidth (width )
-        setHeight(height)
+        setTop (y   )
+        setLeft(x   )
+        setSize(size)
     }
 }
 
