@@ -588,6 +588,46 @@ class SolverTests {
             }
         }
     }
+
+    @Test fun `dual optimize failure`() {
+        val aTop    = property("Settings.y"     )
+        val aLeft   = property("Settings.x"     )
+        val aWidth  = property("Settings.width" )
+        val aHeight = property("Settings.height")
+
+        val bTop    = property("ViewBuilder.y"     )
+        val bLeft   = property("ViewBuilder.x"     )
+        val bWidth  = property("ViewBuilder.width" )
+        val bHeight = property("ViewBuilder.height")
+
+        Solver().apply {
+            sync(constraints {
+                parent.width  eq 1728
+                parent.height eq 375
+
+                aTop    eq        0
+                aLeft   eq        0
+                aHeight greaterEq 0
+                aHeight eq        parent.height
+                bTop    eq        0
+                aWidth  greaterEq 0
+                bLeft   eq        aLeft + aWidth
+                bHeight greaterEq 0
+                bHeight eq        parent.height
+                bWidth  eq        parent.width - readonly(aWidth)
+                bWidth  greaterEq 0
+            })
+
+            updateVariables()
+
+            println(printState())
+
+            computeRange(aWidth, 0.0 )
+            computeRange(aHeight, 0.0)
+            computeRange(bWidth, 0.0 )
+            computeRange(bHeight, 0.0)
+        }
+    }
 }
 
 class ConstraintTests {

@@ -465,26 +465,39 @@ internal class Solver {
         fun probe(target: Double): Double {
             var addedEdit = false
 
-            if (variable !in edits.keys) {
-                addEditVariable(variable, Strong)
-                addedEdit = true
-            }
+            return try {
+                if (variable !in edits.keys) {
+                    addEditVariable(variable, Strong)
+                    addedEdit = true
+                }
 
-            suggestValue(variable, target)
-            updateVariables()
+                suggestValue(variable, target)
+                updateVariables()
 
-            val result = variable()
+                val result = variable()
 
-            suggestValue(variable, nominal)
-            updateVariables()
+                suggestValue(variable, nominal)
+                updateVariables()
 
-            if (addedEdit) {
+                if (addedEdit) {
+                    try { removeEditVariable(variable) } catch (_: Exception) {}
+                }
+
+                result
+            } catch (_: InternalSolverError) {
+                // Solver couldn't reach target — restore and return nominal
+                if (addedEdit) {
+                    try { removeEditVariable(variable) } catch (_: Exception) {}
+                }
                 try {
+                    addEditVariable(variable, Strong)
+                    suggestValue(variable, nominal)
+                    updateVariables()
                     removeEditVariable(variable)
-                } catch (_: DuplicateEditVariableException) {}
-            }
+                } catch (_: Exception) {}
 
-            return result
+                nominal
+            }
         }
 
         val lower = probe(max(min, -sentinel)).let { if (it <= -sentinel + 1) NEGATIVE_INFINITY else it.cleanUp() }
