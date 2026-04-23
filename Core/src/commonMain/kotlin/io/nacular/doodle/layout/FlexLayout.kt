@@ -25,6 +25,11 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         else       -> height
     }
 
+    private val Positionable.idealExtent get() = when (orientation) {
+        Horizontal -> idealSize.width
+        else       -> idealSize.height
+    }
+
     private val Positionable.minExtent get() = 0.0
 
     private val Size.extent get() = when (orientation) {
@@ -40,9 +45,9 @@ private open class FlexLayout(private val orientation: Orientation, private val 
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         val x                      = insets.left
         val y                      = insets.top
-        val w                      = max(0.0, current.width  - insets.run { left + right })
-        val h                      = max(0.0, current.height - insets.run { top + bottom })
-        var offset                 = 0.0
+        val w                      = max(0.0, current.width  - insets.run { left + right  })
+        val h                      = max(0.0, current.height - insets.run { top  + bottom })
+        var offset                 = if (orientation == Horizontal) x else y
         val totalAvailableSpace    = current.extent - insets.extent
         var remainingSpace         = totalAvailableSpace
         val visibleChildren        = views.filter { it.visible }.toList()
@@ -61,11 +66,11 @@ private open class FlexLayout(private val orientation: Orientation, private val 
             }
         }
         val updateRemainingSpace = {
-            remainingSpace = totalAvailableSpace - offset
+            remainingSpace = totalAvailableSpace - (offset - if (orientation == Horizontal) x else y)
         }
 
         visibleChildren.forEachIndexed { index, child ->
-            val extent = child.minExtent
+            val extent = child.idealExtent
 
             if (index > 0) {
                 when {
@@ -84,8 +89,8 @@ private open class FlexLayout(private val orientation: Orientation, private val 
                 else       -> {
                     child.x      = x
                     child.y      = offset
-                    child.width  = extent
-                    child.height = h
+                    child.width  = w
+                    child.height = extent
                 }
             }
 
@@ -96,7 +101,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         }
 
         while (remainingSpace != 0.0) {
-            offset = 0.0
+            offset = if (orientation == Horizontal) x else y
 
             when {
                 remainingSpace > 0.0 -> {

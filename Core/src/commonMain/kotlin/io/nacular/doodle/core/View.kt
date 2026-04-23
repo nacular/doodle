@@ -380,11 +380,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     @Internal
     public val prospectiveBounds: Rectangle get() = newBounds
 
-    internal fun audit(size: Size): Size = when (val auditor = sizeAuditor) {
-        null -> size
-        else -> auditor(this, this.size, size, allowedMinSize, allowedMaxSize)
-    }.coerceIn(allowedMinSize, allowedMaxSize)
-
     private var newBounds: Rectangle = Rectangle.Empty; set(new) {
         if (field.fastEqual(new)) return
 
@@ -1491,7 +1486,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         override var x_      = view.x
         override var y_      = view.y
-        override var size_   = newBounds.size; set(value) { field = audit(value) }
+        override var size_ = newBounds.size; set(value) { field = audit(value) }
         override var minSize = view.allowedMinSize
         override var maxSize = view.allowedMaxSize
 
@@ -1501,6 +1496,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         override fun preferredSize(min: Size, max: Size) = this@View.preferredSize(min, max).coerceIn(min, max)
 
         override fun contains(point: Point) = point in this@View
+
+        internal fun audit(size: Size): Size = when (val auditor = sizeAuditor) {
+            null -> size
+            else -> auditor(this@View, this@View.size, size, minSize, maxSize)
+        }.coerceIn(minSize, maxSize)
 
         internal fun reset() {
             x_      = newBounds.x
