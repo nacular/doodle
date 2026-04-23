@@ -230,13 +230,13 @@ public open class GridPanel: View() {
 
             idealWidth = offset - if (columnDimensions.size > 1) horizontalSpacing else 0.0
 
-            children.forEach {
+            views.forEachIndexed { index, view ->
                 var x       = null as Double?
                 var y       = null as Double?
                 val widths  = mutableSetOf<Dimensions>()
                 val heights = mutableSetOf<Dimensions>()
 
-                locations[it]?.forEach {
+                locations[children[index]]?.forEach {
                     val rowDim = rowDimensions.getValue   (it.row   )
                     val colDim = columnDimensions.getValue(it.column)
 
@@ -246,16 +246,16 @@ public open class GridPanel: View() {
                     heights.add(rowDim)
                 }
 
-                it.suggestBounds(constrainer(
+                view.bounds = constrainer(
                     using     = cellAlignment,
-                    rectangle = it.bounds,
+                    rectangle = view.bounds,
                     within    = Rectangle(
                         (x ?: 0.0) + insets.left,
                         (y ?: 0.0) + insets.top,
                         widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
                         heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
                     ),
-                ))
+                )
             }
 
             return Size(idealWidth!! + insets.run { left + right }, idealHeight!! + insets.run { top + bottom })

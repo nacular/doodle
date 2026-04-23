@@ -100,7 +100,7 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
             table.header.children.batch {
                 when {
                     new < size -> add(new, removeAt(index))
-                    else -> add(removeAt(index))
+                    else       -> add(removeAt(index))
                 }
             }
         }
@@ -109,16 +109,15 @@ internal abstract class InternalColumn<T: TableLike, B: TableLikeBehavior<T>, F,
             table.footer.children.batch {
                 when {
                     new < size -> add(new, removeAt(index))
-                    else -> add(removeAt(index))
+                    else       -> add(removeAt(index))
                 }
             }
         }
 
         (table.panel.content as Container).children.batch {
-            if (new < size) {
-                add(new, removeAt(index))
-            } else {
-                add(removeAt(index))
+            when {
+                new < size -> add(new, removeAt(index))
+                else       -> add(removeAt(index))
             }
         }
 

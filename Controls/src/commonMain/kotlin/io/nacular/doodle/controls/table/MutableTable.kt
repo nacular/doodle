@@ -66,7 +66,8 @@ public fun <T, R> simpleTableCellEditor(
     cell      : T.(              ) -> R,
     result    : T.(updatedCell: R) -> T,
     cellEditor: (table: MutableTable<T, *>, column: MutableColumn<T, R>, cell: R, index: Int, current: View, result: (R) -> T) -> EditOperation<R>
-): TableCellEditor<T, R> = tableCellEditor { table, row, column, index, current -> object: EditOperation<T> {
+): TableCellEditor<T, R> = tableCellEditor { table, row, column, index, current ->
+    object: EditOperation<T> {
         val delegate = cellEditor(table, column, cell(row), index, current) { result(row, it) }
 
         override fun invoke  () = delegate()
@@ -96,20 +97,32 @@ public class MutableTable<T, M: MutableListModel<T>>(
 ): DynamicTable<T, M>(model, selectionModel, scrollCache, {}), Editable {
 
     private inner class MutableInternalListColumn<R, S: Comparable<S>>(
-                        header         : View?,
-                        headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-                        footer         : View?,
-                        footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-                        cellGenerator  : CellVisualizer<T, R>,
-                        cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
-                        preferredWidth : Double? = null,
-                        minWidth       : Double  = 0.0,
-                        maxWidth       : Double? = null,
-            private val extractor      : Extractor<T, R>,
-                        firstColumn    : Boolean,
-                        sorter         : Sorter<T, S>?,
-                        editor         : TableCellEditor<T, R>?
-    ): InternalListColumn<R>(header, headerAlignment, footer, footerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor, firstColumn), MutableColumn<T, R> {
+                header         : View?,
+                headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                footer         : View?,
+                footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                cellGenerator  : CellVisualizer<T, R>,
+                cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                preferredWidth : Double? = null,
+                minWidth       : Double  = 0.0,
+                maxWidth       : Double? = null,
+    private val extractor      : Extractor<T, R>,
+                firstColumn    : Boolean,
+                sorter         : Sorter<T, S>?,
+                editor         : TableCellEditor<T, R>?
+    ): InternalListColumn<R>(
+        header          = header,
+        headerAlignment = headerAlignment,
+        footer          = footer,
+        footerAlignment = footerAlignment,
+        cellGenerator   = cellGenerator,
+        cellAlignment   = cellAlignment,
+        preferredWidth  = preferredWidth,
+        minWidth        = minWidth,
+        maxWidth        = maxWidth,
+        extractor       = extractor,
+        firstColumn     = firstColumn,
+    ), MutableColumn<T, R> {
 
         private inner class FieldModel<A>(model: M, extractor: Extractor<T, A>): InternalListColumn<R>.FieldModel<A>(model, extractor), MutableListModel<A> {
             override fun set        (index  : Int, value : A            ): Result<A> = this[index] // This is essential to allow MutableList to handle edits that result in the content being unchanged
@@ -176,7 +189,21 @@ public class MutableTable<T, M: MutableListModel<T>>(
         override fun <R, S: Comparable<S>> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, editor: TableCellEditor<T, R>?, sorter: Sorter<T, S>?, footer: View?, builder: MutableColumnBuilder<T, R>.() -> Unit) = MutableColumnBuilderImpl<T, R>().run {
             builder(this)
 
-            MutableInternalListColumn(header, headerAlignment, footer, footerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty(), sorter, editor).also {
+            MutableInternalListColumn(
+                header          = header,
+                headerAlignment = headerAlignment,
+                footer          = footer,
+                footerAlignment = footerAlignment,
+                cellGenerator   = cellVisualizer,
+                cellAlignment   = cellAlignment,
+                preferredWidth  = width,
+                minWidth        = minWidth,
+                maxWidth        = maxWidth,
+                extractor       = extractor,
+                sorter          = sorter,
+                editor          = editor,
+                firstColumn     = internalColumns.isEmpty(),
+            ).also {
                 internalColumns += it
             }
         }

@@ -31,13 +31,14 @@ import kotlin.math.max
  */
 @Suppress("LeakingThis")
 public open class ListItem<T>(
-                    list                           : ListLike,
-        public  var item                           : T,
-        public  var index                          : Int,
-        private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
-        private val backgroundSelectionColor       : Color? = Blue,
-        private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
-        private val role                           : ListItemRole = ListItemRole()): View(role) {
+                list                           : ListLike,
+    public  var item                           : T,
+    public  var index                          : Int,
+    private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
+    private val backgroundSelectionColor       : Color? = Blue,
+    private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
+    private val role                           : ListItemRole = ListItemRole()
+): View(role) {
 
     public var list: ListLike = list; private set(new) {
         field.focusChanged -= listFocusChanged
@@ -143,8 +144,9 @@ public open class ListItem<T>(
         role.selected = list.selected(index)
 
         children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, role.selected)).also { visualizer ->
-            if (visualizer != oldChild) {
-                layout = constrainLayout(children[0])
+            when {
+                visualizer != oldChild -> layout = constrainLayout(children[0])
+                else                   -> relayout()
             }
         }
 
