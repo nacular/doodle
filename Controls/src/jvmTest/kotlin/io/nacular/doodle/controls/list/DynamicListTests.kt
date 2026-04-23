@@ -10,10 +10,9 @@ import kotlin.test.expect
  */
 class DynamicListTests {
     @Test fun `updates selection when items added`() {
-        val model          = SimpleMutableListModel(listOf("Hello", "World", "This is", "a Test"))
-        val selectionModel = MultiSelectionModel<Int>()
+        val model = SimpleMutableListModel("Hello", "World", "This is", "a Test")
 
-        val list = DynamicList(model, selectionModel = selectionModel)
+        val list = DynamicList(model, selectionModel = MultiSelectionModel())
 
         list.setSelection(setOf(3,2,0,1))
 
@@ -25,15 +24,14 @@ class DynamicListTests {
         expect(setOf(0, 2, 4, 5)) { list.selection }
     }
 
-    @Test fun `updates selection when items removed`() {
-        val model          = SimpleMutableListModel(listOf("Hello", "World", "This is", "a Test"))
-        val selectionModel = MultiSelectionModel<Int>()
+    @Test fun `updates selection when items removed and all selected`() {
+        val model = SimpleMutableListModel("Hello", "World", "This is", "a Test")
 
-        val list = DynamicList(model, selectionModel = selectionModel)
+        val list = DynamicList(model, selectionModel = MultiSelectionModel())
 
         list.setSelection(setOf(3,2,0,1))
 
-        expect((0 until list.numItems).toList()) { list.selection.sorted() }
+        expect(setOf(3,2,0,1)) { list.selection }
 
         model.remove("World"  )
         model.remove("This is")
@@ -41,11 +39,24 @@ class DynamicListTests {
         expect(setOf(0, 1)) { list.selection }
     }
 
-    @Test fun `updates selection when items added and removed`() {
-        val model          = SimpleMutableListModel(listOf("Hello", "World", "This is", "a Test"))
-        val selectionModel = MultiSelectionModel<Int>()
+    @Test fun `updates selection when selected item removed from start`() {
+        val model = SimpleMutableListModel("Hello", "World", "This is", "a Test")
 
-        val list = DynamicList(model, selectionModel = selectionModel)
+        val list = DynamicList(model, selectionModel = MultiSelectionModel())
+
+        list.setSelection(setOf(0))
+
+        expect(setOf(0)) { list.selection }
+
+        model.remove("Hello")
+
+        expect(emptySet()) { list.selection }
+    }
+
+    @Test fun `updates selection when items added and removed`() {
+        val model = SimpleMutableListModel("Hello", "World", "This is", "a Test")
+
+        val list = DynamicList(model, selectionModel = MultiSelectionModel())
 
         list.setSelection(setOf(3,2,0,1))
 
@@ -59,18 +70,25 @@ class DynamicListTests {
         expect(setOf(0, 3)) { list.selection }
     }
 
-    @Test fun `updates selection when items added to empty`() {
-        val model          = SimpleMutableListModel<String>()
-        val selectionModel = MultiSelectionModel<Int>()
+    @Test fun `selection ignored for empty list`() {
+        val model = SimpleMutableListModel<String>()
 
-        val list = DynamicList(model, selectionModel = selectionModel)
+        val list = DynamicList(model, selectionModel = MultiSelectionModel())
 
         list.setSelection(setOf(0)) //setOf(3,2,0,1))
 
+        expect(emptySet()) { list.selection }
+
         model.addAll(listOf("Hello", "World", "This is", "a Test"))
 
-//        expect((0 until list.numItems).toList()) { list.selection.sorted() }
+        expect(emptySet()) { list.selection }
+    }
 
-        expect(setOf(0)) { list.selection }
+    @Test fun `selection ignored for invalid index`() {
+        val list = DynamicList(SimpleMutableListModel("Hello", "World", "This is", "a Test"), selectionModel = MultiSelectionModel())
+
+        list.setSelection(setOf(-1, 10))
+
+        expect(emptySet()) { list.selection }
     }
 }
