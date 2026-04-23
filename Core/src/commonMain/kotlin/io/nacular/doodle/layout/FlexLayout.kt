@@ -75,7 +75,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
             if (index > 0) {
                 when {
                     extent > 0.0 -> offset += spacing
-                    else    -> ++numCollapsedSpaces
+                    else         -> ++numCollapsedSpaces
                 }
             }
 

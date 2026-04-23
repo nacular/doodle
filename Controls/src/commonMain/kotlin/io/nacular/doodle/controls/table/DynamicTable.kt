@@ -75,22 +75,34 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
         override fun <R> column(header: View?, extractor: Extractor<T, R>, cellVisualizer: CellVisualizer<T, R>, footer: View?, builder: ColumnBuilder.() -> Unit) = ColumnBuilderImpl().run {
             builder(this)
 
-            InternalListColumn(header, headerAlignment, footer, footerAlignment, cellVisualizer, cellAlignment, width, minWidth, maxWidth, extractor, internalColumns.isEmpty()).also { internalColumns += it }
+            InternalListColumn(
+                header          = header,
+                headerAlignment = headerAlignment,
+                footer          = footer,
+                footerAlignment = footerAlignment,
+                cellGenerator   = cellVisualizer,
+                cellAlignment   = cellAlignment,
+                preferredWidth  = width,
+                minWidth        = minWidth,
+                maxWidth        = maxWidth,
+                extractor       = extractor,
+                firstColumn     = internalColumns.isEmpty(),
+            ).also { internalColumns += it }
         }
     }
 
     internal open inner class InternalListColumn<R>(
-            header         : View?,
-            headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            footer         : View?,
-            footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            cellGenerator  : CellVisualizer<T, R>,
-            cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
-            preferredWidth : Double? = null,
-            minWidth       : Double  = 0.0,
-            maxWidth       : Double? = null,
-            extractor      : Extractor<T, R>,
-            private val firstColumn: Boolean
+                header         : View?,
+                headerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                footer         : View?,
+                footerAlignment: (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                cellGenerator  : CellVisualizer<T, R>,
+                cellAlignment  : (ConstraintDslContext.(Bounds) -> Unit)? = null,
+                preferredWidth : Double? = null,
+                minWidth       : Double  = 0.0,
+                maxWidth       : Double? = null,
+                extractor      : Extractor<T, R>,
+    private val firstColumn    : Boolean
     ): Table<T, M>.InternalListColumn<R>(header, headerAlignment, footer, footerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor) {
 
         protected open inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {

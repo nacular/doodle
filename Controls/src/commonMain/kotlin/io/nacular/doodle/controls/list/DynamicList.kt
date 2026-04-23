@@ -87,7 +87,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
         selectionModel?.let {
             var delta            = 0
             var offsetIndex      = 0
-            val currentSelection = it.filter { it in 0 until previousListSize }.sorted().toMutableList()
+            val currentSelection = it.filter { it in 0 until previousListSize && it !in removed }.sorted().toMutableList()
 
             if (currentSelection.isNotEmpty()) {
                 currentSelection.forEachIndexed { index, selection ->
@@ -98,9 +98,9 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
 
                     currentSelection[index] += delta
                 }
-
-                setSelection(currentSelection.toSet())
             }
+
+            setSelection(currentSelection.toSet())
         }
 
         val oldVisibleRange = firstVisibleItem..lastVisibleItem
