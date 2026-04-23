@@ -155,10 +155,10 @@ public class SingleItemSelectionModel<T>: MultiSelectionModel<T>() {
 public class ListSelectionManager(private val selectionModel: SelectionModel<Int>?, private val numRows: () -> Int): Selectable<Int> {
     override fun selected       (item : Int     ): Boolean = selectionModel?.contains  (item ) == true
     override fun selectAll      (               )          { selectionModel?.addAll    ((firstSelectable .. lastSelectable).toList()) }
-    override fun addSelection   (items: Set<Int>)          { selectionModel?.addAll    (items) }
-    override fun setSelection   (items: Set<Int>)          { selectionModel?.replaceAll(items) }
+    override fun addSelection   (items: Set<Int>)          { selectionModel?.addAll    (items.filter { it in firstSelectable..lastSelectable }) }
+    override fun setSelection   (items: Set<Int>)          { selectionModel?.replaceAll(items.filter { it in firstSelectable..lastSelectable }) }
     override fun removeSelection(items: Set<Int>)          { selectionModel?.removeAll (items) }
-    override fun toggleSelection(items: Set<Int>)          { selectionModel?.toggle    (items) }
+    override fun toggleSelection(items: Set<Int>)          { selectionModel?.toggle    (items.filter { it in firstSelectable..lastSelectable }) }
     override fun clearSelection (               )          { selectionModel?.clear     (     ) }
 
     override fun next    (after : Int): Int? = (after  + 1).takeIf { it <= lastSelectable  }
