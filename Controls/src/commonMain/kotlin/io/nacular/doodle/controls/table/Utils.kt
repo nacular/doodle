@@ -7,7 +7,6 @@ import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
-import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
@@ -64,28 +63,25 @@ internal open class TablePanel(
     init {
         focusable  = false
         children  += columns.map { it.view }
-        layout     = simpleLayout { views,_,current,_,_ ->
-            var width      = columns[0].width
-            val firstSize  = views.first().apply {
-                position = Point.Origin
-                size     = preferredSize(Size(width, 0.0), Size(width, POSITIVE_INFINITY))
-            }.size
-            var x          = firstSize.width
-            var height     = firstSize.height
-            var totalWidth = firstSize.width
+        layout     = simpleLayout { views,_,_,_,_ ->
+            var width             = 0.0
+            var totalWidth        = 0.0
+            var firstColumnHeight = 0.0
 
-            views.drop(1).forEachIndexed { index, view ->
-                val col = columns[index + 1]
+            views.forEachIndexed { index, view ->
+                width  = columns[index].width
+                view.y = 0.0
+                view.x = totalWidth
 
-                width       = col.width
-                view.x      = x
-                view.y      = 0.0
-                view.size   = view.preferredSize(Size(width, 0.0), Size(width, height))
-                x          += view.width
-                totalWidth += view.width
+                when (index) {
+                    0    -> view.assumeAnySizeWithin(min = Size(width, 0.0), max = Size(width, POSITIVE_INFINITY)).also { firstColumnHeight = it.height }
+                    else -> view.assume             (size = Size(width, firstColumnHeight), downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY))
+                }
+
+                totalWidth += width
             }
 
-            preferredSize = fixed(Size(totalWidth, height))
+            preferredSize = fixed(Size(totalWidth, firstColumnHeight))
             suggestSize(idealSize)
 
             idealSize
