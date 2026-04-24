@@ -27,9 +27,7 @@ public class InteractiveLayout(private val start: Layout, private val end: Layou
             return resultStart // done since items are laid out according to start
         }
 
-        val children = views.toList()
-
-        val startBounds = if (progress < 1f) children.map { it.bounds } else emptyList()
+        val startBounds = if (progress < 1f) views.map { it.bounds }.toList() else emptyList()
 
         val resultEnd: Size = end.layout(views, min, current, max, insets)
 
@@ -37,10 +35,10 @@ public class InteractiveLayout(private val start: Layout, private val end: Layou
             return resultEnd // done since items are laid out according to end
         }
 
-        val endBounds = children.map { it.bounds }
+        val endBounds = views.map { it.bounds }.toList()
 
         views.forEachIndexed { index, view ->
-            view.bounds = lerp(startBounds[index], endBounds[index], progress)
+            view.bounds = lerp(startBounds.elementAt(index), endBounds.elementAt(index), progress)
         }
 
         return lerp(resultStart, resultEnd, progress)

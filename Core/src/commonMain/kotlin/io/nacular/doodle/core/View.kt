@@ -1047,7 +1047,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         layout.layout(
             children.asSequence().map {
-                it.positionable.also { it.reset() }
+                it.positionable
             },
             min     = min,
             max     = max,
