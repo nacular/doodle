@@ -519,7 +519,6 @@ public class ConstraintDslContext internal constructor() {
     }
 
     private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readonly -> $referent") {
-        override val needsHold  = false
         override var isReadOnly = true
     }
 

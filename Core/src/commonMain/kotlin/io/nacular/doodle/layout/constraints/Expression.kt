@@ -131,10 +131,9 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 
 internal interface Variable {
     val name          : String
-    val needsHold     : Boolean get() = true
-    val needsSynthetic: Boolean
-    var constrained   : Boolean
     var isReadOnly    : Boolean
+    var constrained   : Boolean
+    val needsSynthetic: Boolean
 
     operator fun invoke(             ): Double
     operator fun invoke(value: Double)
@@ -142,5 +141,4 @@ internal interface Variable {
 
 internal interface ReadOnlyVariable: Variable {
     val source: Variable
-    override val needsHold get() = false
 }
