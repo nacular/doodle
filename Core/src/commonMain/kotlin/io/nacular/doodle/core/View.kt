@@ -1486,7 +1486,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         override var x_      = view.x
         override var y_      = view.y
-        override var size_ = newBounds.size; set(value) { field = audit(value) }
+        override var size_   = newBounds.size; set(value) { field = audit(value) }
         override var minSize = view.allowedMinSize
         override var maxSize = view.allowedMaxSize
 

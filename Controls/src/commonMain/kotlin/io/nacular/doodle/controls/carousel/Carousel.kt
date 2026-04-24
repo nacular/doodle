@@ -82,40 +82,38 @@ public open class Carousel<T, M: ListModel<T>>(
      * @property clipPath used to clip the item
      */
     public class PresentedItem internal constructor(
-        internal val previous            : Int?,
-        internal val view                : View,
-        internal val index               : Int,
-        internal val boundsAlreadyChanged: Boolean,
-        public   var cache               : Any?,
-        public   var clipPath            : ClipPath? = null
+        internal val previous  : Int?,
+        internal val dataChild : DataChild,
+        internal val index     : Int,
+        public   var cache     : Any?,
+        public   var clipPath  : ClipPath? = null
     ) {
-        private val initialBounds    = view.prospectiveBounds
-        private val initialTransform = view.transform
+        private val initialTransform = dataChild.view.transform
 
-        internal val boundsChanged    get() = initialBounds    != view.prospectiveBounds
-        internal val transformChanged get() = initialTransform != view.transform
+        internal val boundsChanged    get() = dataChild.view.bounds != bounds
+        internal val transformChanged get() = initialTransform != dataChild.view.transform
 
-        public var x        : Double          get() = view.prospectiveBounds.x;      set(value) { view.suggestX     (value) }
-        public var y        : Double          get() = view.prospectiveBounds.y;      set(value) { view.suggestY     (value) }
-        public var size     : Size            get() = view.prospectiveBounds.size;   set(value) { view.suggestSize  (value) }
-        public var width    : Double          get() = view.prospectiveBounds.width;  set(value) { view.suggestWidth (value) }
-        public var height   : Double          get() = view.prospectiveBounds.height; set(value) { view.suggestHeight(value) }
-        public var bounds   : Rectangle       get() = view.prospectiveBounds;        set(value) { view.suggestBounds(value) }
-        public var zOrder   : Int             by view::zOrder
-        public var camera   : Camera          by view::camera
-        public var opacity  : Float           by view::opacity
-        public var position : Point           get() = view.prospectiveBounds.position; set(value) { view.suggestPosition(value) }
-        public var transform: AffineTransform by view::transform
+        public var x        : Double          get() = dataChild.x;                                      set(value) { dataChild.x = value }
+        public var y        : Double          get() = dataChild.y;                                      set(value) { dataChild.y = value }
+        public var size     : Size            get() = dataChild.run { Size(width, height) };            set(value) { dataChild.apply { width = value.width; height = value.height } }
+        public var width    : Double          get() = dataChild.width;                                  set(value) { dataChild.width  = value }
+        public var height   : Double          get() = dataChild.height;                                 set(value) { dataChild.height = value }
+        public var position : Point           get() = dataChild.run { Point    (x, y               ) }; set(value) { dataChild.apply { x = value.x; y = value.y                                             } }
+        public var bounds   : Rectangle       get() = dataChild.run { Rectangle(x, y, width, height) }; set(value) { dataChild.apply { x = value.x; y = value.y; width = value.width; height = value.height } }
+        public var zOrder   : Int             by dataChild.view::zOrder
+        public var camera   : Camera          by dataChild.view::camera
+        public var opacity  : Float           by dataChild.view::opacity
+        public var transform: AffineTransform by dataChild.view::transform
 
         /**
          * Indicates that the item has been changed in some way that might require
          * the Presenter to refresh any internal state.
          */
-        public val itemChanged: Boolean = previous != index || boundsAlreadyChanged
+        public val itemChanged: Boolean = previous != index || boundsChanged
 
-        public fun rerenderNow() { view.rerenderNow() }
+        public fun rerenderNow() { dataChild.view.rerenderNow() }
 
-        public fun idealSize(min: Size, max: Size): Size = view.preferredSize(view, min, max)
+        public fun idealSize(min: Size, max: Size): Size = dataChild.view.preferredSize(dataChild.view, min, max)
     }
 
     /**
@@ -202,14 +200,17 @@ public open class Carousel<T, M: ListModel<T>>(
         override fun contains(point: Point) = clipPath?.let { point in it } ?: super.contains(point)
     }
 
-    private data class DataChild(
+    internal data class DataChild(
         val view         : View,
         val clipPath     : ClipPath?,
         val index        : Int,
         val previousIndex: Int?,
         val cache        : Any?,
         var used         : Boolean = false,
-        var boundsChanged: Boolean = false
+        var x            : Double  = view.x,
+        var y            : Double  = view.y,
+        var width        : Double  = view.width,
+        var height       : Double  = view.height,
     )
 
     @Suppress("PrivatePropertyName")
@@ -307,17 +308,6 @@ public open class Carousel<T, M: ListModel<T>>(
     private var supplementaryChildren    = listOf<View>()
     private val dataChildrenInitialState = mutableMapOf<View, StagedItemState>()
 
-    private val boundsListener: (View, Rectangle, Rectangle) -> Unit = { view,_,_ ->
-        if (!ignoreChildBoundsChanges) {
-            // FIXME: Make this more efficient
-            dataChildren.firstOrNull { it.view == view }?.let {
-                it.boundsChanged = true
-            }
-
-            update()
-        }
-    }
-
     private var trueVirtualIndex        : Float = 0f
     private var targetVirtualSelection  : Int   = 0
     private var previousVirtualSelection: Int   = 0
@@ -375,8 +365,18 @@ public open class Carousel<T, M: ListModel<T>>(
         // because things like transform changes are immediate, while rendering and bounds changes are deferred.
         // The forced re-renders simplify Presenter implementations since they have fewer edge-cases to address.
 
-        layout = simpleLayout { _,_,currentSize,_,_ ->
+        layout = simpleLayout { views,_,currentSize,_,_ ->
             update()
+
+            views.forEachIndexed { index, view ->
+                dataChildren[index].run {
+                    view.x      = x
+                    view.y      = y
+                    view.width  = width
+                    view.height = height
+                }
+            }
+
             currentSize
         }
 
@@ -650,12 +650,11 @@ public open class Carousel<T, M: ListModel<T>>(
     internal fun item(at: Position) = model[at.index].getOrNull()?.let {
         getItem(at, it, progressToTargetItem).run {
             PresentedItem(
-                view                 = view,
-                index                = at.index,
-                cache                = cache,
-                previous             = previousIndex,
-                clipPath             = null,
-                boundsAlreadyChanged = boundsChanged
+                dataChild = this,
+                index     = at.index,
+                cache     = cache,
+                previous  = previousIndex,
+                clipPath  = null,
             )
         }
     }
@@ -704,19 +703,23 @@ public open class Carousel<T, M: ListModel<T>>(
                         foundItemIndex >= 0 -> {
                             val dataChild = dataChildren[foundItemIndex]
 
-                            if (item.view != dataChild.view || item.clipPath != dataChild.clipPath) {
+                            if (item.dataChild != dataChild) {
                                 dataChildren[foundItemIndex] = DataChild(
                                     previousIndex = dataChild.index,
-                                    view          = item.view,
+                                    view          = item.dataChild.view,
                                     clipPath      = item.clipPath,
                                     index         = item.index,
-                                    cache         = item.cache
+                                    cache         = item.cache,
+                                    x             = item.x,
+                                    y             = item.y,
+                                    width         = item.width,
+                                    height        = item.height,
                                 ).apply { used = true }
 
-                                if (item.view != dataChild.view) {
-                                    dataChild.view.boundsChanged -= boundsListener
-                                    item.view.boundsChanged      += boundsListener
-                                }
+//                                if (item.dataChild != dataChild) {
+//                                    dataChild.view.boundsChanged      -= boundsListener
+//                                    item.dataChild.view.boundsChanged += boundsListener
+//                                }
                             } else {
                                 dataChild.used = true
                             }
@@ -724,13 +727,18 @@ public open class Carousel<T, M: ListModel<T>>(
                         else -> {
                             dataChildren.add(DataChild(
                                 previousIndex = null,
-                                view          = item.view,
+                                view          = item.dataChild.view,
                                 clipPath      = item.clipPath,
                                 index         = item.index,
-                                cache         = item.cache
+                                cache         = item.cache,
+                                x             = item.x,
+                                y             = item.y,
+                                width         = item.width,
+                                height        = item.height,
                             ).apply { used = true })
-                            dataChildrenInitialState[item.view] = item.state()
-                            item.view.boundsChanged += boundsListener
+
+                            dataChildrenInitialState[item.dataChild.view] = item.state()
+//                            item.dataChild.view.boundsChanged += boundsListener
                         }
                     }
                 }
@@ -782,7 +790,7 @@ public open class Carousel<T, M: ListModel<T>>(
                     addAll(supplementaryChildren)
                 }
 
-                if (anyBoundsChanged && anyTransformChanged) {
+                if (anyBoundsChanged || anyTransformChanged) {
                     relayout   ()
                     rerenderNow()
                 }
@@ -825,7 +833,7 @@ public open class Carousel<T, M: ListModel<T>>(
 
         changedViews       -= view
         viewToIndexMap     -= view
-        view.boundsChanged -= boundsListener
+//        view.boundsChanged -= boundsListener
 
         dataChildrenInitialState.remove(view)?.apply {
             view.camera    = camera
