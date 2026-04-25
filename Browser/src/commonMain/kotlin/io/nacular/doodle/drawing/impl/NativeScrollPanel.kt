@@ -99,12 +99,14 @@ internal class NativeScrollPanel internal constructor(
         private val smoothScroll    : Boolean,
         private val managedScrolling: Boolean,
         private val barChanged      : (ScrollBarType, Double) -> Unit,
-        private val scrolled        : (Point) -> Unit): NativeEventListener {
+        private val scrolled        : (Point) -> Unit
+): NativeEventListener {
 
     private val eventHandler: NativeEventHandler
     private val rootElement = graphicsDevice[panel].rootElement.apply {
         setAttribute("data-native", "")
     }
+    private var contentGraphicsSurface = null as RealGraphicsSurface?
 
     private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { _,old,new ->
         if (new.size != old.size) {
@@ -121,7 +123,7 @@ internal class NativeScrollPanel internal constructor(
 
     private val contentChanged: (ScrollPanel, View?, View?) -> Unit = { _,old,new ->
         old?.let { view ->
-            graphicsDevice[view].let {
+            contentGraphicsSurface?.let {
                 it.rootElement.style.willChange = ""
 
                 if (managedScrolling) {
@@ -132,6 +134,8 @@ internal class NativeScrollPanel internal constructor(
                     view.boundsChanged  -= contentBoundsChanged
                     panel.boundsChanged -= boundsChanged
                 }
+
+                contentGraphicsSurface = null
             }
         }
 
@@ -144,7 +148,6 @@ internal class NativeScrollPanel internal constructor(
 
                     rootElement.style.setOverflow(Auto())
                     rootElement.add(spacerDiv)
-
                     spacerDiv.add(it.rootElement.parent!!)
                     updateScroll()
 
@@ -153,6 +156,8 @@ internal class NativeScrollPanel internal constructor(
                     view.boundsChanged  += contentBoundsChanged
                     panel.boundsChanged += boundsChanged
                 }
+
+                contentGraphicsSurface = it
             }
         }
     }
@@ -209,17 +214,16 @@ internal class NativeScrollPanel internal constructor(
     }
 
     fun discard() {
+        println("discard")
         panel.boundsChanged  -= boundsChanged
         panel.contentChanged -= contentChanged
 
         rootElement.apply {
             if (managedScrolling) {
-                panel.content?.let { graphicsDevice[it] }?.removedFromNativeScroll()
+                contentGraphicsSurface?.removedFromNativeScroll()
 
-                rootElement.remove(spacerDiv)
+                remove(spacerDiv)
             }
-
-            rootElement.style.setOverflow()
 
             style.setOverflow()
 
