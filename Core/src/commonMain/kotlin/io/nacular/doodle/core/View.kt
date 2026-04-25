@@ -46,6 +46,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.geometry.Vector3D
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.coerceIn
 import io.nacular.doodle.geometry.toPath
@@ -383,7 +384,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var newBounds: Rectangle = Rectangle.Empty; set(new) {
         if (field.fastEqual(new)) return
 
-        field = new.with(new.size.coerceIn(allowedMinSize, allowedMaxSize))
+        field = new.with(
+            new.width.coerceIn (allowedMinSize.width,  allowedMaxSize.width ),
+            new.height.coerceIn(allowedMinSize.height, allowedMaxSize.height)
+        )
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)

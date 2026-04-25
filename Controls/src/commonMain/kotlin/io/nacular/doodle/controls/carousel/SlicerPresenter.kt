@@ -7,6 +7,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PolyClipPath
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Vector2D
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.fill

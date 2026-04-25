@@ -25,6 +25,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
 import io.nacular.doodle.system.Cursor.Companion.Grab

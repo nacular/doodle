@@ -6,7 +6,6 @@ import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
 import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
 import io.nacular.doodle.controls.list.ListEditor
 import io.nacular.doodle.controls.list.MutableList
-import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
@@ -19,10 +18,11 @@ import io.nacular.doodle.event.KeyText.Companion.Backspace
 import io.nacular.doodle.event.KeyText.Companion.Delete
 import io.nacular.doodle.event.PointerListener.Companion.released
 import io.nacular.doodle.focus.FocusManager
-import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.theme.basic.GenericTextEditOperation
 import io.nacular.doodle.theme.basic.ListItem
+import io.nacular.doodle.utils.Dimension.Width
 import io.nacular.doodle.utils.Encoder
 import io.nacular.doodle.utils.HorizontalAlignment.Left
 
@@ -152,7 +152,7 @@ public open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = 1.0)), ColorPaint(it)) }
+            textField.backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(top = 1.0), ColorPaint(it)) }
         }
     }
 
