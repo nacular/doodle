@@ -148,9 +148,13 @@ public class PopupManagerImpl(
         private val viewList = listOf(view.positionable)
 
         override fun doLayout() {
+            viewList.forEach { it.reset() }
+
             viewList.constrain(constraints) { _,_ ->
                 Rectangle(size = display.size)
             }
+
+            viewList.forEach { it.finalize() }
         }
     }
 
@@ -171,7 +175,11 @@ public class PopupManagerImpl(
         override fun doLayout() {
             calculateRelativeBounds()
 
+            viewList.forEach { it.reset() }
+
             layout.layout(viewList, Empty, display.size, display.size)
+
+            viewList.forEach { it.finalize() }
         }
 
         init {
