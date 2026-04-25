@@ -7,6 +7,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.layout.constraints.Operator.EQ
@@ -802,13 +803,13 @@ public class ConstraintDslContext internal constructor() {
         private val t = this.top
         private val l = this.left
 
-        override val right   by lazy { l + width      }
-        override val centerX by lazy { l + width  / 2 }
-        override val bottom  by lazy { t + height     }
-        override val centerY by lazy { t + height / 2 }
+        override val right   = l + width
+        override val centerX = l + width  / 2
+        override val bottom  = t + height
+        override val centerY = t + height / 2
 
-        override val center by lazy { Position(left = centerX, top = centerY) }
-        override val edges  by lazy { Edges   (top = t, left = l, right = right, bottom = bottom) }
+        override val center = Position(left = centerX, top = centerY)
+        override val edges  = Edges   (top = t, left = l, right = right, bottom = bottom)
     }
 }
 

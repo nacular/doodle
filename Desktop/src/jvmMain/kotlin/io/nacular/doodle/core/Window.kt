@@ -4,6 +4,7 @@ import io.nacular.doodle.controls.popupmenu.MenuCreationContext
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.utils.ChangeObservers
 

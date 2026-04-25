@@ -15,6 +15,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -155,7 +156,7 @@ public open class ListItem<T>(
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop, left = insetLeft)), it.paint) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(top = insetTop, left = insetLeft), it.paint) }
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->

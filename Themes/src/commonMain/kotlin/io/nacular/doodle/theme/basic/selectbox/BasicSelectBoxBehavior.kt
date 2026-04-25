@@ -9,11 +9,11 @@ import io.nacular.doodle.controls.SingleItemSelectionModel
 import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.selectbox.SelectBox
 import io.nacular.doodle.controls.selectbox.SelectBoxBehavior
-import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Display
 import io.nacular.doodle.core.Icon
@@ -43,6 +43,7 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -110,12 +111,12 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             )
 
             canvas.rect(
-                view.bounds.atOrigin.inset(Insets(
+                view.bounds.atOrigin.inset(
                     left   = view.width - buttonWidth - inset,
                     top    = inset,
                     right  = inset,
                     bottom = inset
-                )),
+                ),
                 cornerRadius,
                 colors(view).paint
             )

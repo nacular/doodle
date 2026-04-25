@@ -19,6 +19,7 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds

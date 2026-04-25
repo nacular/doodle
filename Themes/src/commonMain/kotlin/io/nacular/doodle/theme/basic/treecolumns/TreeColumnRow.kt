@@ -15,8 +15,8 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.rounded
-import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
@@ -215,7 +215,7 @@ public class TreeColumnRow<T>(
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop)), ColorPaint(it)) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(top = insetTop), ColorPaint(it)) }
     }
 
     private fun constrainIcon(icon: View?) {

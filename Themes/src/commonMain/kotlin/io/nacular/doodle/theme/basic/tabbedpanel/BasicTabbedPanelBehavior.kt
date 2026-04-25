@@ -591,7 +591,7 @@ public open class BasicTabbedPanelBehavior<T>(
                 items.forEachIndexed { index, view ->
                     when (index) {
                         0    -> view.bounds = Rectangle(current.width, tabProducer.tabHeight + 10)
-                        else -> view.bounds = Rectangle(size = current).inset(Insets(top = tabProducer.tabHeight + 10))
+                        else -> view.bounds = Rectangle(size = current).inset(top = tabProducer.tabHeight + 10)
                     }
                 }
 

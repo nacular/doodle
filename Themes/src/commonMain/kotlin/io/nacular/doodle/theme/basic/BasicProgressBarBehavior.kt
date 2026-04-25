@@ -8,6 +8,7 @@ import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.Stroke
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.utils.Orientation.Vertical
 

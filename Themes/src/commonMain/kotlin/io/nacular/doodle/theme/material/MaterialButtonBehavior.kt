@@ -26,7 +26,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.theme.material.MaterialTheme.Companion.FontConfig
 import io.nacular.doodle.utils.Cancelable
@@ -182,7 +182,7 @@ public class MaterialButtonBehavior(
         val bounds = view.bounds.atOrigin
 
         canvas.outerShadow(color = Black opacity 0.2f, horizontal = 0.0, vertical = shadow1Blur, blurRadius = shadow1Blur) {
-            canvas.rect(bounds.inset(Insets(left = 2.0, right = 3.0)), radius = cornerRadius, fill = ColorPaint(backgroundColor))
+            canvas.rect(bounds.inset(left = 2.0, right = 3.0), radius = cornerRadius, fill = ColorPaint(backgroundColor))
         }
 
         canvas.outerShadow(color = Black opacity 0.22f, horizontal = 0.0, vertical = 2.0, blurRadius = 2.0) {
