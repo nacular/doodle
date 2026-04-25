@@ -617,19 +617,16 @@ public class ConstraintDslContext internal constructor() {
 
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
     public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(*terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
-    public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
     public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, Required))
 
     public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
     public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
     public infix fun Expression.lessEq(constant: Double    ): Result<Constraint> = this lessEq Expression(constant = constant)
-    public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
     public infix fun Expression.lessEq(other   : Expression): Result<Constraint> = add(Constraint(this - other, LE, Required))
 
     public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
     public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
     public infix fun Expression.greaterEq(constant: Double    ): Result<Constraint> = this greaterEq Expression(constant = constant)
-    public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
     public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, Required))
 
     public infix fun Term.eq(term      : Term      ): Result<Constraint> = Expression(this) eq term
@@ -649,24 +646,6 @@ public class ConstraintDslContext internal constructor() {
     public infix fun Term.greaterEq(constant  : Double    ): Result<Constraint> = Expression(this) greaterEq constant
     public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
     public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
-
-    public infix fun Property.eq(term      : Term      ): Result<Constraint> = term          eq this
-    public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
-    public infix fun Property.eq(constant  : Double    ): Result<Constraint> = this.toTerm() eq constant
-    public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
-    public infix fun Property.eq(expression: Expression): Result<Constraint> = expression    eq this
-
-    public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
-    public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
-    public infix fun Property.lessEq(constant  : Double    ): Result<Constraint> = this.toTerm() lessEq constant
-    public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
-    public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
-
-    public infix fun Property.greaterEq(term      : Term      ): Result<Constraint> = this.toTerm() greaterEq term
-    public infix fun Property.greaterEq(constant  : Number    ): Result<Constraint> = this.toTerm() greaterEq constant.toDouble()
-    public infix fun Property.greaterEq(constant  : Double    ): Result<Constraint> = this.toTerm() greaterEq constant
-    public infix fun Property.greaterEq(second    : Property  ): Result<Constraint> = this.toTerm() greaterEq second
-    public infix fun Property.greaterEq(expression: Expression): Result<Constraint> = this.toTerm() greaterEq expression
 
     public infix fun Position.eq(other: Position): List<Result<Constraint>> = listOf(
         top  eq other.top,
@@ -806,18 +785,18 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public fun Bounds.withOffset(top: () -> Double = { 0.0 }, left: () -> Double = { 0.0 }): Bounds = object: Bounds by this {
-        override val top  get() = object: Property() {
+        override val top = object: Property() {
             override val terms    get() = this@withOffset.top.terms
-            override val constant get() = this@withOffset.top.constant + top()
+            override val constant get() = this@withOffset.top.constant - top()
             override val variable get() = this@withOffset.top.variable
-            override fun toTerm() = this@withOffset.top.toTerm()
+            override fun toTerm()       = this@withOffset.top.toTerm()
 
         }
-        override val left get() = object: Property() {
+        override val left = object: Property() {
             override val terms    get() = this@withOffset.left.terms
-            override val constant get() = this@withOffset.left.constant + left()
+            override val constant get() = this@withOffset.left.constant - left()
             override val variable get() = this@withOffset.left.variable
-            override fun toTerm() = this@withOffset.left.toTerm()
+            override fun toTerm()       = this@withOffset.left.toTerm()
         }
 
         private val t = this.top
