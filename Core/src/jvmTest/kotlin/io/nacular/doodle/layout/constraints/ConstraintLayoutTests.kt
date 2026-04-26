@@ -360,9 +360,7 @@ class ConstraintLayoutTests {
         val container = container {
             this   += view
             forceSize(Size(100))
-            layout = constrain(view) {
-                align(it)
-            }
+            layout = constrain(view, align)
         }
 
         container.doLayout_()

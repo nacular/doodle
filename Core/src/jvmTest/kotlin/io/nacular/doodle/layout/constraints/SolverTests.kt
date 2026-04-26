@@ -444,7 +444,7 @@ class SolverTests {
         }
     }
 
-    @Test fun `readonly works in this case`() {
+    @Test fun `readonly works when property never written to`() {
         val a = property("a", 10.0)
         val b = property("b")
 
