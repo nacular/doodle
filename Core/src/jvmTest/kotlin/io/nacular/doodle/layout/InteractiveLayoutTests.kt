@@ -6,6 +6,7 @@ import io.nacular.doodle.core.forceSize
 import io.nacular.doodle.core.view
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.lerp
 import kotlin.test.Test
 import kotlin.test.expect

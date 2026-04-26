@@ -36,10 +36,10 @@ import kotlin.math.min
  * @property height The vertical length
  */
 public class Rectangle(
-    public val x     : Double,
-    public val y     : Double,
-    public val width : Double,
-    public val height: Double,
+    public val x     : Double = 0.0,
+    public val y     : Double = 0.0,
+    public val width : Double = 0.0,
+    public val height: Double = 0.0,
 ): ConvexPolygon() {
 
     public constructor(): this(0.0, 0.0, 0.0, 0.0)
