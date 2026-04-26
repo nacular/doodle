@@ -22,14 +22,18 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
+import kotlin.jvm.JvmName
 
 
-public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
+public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges                              }
 public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.size hint it.size.value; it.center eq parent.center }
 
 public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) strength strength }
 public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) strength strength }
-public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) strength strength }
+public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = {
+    it.size   hint it.size.value strength strength
+    it.center eq   parent.center strength strength
+}
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -420,8 +424,8 @@ public class ConstraintDslContext internal constructor() {
      */
     public infix fun Property.preserve(strength: Strength) { this eq this.value strength strength }
 
-    public infix fun Property.hint(value: Number): Result<Edit>       = this hint value.toDouble()
-    public infix fun Property.hint(value: Double): Result<Edit>       = add(Edit(this.variable, value, Required - 1))
+    public infix fun Property.hint(value: Number): Result<Edit> = this hint value.toDouble()
+    public infix fun Property.hint(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
 
     public infix fun Area.hint(value: Size): Result<List<Edit>> = runCatching {
         listOf(
@@ -762,22 +766,29 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
-    public infix fun Result<Constraint>.strength(strength: Int): Result<Constraint> {
-        this.getOrNull()?.strength = Strength(strength)
-        return this
-    }
+    public infix fun Result<Constraint>.strength(strength: Int): Result<Constraint> = strength(Strength(strength))
 
     public infix fun List<Result<Constraint>>.strength(strength: Strength): List<Result<Constraint>> {
         this.forEach { it.getOrNull()?.strength = strength }
         return this
     }
 
+    public infix fun List<Result<Constraint>>.strength(strength: Int): List<Result<Constraint>> = strength(Strength(strength))
+
     public infix fun Result<Edit>.strength(strength: Strength) {
         this.getOrNull()?.strength = strength
     }
 
-    public infix fun Result<Edit>.strength(strength: Int) {
-        this.getOrNull()?.strength = Strength(strength)
+    public infix fun Result<Edit>.strength(strength: Int) { strength(Strength(strength)) }
+
+    @JvmName("resultStrengthEdit")
+    public infix fun Result<List<Edit>>.strength(strength: Strength) {
+        this.getOrNull()?.forEach { it.strength = strength }
+    }
+
+    @JvmName("resultStrengthEdit2")
+    public infix fun Result<List<Edit>>.strength(strength: Int) {
+        strength(Strength(strength))
     }
 
     public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
