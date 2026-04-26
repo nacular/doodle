@@ -6,11 +6,11 @@ import io.nacular.doodle.theme.Modules.BehaviorResult.NotMatched
 import io.nacular.doodle.theme.adhoc.DynamicTheme
 import org.kodein.di.DI.Builder
 import org.kodein.di.DI.Module
-import org.kodein.di.addInBindSet
 import org.kodein.di.bind
 import org.kodein.di.bindSet
 import org.kodein.di.bindings.NoArgBindingDI
 import org.kodein.di.erasedSet
+import org.kodein.di.inBindSet
 import org.kodein.di.instance
 import org.kodein.di.singleton
 import kotlin.reflect.KClass
@@ -54,17 +54,21 @@ public class Modules private constructor() {
         }
 
         // TODO: Can this be renamed to bindBehavior in 1.4?
-        public inline fun <reified T: View> Builder.bindConditionalBehavior(theme: KClass<out Theme>? = null, crossinline block: NoArgBindingDI<*>.(T) -> BehaviorResult) {
+        public inline fun <reified T: View> Builder.bindConditionalBehavior(
+            theme: KClass<out Theme>? = null,
+            crossinline block: NoArgBindingDI<*>.(T) -> BehaviorResult
+        ) {
             importOnce(DynamicThemeModule, allowOverride = true)
 
-            // FIXME: changing to inBindSet { add {} } causes crash on desktop
-            addInBindSet<BehaviorResolver> { singleton {
-                object: BehaviorResolver {
-                    override val theme = theme
+            inBindSet<BehaviorResolver> { add {
+                singleton {
+                    object: BehaviorResolver {
+                        override val theme = theme
 
-                    override fun invoke(view: View) = when (view) {
-                        is T -> block(this@singleton, view)
-                        else -> NotMatched
+                        override fun invoke(view: View) = when (view) {
+                            is T -> block(this@singleton, view)
+                            else -> NotMatched
+                        }
                     }
                 }
             } }
