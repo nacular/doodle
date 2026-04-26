@@ -7,6 +7,7 @@ import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.center
 import io.nacular.doodle.utils.Pool
 
 /**
@@ -86,7 +87,7 @@ public interface ModalManager {
      */
     public class Modal(
         view: View,
-        internal val layout: ConstraintDslContext.(Bounds) -> Unit = { it.center eq parent.center }
+        internal val layout: ConstraintDslContext.(Bounds) -> Unit = center
     ): ModalType(view)
 
     /**
@@ -106,7 +107,7 @@ public interface ModalManager {
     public class RelativeModal(
         view: View,
         internal val relativeTo: View,
-        internal val layout: ConstraintDslContext.(Bounds, Rectangle) -> Unit = { modal, _ -> modal.center eq parent.center }
+        internal val layout: ConstraintDslContext.(Bounds, Rectangle) -> Unit = { modal, _ -> modal.size hint modal.size.value; modal.center eq parent.center }
     ): ModalType(view)
 
     /**
