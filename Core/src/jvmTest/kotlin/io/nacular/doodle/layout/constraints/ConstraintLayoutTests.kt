@@ -56,7 +56,7 @@ class ConstraintLayoutTests {
             layout = simpleLayout { items,_,_,_,_ ->
                 items.forEach {
                     it.position = Point.Origin
-                    it.assumeAnySizeWithin(Size(10), Infinite)
+                    it.assumeAnySize(Size(10), Infinite)
                 }
 
                 Size(100)

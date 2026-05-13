@@ -188,7 +188,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
                             child.x = bounds.x
                             child.y = bounds.y
-                            child.assume(size = bounds.size)
+                            child.assumeSize(of = bounds.size)
 
                             y += bounds.height
                             if (y > minHeight) return@forEach
