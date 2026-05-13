@@ -4,6 +4,8 @@ import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 
@@ -215,14 +217,24 @@ public interface Layout {
     public val Positionable.bottom  : Double get() = y + height
     public val Positionable.center  : Point  get() = Point(x + width / 2, y + height / 2)
 
-    public fun Positionable.assumeAnySizeWithin(min: Size, max: Size): Size = preferredSize(min, max).also {
-        size    = it
-        minSize = min
-        maxSize = max
+    public fun Positionable.assumeAnySize(downTo: Size = Empty, upTo: Size = Infinite): Size = preferredSize(downTo, upTo).also {
+        assumeSize(it, downTo, upTo)
     }
 
-    public fun Positionable.assume(size: Size, downTo: Size = Size.Empty, upTo: Size = Size.Infinite) {
-        this.size    = size
+    public fun Positionable.assumeAnySize(x: Double, y: Double, downTo: Size = Empty, upTo: Size = Infinite): Size = preferredSize(downTo, upTo).also {
+        assumeSize(x, y, it, downTo, upTo)
+    }
+
+    public fun Positionable.assumeSize(of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
+        this.size    = of
+        this.minSize = downTo
+        this.maxSize = upTo
+    }
+
+    public fun Positionable.assumeSize(x: Double, y: Double, of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
+        this.x       = x
+        this.y       = y
+        this.size    = of
         this.minSize = downTo
         this.maxSize = upTo
     }

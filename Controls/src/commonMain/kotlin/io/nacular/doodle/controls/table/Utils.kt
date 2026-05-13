@@ -74,8 +74,8 @@ internal open class TablePanel(
                 view.x = totalWidth
 
                 when (index) {
-                    0    -> view.assumeAnySizeWithin(min = Size(width, 0.0), max = Size(width, POSITIVE_INFINITY)).also { firstColumnHeight = it.height }
-                    else -> view.assume             (size = Size(width, firstColumnHeight), downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY))
+                    0    -> view.assumeAnySize(downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY)).also { firstColumnHeight = it.height }
+                    else -> view.assumeSize             (of = Size(width, firstColumnHeight), downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY))
                 }
 
                 totalWidth += width

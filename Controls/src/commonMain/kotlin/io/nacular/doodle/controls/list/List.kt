@@ -249,7 +249,7 @@ public open class List<T, out M: ListModel<T>>(
                                     layout(child, item, modelIndex)?.let {
                                         viewsList.getOrNull(viewIndex)?.let { view ->
                                             view.position = it.position
-                                            view.assume(size = it.size)
+                                            view.assumeSize(of = it.size)
                                         }
 
                                         maxWidth  = max(maxWidth,  it.width )

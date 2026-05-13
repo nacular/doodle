@@ -1125,7 +1125,7 @@ class ViewTests {
                 var maxBottom = 0.0
 
                 items.forEach {
-                    it.assumeAnySizeWithin(min, max)
+                    it.assumeAnySize(min, max)
 
                     maxRight  = it.right
                     maxBottom = it.bottom
