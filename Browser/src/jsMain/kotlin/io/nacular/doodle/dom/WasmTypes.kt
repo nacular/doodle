@@ -41,3 +41,15 @@ internal actual fun <T: JsAny> jsArrayOf(vararg values: T): JsArray<T> = JsArray
 internal actual operator fun DataTransferItemList.get(index: Int): DataTransferItem? = jsGet(this, index)
 
 private fun jsGet(list: DataTransferItemList, index: Int): DataTransferItem? = js("list[index]") as? DataTransferItem?
+
+internal actual fun JsAny.isNode             (): Boolean = js("this instanceof Node"             )
+internal actual fun JsAny.isHTMLElement      (): Boolean = js("this instanceof HTMLElement"      )
+internal actual fun JsAny.isHTMLInputElement (): Boolean = js("this instanceof HTMLInputElement" )
+internal actual fun JsAny.isHTMLButtonElement(): Boolean = js("this instanceof HTMLAnchorElement")
+internal actual fun JsAny.isHTMLAnchorElement(): Boolean = js("this instanceof HTMLButtonElement")
+
+internal actual fun JsAny.asNodeOrNull             (): Node?              = if (this.isNode             ()) this.unsafeCast<Node>             () else null
+internal actual fun JsAny.asHTMLElementOrNull      (): HTMLElement?       = if (this.isHTMLElement      ()) this.unsafeCast<HTMLElement>      () else null
+internal actual fun JsAny.asHTMLInputElementOrNull (): HTMLInputElement?  = if (this.isHTMLInputElement ()) this.unsafeCast<HTMLInputElement> () else null
+internal actual fun JsAny.asHTMLButtonElementOrNull(): HTMLButtonElement? = if (this.isHTMLButtonElement()) this.unsafeCast<HTMLButtonElement>() else null
+internal actual fun JsAny.asHTMLAnchorElementOrNull(): HTMLAnchorElement? = if (this.isHTMLAnchorElement()) this.unsafeCast<HTMLAnchorElement>() else null

@@ -45,9 +45,6 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
 
         val focusOwner = focusManager?.focusOwner
 
-        val pointerChanged_       = SetPool<PointerListener>      ()
-        val pointerMotionChanged_ = SetPool<PointerMotionListener>()
-
         var overlay = object: View() {
             override fun shouldHandlePointerEvent      (event: PointerEvent) = !allowPointerThrough
             override fun shouldHandlePointerMotionEvent(event: PointerEvent) = !allowPointerThrough
@@ -57,8 +54,8 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
             }
         }
 
-        override val pointerOutsideModalChanged      : Pool<PointerListener>       get() = pointerChanged_
-        override val pointerMotionOutsideModalChanged: Pool<PointerMotionListener> get() = pointerMotionChanged_
+        override val pointerOutsideModalChanged      : Pool<PointerListener>       field = SetPool()
+        override val pointerMotionOutsideModalChanged: Pool<PointerMotionListener> field = SetPool()
 
         override var allowPointerThrough = false
 
@@ -89,22 +86,22 @@ public class ModalManagerImpl(private val popupManager: PopupManager, private va
         }
 
         fun registerListeners() {
-            pointerChanged_.forEach {
+            pointerOutsideModalChanged.forEach {
                 overlay.pointerChanged       += it
                 overlay.pointerPassedThrough += it
             }
-            pointerMotionChanged_.forEach {
+            pointerMotionOutsideModalChanged.forEach {
                 overlay.pointerMotionChanged       += it
                 overlay.pointerMotionPassedThrough += it
             }
         }
 
         fun unregisterListeners() {
-            pointerChanged_.forEach {
+            pointerOutsideModalChanged.forEach {
                 overlay.pointerChanged       -= it
                 overlay.pointerPassedThrough -= it
             }
-            pointerMotionChanged_.forEach {
+            pointerMotionOutsideModalChanged.forEach {
                 overlay.pointerMotionChanged       -= it
                 overlay.pointerMotionPassedThrough -= it
             }

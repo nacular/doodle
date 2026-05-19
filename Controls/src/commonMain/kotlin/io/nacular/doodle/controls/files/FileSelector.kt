@@ -38,10 +38,10 @@ public class FileSelector(public val allowMultiple: Boolean = false, public val 
     /**
      * Notifies when the list of selected files changes
      */
-    public val filesLoaded: PropertyObservers<FileSelector, List<LocalFile>> = PropertyObserversImpl(this)
+    public val filesLoaded: PropertyObservers<FileSelector, List<LocalFile>> field = PropertyObserversImpl(this)
 
     @Suppress("UNCHECKED_CAST")
-    internal var files: List<LocalFile> by observable(emptyList(), filesLoaded as PropertyObserversImpl<FileSelector, List<LocalFile>>)
+    internal var files: List<LocalFile> by observable(emptyList(), filesLoaded)
 
     /**
      * Controls the selector's behavior

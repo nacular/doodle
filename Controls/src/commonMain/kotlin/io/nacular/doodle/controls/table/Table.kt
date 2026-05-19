@@ -316,7 +316,7 @@ public open class Table<T, M: ListModel<T>>(
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: SetObservers<Table<T, M>, Int> = SetPool()
+    public val selectionChanged: SetObservers<Table<T, M>, Int> field = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
     public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
@@ -376,7 +376,7 @@ public open class Table<T, M: ListModel<T>>(
 
     @Suppress("PropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
-        (selectionChanged as SetPool).forEach {
+        selectionChanged.forEach {
             it(this, removed, added)
         }
     }

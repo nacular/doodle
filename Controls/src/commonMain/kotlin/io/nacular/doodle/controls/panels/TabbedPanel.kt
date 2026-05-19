@@ -93,24 +93,24 @@ public class TabbedPanel<T>(
     private val items = ObservableList<T>()
 
     /** Notifies of changes to items. */
-    public val itemsChanged: ListObservers<TabbedPanel<T>, T> = SetPool()
+    public val itemsChanged: ListObservers<TabbedPanel<T>, T> field = SetPool()
 
     /** Notifies of changes to [selection]. */
-    public val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> = PropertyObserversImpl(this)
+    public val selectionChanged: PropertyObservers<TabbedPanel<T>, Int?> field = PropertyObserversImpl(this)
 
     /** Notifies of changes to [orientation]. */
-    public val orientationChanged: PropertyObservers<TabbedPanel<T>, BoxOrientation> = PropertyObserversImpl(this)
+    public val orientationChanged: PropertyObservers<TabbedPanel<T>, BoxOrientation> field = PropertyObserversImpl(this)
 
     /** The number of items (tabs) in the panel. */
     public val numItems: Int get() = items.size
 
     /** The currently selected item/tab. Defaults to `0`. */
     @Suppress("UNCHECKED_CAST")
-    public var selection: Int? by observable(0, selectionChanged as PropertyObserversImpl<TabbedPanel<T>, Int?>)
+    public var selection: Int? by observable(0, selectionChanged)
 
     /** The location of the tabs. */
     @Suppress("UNCHECKED_CAST")
-    public var orientation: BoxOrientation by observable(orientation, orientationChanged as PropertyObserversImpl<TabbedPanel<T>, BoxOrientation>)
+    public var orientation: BoxOrientation by observable(orientation, orientationChanged)
 
     /** Component responsible for controlling the presentation and behavior of the panel. */
     public var behavior: TabbedPanelBehavior<T>? by behavior { _,_ ->
@@ -175,7 +175,7 @@ public class TabbedPanel<T>(
                 }
             }
 
-            (itemsChanged as SetPool).forEach {
+            itemsChanged.forEach {
                 it(this, diffs)
             }
         }

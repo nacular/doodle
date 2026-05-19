@@ -14,6 +14,7 @@ import org.kodein.di.bindings.NoArgBindingDI
  * @param modules to use for the application
  * @param creator block that constructs the application
  */
+@OptIn(ExperimentalWasmJsInterop::class)
 public inline fun <reified T: Application> application(
              root                : org.w3c.dom.HTMLElement,
              allowDefaultDarkMode: Boolean     = false,

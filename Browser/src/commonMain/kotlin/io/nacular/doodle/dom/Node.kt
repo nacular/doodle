@@ -11,22 +11,22 @@ internal expect abstract external class NodeList() {
 internal expect inline operator fun NodeList.get(index: Int): Node?
 
 internal expect abstract external class Node: JsAny {
-    fun cloneNode    (deep : Boolean           ): Node
-    fun appendChild  (node : Node              ): Node
-    fun removeChild  (child: Node              ): Node
-    fun insertBefore (node : Node, child: Node?): Node
-    fun replaceChild (node : Node, child: Node ): Node
-    fun contains     (other: Node?             ): Boolean
-    fun hasChildNodes(                         ): Boolean
+    internal fun cloneNode    (deep : Boolean           ): Node
+    internal fun appendChild  (node : Node              ): Node
+    internal fun removeChild  (child: Node              ): Node
+    internal fun insertBefore (node : Node, child: Node?): Node
+    internal fun replaceChild (node : Node, child: Node ): Node
+    internal fun contains     (other: Node?             ): Boolean
+    internal fun hasChildNodes(                         ): Boolean
 
-    val nodeName       : String
-    val firstChild     : Node?
-    val parentNode     : Node?
-    val childNodes     : NodeList
-    val nextSibling    : Node?
-    var textContent    : String?
-    val parentElement  : Element?
-    val previousSibling: Node?
+    internal val nodeName       : String
+    internal val firstChild     : Node?
+    internal val parentNode     : Node?
+    internal val childNodes     : NodeList
+    internal val nextSibling    : Node?
+    internal var textContent    : String?
+    internal val parentElement  : Element?
+    internal val previousSibling: Node?
 }
 
 internal expect fun Node.clear()

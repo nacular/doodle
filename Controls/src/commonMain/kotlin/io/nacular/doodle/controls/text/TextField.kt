@@ -83,7 +83,7 @@ public open class TextField(text: String = ""): TextInput(text) {
     /**
      * Notified whenever [mask] changes.
      */
-    public val maskChanged: PropertyObservers<TextField, Char?> = PropertyObserversImpl(this)
+    public val maskChanged: PropertyObservers<TextField, Char?> field = PropertyObserversImpl(this)
 
     /**
      * Optional character to mask text shown in the field. This only affects [displayText].
@@ -101,7 +101,7 @@ public open class TextField(text: String = ""): TextInput(text) {
                 else -> "".padEnd(text.length, m)
             }
 
-            (maskChanged as PropertyObserversImpl<TextField, Char?>)(old, new)
+            maskChanged(old, new)
         }
 
     /**
@@ -110,13 +110,13 @@ public open class TextField(text: String = ""): TextInput(text) {
      */
     @Suppress("UNCHECKED_CAST")
     public var purpose: Purpose by observableStyleProperty(Text) { old, new ->
-        (purposeChanged as PropertyObserversImpl<TextField, Purpose>)(old, new)
+        purposeChanged(old, new)
     }
 
     /**
      * Notified whenever [purpose] changes.
      */
-    public val purposeChanged: PropertyObservers<TextField, Purpose> = PropertyObserversImpl(this)
+    public val purposeChanged: PropertyObservers<TextField, Purpose> field = PropertyObserversImpl(this)
 
     public var behavior: TextFieldBehavior? by behavior(
         beforeChange = { _,_ -> mirrorWhenRightLeft = false },

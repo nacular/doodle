@@ -39,8 +39,8 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
         val isCanceled: Boolean get() = state == Canceled
 
-        override val paused : Pool<(source: Pausable) -> Unit> = SetPool()
-        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool()
+        override val paused : Pool<(source: Pausable) -> Unit> field = SetPool()
+        override val resumed: Pool<(source: Pausable) -> Unit> field = SetPool()
 
         fun run(currentTime: Measure<Time>): Result<T> {
             if (isPaused) {
@@ -49,7 +49,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
 
             if (!::startTime.isInitialized || resuming) {
                 if (resuming) {
-                    (resumed as SetPool).forEach { it(this@AnimationData) }
+                    resumed.forEach { it(this@AnimationData) }
                 }
 
                 resuming  = false
@@ -75,7 +75,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
                     finished -> completed()
                     pausing  -> {
                         pausing = false
-                        (paused as SetPool).forEach { it(this@AnimationData) }
+                        paused.forEach { it(this@AnimationData) }
                     }
                 }
 
@@ -106,7 +106,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
             super.cancel()
 
             if (broadcast) {
-                (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, setOf(this)) }
+                listeners.forEach { it.canceled(this@AnimatorImpl, setOf(this)) }
             }
         }
     }
@@ -117,13 +117,13 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         private var canceling    = false
         private var numPaused    by observable(0) { old,new ->
             when {
-                new == animations.size -> (paused  as SetPool).forEach { it(this) }
-                old == animations.size -> (resumed as SetPool).forEach { it(this) }
+                new == animations.size -> paused.forEach  { it(this) }
+                old == animations.size -> resumed.forEach { it(this) }
             }
         }
 
-        override val paused : Pool<(source: Pausable) -> Unit> = SetPool()
-        override val resumed: Pool<(source: Pausable) -> Unit> = SetPool()
+        override val paused : Pool<(source: Pausable) -> Unit> field = SetPool()
+        override val resumed: Pool<(source: Pausable) -> Unit> field = SetPool()
 
         init {
             registerSubAnimations(animations)
@@ -145,7 +145,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
             canceling = true
             animations.forEach { it.cancel() }
 
-            (listeners as? SetPool)?.forEach { it.canceled(this@AnimatorImpl, animations) }
+            listeners.forEach { it.canceled(this@AnimatorImpl, animations) }
 
             super.cancel()
             canceling = false
@@ -257,7 +257,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         return GroupAnimation(newAnimations)
     }
 
-    override val listeners: Pool<Listener> = SetPool()
+    override val listeners: Pool<Listener> field = SetPool()
 
     private fun startAnimation() {
         task = animationScheduler.onNextFrame {
@@ -300,7 +300,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         }
 
         if (changed.isNotEmpty()) {
-            (listeners as? SetPool)?.forEach { it.changed(this, changed) }
+            listeners.forEach { it.changed(this, changed) }
         }
 
         if (animations.isNotEmpty()) task = animationScheduler.onNextFrame {
@@ -308,7 +308,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
         }
 
         if (completed.isNotEmpty()) {
-            (listeners as? SetPool)?.forEach { it.completed(this, completed) }
+            listeners.forEach { it.completed(this, completed) }
         }
     }
 

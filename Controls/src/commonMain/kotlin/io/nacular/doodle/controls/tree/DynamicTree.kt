@@ -32,8 +32,8 @@ public open class DynamicTree<T, M: DynamicTreeModel<T>>(model: M, itemVisualize
         if (trueRemoved.size > trueAdded.size) {
             if (children.size == lastVisibleRow - 1) {
                 children.batch {
-                    for (it in 0..trueRemoved.size - trueAdded.size) {
-                        if (size > 0) {
+                    repeat(trueRemoved.size - trueAdded.size) {
+                        if (isNotEmpty()) {
                             removeAt(size - 1)
                         }
                     }
@@ -49,10 +49,10 @@ public open class DynamicTree<T, M: DynamicTreeModel<T>>(model: M, itemVisualize
             added.keys.filter { it in removed }.forEach { update(children, it) }
         }
 
-        (itemsChanged as SetPool).forEach { it(this, removed, added, moved) }
+        itemsChanged.forEach { it(this, removed, added, moved) }
     }
 
-    public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
+    public val itemsChanged: Pool<ItemsObserver<T>> field = SetPool()
 
     init {
         model.changed += modelChanged

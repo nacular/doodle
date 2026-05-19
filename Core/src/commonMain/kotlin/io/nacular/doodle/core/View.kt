@@ -49,6 +49,8 @@ import io.nacular.doodle.geometry.Vector3D
 import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.coerceIn
+import io.nacular.doodle.geometry.div
+import io.nacular.doodle.geometry.times
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
@@ -361,7 +363,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     final override val size: Size get() = bounds.size
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
-    public val boundsChanged: PropertyObservers<View, Rectangle> = PropertyObserversImpl(this)
+    public val boundsChanged: PropertyObservers<View, Rectangle> field = PropertyObserversImpl(this)
 
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
@@ -415,7 +417,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         settingActualBounds = false
 
         @Suppress("UNCHECKED_CAST")
-        (boundsChanged as PropertyObserversImpl<View, Rectangle>).forEach { it(this, old, field) }
+        boundsChanged.forEach { it(this, old, field) }
     }
 
     internal var allowedMinSize = Empty; private set(new) {
@@ -484,7 +486,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal var childrenClipPath_ get() = childrenClipPath; set(new) { childrenClipPath = new }
 
     /** Notifies changes to [transform] */
-    public val transformChanged: PropertyObservers<View, AffineTransform> = PropertyObserversImpl(this)
+    public val transformChanged: PropertyObservers<View, AffineTransform> field = PropertyObserversImpl(this)
 
     /**
      * Affine transform applied to the View.  This transform does not affect the View's [bounds] or how it is handled by [Layout].
@@ -493,7 +495,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * The default is [Identity]
      */
     @Suppress("UNCHECKED_CAST")
-    public open var transform: AffineTransform by observable(Identity, transformChanged as PropertyObserversImpl<View, AffineTransform>) { old, new ->
+    public open var transform: AffineTransform by observable(Identity, transformChanged) { old, new ->
         resolvedTransformDirty = true
 
         boundingBox = getBoundingBox(bounds)
@@ -501,13 +503,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     /** Notifies changes to [camera] */
-    public val cameraChanged: PropertyObservers<View, Camera> = PropertyObserversImpl(this)
+    public val cameraChanged: PropertyObservers<View, Camera> field = PropertyObserversImpl(this)
 
     /**
      * Camera within the View's parent that affects how it is projected onto the screen.
      */
     @Suppress("UNCHECKED_CAST")
-    public var camera: Camera by observable(Camera.Identity, cameraChanged as PropertyObserversImpl<View, Camera>) { old, new ->
+    public var camera: Camera by observable(Camera.Identity, cameraChanged) { old, new ->
         resolvedTransformDirty = true
 
         renderManager?.cameraChanged(this, old, new)
@@ -530,19 +532,19 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     // endregion
 
     /** Notifies changes to [zOrder] */
-    internal val zOrderChanged: ZOrderObservers = PropertyObserversImpl(this)
+    internal val zOrderChanged: ZOrderObservers field = PropertyObserversImpl(this)
 
     /**
      * Rendering order of this View within it's [parent], or [Display] if top-level.
      * Views with higher values are rendered above those with lower ones. The default is `0`.
      */
     @Suppress("UNCHECKED_CAST")
-    public var zOrder: Int by observable(0, zOrderChanged as PropertyObserversImpl<View, Int>) { old, new ->
+    public var zOrder: Int by observable(0, zOrderChanged) { old, new ->
         renderManager?.zOrderChanged(this, old, new)
     }
 
     /** Notifies changes to [visible] */
-    public val visibilityChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val visibilityChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     /** Whether this View is visible. The default is `true`. */
     @Suppress("UNCHECKED_CAST")
@@ -552,11 +554,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         renderManager?.visibilityChanged(this, old, new)
         accessibilityManager?.syncVisibility(this)
-        (visibilityChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, old, new) }
+        visibilityChanged.forEach { it(this, old, new) }
     }
 
     /** Notifies changes to [opacity] */
-    public val opacityChanged: PropertyObservers<View, Float> = PropertyObserversImpl(this)
+    public val opacityChanged: PropertyObservers<View, Float> field = PropertyObserversImpl(this)
 
     /**
      * Indicates how opaque the View is. A value of 1 means the View should be fully opaque and
@@ -565,12 +567,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * pointer and keyboard) are sent to the View.
      */
     @Suppress("UNCHECKED_CAST")
-    public var opacity: Float by observable(1f, opacityChanged as PropertyObserversImpl<View, Float>) { old, new ->
+    public var opacity: Float by observable(1f, opacityChanged) { old, new ->
         renderManager?.opacityChanged(this, old, new)
     }
 
     /** Notifies changes to [enabled] */
-    public val enabledChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val enabledChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     private var actualEnabled: Boolean = true
     /** Whether this View is enabled.  The default is `true`.  */
@@ -589,18 +591,18 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Notifies changes to [focusable] */
-    public val focusabilityChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val focusabilityChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     /** Whether this View is focusable  The default is `true`.  */
     @Suppress("UNCHECKED_CAST")
-    public open var focusable: Boolean by observable(true, focusabilityChanged as PropertyObserversImpl<View, Boolean>)
+    public open var focusable: Boolean by observable(true, focusabilityChanged)
 
     /** Notifies changes to [hasFocus] */
-    public val focusChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val focusChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     /** Whether the View has focus or not.  The default is `false`.  */
     @Suppress("UNCHECKED_CAST")
-    public var hasFocus: Boolean by observable(false, focusChanged as PropertyObserversImpl<View, Boolean>)
+    public var hasFocus: Boolean by observable(false, focusChanged)
         private set
 
     /**
@@ -622,14 +624,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
             old?.children?.remove(this)
 
-            (parentChanged as PropertyObserversImpl<View, View?>)(old, new)
+            parentChanged(old, new)
         }
 
     /** Notifies changes to [parent] */
-    public val parentChanged: PropertyObservers<View, View?> = PropertyObserversImpl(this)
+    public val parentChanged: PropertyObservers<View, View?> field = PropertyObserversImpl(this)
 
     /** Notifies changes to [displayed] */
-    public val displayChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val displayChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     /**
      * Is `true` if the View is currently within the [Display].
@@ -639,7 +641,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public val displayed: Boolean get() = renderManager != null
 
     /** Notifies on the View's first render */
-    public val firstRender: ChangeObservers<View> = ChangeObserversImpl(this)
+    public val firstRender: ChangeObservers<View> field = ChangeObserversImpl(this)
 
     /**
      * Is `true` if the View has been rendered at least once.
@@ -649,7 +651,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             if (field != new) {
                 field = new
                 if (field) {
-                    (firstRender as ChangeObserversImpl).forEach { it(this) }
+                    firstRender.forEach { it(this) }
                 }
             }
         }
@@ -673,7 +675,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
 
     /** Notifies changes to [cursor] */
-    public val cursorChanged: PropertyObservers<View, Cursor?> = PropertyObserversImpl(this)
+    public val cursorChanged: PropertyObservers<View, Cursor?> field = PropertyObserversImpl(this)
 
     private var actualFont: Font? = null
 
@@ -695,10 +697,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var backgroundColor: Color? by styleProperty(null) { it.backgroundColor == null }
 
     /** Notifies changes to [font], [foregroundColor], or [backgroundColor] */
-    public val styleChanged: ChangeObservers<View> = ChangeObserversImpl(this)
+    public val styleChanged: ChangeObservers<View> field = ChangeObserversImpl(this)
 
     /** Notifies changes to [localContentDirection] */
-    public val contentDirectionChanged: ChangeObservers<View> = ChangeObserversImpl(this)
+    public val contentDirectionChanged: ChangeObservers<View> field = ChangeObserversImpl(this)
 
     /**
      * Determines whether the View will be affected by [Theme][io.nacular.doodle.theme.Theme]s set in [ThemeManager][io.nacular.doodle.theme.ThemeManager].
@@ -706,17 +708,11 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      */
     public var acceptsThemes: Boolean = true
 
-    private val pointerFilter_ = SetPool<PointerListener>()
-
-    private val pointerChanged_ = SetPool<PointerListener>()
-
-    private val pointerPassedThrough_ = SetPool<PointerListener>()
-
     /** [PointerListener]s that are notified during the sinking phase of pointer event handling. */
-    public val pointerFilter: Pool<PointerListener> get() = pointerFilter_
+    public val pointerFilter: Pool<PointerListener> field = SetPool<PointerListener>()
 
     /** [PointerListener]s that are notified during the bubbling phase of pointer event handling. */
-    public val pointerChanged: Pool<PointerListener> get() = pointerChanged_
+    public val pointerChanged: Pool<PointerListener> field = SetPool<PointerListener>()
 
     /**
      * [PointerListener]s that are ONLY notified if a View chooses to pass a pointer event
@@ -725,29 +721,19 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @see shouldHandlePointerEvent
      */
-    public val pointerPassedThrough: Pool<PointerListener> get() = pointerPassedThrough_
-
-    private val keyFilter_ = SetPool<KeyListener>()
+    public val pointerPassedThrough: Pool<PointerListener> field = SetPool<PointerListener>()
 
     /** [KeyListener]s that are notified during the sinking phase of key event handling*/
-    public val keyFilter: Pool<KeyListener> get() = keyFilter_
-
-    private val keyChanged_ = SetPool<KeyListener>()
+    public val keyFilter: Pool<KeyListener> field = SetPool<KeyListener>()
 
     /** [KeyListener]s that are notified during the bubbling phase of key event handling. */
-    public val keyChanged: Pool<KeyListener> get() = keyChanged_
-
-    private val pointerMotionFilter_ = SetPool<PointerMotionListener>()
-
-    private val pointerMotionChanged_ = SetPool<PointerMotionListener>()
-
-    private val pointerMotionPassedThrough_ = SetPool<PointerMotionListener>()
+    public val keyChanged: Pool<KeyListener> field = SetPool<KeyListener>()
 
     /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
-    public val pointerMotionFilter: Pool<PointerMotionListener> get() = pointerMotionFilter_
+    public val pointerMotionFilter: Pool<PointerMotionListener> field = SetPool<PointerMotionListener>()
 
     /** [PointerMotionListener]s that are notified during the sinking phase of pointer-motion event handling. */
-    public val pointerMotionChanged: Pool<PointerMotionListener> get() = pointerMotionChanged_
+    public val pointerMotionChanged: Pool<PointerMotionListener> field = SetPool<PointerMotionListener>()
 
     /**
      * [PointerMotionListener]s that are ONLY notified if a View chooses to pass a pointer event
@@ -756,7 +742,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @see shouldHandlePointerEvent
      */
-    public val pointerMotionPassedThrough: Pool<PointerMotionListener> get() = pointerMotionPassedThrough_
+    public val pointerMotionPassedThrough: Pool<PointerMotionListener> field = SetPool<PointerMotionListener>()
 
     /** Recognizer used to determine whether a [PointerEvent] should result in a [DragOperation] */
     public var dragRecognizer: DragRecognizer? = null
@@ -765,7 +751,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     public var dropReceiver: DropReceiver? = null
 
     /** Notifies changes to [monitorsDisplayRect] */
-    public val displayRectHandlingChanged: BooleanObservers = PropertyObserversImpl(this)
+    public val displayRectHandlingChanged: BooleanObservers field = PropertyObserversImpl(this)
 
     /**
      * Indicates whether the framework should notify the View of changes to its visible region as a result of
@@ -778,7 +764,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      * That means a View can be notified of a display rect change and still not be visible to the user.
      */
     @Suppress("UNCHECKED_CAST")
-    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged as PropertyObserversImpl<View, Boolean>) { old, new ->
+    public var monitorsDisplayRect: Boolean by observable(false, displayRectHandlingChanged) { old, new ->
         renderManager?.displayRectHandlingChanged(this, old, new)
     }
 
@@ -844,7 +830,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     protected fun contentDirectionChanged() {
         updateNeedsMirror()
 
-        (contentDirectionChanged as ChangeObserversImpl)()
+        contentDirectionChanged.invoke()
 
         // Notify relevant children that their content direction has changed
         children.filter { it.localContentDirection == null }.forEach { it.contentDirectionChanged() }
@@ -852,7 +838,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     @JsName("fireStyleChanged")
     protected fun styleChanged(filter: (View) -> Boolean) {
-        (styleChanged as ChangeObserversImpl)()
+        styleChanged()
 
         // Notify relevant children that their style has changed
         children.filter(filter).forEach { it.styleChanged(filter) }
@@ -861,7 +847,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     @JsName("fireCursorChanged")
     protected fun cursorChanged(old: Cursor?, new: Cursor?) {
         @Suppress("UNCHECKED_CAST")
-        (cursorChanged as PropertyObserversImpl<View, Cursor?>)(old, new)
+        cursorChanged.invoke(old, new)
 
         // Notify relevant children that their cursor has changed
         children.filter { it.actualCursor == null }.forEach {
@@ -874,7 +860,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         accessibilityManager?.syncEnabled(this)
 
         @Suppress("UNCHECKED_CAST")
-        (enabledChanged as PropertyObserversImpl<View, Boolean>)(old, new)
+        enabledChanged(old, new)
 
         // Notify relevant children that their enabled state has changed
         children.filter(filter).forEach { it.enabledChanged(old, new, filter) }
@@ -910,7 +896,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         relayout()
     }
 
-    internal val childrenChanged_ get() = childrenChanged
+    internal val childrenChanged_: Pool<ChildObserver<View>> get() = childrenChanged
 
     internal val children_ get() = children
 
@@ -949,12 +935,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             }
 
             renderManager?.childrenChanged(this@View, diffs)
-            (childrenChanged_ as ChildObserversImpl).invoke(diffs)
+            childrenChanged.invoke(diffs)
         }
     }
 
     /** Notifies changes to [children] */
-    protected val childrenChanged: Pool<ChildObserver<View>> = ChildObserversImpl()
+    protected val childrenChanged: Pool<ChildObserver<View>> field = ChildObserversImpl()
 
     internal var generationNumber = 0
 
@@ -1283,7 +1269,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun filterKeyEvent(event: KeyEvent): Unit = keyFilter_.forEach {
+    protected open fun filterKeyEvent(event: KeyEvent): Unit = keyFilter.forEach {
         when(event.type) {
             Type.Up   -> it.released(event)
             Type.Down -> it.pressed (event)
@@ -1297,7 +1283,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun handleKeyEvent(event: KeyEvent): Unit = keyChanged_.forEach {
+    protected open fun handleKeyEvent(event: KeyEvent): Unit = keyChanged.forEach {
         when(event.type) {
             Type.Up   -> it.released(event)
             Type.Down -> it.pressed (event)
@@ -1311,7 +1297,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun filterPointerEvent(event: PointerEvent): Unit = pointerFilter_.forEach {
+    protected open fun filterPointerEvent(event: PointerEvent): Unit = pointerFilter.forEach {
         it.notify(event)
     }
 
@@ -1322,7 +1308,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     }
 
     internal fun notifyOfPassThrough(event: PointerEvent) {
-        pointerPassedThrough_.forEach {
+        pointerPassedThrough.forEach {
             it.notify(event)
         }
     }
@@ -1340,7 +1326,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun handlePointerEvent(event: PointerEvent): Unit = pointerChanged_.forEach {
+    protected open fun handlePointerEvent(event: PointerEvent): Unit = pointerChanged.forEach {
         it.notify(event)
     }
 
@@ -1351,13 +1337,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun filterPointerMotionEvent(event: PointerEvent): Unit = pointerMotionFilter_.forEach {
+    protected open fun filterPointerMotionEvent(event: PointerEvent): Unit = pointerMotionFilter.forEach {
         it.notify(event)
     }
 
     internal fun shouldHandlePointerMotionEvent_(event: PointerEvent) = shouldHandlePointerMotionEvent(event).also {
         if (!it) {
-            pointerMotionPassedThrough_.forEach {
+            pointerMotionPassedThrough.forEach {
                 it.notify(event)
             }
         }
@@ -1378,7 +1364,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
      *
      * @param event The event
      */
-    protected open fun handlePointerMotionEvent(event: PointerEvent): Unit = pointerMotionChanged_.forEach {
+    protected open fun handlePointerMotionEvent(event: PointerEvent): Unit = pointerMotionChanged.forEach {
         it.notify(event)
     }
 
@@ -1431,7 +1417,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         addedToDisplay()
 
         @Suppress("UNCHECKED_CAST")
-        (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, false, true) }
+        displayChanged.forEach { it(this, false, true) }
     }
 
     /**
@@ -1455,7 +1441,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         removedFromDisplay()
 
         @Suppress("UNCHECKED_CAST")
-        (displayChanged as PropertyObserversImpl<View, Boolean>).forEach { it(this, true, false) }
+        displayChanged.forEach { it(this, true, false) }
     }
 
     /**

@@ -4,9 +4,10 @@ import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.EventTarget
-import io.nacular.doodle.dom.HTMLButtonElement
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
+import io.nacular.doodle.dom.asHTMLElementOrNull
+import io.nacular.doodle.dom.isHTMLInputElement
 import io.nacular.doodle.dom.role
 import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.impl.NativeEventHandlerFactory
@@ -186,7 +187,7 @@ internal class AccessibilityManagerImpl(
     }
 
     override fun onClick(event: Event): Boolean {
-        if (event.target is HTMLButtonElement?) {
+        if (event.target?.isHTMLInputElement() == true) {
             view(event.target)?.let {
                 when (it) {
                     is Button -> it.click()
@@ -349,10 +350,7 @@ internal class AccessibilityManagerImpl(
     }
 
     @Suppress("USELESS_IS_CHECK")
-    private fun view(target: EventTarget?) = when (target) {
-        is HTMLElement -> elementToView[target]
-        else           -> null
-    }
+    private fun view(target: EventTarget?) = target?.asHTMLElementOrNull()?.let { elementToView[it] }
 
     companion object {
         private const val ARIA_LABEL           = "aria-label"

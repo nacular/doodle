@@ -5,8 +5,8 @@ dateTimeVersion   = { strictly = "0.5.0"   }
 dokkaVersion      = { strictly = "2.1.0"   }
 jupiterVersion    = { strictly = "5.10.0"  }
 kodeinVersion     = { strictly = "7.21.1"  }
-kotlinVersion     = { strictly = "2.3.20"  }
-koverVersion      = { strictly = "0.9.1"   }
+kotlinVersion     = { strictly = "2.4.0-RC"  }
+koverVersion      = { strictly = "0.9.8"   }
 logbackVersion    = { strictly = "1.4.11"  }
 measuredVersion   = { strictly = "0.5.0"   }
 mockkVersion      = { strictly = "1.13.13" }

@@ -102,10 +102,10 @@ public class ThemeManagerImpl(private val scene: Scene): InternalThemeManager() 
             this.install(scene)
         }
 
-        (selectionChanged as PropertyObserversImpl<ThemeManager, Theme?>).forEach { it(this, old, new) }
+        selectionChanged.forEach { it(this, old, new) }
     }
 
-    override val selectionChanged: PropertyObservers<ThemeManager, Theme?> = PropertyObserversImpl<ThemeManager, Theme?>(this)
+    override val selectionChanged: PropertyObservers<ThemeManager, Theme?> field = PropertyObserversImpl<ThemeManager, Theme?>(this)
 
     override fun update(view: View) {
         if (view.acceptsThemes) {

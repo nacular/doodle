@@ -213,7 +213,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         focusManager?.requestFocus(event.source)
     }
 
-    internal val centerChanged: Pool<(SpinButton<T, M>, View?, View) -> Unit> = SetPool()
+    internal val centerChanged: Pool<(SpinButton<T, M>, View?, View) -> Unit> field = SetPool()
 
     internal fun updateCenter(spinButton: SpinButton<T, M>, oldCenter: View? = visualizedValue(spinButton), newCenter: View = centerView(spinButton, oldCenter)) {
         if (newCenter != oldCenter) {
@@ -225,7 +225,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
                 updateAlignment(spinButton, centerView)
             }
 
-            (centerChanged as SetPool).forEach { it(spinButton, oldCenter, newCenter) }
+            centerChanged.forEach { it(spinButton, oldCenter, newCenter) }
         }
     }
 

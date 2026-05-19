@@ -133,7 +133,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
             added.forEach { update(children, it) }
         }
 
-        (itemsChanged as SetPool).forEach { it(this, diffs) }
+        itemsChanged.forEach { it(this, diffs) }
 
         previousListSize = model.size
     }
@@ -141,7 +141,7 @@ public open class DynamicList<T, M: DynamicListModel<T>>(
     /**
      * Notifies of changes to the list
      */
-    public val itemsChanged: Pool<ItemsObserver<T>> = SetPool()
+    public val itemsChanged: Pool<ItemsObserver<T>> field = SetPool()
 
     init {
         model.changed += modelChanged

@@ -140,7 +140,7 @@ public open class List<T, out M: ListModel<T>>(
 ): View(ListRole()), ListLike, Selectable<Int> by ListSelectionManager(selectionModel, { model.size }) {
 
     private val selectionChanged_: SetObserver<SelectionModel<Int>, Int> = { _,removed,added ->
-        (selectionChanged as SetPool).forEach {
+        selectionChanged.forEach {
             it(this, removed, added)
         }
 
@@ -167,7 +167,7 @@ public open class List<T, out M: ListModel<T>>(
     /**
      * Notifies of changes to the List's selection.
      */
-    public val selectionChanged: SetObservers<List<T, M>, Int> = SetPool()
+    public val selectionChanged: SetObservers<List<T, M>, Int> field = SetPool()
 
     /**
      * Defines how the contents of an item should be aligned within it.

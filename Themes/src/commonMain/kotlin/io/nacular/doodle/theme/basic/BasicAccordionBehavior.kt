@@ -209,6 +209,7 @@ public open class BasicAccordionBehavior<T>(
     }
 
     override fun expansionChanged(accordion: Accordion<T>, index: Int, expanded: Boolean) {
+        @Suppress("UNCHECKED_CAST")
         (accordion.children.getOrNull(index) as? Section<T>)?.expanded = expanded
     }
 

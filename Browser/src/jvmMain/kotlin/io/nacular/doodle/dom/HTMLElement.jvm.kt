@@ -183,14 +183,14 @@ internal actual interface ParentNode: JsAny {
 }
 
 internal actual abstract class Element: Node(), ParentNode {
-    actual open var id        : String = ""
-    actual open var className : String = ""
-    actual open var scrollTop : Double = 0.0
-    actual open var scrollLeft: Double = 0.0
-    actual open val clientWidth: Int = 0
-    actual open val clientHeight: Int = 0
+    internal actual open var id        : String = ""
+    internal actual open var className : String = ""
+    internal actual open var scrollTop : Double = 0.0
+    internal actual open var scrollLeft: Double = 0.0
+    internal actual open val clientWidth: Int = 0
+    internal actual open val clientHeight: Int = 0
 
-    actual open var outerHTML: String = ""
+    internal actual open var outerHTML: String = ""
 
     actual fun getBoundingClientRect(): DOMRect = DOMRect()
 
@@ -199,7 +199,7 @@ internal actual abstract class Element: Node(), ParentNode {
     actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String) {}
     actual fun removeAttribute(                    qualifiedName: String               ) {}
     actual fun scrollTo(x: Double, y: Double) {}
-    actual abstract fun remove()
+    internal actual abstract fun remove()
 }
 
 internal actual class FocusOptions: JsAny {

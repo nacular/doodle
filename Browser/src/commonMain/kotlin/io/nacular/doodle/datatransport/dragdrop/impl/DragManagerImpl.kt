@@ -21,10 +21,10 @@ import io.nacular.doodle.deviceinput.ViewFinder
 import io.nacular.doodle.dom.DataTransfer
 import io.nacular.doodle.dom.DragEvent
 import io.nacular.doodle.dom.HTMLElement
-import io.nacular.doodle.dom.HTMLInputElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.contains
 import io.nacular.doodle.dom.get
+import io.nacular.doodle.dom.isHTMLInputElement
 import io.nacular.doodle.dom.setPosition
 import io.nacular.doodle.dom.toJsString
 import io.nacular.doodle.drawing.Canvas
@@ -136,7 +136,7 @@ internal class DragManagerImpl(
         })
 
         rootElement.ondragover = { event ->
-            if (event.target !is HTMLInputElement) {
+            if (event.target?.isHTMLInputElement() == true) {
                 (dataBundle ?: createBundle(event.dataTransfer))?.let {
                     if (::visualCanvas.isInitialized) {
                         visualCanvas.release()
@@ -159,7 +159,7 @@ internal class DragManagerImpl(
         }
 
         rootElement.ondrop = { event ->
-            if (event.target !is HTMLInputElement) {
+            if (event.target?.isHTMLInputElement() == true) {
                 // This is the case of a drop that originated from outside the browser
                 if (dataBundle == null) {
                     createBundle(event.dataTransfer)?.let {
@@ -296,7 +296,7 @@ internal class DragManagerImpl(
 
     private fun registerListeners(dragOperation: DragOperation, element: HTMLElement) {
         element.ondragenter = {
-            if (it.target !is HTMLInputElement) {
+            if (it.target?.isHTMLInputElement() == false) {
                 it.preventDefault ()
                 it.stopPropagation()
             }
@@ -310,7 +310,7 @@ internal class DragManagerImpl(
                 null -> dragOperation.canceled()
                 else -> currentDropHandler?.let { (view, handler) ->
                     when {
-                        handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target !is HTMLInputElement -> dragOperation.completed(action)
+                        handler.drop(DropEvent(view, view.fromAbsolute(pointerLocationResolver(it)), dragOperation.bundle, action)) && it.target?.isHTMLInputElement() == false -> dragOperation.completed(action)
                         else -> dragOperation.canceled()
                     }
                 } ?: dragOperation.completed(action)

@@ -16,8 +16,7 @@ import io.nacular.doodle.utils.diff.compare
  */
 public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) -> Boolean)? = null): ObservableList<E> by source {
 
-    private val changed_ = SetPool<ListObserver<ObservableList<E>, E>>()
-    public override val changed: ListObservers<ObservableList<E>, E> = changed_
+    public override val changed: ListObservers<ObservableList<E>, E> field = SetPool<ListObserver<ObservableList<E>, E>>()
 
     /**
      * The filter applied to [source]
@@ -111,7 +110,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
             }
 
             if (filteredChanged) {
-                changed_.forEach { it(this, filteredDiffs) }
+                changed.forEach { it(this, filteredDiffs) }
             }
         }
     }
@@ -229,7 +228,7 @@ public class FilteredList<E>(public val source: ObservableList<E>, filter: ((E) 
                 }
             }
 
-            changed_.forEach {
+            changed.forEach {
                 it(this, Differences(changes))
             }
         }

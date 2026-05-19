@@ -141,11 +141,11 @@ public open class ScrollPanel(content: View? = null): View() {
         }
 
         @Suppress("UNCHECKED_CAST")
-        (contentChanged as PropertyObserversImpl<ScrollPanel, View?>).forEach { it(this, old, new) }
+        contentChanged.forEach { it(this, old, new) }
     }
 
     /** Notifies of changes to [content]. */
-    public val contentChanged: PropertyObservers<ScrollPanel, View?> = PropertyObserversImpl(this)
+    public val contentChanged: PropertyObservers<ScrollPanel, View?> field = PropertyObserversImpl(this)
 
     public var contentConstraints: (ConstraintDslContext.(ContentSize) -> Unit)? = null; set(new) {
         field = new
@@ -156,13 +156,13 @@ public open class ScrollPanel(content: View? = null): View() {
     /** The current scroll offset. */
     public var scroll: Point by observable(Origin) { old, new ->
         @Suppress("UNCHECKED_CAST")
-        (scrollChanged as PropertyObserversImpl<ScrollPanel, Point>).forEach { it(this, old, new) }
+        scrollChanged.forEach { it(this, old, new) }
     }; private set
 
     /**
      * Notifies of changes to [scroll]
      */
-    public val scrollChanged: PropertyObservers<ScrollPanel, Point> = PropertyObserversImpl(this)
+    public val scrollChanged: PropertyObservers<ScrollPanel, Point> field = PropertyObserversImpl(this)
 
     /** Behavior governing how the panel works */
     public var behavior: ScrollPanelBehavior? by behavior { old, new ->

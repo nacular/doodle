@@ -116,9 +116,9 @@ public open class Tree<T, out M: TreeModel<T>>(
         }
     }
 
-    public val expanded        : ExpansionObservers<T>               = ExpansionObserversImpl(this)
-    public val collapsed       : ExpansionObservers<T>               = ExpansionObserversImpl(this)
-    public val selectionChanged: SetObservers<Tree<T, M>, Path<Int>> = SetPool               (    )
+    public val expanded        : ExpansionObservers<T>                     = ExpansionObserversImpl(this)
+    public val collapsed       : ExpansionObservers<T>                     = ExpansionObserversImpl(this)
+    public val selectionChanged: SetObservers<Tree<T, M>, Path<Int>> field = SetPool               (    )
 
     /**
      * Defines how the contents of an item should be aligned within it.
@@ -155,7 +155,7 @@ public open class Tree<T, out M: TreeModel<T>>(
 
     @Suppress("PrivatePropertyName")
     private val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
-        (selectionChanged as SetPool).forEach {
+        selectionChanged.forEach {
             it(this, removed, added)
         }
 

@@ -76,7 +76,7 @@ public class ColorPicker(color: Color): View() {
 
                 rerender()
 
-                (changed as PropertyObserversImpl<ColorRect, HsvColor>).invoke(old, new)
+                changed.invoke(old, new)
             }
 
         private var selection = color.saturation to 1f - color.value
@@ -134,7 +134,7 @@ public class ColorPicker(color: Color): View() {
                 field = new
             }
 
-        val changed: PropertyObservers<ColorRect, HsvColor> = PropertyObserversImpl(this)
+        val changed: PropertyObservers<ColorRect, HsvColor> field = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
             bounds.atOrigin.let { rect ->
@@ -240,7 +240,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = (new / (360 * degrees)).toFloat()
 
-            (changed as PropertyObserversImpl<HueStrip, Measure<Angle>>)(old, field)
+            changed(old, field)
         }
 
         init {
@@ -255,7 +255,7 @@ public class ColorPicker(color: Color): View() {
             updateFill()
         }
 
-        val changed: PropertyObservers<HueStrip, Measure<Angle>> = PropertyObserversImpl(this)
+        val changed: PropertyObservers<HueStrip, Measure<Angle>> field = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
             canvas.rect(bounds.atOrigin, min(width, height) / 5, fill)
@@ -295,7 +295,7 @@ public class ColorPicker(color: Color): View() {
 
             ratio = new
 
-            (changed as PropertyObserversImpl<OpacityStrip, Float>)(old, field)
+            changed(old, field)
         }
 
         init {
@@ -308,7 +308,7 @@ public class ColorPicker(color: Color): View() {
             }
         }
 
-        val changed: PropertyObservers<OpacityStrip, Float> = PropertyObserversImpl(this)
+        val changed: PropertyObservers<OpacityStrip, Float> field = PropertyObserversImpl(this)
 
         override fun render(canvas: Canvas) {
 //            canvas.innerShadow {

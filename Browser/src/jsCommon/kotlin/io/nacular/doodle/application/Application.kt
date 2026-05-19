@@ -19,10 +19,10 @@ import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.MutationObserver
 import io.nacular.doodle.dom.MutationObserverConfig
-import io.nacular.doodle.dom.Node
 import io.nacular.doodle.dom.SvgFactory
 import io.nacular.doodle.dom.SystemStyler
 import io.nacular.doodle.dom.SystemStylerImpl
+import io.nacular.doodle.dom.asNodeOrNull
 import io.nacular.doodle.dom.defaultFontSize
 import io.nacular.doodle.dom.document
 import io.nacular.doodle.dom.get
@@ -192,7 +192,7 @@ private open class ApplicationHolderImpl protected constructor(
 
     private var focusManager        : FocusManager? = null
 
-    private fun targetOutsideApp(target: EventTarget?) = target == null || (target is Node && !root.contains(target))
+    private fun targetOutsideApp(target: EventTarget?) = target == null || !root.contains(target.asNodeOrNull())
 
     private val onblur = { event: Event ->
         when {

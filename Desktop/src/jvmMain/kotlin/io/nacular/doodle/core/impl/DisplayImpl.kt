@@ -108,7 +108,7 @@ internal class DisplayImpl(
                 }
             }
 
-            (childrenChanged as ChildObserversImpl).invoke(differences)
+            childrenChanged.invoke(differences)
         }
     } }
 
@@ -118,21 +118,21 @@ internal class DisplayImpl(
         operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
 
-    override val childrenChanged: Pool<ChildObserver<Display>> by lazy { ChildObserversImpl() }
+    override val childrenChanged: Pool<ChildObserver<Display>> field = ChildObserversImpl()
 
-    override val sizeChanged  : PropertyObservers<Display, Size>    by lazy { PropertyObserversImpl<Display, Size>(this) }
-    override val cursorChanged: PropertyObservers<Display, Cursor?> by lazy { PropertyObserversImpl<Display, Cursor?>(this) }
-    override var size                                               by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
+    override val sizeChanged  : PropertyObservers<Display, Size>    field = PropertyObserversImpl<Display, Size>(this)
+    override val cursorChanged: PropertyObservers<Display, Cursor?> field = PropertyObserversImpl<Display, Cursor?>(this)
+    override var size                                               by observable(Empty, sizeChanged); private set
 
     override val indexInParent get() = 0
 
     override val locationOnScreen get() = panel.locationOnScreen.toDoodle()
 
-    override var cursor: Cursor?                                    by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
+    override var cursor: Cursor?                                    by observable(null, cursorChanged)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 
-    override val contentDirectionChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
+    override val contentDirectionChanged: ChangeObservers<Display> field = ChangeObserversImpl(this)
 
     override var mirrorWhenRightLeft = true; set(new) {
         if (field == new) return
@@ -142,7 +142,7 @@ internal class DisplayImpl(
         notifyMirroringChanged()
     }
 
-    override val mirroringChanged: ChangeObservers<Display> by lazy { ChangeObserversImpl(this) }
+    override val mirroringChanged: ChangeObservers<Display> field = ChangeObserversImpl(this)
 
     override var contentDirection: ContentDirection = LeftRight; set(new) {
         if (field == new) return
@@ -168,12 +168,12 @@ internal class DisplayImpl(
     }
 
     private fun contentDirectionChanged() {
-        (contentDirectionChanged as ChangeObserversImpl)()
+        contentDirectionChanged()
         notifyMirroringChanged()
     }
 
     private fun notifyMirroringChanged() {
-        (mirroringChanged as ChangeObserversImpl)()
+        mirroringChanged()
         paintNeeded()
     }
 

@@ -18,7 +18,7 @@ internal class UserPreferencesImpl(window: Window): UserPreferences {
     init {
         isDark.addListener {
             @Suppress("UNCHECKED_CAST")
-            (colorSchemeChanged as PropertyObserversImpl<UserPreferences, ColorScheme>)(old, colorScheme)
+            colorSchemeChanged(old, colorScheme)
 
             old = colorScheme
         }
@@ -30,5 +30,5 @@ internal class UserPreferencesImpl(window: Window): UserPreferences {
             else           -> Light
         }
 
-    override val colorSchemeChanged: PropertyObservers<UserPreferences, ColorScheme> = PropertyObserversImpl<UserPreferences, ColorScheme>(this)
+    override val colorSchemeChanged: PropertyObservers<UserPreferences, ColorScheme> field = PropertyObserversImpl<UserPreferences, ColorScheme>(this)
 }

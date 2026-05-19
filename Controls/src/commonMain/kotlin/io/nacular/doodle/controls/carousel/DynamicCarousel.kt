@@ -26,13 +26,13 @@ public class DynamicCarousel<T, M: DynamicListModel<T>>(
     private val modelChanged: ModelObserver<T> = { _,diffs ->
         update()
 
-        (itemsChanged as SetPool).forEach { it(this, diffs) }
+        itemsChanged.forEach { it(this, diffs) }
     }
 
     /**
      * Notifies of changes to the Carousel
      */
-    public val itemsChanged: Pool<ItemsObserver<T, M>> = SetPool()
+    public val itemsChanged: Pool<ItemsObserver<T, M>> field = SetPool()
 
     init {
         model.changed += modelChanged

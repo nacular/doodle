@@ -461,16 +461,15 @@ public open class ObservableListImpl<E> internal constructor(private val list: M
 }
 
 public open class ObservableSet<E> private constructor(protected val set: MutableSet<E>): MutableSet<E> by set {
-    private val changed_ = SetPool<SetObserver<ObservableSet<E>, E>>()
-    public val changed: SetObservers<ObservableSet<E>, E> = changed_
+    public val changed: SetObservers<ObservableSet<E>, E> field = SetPool<SetObserver<ObservableSet<E>, E>>()
 
     override fun add(element: E): Boolean = set.add(element).ifTrue {
-        changed_.forEach {
+        changed.forEach {
             it(this, emptySet(), setOf(element))
         }
     }
 
-    public override fun remove(element: E): Boolean = set.remove(element).ifTrue { changed_.forEach { it(this, setOf(element), emptySet()) } }
+    public override fun remove(element: E): Boolean = set.remove(element).ifTrue { changed.forEach { it(this, setOf(element), emptySet()) } }
 
     public override fun addAll(elements: Collection<E>): Boolean = batch { addAll(elements) }
 
@@ -479,7 +478,7 @@ public open class ObservableSet<E> private constructor(protected val set: Mutabl
 
     public fun replaceAll(elements: Collection<E>): Boolean = batch { clear(); addAll(elements) }
 
-    public fun <T> batch(block: MutableSet<E>.() -> T): T = if (changed_.isEmpty()) {
+    public fun <T> batch(block: MutableSet<E>.() -> T): T = if (changed.isEmpty()) {
         set.run(block)
     } else {
         // TODO: Can this be optimized?
@@ -487,7 +486,7 @@ public open class ObservableSet<E> private constructor(protected val set: Mutabl
 
         set.run(block).also {
             if (old != this) {
-                changed_.forEach {
+                changed.forEach {
                     it(this, old.asSequence().filter { it !in set }.toSet(), set.asSequence().filter { it !in old }.toSet())
                 }
             }
@@ -499,7 +498,7 @@ public open class ObservableSet<E> private constructor(protected val set: Mutabl
 
         set.clear()
 
-        changed_.forEach {
+        changed.forEach {
             it(this, oldSet, emptySet())
         }
     }

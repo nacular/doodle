@@ -142,24 +142,24 @@ internal expect external interface ElementCSSInlineStyle: JsAny {
 }
 
 internal expect abstract external class Element: Node, ParentNode {
-    open var id        : String
-    open var className : String
-    open var outerHTML : String
-    open var scrollTop : Double
-    open var scrollLeft: Double
+    internal open var id        : String
+    internal open var className : String
+    internal open var outerHTML : String
+    internal open var scrollTop : Double
+    internal open var scrollLeft: Double
 
-    open val clientWidth : Int
-    open val clientHeight: Int
+    internal open val clientWidth : Int
+    internal open val clientHeight: Int
 
-    fun getBoundingClientRect(): DOMRect
+    internal fun getBoundingClientRect(): DOMRect
 
-    fun getAttribute   (                    qualifiedName: String               ): String?
-    fun setAttribute   (                    qualifiedName: String, value: String)
-    fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
-    fun removeAttribute(                    qualifiedName: String               )
-    fun scrollTo       (x: Double, y: Double)
+    internal fun getAttribute   (                    qualifiedName: String               ): String?
+    internal fun setAttribute   (                    qualifiedName: String, value: String)
+    internal fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
+    internal fun removeAttribute(                    qualifiedName: String               )
+    internal fun scrollTo       (x: Double, y: Double)
 
-    abstract fun remove()
+    internal abstract fun remove()
 }
 
 internal expect abstract external class HTMLCollection(): JsAny {
@@ -179,58 +179,58 @@ internal expect external class FocusOptions: JsAny {
 }
 
 internal expect abstract external class HTMLElement: Element, ElementCSSInlineStyle {
-    var title       : String
-    var draggable   : Boolean
-    val offsetTop   : Int
-    val offsetLeft  : Int
-    val offsetWidth : Int
-    val offsetHeight: Int
-    var tabIndex    : Int
-    var spellcheck  : Boolean
-    var dir         : String
+    internal var title       : String
+    internal var draggable   : Boolean
+    internal val offsetTop   : Int
+    internal val offsetLeft  : Int
+    internal val offsetWidth : Int
+    internal val offsetHeight: Int
+    internal var tabIndex    : Int
+    internal var spellcheck  : Boolean
+    internal var dir         : String
 
-    var onkeyup        : ((KeyboardEvent) -> Boolean)?
-    var onkeydown      : ((KeyboardEvent) -> Boolean)?
-    var onkeypress     : ((KeyboardEvent) -> Boolean)?
+    internal var onkeyup        : ((KeyboardEvent) -> Boolean)?
+    internal var onkeydown      : ((KeyboardEvent) -> Boolean)?
+    internal var onkeypress     : ((KeyboardEvent) -> Boolean)?
 
-    var onwheel        : ((WheelEvent  ) -> Boolean)?
-    var ondblclick     : ((MouseEvent  ) -> Boolean)?
-    var onpointerup    : ((PointerEvent) -> Boolean)?
-    var onpointerout   : ((PointerEvent) -> Unit   )?
-    var onpointerdown  : ((PointerEvent) -> Boolean)?
-    var onpointermove  : ((PointerEvent) -> Boolean)?
-    var onpointerover  : ((PointerEvent) -> Unit   )?
-    var onpointercancel: ((PointerEvent) -> Unit   )?
-    var oncontextmenu  : ((MouseEvent  ) -> Boolean)?
+    internal var onwheel        : ((WheelEvent  ) -> Boolean)?
+    internal var ondblclick     : ((MouseEvent  ) -> Boolean)?
+    internal var onpointerup    : ((PointerEvent) -> Boolean)?
+    internal var onpointerout   : ((PointerEvent) -> Unit   )?
+    internal var onpointerdown  : ((PointerEvent) -> Boolean)?
+    internal var onpointermove  : ((PointerEvent) -> Boolean)?
+    internal var onpointerover  : ((PointerEvent) -> Unit   )?
+    internal var onpointercancel: ((PointerEvent) -> Unit   )?
+    internal var oncontextmenu  : ((MouseEvent  ) -> Boolean)?
 
-    var onresize: ((Event) -> Unit)?
+    internal var onresize: ((Event) -> Unit)?
 
-    var onload : ((Event) -> Unit)?
-    var onerror: (() -> Unit)?
+    internal var onload : ((Event) -> Unit)?
+    internal var onerror: (() -> Unit)?
 
-    var onblur  : ((FocusEvent) -> Unit   )?
-    var onclick : ((MouseEvent) -> Boolean)?
-    var onfocus : ((FocusEvent) -> Unit   )?
-    var oninput : ((InputEvent) -> Boolean)?
-    var onscroll: ((Event     ) -> Boolean)?
-    var onchange: ((Event     ) -> Boolean)?
-    var onselect: ((Event     ) -> Boolean)?
+    internal var onblur  : ((FocusEvent) -> Unit   )?
+    internal var onclick : ((MouseEvent) -> Boolean)?
+    internal var onfocus : ((FocusEvent) -> Unit   )?
+    internal var oninput : ((InputEvent) -> Boolean)?
+    internal var onscroll: ((Event     ) -> Boolean)?
+    internal var onchange: ((Event     ) -> Boolean)?
+    internal var onselect: ((Event     ) -> Boolean)?
 
-    var ondrop     : ((DragEvent) -> Unit)?
-    var ondragend  : ((DragEvent) -> Unit)?
-    var ondragover : ((DragEvent) -> Unit)?
-    var ondragenter: ((DragEvent) -> Unit)?
-    var ondragstart: ((DragEvent) -> Unit)?
+    internal var ondrop     : ((DragEvent) -> Unit)?
+    internal var ondragend  : ((DragEvent) -> Unit)?
+    internal var ondragover : ((DragEvent) -> Unit)?
+    internal var ondragenter: ((DragEvent) -> Unit)?
+    internal var ondragstart: ((DragEvent) -> Unit)?
 
-    fun addEventListener   (to: String, listener: (Event) -> Unit)
-    fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
-    fun removeEventListener(to: String, listener: (Event) -> Unit)
-    fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+    internal fun addEventListener   (to: String, listener: (Event) -> Unit)
+    internal fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+    internal fun removeEventListener(to: String, listener: (Event) -> Unit)
+    internal fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
 
-    fun focus()
-    fun focus(options: FocusOptions)
-    fun blur ()
-    fun click()
+    internal fun focus()
+    internal fun focus(options: FocusOptions)
+    internal fun blur ()
+    internal fun click()
 }
 
 internal expect external interface AddEventListenerOptions: JsAny {

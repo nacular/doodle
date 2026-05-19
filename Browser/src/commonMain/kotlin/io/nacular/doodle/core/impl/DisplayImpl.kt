@@ -94,16 +94,16 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
         operator fun invoke(differences: Differences<View>) = forEach { it(this@DisplayImpl, differences) }
     }
 
-    override val childrenChanged: Pool<ChildObserver<Display>> = ChildObserversImpl()
+    override val childrenChanged: Pool<ChildObserver<Display>> field = ChildObserversImpl()
 
-    override val sizeChanged  : PropertyObservers<Display, Size>    = PropertyObserversImpl<Display, Size>   (this)
-    override val cursorChanged: PropertyObservers<Display, Cursor?> = PropertyObserversImpl<Display, Cursor?>(this)
-
-    @Suppress("UNCHECKED_CAST")
-    override var size by observable(Empty, sizeChanged as PropertyObserversImpl<Display, Size>); private set
+    override val sizeChanged  : PropertyObservers<Display, Size>    field = PropertyObserversImpl<Display, Size>   (this)
+    override val cursorChanged: PropertyObservers<Display, Cursor?> field = PropertyObserversImpl<Display, Cursor?>(this)
 
     @Suppress("UNCHECKED_CAST")
-    override var cursor: Cursor? by observable(null, cursorChanged as PropertyObserversImpl<Display, Cursor?>)
+    override var size by observable(Empty, sizeChanged); private set
+
+    @Suppress("UNCHECKED_CAST")
+    override var cursor: Cursor? by observable(null, cursorChanged)
 
     override var focusTraversalPolicy: FocusTraversalPolicy? = null
 

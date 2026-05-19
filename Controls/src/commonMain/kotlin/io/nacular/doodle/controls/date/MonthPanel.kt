@@ -106,7 +106,7 @@ public open class MonthPanel(
             update  ()
             rerender()
 
-            (monthChanged as SetPool).forEach {
+            monthChanged.forEach {
                 it(this)
             }
         }
@@ -225,7 +225,7 @@ public open class MonthPanel(
         if (filteredAdded.isNotEmpty() || filteredRemoved.isNotEmpty()) {
             scrollToSelection()
 
-            (selectionChanged as SetPool).forEach {
+            selectionChanged.forEach {
                 it(this, filteredRemoved, filteredAdded)
             }
 
@@ -237,12 +237,12 @@ public open class MonthPanel(
     /**
      * Notifies of changes to the panel's selection.
      */
-    public val selectionChanged: SetObservers<MonthPanel, LocalDate> = SetPool()
+    public val selectionChanged: SetObservers<MonthPanel, LocalDate> field = SetPool()
 
     /**
      * Notifies of changes to the month the panel shows
      */
-    public val monthChanged: ChangeObservers<MonthPanel> = SetPool()
+    public val monthChanged: ChangeObservers<MonthPanel> field = SetPool()
 
     init {
         layout = MonthLayout()

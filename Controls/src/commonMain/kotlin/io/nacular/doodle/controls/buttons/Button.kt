@@ -31,13 +31,10 @@ public abstract class Button protected constructor(
             model: ButtonModel   = ButtonModelImpl(),
             role : ButtonRole    = ButtonRole()): View(accessibilityRole = role) {
 
-    @Suppress("UNCHECKED_CAST")
-    private val armedChanged_       = { _: ButtonModel, old: Boolean, new: Boolean -> (armedChanged       as PropertyObserversImpl<Button, Boolean>)(old, new) }
-    @Suppress("UNCHECKED_CAST")
-    private val pressedChanged_     = { _: ButtonModel, old: Boolean, new: Boolean -> (pressedChanged     as PropertyObserversImpl<Button, Boolean>)(old, new) }
-    @Suppress("UNCHECKED_CAST")
-    private val pointerOverChanged_ = { _: ButtonModel, old: Boolean, new: Boolean -> (pointerOverChanged as PropertyObserversImpl<Button, Boolean>)(old, new) }
-    private val modelFired          = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
+    private val armedChanged_      : (ButtonModel, Boolean, Boolean) -> Unit = { _: ButtonModel, old: Boolean, new: Boolean -> armedChanged      (old, new) }
+    private val pressedChanged_    : (ButtonModel, Boolean, Boolean) -> Unit = { _: ButtonModel, old: Boolean, new: Boolean -> pressedChanged    (old, new) }
+    private val pointerOverChanged_: (ButtonModel, Boolean, Boolean) -> Unit = { _: ButtonModel, old: Boolean, new: Boolean -> pointerOverChanged(old, new) }
+    private val modelFired                                                   = { _: ButtonModel -> (fired as ChangeObserversImpl).forEach { it(this) } }
 
     private fun registerModel(model: ButtonModel) {
         model.fired              += modelFired
@@ -54,11 +51,11 @@ public abstract class Button protected constructor(
     }
 
     /** Notifies when the button's text is modified */
-    public val textChanged: PropertyObservers<Button, String> = PropertyObserversImpl(this)
+    public val textChanged: PropertyObservers<Button, String> field = PropertyObserversImpl(this)
 
     /** Text displayed on the button */
     @Suppress("UNCHECKED_CAST")
-    public var text: String by observable(text, textChanged as PropertyObserversImpl<Button, String>) { _, new ->
+    public var text: String by observable(text, textChanged) { _, new ->
         if (accessibilityLabel == null) {
             accessibilityLabel = new
         }
@@ -67,9 +64,9 @@ public abstract class Button protected constructor(
     /** Notifies whenever the button is clicked (pressed/released) */
     public val fired: ChangeObservers<Button> = ChangeObserversImpl(this)
 
-    public val armedChanged      : PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
-    public val pressedChanged    : PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
-    public val pointerOverChanged: PropertyObservers<Button, Boolean> = PropertyObserversImpl(this)
+    public val armedChanged      : PropertyObservers<Button, Boolean> field = PropertyObserversImpl(this)
+    public val pressedChanged    : PropertyObservers<Button, Boolean> field = PropertyObserversImpl(this)
+    public val pointerOverChanged: PropertyObservers<Button, Boolean> field = PropertyObserversImpl(this)
 
     /** All rendering is delegated to the behavior */
     public var behavior: Behavior<Button>? by behavior()

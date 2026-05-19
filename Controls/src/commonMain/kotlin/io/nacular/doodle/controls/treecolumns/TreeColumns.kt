@@ -86,7 +86,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     private class LocalSelectionModel(var root: Path<Int>, private val delegate: SelectionModel<Path<Int>>): SelectionModel<Int> { //MultiSelectionModel<Int>() {
 
         private val changeObserver: (SelectionModel<Path<Int>>, Set<Path<Int>>, Set<Path<Int>>) -> Unit = { _, removed, added ->
-            (changed as SetPool).forEach {
+            changed.forEach {
                 it(
                     this,
                     removed.filter { root ancestorOf it }.mapNotNull { it.nonOverlappingStem(root).firstOrNull() }.toSet(),
@@ -141,7 +141,7 @@ public open class TreeColumns<T, M: TreeModel<T>>(
         override fun contains(item: Int) = delegateHandle?.iterator()?.asSequence()?.find { overlappingIndex(it) == item } != null
 
         // FIXME: This is pretty inefficient
-        override val changed: SetObservers<SelectionModel<Int>, Int> = SetPool()
+        override val changed: SetObservers<SelectionModel<Int>, Int> field = SetPool()
 
         override fun iterator() = delegateHandle?.iterator()?.asSequence()?.mapNotNull { overlappingIndex(it) }?.iterator() ?: emptyList<Int>().iterator()
     }

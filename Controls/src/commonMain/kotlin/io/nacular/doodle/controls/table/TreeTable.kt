@@ -118,7 +118,7 @@ public fun <T: Any, R: Any> SelectionModel<T>.map(mapper: (T) -> R?, unmapper: (
     override fun iterator() = this@map.iterator().mapNotNull(mapper)
 
     // FIXME: This is pretty inefficient
-    override val changed: SetObservers<SelectionModel<R>, R> = SetPool()
+    override val changed: SetObservers<SelectionModel<R>, R> field = SetPool()
 
     init {
         this@map.changed += { _, removed, added ->
@@ -604,7 +604,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     public val columns: List<Column<*>> get() = internalColumns.dropLast(1)
 
-    public val selectionChanged: SetObservers<TreeTable<T, M>, Path<Int>> = SetPool()
+    public val selectionChanged: SetObservers<TreeTable<T, M>, Path<Int>> field = SetPool()
 
     public var headerVisibility: MetaRowVisibility by observable(Always     ) { _,_ -> doLayout() }
     public var headerSticky    : Boolean           by observable(true       ) { _,_ -> doLayout() }
@@ -662,7 +662,7 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
     @Suppress("PropertyName")
     protected open val selectionChanged_: SetObserver<SelectionModel<Path<Int>>, Path<Int>> = { _,removed,added ->
-        (selectionChanged as SetPool).forEach {
+        selectionChanged.forEach {
             it(this, removed, added)
         }
     }

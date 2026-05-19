@@ -85,7 +85,7 @@ public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeMode
         if (previous != value) {
             node?.value = value
 
-            (changed as SetPool).forEach {
+            changed.forEach {
                 it(this, previous?.let { mapOf(path to it) } ?: emptyMap(), mapOf(path to value), emptyMap())
             }
         }
@@ -104,7 +104,7 @@ public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeMode
                         it.addOrAppend(index, MutableTreeNode(value))
                     }
 
-                    (changed as SetPool).forEach {
+                    changed.forEach {
                         it(this, emptyMap(), mapOf(*values.map { path to it }.toTypedArray()), emptyMap())
                     }
                 }
@@ -116,7 +116,7 @@ public class SimpleMutableTreeModel<T>(root: MutableTreeNode<T>): SimpleTreeMode
 
     override fun clear() {}
 
-    override val changed: Pool<ModelObserver<T>> = SetPool()
+    override val changed: Pool<ModelObserver<T>> field = SetPool()
 
     private fun nodeFromPath(path: Path<Int>): MutableTreeNode<T>? {
         var node = root as MutableTreeNode?

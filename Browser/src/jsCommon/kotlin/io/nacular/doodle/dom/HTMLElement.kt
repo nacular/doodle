@@ -88,28 +88,28 @@ internal actual external interface ElementCSSInlineStyle: JsAny {
     actual val style: CSSStyleDeclaration
 }
 
-internal actual abstract external class Element: Node, ParentNode {
-    actual open var id        : String
-    actual open var className : String
-    actual open var scrollTop : Double
-    actual open var scrollLeft: Double
+public actual abstract external class Element: Node, ParentNode {
+    internal actual open var id        : String
+    internal actual open var className : String
+    internal actual open var scrollTop : Double
+    internal actual open var scrollLeft: Double
 
-    actual open val clientWidth : Int
-    actual open val clientHeight: Int
+    internal actual open val clientWidth : Int
+    internal actual open val clientHeight: Int
 
-    actual open var outerHTML: String
+    internal actual open var outerHTML: String
 
-    actual fun getBoundingClientRect(): DOMRect
+    internal actual fun getBoundingClientRect(): DOMRect
 
-    actual fun getAttribute   (                    qualifiedName: String): String?
+    internal actual fun getAttribute   (                    qualifiedName: String): String?
 
-    actual fun setAttribute   (                    qualifiedName: String, value: String)
-    actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
-    actual fun removeAttribute(                    qualifiedName: String               )
+    internal actual fun setAttribute   (                    qualifiedName: String, value: String)
+    internal actual fun setAttributeNS (namespace: String?, qualifiedName: String, value: String)
+    internal actual fun removeAttribute(                    qualifiedName: String               )
 
-    actual fun scrollTo(x: Double, y: Double)
+    internal actual fun scrollTo(x: Double, y: Double)
 
-    actual abstract fun remove()
+    internal actual abstract fun remove()
 }
 
 internal actual abstract external class HTMLCollection actual constructor(): JsAny {
@@ -124,60 +124,60 @@ internal actual external interface ParentNode: JsAny {
     actual val children: HTMLCollection
 }
 
-internal actual abstract external class HTMLElement: Element, ElementCSSInlineStyle {
-    actual var title       : String
-    actual var draggable   : Boolean
-    actual val offsetTop   : Int
-    actual val offsetLeft  : Int
-    actual val offsetWidth : Int
-    actual val offsetHeight: Int
-    actual var tabIndex    : Int
-    actual var spellcheck  : Boolean
+public actual abstract external class HTMLElement: Element, ElementCSSInlineStyle {
+    internal actual var title       : String
+    internal actual var draggable   : Boolean
+    internal actual val offsetTop   : Int
+    internal actual val offsetLeft  : Int
+    internal actual val offsetWidth : Int
+    internal actual val offsetHeight: Int
+    internal actual var tabIndex    : Int
+    internal actual var spellcheck  : Boolean
 
-    actual var onkeyup     : ((KeyboardEvent) -> Boolean)?
-    actual var onkeydown   : ((KeyboardEvent) -> Boolean)?
-    actual var onkeypress  : ((KeyboardEvent) -> Boolean)?
+    internal actual var onkeyup     : ((KeyboardEvent) -> Boolean)?
+    internal actual var onkeydown   : ((KeyboardEvent) -> Boolean)?
+    internal actual var onkeypress  : ((KeyboardEvent) -> Boolean)?
 
-    actual var onwheel        : ((WheelEvent  ) -> Boolean)?
-    actual var ondblclick     : ((MouseEvent  ) -> Boolean)?
-    actual var onpointerup    : ((PointerEvent) -> Boolean)?
-    actual var onpointerout   : ((PointerEvent) -> Unit   )?
-    actual var onpointerdown  : ((PointerEvent) -> Boolean)?
-    actual var onpointermove  : ((PointerEvent) -> Boolean)?
-    actual var onpointerover  : ((PointerEvent) -> Unit   )?
-    actual var onpointercancel: ((PointerEvent) -> Unit   )?
-    actual var oncontextmenu  : ((MouseEvent  ) -> Boolean)?
+    internal actual var onwheel        : ((WheelEvent  ) -> Boolean)?
+    internal actual var ondblclick     : ((MouseEvent  ) -> Boolean)?
+    internal actual var onpointerup    : ((PointerEvent) -> Boolean)?
+    internal actual var onpointerout   : ((PointerEvent) -> Unit   )?
+    internal actual var onpointerdown  : ((PointerEvent) -> Boolean)?
+    internal actual var onpointermove  : ((PointerEvent) -> Boolean)?
+    internal actual var onpointerover  : ((PointerEvent) -> Unit   )?
+    internal actual var onpointercancel: ((PointerEvent) -> Unit   )?
+    internal actual var oncontextmenu  : ((MouseEvent  ) -> Boolean)?
 
-    actual var onresize: ((Event) -> Unit)?
+    internal actual var onresize: ((Event) -> Unit)?
 
-    actual var onload : ((Event) -> Unit)?
-    actual var onerror: ((/*JsAny, String, Int, Int, JsAny?*/) -> Unit)?
+    internal actual var onload : ((Event) -> Unit)?
+    internal actual var onerror: ((/*JsAny, String, Int, Int, JsAny?*/) -> Unit)?
 
-    actual var onblur  : ((FocusEvent) -> Unit   )?
-    actual var onclick : ((MouseEvent) -> Boolean)?
-    actual var onfocus : ((FocusEvent) -> Unit   )?
-    actual var oninput : ((InputEvent) -> Boolean)?
-    actual var onscroll: ((Event     ) -> Boolean)?
-    actual var onchange: ((Event     ) -> Boolean)?
-    actual var onselect: ((Event     ) -> Boolean)?
+    internal actual var onblur  : ((FocusEvent) -> Unit   )?
+    internal actual var onclick : ((MouseEvent) -> Boolean)?
+    internal actual var onfocus : ((FocusEvent) -> Unit   )?
+    internal actual var oninput : ((InputEvent) -> Boolean)?
+    internal actual var onscroll: ((Event     ) -> Boolean)?
+    internal actual var onchange: ((Event     ) -> Boolean)?
+    internal actual var onselect: ((Event     ) -> Boolean)?
 
-    actual var ondrop     : ((DragEvent) -> Unit)?
-    actual var ondragend  : ((DragEvent) -> Unit)?
-    actual var ondragover : ((DragEvent) -> Unit)?
-    actual var ondragenter: ((DragEvent) -> Unit)?
-    actual var ondragstart: ((DragEvent) -> Unit)?
+    internal actual var ondrop     : ((DragEvent) -> Unit)?
+    internal actual var ondragend  : ((DragEvent) -> Unit)?
+    internal actual var ondragover : ((DragEvent) -> Unit)?
+    internal actual var ondragenter: ((DragEvent) -> Unit)?
+    internal actual var ondragstart: ((DragEvent) -> Unit)?
 
-    actual var dir: String
+    internal actual var dir: String
 
-    actual fun focus()
-    actual fun focus(options: FocusOptions)
-    actual fun blur ()
-    actual fun click()
+    internal actual fun focus()
+    internal actual fun focus(options: FocusOptions)
+    internal actual fun blur ()
+    internal actual fun click()
 
-    actual fun addEventListener   (to: String, listener: (Event) -> Unit)
-    actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
-    actual fun removeEventListener(to: String, listener: (Event) -> Unit)
-    actual fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+    internal actual fun addEventListener   (to: String, listener: (Event) -> Unit)
+    internal actual fun addEventListener   (to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
+    internal actual fun removeEventListener(to: String, listener: (Event) -> Unit)
+    internal actual fun removeEventListener(to: String, listener: (Event) -> Unit, options: AddEventListenerOptions)
 }
 
 internal actual external interface AddEventListenerOptions: JsAny {

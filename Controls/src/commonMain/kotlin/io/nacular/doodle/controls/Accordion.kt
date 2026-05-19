@@ -73,7 +73,7 @@ public open class MultiExpansionModel: ExpansionModel {
     protected val observableSet: ObservableSet<Int> = ObservableSet(set)
 
     init {
-        observableSet.changed += { set, removed, added ->
+        observableSet.changed += { _, removed, added ->
             (changed as SetPool).forEach {
                 it(this, removed, added)
             }
@@ -186,7 +186,7 @@ public class Accordion<T>(
             added.forEach   { index -> it.expansionChanged(this, index, true ) }
         }
 
-        (expansionChanged as SetPool).forEach {
+        expansionChanged.forEach {
             it(this, removed, added)
         }
     }
@@ -194,7 +194,7 @@ public class Accordion<T>(
     private val items = ObservableList<T>()
 
     /** Notifies of changes to items. */
-    public val itemsChanged: ListObservers<Accordion<T>, T> = SetPool()
+    public val itemsChanged: ListObservers<Accordion<T>, T> field = SetPool()
 
     /** The number of items in the accordion. */
     public val numItems: Int get() = items.size
@@ -207,7 +207,7 @@ public class Accordion<T>(
     /**
      * Notifies of expansion changes to the Accordion.
      */
-    public val expansionChanged: SetObservers<Accordion<T>, Int> = SetPool()
+    public val expansionChanged: SetObservers<Accordion<T>, Int> field = SetPool()
 
     // Expose container APIs for behavior
     internal val _children         get() = children
@@ -235,7 +235,7 @@ public class Accordion<T>(
                 }
             }
 
-            (itemsChanged as SetPool).forEach {
+            itemsChanged.forEach {
                 it(this, diffs)
             }
         }
