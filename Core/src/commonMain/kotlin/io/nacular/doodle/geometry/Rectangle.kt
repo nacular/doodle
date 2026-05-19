@@ -35,36 +35,12 @@ import kotlin.math.min
  * @property width  The horizontal length
  * @property height The vertical length
  */
-public class Rectangle(
+public class Rectangle private constructor(
     public val x     : Double = 0.0,
     public val y     : Double = 0.0,
     public val width : Double = 0.0,
     public val height: Double = 0.0,
 ): ConvexPolygon() {
-
-    public constructor(): this(0.0, 0.0, 0.0, 0.0)
-
-    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
-    public constructor(width: Int, height: Int = width): this(0.0, 0.0, width.toDouble(), height.toDouble())
-
-    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
-    public constructor(width: Float, height: Float = width): this(0.0, 0.0, width.toDouble(), height.toDouble())
-
-    /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
-    public constructor(width: Double, height: Double = width): this(0.0, 0.0, width.toDouble(), height.toDouble())
-
-    /** Creates a Rectangle at the [Origin]: `[0, 0, size.width, size.height]` */
-    public constructor(size: Size): this(width = size.width, height = size.height)
-
-    /** Creates a Rectangle: `[position.x, position.y, size.width, size.height]` */
-    public constructor(position: Point, size: Size): this(position.x, position.y, size.width, size.height)
-
-    /** Creates a Rectangle */
-    public constructor(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): this(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
-
-    /** Creates a Rectangle */
-    public constructor(x: Float = 0f, y: Float = 0f, width: Float = 0f, height: Float = 0f): this(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
-
     private var position_ = null as Point?
 
     /** Top-left corner (x,y) */
@@ -193,6 +169,38 @@ public class Rectangle(
     public companion object {
         /** The rectangle at the [Origin] with [width] and [height] equal to `0` */
         public val Empty: Rectangle = Rectangle()
+
+        /** @return [Empty]` */
+        public operator fun invoke(): Rectangle = Empty
+
+        /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
+        public operator fun invoke(width: Int, height: Int = width): Rectangle = invoke(0.0, 0.0, width.toDouble(), height.toDouble())
+
+        /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
+        public operator fun invoke(width: Float, height: Float = width): Rectangle = invoke(0.0, 0.0, width.toDouble(), height.toDouble())
+
+        /** Creates a Rectangle at the [Origin]: `[0, 0, width, height]` */
+        public operator fun invoke(width: Double, height: Double = width): Rectangle = invoke(0.0, 0.0, width, height)
+
+        /** Creates a Rectangle at the [Origin]: `[0, 0, size.width, size.height]` */
+        public operator fun invoke(size: Size): Rectangle = Rectangle(width = size.width, height = size.height)
+
+        /** Creates a Rectangle: `[position.x, position.y, size.width, size.height]` */
+        public operator fun invoke(position: Point, size: Size): Rectangle = Rectangle(position.x, position.y, size.width, size.height)
+
+        /** Creates a Rectangle: `[x, y, width, height]` */
+        public operator fun invoke(x: Int = 0, y: Int = 0, width: Int = 0, height: Int = 0): Rectangle = invoke(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+
+        /** Creates a Rectangle: `[x, y, width, height]` */
+        public operator fun invoke(x: Float = 0f, y: Float = 0f, width: Float = 0f, height: Float = 0f): Rectangle = invoke(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+
+        /** Creates a Rectangle: `[x, y, width, height]` */
+        public operator fun invoke(x: Double = 0.0, y: Double = 0.0, width: Double = 0.0, height: Double = 0.0): Rectangle = Rectangle(
+            x,
+            y,
+            max(0.0, width ),
+            max(0.0, height)
+        )
     }
 }
 
@@ -261,7 +269,12 @@ public infix fun Rectangle.union(rectangle: Rectangle): Rectangle {
  *
  * @return adjusted Rectangle
  */
-public fun Rectangle.at(x: Double = this.x, y: Double = this.y): Rectangle = if (this.x != x || this.y != y) Rectangle(x, y, width, height) else this
+public fun Rectangle.at(x: Double = this.x, y: Double = this.y): Rectangle = if (this.x != x || this.y != y) Rectangle(
+    x,
+    y,
+    width,
+    height
+) else this
 
 /**
  * Returns a rectangle with the same width/height but positioned at the given point
@@ -276,7 +289,12 @@ public infix fun Rectangle.at(position: Point): Rectangle = at(position.x, posit
  * @param inset amount to resize by
  * @return adjusted Rectangle
  */
-public infix fun Rectangle.inset(inset: Double): Rectangle = if (inset == 0.0) this else Rectangle(x + inset, y + inset, max(0.0, width - inset * 2), max(0.0, height - inset * 2))
+public infix fun Rectangle.inset(inset: Double): Rectangle = if (inset == 0.0) this else Rectangle(
+    x + inset,
+    y + inset,
+    max(0.0, width - inset * 2),
+    max(0.0, height - inset * 2)
+)
 
 /**
  * Rectangle that has been adjusted as follows `[x + left, y + top, w - (left + right), h - (top + bottom)]`.
@@ -287,7 +305,8 @@ public infix fun Rectangle.inset(inset: Double): Rectangle = if (inset == 0.0) t
  * @param bottom amount to adjust on the bottom
  * @return adjusted Rectangle
  */
-public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double = 0.0, bottom: Double = 0.0): Rectangle = Rectangle(x + left, y + top, max(0.0, width - (left + right)), max(0.0, height - (top + bottom)))
+public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double = 0.0, bottom: Double = 0.0): Rectangle =
+    Rectangle(x + left, y + top, max(0.0, width - (left + right)), max(0.0, height - (top + bottom)))
 
 /**
  * Rectangle that has been adjusted as follows `[x + left, y + top, w - (left + right), h - (top + bottom)]`, where
@@ -296,7 +315,12 @@ public fun Rectangle.inset(top: Double = 0.0, left: Double = 0.0, right: Double 
  * @param inset amount to resize by
  * @return adjusted Rectangle
  */
-public infix fun Rectangle.inset(inset: Insets): Rectangle = inset(inset.left, inset.top, inset.right, inset.bottom)
+public infix fun Rectangle.inset(inset: Insets): Rectangle = inset(
+    top    = inset.top,
+    left   = inset.left,
+    right  = inset.right,
+    bottom = inset.bottom
+)
 
 /**
  * Returns a new Rectangle with the specified [width], [height], and all the other dimensions from this one.
@@ -319,7 +343,8 @@ public fun Rectangle.with(size: Size): Rectangle = with(size.width, size.height)
 /**
  * Returns a new Rectangle with the same size as [this], but with its center moved to [x, y].
  *
- * @param at the point to center
+ * @param x of the point to center
+ * @param y of the point to center
  */
 public fun Rectangle.centered(x: Double, y: Double): Rectangle = at(x - width / 2, y - height / 2)
 
@@ -339,8 +364,8 @@ public val Rectangle.aspectRatio: Double get() = size.aspectRatio
  * Interpolates between 2 [Rectangle]s
  */
 public fun lerp(first: Rectangle, second: Rectangle, fraction: Float): Rectangle = Rectangle(
-    x      = lerp(first.x,      second.x,      fraction),
-    y      = lerp(first.y,      second.y,      fraction),
-    width  = lerp(first.width,  second.width,  fraction),
+    x = lerp(first.x, second.x, fraction),
+    y = lerp(first.y, second.y, fraction),
+    width = lerp(first.width, second.width, fraction),
     height = lerp(first.height, second.height, fraction)
 )
