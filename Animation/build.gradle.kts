@@ -1,3 +1,8 @@
+plugins {
+    id("kotlin-multiplatform"  )
+    id("publishing-conventions")
+}
+
 kotlin {
     explicitApi()
 

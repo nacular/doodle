@@ -11,12 +11,12 @@ import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Found
 import io.nacular.doodle.drawing.impl.FontLoaderLegacy.State.Pending
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.text.TextSpacing.Companion.default
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
- * This implementation is intended to be replaced with [FontLoaderImpl] once there is wider browser adoption of the FontFaceSet APIs (https://caniuse.com/?search=fontfaceset).
+ * This implementation is intended to be replaced with FontLoaderImpl once there is wider browser adoption of the FontFaceSet APIs (https://caniuse.com/?search=fontfaceset).
  */
 internal class FontLoaderLegacy(
         private val systemStyler: SystemStyler,
@@ -104,14 +104,15 @@ internal class FontLoaderLegacy(
 
     private fun getHash(family: String, weight: Int, size: Int, style: Font.Style) = arrayOf(family, weight, size, style).contentHashCode()
 
-    private suspend fun waitIfLoading(hash: Int): State? = suspendCoroutine {
+    private suspend fun waitIfLoading(hash: Int): State? = suspendCancellableCoroutine {
         when (fonts[hash]) {
-            Found   -> it.resume(Found)
+            Found -> it.resume(Found)
             Pending -> {
                 // Enqueue for resolution later when the current coroutine finds the font, or fails and dequeues the next in line
                 suspended.getOrPut(hash) { mutableListOf() }.add(it)
             }
-            else    -> it.resume(null) // No attempts yet, so proceed to resolve right away
+
+            else -> it.resume(null) // No attempts yet, so proceed to resolve right away
         }
     }
 

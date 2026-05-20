@@ -1,79 +1,30 @@
 
-import org.jetbrains.dokka.DokkaConfiguration.Visibility.PROTECTED
-import org.jetbrains.dokka.DokkaConfiguration.Visibility.PUBLIC
-import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.base.DokkaBaseConfiguration
-import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import java.net.URL
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Protected
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier.Public
 
 plugins {
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.kover)
-    signing
-    alias(libs.plugins.nmcp            ) apply false
-    alias(libs.plugins.nmcp.aggregation)
+    id("org.jetbrains.dokka")
 }
 
 repositories {
     mavenCentral()
 }
 
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:${libs.versions.dokkaVersion.get()}")
-    }
-}
-
-fun DokkaBaseConfiguration.configDokka() {
-    homepageLink                          = "https://github.com/nacular/doodle"
-    customAssets                          = listOf(file("logo-icon.svg"))
-    footerMessage                         = "(c) 2024 Nacular"
-    separateInheritedMembers              = true
-    mergeImplicitExpectActualDeclarations = true
-}
-
-tasks.withType<DokkaMultiModuleTask>().configureEach {
-    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-        configDokka()
-    }
-}
-
-subprojects {
-    apply (plugin = "maven-publish"                              )
-    apply (plugin = "kotlin-multiplatform"                       )
-    apply (plugin = "signing"                                    )
-    apply (plugin = rootProject.libs.plugins.dokka.get().pluginId)
-    apply (plugin = rootProject.libs.plugins.kover.get().pluginId)
-    apply (plugin = rootProject.libs.plugins.nmcp.asProvider().get().pluginId )
-
-    repositories {
-        mavenCentral()
-        maven       ("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-        mavenLocal  ()
+dokka {
+    pluginsConfiguration.html {
+        homepageLink.set("https://github.com/nacular/doodle")
+        customAssets.setFrom(file("logo-icon.svg"))
+        footerMessage.set("© 2024 Nacular")
+        separateInheritedMembers = true
+        mergeImplicitExpectActualDeclarations = true
     }
 
-    val dokkaJar by tasks.registering(Jar::class) {
-        group       = JavaBasePlugin.DOCUMENTATION_GROUP
-        description = "Assembles Kotlin docs with Dokka"
-        archiveClassifier.set("javadoc")
-        from(tasks.dokkaHtml)
-    }
-
-    setupPublication(dokkaJar.get())
-
-    setupSigning()
-
-    tasks.withType<DokkaTaskPartial>().configureEach {
-        pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-            configDokka()
-        }
-
-        outputDirectory.set(layout.buildDirectory.dir("javadoc"))
-
+    // Sets properties for the whole project
+    dokkaPublications.html {
+        outputDirectory.set(layout.buildDirectory.dir("documentation/html"))
         dokkaSourceSets.configureEach {
             // Do not output deprecated members. Applies globally, can be overridden by packageOptions
-            skipDeprecated.set(false)
+            skipDeprecated.set(true)
 
             // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
             reportUndocumented.set(true)
@@ -83,43 +34,31 @@ subprojects {
 
             includes.from("Module.md")
 
-            documentedVisibilities.set(setOf(PUBLIC, PROTECTED))
+            documentedVisibilities.set(setOf(Public, Protected))
 
             sourceLink {
                 localDirectory.set(rootProject.projectDir)
-                remoteUrl.set(URL("https://github.com/nacular/doodle/tree/master"))
+                remoteUrl("https://github.com/nacular/doodle/tree/master")
                 remoteLineSuffix.set("#L")
             }
 
-            externalDocumentationLink {
-                url.set(URL("https://kotlinlang.org/api/latest/jvm/stdlib/"))
-            }
+            externalDocumentationLinks {
+                // "kotlin-stdlib" is a unique name for this link configuration
+                register("kotlin-stdlib") { url("https://kotlinlang.org/api/latest/jvm/stdlib/") }
 
-            externalDocumentationLink {
-                url.set(URL("https://kotlinlang.org/api/kotlinx-datetime"))
-                packageListUrl.set(URL("https://kotlinlang.org/api/kotlinx-datetime/kotlinx-datetime/package-list"))
-            }
+                register("kotlinx-datetime") { url("https://kotlinlang.org/api/kotlinx-datetime") }
 
-            externalDocumentationLink {
-                url.set(URL("https://nacular.github.io/measured-api"))
-                packageListUrl.set(URL("https://nacular.github.io/measured-api/package-list"))
+                create("measured") {
+                    url("https://nacular.github.io/measured-api")
+                    packageListUrl("https://nacular.github.io/measured-api/-measured/package-list")
+                }
             }
         }
     }
 }
 
-nmcpAggregation {
-    centralPortal {
-        username       = findProperty("mavenCentralUsername")?.toString()
-        password       = findProperty("mavenCentralPassword")?.toString()
-        publishingType = "USER_MANAGED"
-    }
-}
 dependencies {
-    subprojects.forEach { project ->
-        project(":${project.name}").let {
-            kover          (it)
-            nmcpAggregation(it)
-        }
+    subprojects.forEach {
+        dokka(project(":${it.name}"))
     }
 }
