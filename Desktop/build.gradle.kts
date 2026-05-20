@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
 
 plugins {
     id("kotlin-multiplatform"  )
+    id("kover-conventions"     )
     id("publishing-conventions")
 }
 

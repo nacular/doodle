@@ -1,5 +1,6 @@
 plugins {
     id("kotlin-multiplatform"  )
+    id("kover-conventions"     )
     id("publishing-conventions")
 }
 
