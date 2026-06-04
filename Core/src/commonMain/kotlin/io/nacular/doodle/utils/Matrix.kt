@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.utils
 
-import io.nacular.doodle.core.Internal
 import kotlin.jvm.JvmName
 import kotlin.math.max
 
@@ -51,7 +50,7 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
                         isIdentity = when {
                             value.toDouble() != 1.0 && index == row -> false
                             value.toDouble() != 0.0 && index != row -> false
-                            else                       -> true
+                            else                                    -> true
                         }
 
                         if (!isIdentity) { return@loop }

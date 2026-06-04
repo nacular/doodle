@@ -304,8 +304,8 @@ internal class RealGraphicsSurface private constructor(
     override var position: Point = Origin; set(new) {
         if (field == new) return
 
-        field = new
         updateTransform(new)
+        field = new
     }
 
     init {
