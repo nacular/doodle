@@ -235,7 +235,6 @@ internal class NativeButton internal constructor(
                 Bottom -> button.height - insets.bottom
                 Middle -> max(insets.top, min(button.height - insets.bottom, (button.height - size.height) / 2 - border.top))
                 Top    -> insets.top
-                else   -> insets.top
             }
         }
 

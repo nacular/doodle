@@ -90,7 +90,7 @@ internal class TextMetricsImpl(
             maxHeight = max(maxHeight, height(string, style.font))
         }
 
-        return maxHeight
+        maxHeight
     }
 
     override fun height(text: String, width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = wrappedHeights.getOrPut(WrappedInfo(text, width, indent, font, lineSpacing, textSpacing)) {
