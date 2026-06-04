@@ -389,6 +389,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             new.height.coerceIn(allowedMinSize.height, allowedMaxSize.height)
         )
 
+        positionable.x_      = field.x
+        positionable.y_      = field.y
+        positionable.size_   = field.size
+
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)
         }
@@ -421,10 +425,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal var allowedMinSize = Empty; private set(new) {
         field = new
         layoutNeeded = true
+        positionable.minSize = field
     }
     internal var allowedMaxSize = Infinite; private set(new) {
         field = new
         layoutNeeded = true
+        positionable.maxSize = field
     }
 
     internal fun resetConstraints() {
@@ -1047,8 +1053,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         layoutNeeded = false
 
-        children.forEach { it.positionable.reset() }
-
         layout.layout(
             children.asSequence().map {
                 it.positionable
@@ -1580,10 +1584,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 null -> newBounds.size
                 else -> when (val s = preferredSizeCache(min, max)) {
                     null                                               -> {
-                        children.forEach { it.positionable.reset() } // FIXME: Workaround for ConstraintLayout
-
                         l.preferredSize(
-                            views   = children.asSequence().map { it.positionable.also { it.reset() } },
+                            views   = children.asSequence().map { it.positionable },
                             min     = min,
                             max     = max,
                             current = size.coerceIn(min, max),

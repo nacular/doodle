@@ -8,7 +8,7 @@ import io.nacular.doodle.dom.Static
 import io.nacular.doodle.dom.Visible
 import io.nacular.doodle.dom.add
 import io.nacular.doodle.dom.childAt
-import io.nacular.doodle.dom.clear
+import io.nacular.doodle.dom.get
 import io.nacular.doodle.dom.numChildren
 import io.nacular.doodle.dom.setBackgroundColor
 import io.nacular.doodle.dom.setColor
@@ -186,23 +186,38 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         }
     }
 
+    private fun HTMLElement.configureBoxed(annotation: Annotation, textSpacing: TextSpacing) {
+        style.setDisplay(Inline())
+        style.setDomPosition(Static())
+        style.setTextSpacing(textSpacing)
+
+        applyAnnotation(this, annotation)
+    }
+
     fun createBoxed(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse("B", possible)
 
-        element.clear()
         element.style.width  = ""
         element.style.filter = ""
         element.style.setBackgroundColor(null)
         element.style.setOverflow(Visible())
 
-        text.forEach { (text, annotation) ->
-            element.add(create(text, annotation.font, annotation.url, textSpacing).also { element ->
-                element.style.setDisplay    (Inline()   )
-                element.style.setDomPosition(Static()   )
-                element.style.setTextSpacing(textSpacing)
+        text.forEachIndexed { index, (text, annotation) ->
+            when {
+                index < element.numChildren -> element.replaceChild(
+                    create(text, annotation.font, annotation.url, textSpacing, element.childAt(index) as? HTMLElement).also { element ->
+                        element.configureBoxed(annotation, textSpacing)
+                    },
+                    element.childAt(index)!!,
+                )
+                else -> element.add(create(text, annotation.font, annotation.url, textSpacing).also { element ->
+                    element.configureBoxed(annotation, textSpacing)
+                })
+            }
+        }
 
-                applyAnnotation(element, annotation)
-            })
+        repeat(element.numChildren - text.count) {
+            (element.childNodes[it + text.count] as? HTMLElement)?.remove()
         }
 
         return element

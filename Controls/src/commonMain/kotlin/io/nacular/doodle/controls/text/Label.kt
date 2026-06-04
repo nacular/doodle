@@ -12,7 +12,6 @@ import io.nacular.doodle.utils.TextAlignment
 import io.nacular.doodle.utils.TextAlignment.Center
 import io.nacular.doodle.utils.VerticalAlignment
 import io.nacular.doodle.utils.VerticalAlignment.Middle
-import io.nacular.doodle.utils.observable
 
 
 public interface LabelBehavior: Behavior<Label> {
@@ -76,27 +75,27 @@ public open class Label(
     /**
      * Alignment of text along the vertical axis.
      */
-    public var verticalAlignment: VerticalAlignment by observable(verticalAlignment  ) { _,_ -> measureText(); rerender() }
+    public var verticalAlignment: VerticalAlignment = verticalAlignment; set(new) { field = new; measureText(); rerender() }
 
     /**
      * Alignment of text along the horizontal axis.
      */
-    public var textAlignment: TextAlignment by observable(horizontalAlignment) { _,_ -> measureText(); rerender() }
+    public var textAlignment: TextAlignment = horizontalAlignment; set(new) { if (field == new) return; field = new; measureText(); rerender() }
 
     /**
      * Space between lines in [text] (when [wrapsWords] == `true`) in terms of the [font] height.
      */
-    public var lineSpacing: Float by observable(-1f) { _,_ -> if (wrapsWords) { measureText(); rerender() } }
+    public var lineSpacing: Float = -1f; set(new) { if (field == new) return; field = new; if (wrapsWords) { measureText(); rerender() } }
 
     /**
      * Space between the words in [text].
      */
-    public var wordSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
+    public var wordSpacing: Double = 0.0; set(new) { if (field == new) return; field = new; measureText(); rerender() }
 
     /**
      * Space between the letters in [text].
      */
-    public var letterSpacing: Double by observable(0.0) { _,_ -> measureText(); rerender() }
+    public var letterSpacing: Double = 0.0; set(new) { if (field == new) return; field = new; measureText(); rerender() }
 
     internal var textSize_ = Empty; private set(new) {
         field = new
@@ -127,8 +126,8 @@ public open class Label(
         measureText(new)
     }
 
-    private fun measureText(behavior: LabelBehavior? = this.behavior): Size {
-        return behavior?.measureText(this)?.also { textSize_ = it } ?: Empty
+    private fun measureText(behavior: LabelBehavior? = this.behavior) {
+        behavior?.measureText(this)?.also { textSize_ = it }
     }
 
     init {

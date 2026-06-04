@@ -174,7 +174,8 @@ public class AnnotatedString private constructor(internal val data: MutableList<
         override fun toString(): String = "($first, $second)"
     }
 
-    public val text : String get() = data.joinToString(separator = "") { it.first }
+    private var text_ = data.joinToString(separator = "") { it.first }
+    public val text : String get() = text_
     public val count: Int    get() = data.size
 
     private var hashCode = data.hashCode()
@@ -243,6 +244,7 @@ public class AnnotatedString private constructor(internal val data: MutableList<
             pair.second -> data.last().first += pair.first
             else        -> data.plusAssign(pair)
         }.also {
+            text_    = data.joinToString(separator = "") { it.first }
             hashCode = data.hashCode()
         }
     }
