@@ -508,7 +508,7 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    private open class LocalVariable(override val name: String): Variable {
+    private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
         private var  value          = 0.0
         override var constrained    = false
         override val needsSynthetic = false
@@ -521,16 +521,35 @@ public class ConstraintDslContext internal constructor() {
         }
 
         override fun toString() = name
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is LocalVariable) return false
+
+            if (isReadOnly != other.isReadOnly) return false
+            if (name != other.name) return false
+            if (referent != other.referent) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = isReadOnly.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + (referent?.hashCode() ?: 0)
+            return result
+        }
     }
 
-    private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readonly -> $referent") {
+    private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
         override var isReadOnly = true
+        override fun toString() = "readonly -> $referent"
     }
 
-    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name), ReadOnlyVariable {
+    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
         override var constrained    = source.constrained
         override val needsSynthetic = false
         override var isReadOnly     = true
+        override fun toString()     = "readonly($source)"
     }
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
@@ -539,7 +558,9 @@ public class ConstraintDslContext internal constructor() {
     public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
     public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(LocalVariable("min($expressions)"))
+        val x           = VariableTerm(object: LocalVariable("min($expressions)", expressions) {
+            override fun toString() = "min($expressions)"
+        })
 
         expressions.forEach {
             x lessEq    it
@@ -555,7 +576,9 @@ public class ConstraintDslContext internal constructor() {
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
     public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(LocalVariable("max($expressions)"))
+        val x           = VariableTerm(object: LocalVariable("max($expressions)", expressions) {
+            override fun toString() = "max($expressions)"
+        })
 
         expressions.forEach {
             x greaterEq it
@@ -585,9 +608,9 @@ public class ConstraintDslContext internal constructor() {
         val newExpression = ExpressionImpl(e.terms.map {
             when (it.variable) {
                 is ReadOnlyVariableRef -> it
-                else                   -> VariableTerm(LocalReadOnlyVariable("readonly($it)", it.variable))
+                else                   -> VariableTerm(LocalReadOnlyVariable("readonly", it.variable))
             }
-        }.toTypedArray(), e.constant)
+        }, e.constant)
 
         val readOnly = VariableTerm(ReadOnlyVariableRef(e))
 

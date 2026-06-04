@@ -579,6 +579,28 @@ class ConstraintLayoutTests {
         expect(max(w1, w2)) { child3.width }
     }
 
+    @Test fun `complex max works`() {
+        val c     = 30.0
+        val child = NamedView("ViewBuilder")
+
+        val container = container {
+            + child
+
+            layout = constrain(children[0]) {
+                it.left   eq c
+                it.right  eq max(c, parent.right - c)
+            }
+        }
+
+        listOf(347, 6, 100, 200, 150).forEach {
+            container.forceSize(Size(it, 100))
+            container.doLayout_()
+
+            expect(it.toDouble()) { container.width }
+            expect(max(c, container.width - c)) { child.bounds.right }
+        }
+    }
+
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
     }
