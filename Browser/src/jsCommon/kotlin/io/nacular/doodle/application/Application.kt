@@ -255,6 +255,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<DisplayImpl>     () with singleton { instance<Display>     () as DisplayImpl      }
         bind<InternalDisplay> () with singleton { instance<DisplayImpl> ()                     }
         bind<TextFactoryImpl> () with singleton { instance<TextFactory> () as TextFactoryImpl  }
+        bind<TextMetricsImpl> () with singleton { instance<TextMetrics> () as TextMetricsImpl  }
         bind<ElementRulerImpl>() with singleton { instance<ElementRuler>() as ElementRulerImpl }
 
         importAll(modules, allowOverride = true)

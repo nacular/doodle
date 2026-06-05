@@ -18,6 +18,7 @@ import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.maxFont
 import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
@@ -37,8 +38,8 @@ internal class TextMetricsImpl(
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
     private data class StyledTextInfo  (val text: AnnotatedString, val textSpacing: TextSpacing = default)
-    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val lineSpacing: Float, val textSpacing: TextSpacing)
-    private data class WrappedStyleInfo(val text: AnnotatedString, val width: Double, val indent: Double, val lineSpacing: Float, val textSpacing: TextSpacing)
+    private data class WrappedInfo     (val text: String,     val width: Double, val indent: Double, val font: Font?, val lineSpacing: Float?, val textSpacing: TextSpacing)
+    private data class WrappedStyleInfo(val text: AnnotatedString, val width: Double, val indent: Double, val lineSpacing: Float?, val textSpacing: TextSpacing)
 
     private class LayoutCursor(
         val currentX           : Double = 0.0,
@@ -100,7 +101,7 @@ internal class TextMetricsImpl(
     }
 
     override fun width(text: String, width: Double, indent: Double, font: Font?, textSpacing: TextSpacing) = wrappedWidths.getOrPut(
-        WrappedInfo(text, width, indent, font, 1f, textSpacing)
+        WrappedInfo(text, width, indent, font, null, textSpacing)
     ) {
         when {
             canvasNotSupported(textSpacing) -> {
@@ -113,7 +114,7 @@ internal class TextMetricsImpl(
                     width       = width,
                     indent      = indent,
                     alignment   = Start,
-                    lineSpacing = 1f,
+                    lineSpacing = null,
                     textSpacing = textSpacing,
                     possible    = wrappedElement,
                 ).also { wrappedElement = it })
@@ -122,14 +123,14 @@ internal class TextMetricsImpl(
 
                 elementRuler.width(box)
             }
-            else -> textSize(text, width, font, 1f, textSpacing).run { totalWidth }
+            else -> textSize(text, width, font, null, textSpacing).run { totalWidth }
         }
     }
 
     override fun width(text: AnnotatedString, width: Double, indent: Double, textSpacing: TextSpacing) = wrappedStyledWidths.getOrPut(
-        WrappedStyleInfo(text, width, indent, 1f, textSpacing)
+        WrappedStyleInfo(text, width, indent, null, textSpacing)
     ) {
-        size(text, width, indent, 1f, textSpacing).width
+        size(text, width, indent, textSpacing).width
     }
 
     override fun height(text: String, font: Font?) = heights.getOrPut(TextInfo(text, font)) {
@@ -138,7 +139,7 @@ internal class TextMetricsImpl(
                 // Special check for empty added to avoid font black-holing if first text checked is empty string
                 elementRuler.height(textFactory.create(text.takeUnless { it.isBlank() } ?: " ", font, textSpacing = default))
             }
-            else -> textSize(text, POSITIVE_INFINITY, font, 1f, default).totalHeight
+            else -> textSize(text, POSITIVE_INFINITY, font, DEFAULT_LINE_SPACING, default).totalHeight
         }
     }
 
@@ -157,11 +158,26 @@ internal class TextMetricsImpl(
         width      : Double,
         indent     : Double,
         font       : Font?,
+        textSpacing: TextSpacing
+    ): Double = height(text, width, indent, font, lineHeight(font), textSpacing)
+
+    override fun height(
+        text       : String,
+        width      : Double,
+        indent     : Double,
+        font       : Font?,
         lineSpacing: Float,
         textSpacing: TextSpacing
     ) = wrappedHeights.getOrPut(WrappedInfo(text, width, indent, font, lineSpacing, textSpacing)) {
         size(text, width, indent, font, lineSpacing, textSpacing).height
     }
+
+    override fun height(
+        text       : AnnotatedString,
+        width      : Double,
+        indent     : Double,
+        textSpacing: TextSpacing
+    ): Double = height(text, width, indent, lineHeight(text.maxFont), textSpacing)
 
     override fun height(
         text       : AnnotatedString,
@@ -283,7 +299,7 @@ internal class TextMetricsImpl(
         text       : String,
         width      : Double,
         font       : Font?,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         cursor     : LayoutCursor = LayoutCursor(),
     ): ChainedTextDimensions {
@@ -306,7 +322,7 @@ internal class TextMetricsImpl(
         var lineCount = cursor.totalLines
         var maxLineWidth = cursor.maxLineWidthReached
 
-        val lineHeight = lineSpacing * (font?.size ?: defaultFontSize)
+        val lineHeight = (lineSpacing ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
 
         paragraphs.forEachIndexed { index, paragraph ->
             val words = paragraph.split(" ")
@@ -367,7 +383,29 @@ internal class TextMetricsImpl(
         )
     }
 
-    private fun canvasNotSupported(textSpacing: TextSpacing) = noFontSupport
+    private val testText    = "Something"
+    private var skipCanvas  = false
+    private val lineHeights = LeastRecentlyUsedCache<Font?, Float>(10)
+
+    internal fun lineHeight(font: Font?) = lineHeights.getOrPut(font) {
+        skipCanvas = true
+        val heightDefaultLineSpacing = height(testText, font).toFloat()
+        skipCanvas = false
+
+        heightDefaultLineSpacing / height(
+            testText,
+            font        = font,
+            width       = POSITIVE_INFINITY,
+            lineSpacing = 1f
+        ).toFloat()
+    }
+
+    private fun canvasNotSupported(textSpacing: TextSpacing) = skipCanvas
+            || noFontSupport
             || (textSpacing.wordSpacing   >= 0.0 && noWordSpacingSupport  )
             || (textSpacing.letterSpacing >= 0.0 && noLetterSpacingSupport)
+
+    companion object {
+        private val DEFAULT_LINE_SPACING = null as Float?
+    }
 }

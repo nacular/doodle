@@ -71,13 +71,13 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         return element
     }
 
-    override fun create(text: String, font: Font?, url: String?, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
+    override fun create(text: String, font: Font?, url: String?, lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement = create(
         text,
         font,
         url,
         textSpacing,
         possible
-    ).also { it.style.setLineHeight(lineSpacing) }
+    ).apply { lineSpacing?.let { style.setLineHeight(lineSpacing) } }
 
     override fun create(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
@@ -93,10 +93,10 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
 
     override fun create(
         text       : AnnotatedString,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
-    ): HTMLElement = create(text, textSpacing, possible).also { it.style.setLineHeight(lineSpacing) }
+    ): HTMLElement = create(text, textSpacing, possible).apply { lineSpacing?.let { style.setLineHeight(lineSpacing) } }
 
     override fun wrapped(
         text       : String,
@@ -105,7 +105,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         width      : Double,
         indent     : Double,
         alignment  : TextAlignment,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
     ) = wrapped(
@@ -127,7 +127,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         url        : String?,
         indent     : Double,
         alignment  : TextAlignment,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
     ) = create(
@@ -136,11 +136,11 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         font        = font,
         possible    = possible,
         textSpacing = textSpacing,
-    ).also {
-        it.style.setLineHeight   (lineSpacing)
-        it.style.setTextAlignment(alignment  )
-        it.style.setTextSpacing  (textSpacing)
-        applyWrap(it, indent)
+    ).apply {
+        lineSpacing?.let { style.setLineHeight(lineSpacing) }
+        style.setTextAlignment(alignment  )
+        style.setTextSpacing  (textSpacing)
+        applyWrap(this, indent)
     }
 
     override fun wrapped(
@@ -148,7 +148,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         width      : Double,
         indent     : Double,
         alignment  : TextAlignment,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
     ) = wrapped(
@@ -166,29 +166,30 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         text       : AnnotatedString,
         indent     : Double,
         alignment  : TextAlignment,
-        lineSpacing: Float,
+        lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
     ) = create(
         text        = text,
         possible    = possible,
         textSpacing = textSpacing,
-    ).also {
-        it.style.setLineHeight   (lineSpacing)
-        it.style.setTextAlignment(alignment  )
-        it.style.setTextSpacing  (textSpacing)
+    ).apply {
+        lineSpacing?.let { style.setLineHeight(lineSpacing) }
+        style.setTextAlignment(alignment  )
+        style.setTextSpacing  (textSpacing)
 
-        if (it.nodeName.equals(TEXT_ELEMENT, ignoreCase = true)) {
-            applyWrap(it, indent)
-        } else {
-            it.style.setTextIndent(indent)
-            (0 until it.numChildren).map { i -> it.childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, null) }
+        when {
+            nodeName.equals(TEXT_ELEMENT, ignoreCase = true) -> applyWrap(this, indent)
+            else -> {
+                style.setTextIndent(indent)
+                (0 until numChildren).map { i -> childAt(i) }.filterIsInstance<HTMLElement>().forEach { applyWrap(it, null) }
+            }
         }
     }
 
     private fun HTMLElement.configureBoxed(annotation: Annotation, textSpacing: TextSpacing) {
-        style.setDisplay(Inline())
-        style.setDomPosition(Static())
+        style.setDisplay    (Inline   ())
+        style.setDomPosition(Static   ())
         style.setTextSpacing(textSpacing)
 
         applyAnnotation(this, annotation)

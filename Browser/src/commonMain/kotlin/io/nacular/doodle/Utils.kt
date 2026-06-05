@@ -8,6 +8,7 @@ import io.nacular.doodle.dom.defaultFontWeight
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.FontInfo
+import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 
 internal interface FontSerializer {
@@ -37,3 +38,5 @@ internal class FontSerializerImpl(htmlFactory: HtmlFactory, cacheLength: Int = 1
         override val family get() = info.families.joinToString()
     })
 }
+
+internal val AnnotatedString.maxFont: Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
