@@ -27,10 +27,6 @@ import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.X_
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.Y_ID
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
-import io.nacular.doodle.utils.diff.Delete
-import io.nacular.doodle.utils.diff.Insert
-import io.nacular.doodle.utils.diff.compare
-import io.nacular.doodle.utils.ifNull
 import kotlin.Double.Companion.POSITIVE_INFINITY
 
 @Suppress("PrivatePropertyName")
@@ -289,10 +285,9 @@ internal open class ConstraintLayoutImpl(
             val oldConstraints = context.constraints
             val oldEdits       = context.edits
 
-            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = false } }
+            oldConstraints.forEach { it.expression.terms.forEach { it.variable.constrained = false } }
 
-            context.constraints = mutableListOf()
-            context.edits       = mutableListOf()
+            context.reset()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
@@ -304,87 +299,47 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
+            context.pendingAdd?.let {
+                context.constraints.add(it)
+                context.pendingAdd = null
+            }
+
             context.constraints.forEach { it.expression.terms.forEach { it.variable.constrained = true } }
+
+            for (constraint in oldConstraints) {
+                if (constraint !in context.constraints) {
+                    handleDelete(solver, constraint)
+                }
+            }
 
             val failedInserts = mutableListOf<Constraint>()
 
-            var previousDelete: Delete<Constraint>? = null
-
-            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach { difference ->
-                when (difference) {
-                    is Delete -> {
-                        handlePreviousDelete(solver, previousDelete)
-                        previousDelete = difference
+            for (constraint in context.constraints) {
+                if (constraint !in oldConstraints) {
+                    if (!handleInsert(solver, constraint, errorHandler)) {
+                        failedInserts += constraint
                     }
-                    is Insert -> {
-                        difference.items.forEachIndexed { index, insertedConstraint ->
-                            previousDelete?.let {
-                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(it.items[index])) {
-                                    // update constraint
-                                    doTrying(errorHandler) {
-                                        solver.updateConstant(it.items[index], insertedConstraint)
-                                    }
-                                } else {
-                                    // handle delete
-                                    handlePreviousDelete(solver, previousDelete)
-
-                                    previousDelete = null
-
-                                    // handle insert
-                                    if (!handleInsert(solver, insertedConstraint)) {
-                                        failedInserts += insertedConstraint
-                                    }
-                                }
-                            }.ifNull {
-                                // handle insert
-                                if (!handleInsert(solver, insertedConstraint)) {
-                                    failedInserts += insertedConstraint
-                                }
-                            }
-                        }
-
-                        previousDelete = null
-                    }
-                    else             -> {}
                 }
             }
 
-            handlePreviousDelete(solver, previousDelete)
-
-            // try again in case some items were unsatisfiable due to the order of delete vs insert
             failedInserts.forEach {
-                if (!handleInsert(solver, it, errorHandler)) {
-                    context.constraints -= it
+                context.constraints -= it
+            }
+
+            for (edit in oldEdits) {
+                if (edit !in context.edits) {
+                    doTrying({}) {
+                        solver.removeEditVariable(edit.property)
+                    }
                 }
             }
 
-            val trueEditDeletes = mutableListOf<Variable>()
-
-            compare(oldEdits, context.edits).forEach { difference ->
-                when (difference) {
-                    is Delete -> {
-                        difference.items.forEach {
-                            trueEditDeletes += it.property
-                        }
+            for (edit in context.edits) {
+                if (edit !in oldEdits) {
+                    doTrying(errorHandler) {
+                        solver.addEditVariable(edit.property, edit.strength)
+                        solver.suggestValue   (edit.property, edit.value   )
                     }
-                    is Insert -> {
-                        difference.items.forEach {
-                            doTrying(errorHandler) {
-                                when (it.property) {
-                                    !in trueEditDeletes -> solver.addEditVariable(it.property, it.strength)
-                                    else                -> trueEditDeletes -= it.property
-                                }
-                                solver.suggestValue(it.property, it.value )
-                            }
-                        }
-                    }
-                    else -> {}
-                }
-            }
-
-            trueEditDeletes.forEach {
-                doTrying({}) {
-                    solver.removeEditVariable(it)
                 }
             }
         }
@@ -442,15 +397,6 @@ internal open class ConstraintLayoutImpl(
                 block()
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
-            } catch (_: UnknownEditVariableException) {
-            } catch (_: UnknownConstraintException  ) {}
-        }
-
-        private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
-            previousDelete?.let {
-                it.items.forEach { constraint ->
-                    handleDelete(solver, constraint)
-                }
             }
         }
 
@@ -463,11 +409,10 @@ internal open class ConstraintLayoutImpl(
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {
-                    // FIXME: Need to find a way to do this since updating a constraint that isn't REQUIRED leaks memory
-                    property eq        property.value strength Strong
-                    property greaterEq minExtent
+                    property preserve Strong // FIXME: REMOVE and let user choose
 
-                    if (maxExtent < POSITIVE_INFINITY) { property lessEq maxExtent }
+                    if (minExtent > 0.0              ) { property greaterEq maxExtent }
+                    if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
                 }
             }
         }

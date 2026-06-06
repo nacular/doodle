@@ -133,55 +133,47 @@ class ConstraintLayoutTests {
     }
 
     @Test fun `widths sum`() {
-        container {
-            val child1 = NamedView("child1").apply { suggestWidth(400.0) }
-            val child2 = NamedView("child2")
-            val child3 = NamedView("child3")
-            val child4 = NamedView("child4")
+        val child1 = NamedView("child1").apply { suggestWidth(400.0) }
+        val child2 = NamedView("child2")
+        val child3 = NamedView("child3")
+        val child4 = NamedView("child4")
 
-            + listOf(child1, child2, child3, child4)
+        val views         = listOf(child1, child2, child3, child4)
+        val positionables = views.map { it.positionable }
 
-            layout = constrain(child1, child2, child3) { a, b, c ->
-                parent.width  lessEq 1200 strength Strong
-                parent.height lessEq 1200 strength Strong
+        val layout = constrain(child1, child2, child3) { a, b, c ->
+            a.top    eq     0
+            a.left   eq     0
+            a.width  hint   a.width.value strength Weak
+            a.width  lessEq parent.width / 3
+            a.height eq     parent.height
 
-                a.top    eq     0
-                a.left   eq     0
-                a.width  hint   a.width.value strength Weak
-                a.width  lessEq parent.width / 3
-                a.height eq     parent.height
+            b.top    eq     a.top
+            b.left   eq     a.right
+            b.height eq     a.height
 
-                b.top    eq     a.top
-                b.left   eq     a.right
-                b.height eq     a.height
+            c.top    eq     a.top
+            c.left   eq     b.right
+            c.height eq     a.height
 
-                c.top    eq     a.top
-                c.left   eq     b.right
-                c.height eq     a.height
-
-                a.width + b.width + c.width eq parent.width
-            }
-
-            forceSize(Size(1200))
-            doLayout_()
-//            doLayout_()
-
-            listOf(child1, child2, child3).forEach {
-                println("$it.width == ${it.width}, range: ${it.allowedMinSize.width} - ${it.allowedMaxSize.width}")
-            }
-
-            expect(400.0, 800.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
-
-            child1.suggestWidth(200.0)
-            doLayout_()
-
-            expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
-
-            child3.suggestX(500.0)
-            doLayout_()
-
-            expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
+            a.width + b.width + c.width eq parent.width
         }
+
+        val current = Size(1200)
+
+        layout.layout(positionables.asSequence(), Empty, current, Infinite).also { positionables.forEach { it.finalize() } }
+
+        expect(400.0, 0.0, 800.0) { listOf(child1, child2, child3).map { it.width } }
+
+        child1.suggestWidth(200.0)
+        layout.layout(positionables.asSequence(), Empty, current, Infinite).also { positionables.forEach { it.finalize() } }
+
+        expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
+
+        child3.suggestWidth(500.0)
+        layout.layout(positionables.asSequence(), Empty, current, Infinite).also { positionables.forEach { it.finalize() } }
+
+        expect(200.0, 1000.0, 0.0) { listOf(child1, child2, child3).map { it.width } }
     }
 
     @Test fun `display constraints work`() {
@@ -583,21 +575,110 @@ class ConstraintLayoutTests {
         val c     = 30.0
         val child = NamedView("ViewBuilder")
 
-        val container = container {
-            + child
-
-            layout = constrain(children[0]) {
-                it.left   eq c
-                it.right  eq max(c, parent.right - c)
-            }
+        val layout = constrain(child) {
+            it.left   eq c
+            it.right  eq max(c, parent.right - c)
         }
 
         listOf(347, 6, 100, 200, 150).forEach {
-            container.forceSize(Size(it, 100))
-            container.doLayout_()
+            val size = layout.layout(sequenceOf(child.positionable), Empty, Size(it, 100), Infinite)
+            child.positionable.finalize()
 
-            expect(it.toDouble()) { container.width }
-            expect(max(c, container.width - c)) { child.bounds.right }
+            expect(it.toDouble()) { size.width }
+            expect(max(c, it - c)) { child.bounds.right }
+        }
+    }
+
+    @Test fun `this should work`() {
+        val title = NamedView("title").apply { preferredSize = { _,_ -> Size(182.8125, 35.0) } }
+        val check = NamedView("check").apply { preferredSize = { _,_ -> Size(205.57084350585936, 180.7348693847656) } }
+        val col1  = NamedView("col1" ).apply { preferredSize = { _,_ -> Size(275.3701171875, 162.0) } }
+        val col2  = NamedView("col2" ).apply { preferredSize = { _,_ -> Size(280.7841796875, 128.0) } }
+
+        val views         = listOf(title, check, col1, col2)
+        val positionables = views.map { it.positionable }
+
+        val tinyGap       =  8.0
+        val smallGap      = 10.0
+        val mediumGap     = 30.0
+        val largeGap      = 40.0
+        val extraLargeGap = 70.0
+
+        val layout = constrain(title, check, col1, col2) { title, check, col1, col2 ->
+            val columnSpacing = extraLargeGap + 2 * mediumGap
+
+            title.top     eq mediumGap
+            title.size    eq title.idealSize
+            title.centerX eq parent.centerX
+
+            col1.size     eq col1.idealSize
+            col2.size     eq col2.idealSize
+            check.size    eq check.idealSize
+
+            when {
+                parent.width.value > listOf(title, check, col1, col2).sumOf { it.idealWidth } + 2 * smallGap -> {
+                    check.left    greaterEq  largeGap
+                    check.right   eq         col1.left - (col2.left - col1.right) strength Strong
+                    check.centerY eq         max(col1.centerY, col2.centerY)
+
+                    col1.top      eq         title.bottom + extraLargeGap
+                    col1.centerX  eq         parent.centerX
+
+                    col2.top      eq         col1.top
+                    col2.left     eq         col1.right + columnSpacing strength Strong
+                    col2.right    lessEq     parent.right - largeGap
+                }
+                parent.width.value > check.width.value + max(col1.width.value, col2.width.value) + columnSpacing + 2 * largeGap -> {
+                    col1.top      eq        title.bottom + extraLargeGap
+                    col1.left     eq        check.right + columnSpacing
+
+                    check.left    greaterEq largeGap
+                    check.left    eq        (parent.width - (max(col1.width, col2.width) + check.width + columnSpacing)) / 2 strength Strong
+                    check.centerY eq        (col2.bottom - col1.top) / 2
+
+                    col2.top      eq        col1.bottom + tinyGap
+                    col2.left     eq        col1.left
+                }
+                else -> {
+                    check.top     eq title.bottom + extraLargeGap
+                    check.centerX eq parent.centerX
+
+                    col1.top      eq check.bottom + mediumGap
+                    col1.centerX  eq parent.centerX
+
+                    col2.top      eq col1.bottom + tinyGap
+                    col2.centerX  eq parent.centerX
+                }
+            }
+
+            parent.height eq max(title.bottom, check.bottom, col1.bottom, col2.bottom) + extraLargeGap
+        }
+
+        listOf(
+            965, 964,
+            965, 964,
+            965, 964,
+            965, 964
+        ).forEach { width ->
+            val size = layout.layout(positionables.asSequence(), Empty, Size(width.toDouble(), 376.3674346923828), Infinite).also { positionables.forEach { it.finalize() } }
+
+            views.forEach {
+                expect(it.idealSize) { it.size }
+            }
+
+            expect(title.y) { mediumGap }
+            expect(col1.y ) { title.bounds.bottom + extraLargeGap }
+
+            expect(size.height) { views.maxOf { it.bounds.bottom } + extraLargeGap }
+
+            when (width) {
+                965 -> {
+                    expect(col2.y) { col1.y                       }
+                }
+                964 -> {
+                    expect(col2.y) { col1.bounds.bottom + tinyGap }
+                }
+            }
         }
     }
 

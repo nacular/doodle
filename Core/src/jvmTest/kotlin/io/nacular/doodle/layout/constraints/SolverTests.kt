@@ -8,10 +8,6 @@ import io.mockk.verify
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.Solver
-import io.nacular.doodle.utils.diff.Delete
-import io.nacular.doodle.utils.diff.Insert
-import io.nacular.doodle.utils.diff.compare
-import io.nacular.doodle.utils.ifNull
 import org.junit.jupiter.api.Test
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.math.max
@@ -645,78 +641,6 @@ class ConstraintTests {
         expect(true) { constraint1.differsByConstantOnly(constraint2) }
         expect(true) { constraint2.differsByConstantOnly(constraint1) }
     }
-
-    @Test fun diffs() {
-        val property1 = property()
-        val property2 = property()
-        val property3 = property()
-        val property4 = property()
-        val property5 = property()
-
-        val old = constraints {
-            property1             eq  45
-            property2             eq 100
-            property3 + property4 eq  50
-            property5             eq  90
-        }
-
-        val new = constraints {
-            property1             eq - 45
-//            property2             eq -100
-            property3 + property4 eq - 50
-//            property5             eq   90
-
-//            property1             eq   45
-//            property2             eq -100
-//            property3 + property4 eq - 50
-//            property5             eq   90
-        }
-
-        val diffs = compare(old.constraints, new.constraints) { a, b -> a.hashCode() == b.hashCode() }
-
-        var previousDelete: Delete<Constraint>? = null
-
-        val handlePreviousDelete: () -> Unit = {
-            previousDelete = null
-        }
-
-        diffs.forEach { diff ->
-            when (diff) {
-                is Delete -> {
-                    handlePreviousDelete()
-                    previousDelete = diff
-                }
-                is Insert -> {
-                    diff.items.forEachIndexed { index, insertedConstraint ->
-                        // address previous delete
-                        previousDelete?.let {
-                            val deletedConstraint = it.items[index]
-
-                            if (index < it.items.size && insertedConstraint.differsByConstantOnly(deletedConstraint)) {
-                                // update constraint
-                                println("update: $deletedConstraint -> $insertedConstraint")
-                            } else {
-                                // handle delete
-                                println("delete: $deletedConstraint")
-                                // handle insert
-                                println("insert: $insertedConstraint")
-                            }
-                        }.ifNull {
-                            // handle insert
-                            println("handle insert: $insertedConstraint")
-                        }
-                    }
-
-                    previousDelete = null
-                }
-                else -> {
-                    handlePreviousDelete()
-                }
-            }
-        }
-
-//        println(diffs)
-    }
 }
 
 private fun Solver.sync(context: ConstraintDslContext) {
@@ -749,6 +673,11 @@ private fun constraints(block: ConstraintDslContext.() -> Unit): ConstraintDslCo
     val context = ConstraintDslContext()
 
     context.apply(block)
+
+    context.pendingAdd?.let {
+        context.constraints.add(it)
+        context.pendingAdd = null
+    }
 
     return context
 }

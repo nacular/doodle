@@ -77,7 +77,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         url,
         textSpacing,
         possible
-    ).apply { lineSpacing?.let { style.setLineHeight(lineSpacing) } }
+    ).apply { style.setLineHeight(lineSpacing) }
 
     override fun create(text: AnnotatedString, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         if (text.count == 1) {
@@ -96,7 +96,7 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         lineSpacing: Float?,
         textSpacing: TextSpacing,
         possible   : HTMLElement?
-    ): HTMLElement = create(text, textSpacing, possible).apply { lineSpacing?.let { style.setLineHeight(lineSpacing) } }
+    ): HTMLElement = create(text, textSpacing, possible).apply { style.setLineHeight(lineSpacing) }
 
     override fun wrapped(
         text       : String,
@@ -137,9 +137,9 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         possible    = possible,
         textSpacing = textSpacing,
     ).apply {
-        lineSpacing?.let { style.setLineHeight(lineSpacing) }
-        style.setTextAlignment(alignment  )
+        style.setLineHeight   (lineSpacing)
         style.setTextSpacing  (textSpacing)
+        style.setTextAlignment(alignment  )
         applyWrap(this, indent)
     }
 
@@ -174,9 +174,9 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
         possible    = possible,
         textSpacing = textSpacing,
     ).apply {
-        lineSpacing?.let { style.setLineHeight(lineSpacing) }
-        style.setTextAlignment(alignment  )
+        style.setLineHeight   (lineSpacing)
         style.setTextSpacing  (textSpacing)
+        style.setTextAlignment(alignment  )
 
         when {
             nodeName.equals(TEXT_ELEMENT, ignoreCase = true) -> applyWrap(this, indent)

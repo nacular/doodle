@@ -377,8 +377,54 @@ public class UnsatisfiableConstraintException(
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class ConstraintDslContext internal constructor() {
-    internal var constraints = mutableListOf<Constraint>()
-    internal var edits       = mutableListOf<Edit>()
+
+    private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
+        private var  value          = 0.0
+        override var constrained    = false
+        override val needsSynthetic = false
+        override var isReadOnly     = false
+
+        override fun invoke() = value
+
+        override fun invoke(value: Double) {
+            this.value = value
+        }
+
+        override fun toString() = name
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is LocalVariable) return false
+
+            if (isReadOnly != other.isReadOnly) return false
+            if (name != other.name) return false
+            if (referent != other.referent) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = isReadOnly.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + (referent?.hashCode() ?: 0)
+            return result
+        }
+    }
+
+    private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
+        override var isReadOnly = true
+        override fun toString() = "readonly -> $referent"
+    }
+
+    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
+        override var constrained    = source.constrained
+        override val needsSynthetic = false
+        override var isReadOnly     = true
+        override fun toString()     = "readonly($source)"
+    }
+
+    internal var pendingAdd  = null as Constraint?
+    internal var constraints = hashSetOf<Constraint>()
+    internal var edits       = hashSetOf<Edit>()
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -387,9 +433,18 @@ public class ConstraintDslContext internal constructor() {
         (parent as ParentBoundsImpl).update(size, min, max, insets)
     }
 
+    public fun reset() {
+        pendingAdd  = null
+        constraints = hashSetOf()
+        edits       = hashSetOf()
+    }
+
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
-        else                             -> Result.success(constraint).also { constraints += constraint }
+        else                             -> Result.success(constraint).also {
+            pendingAdd?.let { constraints.add(it) }
+            pendingAdd = constraint
+        }
     }
 
     private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
@@ -508,48 +563,10 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
-        private var  value          = 0.0
-        override var constrained    = false
-        override val needsSynthetic = false
-        override var isReadOnly     = false
+    public val Expression.preserve: Unit get() = this preserve Required
 
-        override fun invoke() = value
-
-        override fun invoke(value: Double) {
-            this.value = value
-        }
-
-        override fun toString() = name
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is LocalVariable) return false
-
-            if (isReadOnly != other.isReadOnly) return false
-            if (name != other.name) return false
-            if (referent != other.referent) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = isReadOnly.hashCode()
-            result = 31 * result + name.hashCode()
-            result = 31 * result + (referent?.hashCode() ?: 0)
-            return result
-        }
-    }
-
-    private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
-        override var isReadOnly = true
-        override fun toString() = "readonly -> $referent"
-    }
-
-    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
-        override var constrained    = source.constrained
-        override val needsSynthetic = false
-        override var isReadOnly     = true
-        override fun toString()     = "readonly($source)"
+    public infix fun Expression.preserve(strength: Strength) {
+        this eq this.value strength strength
     }
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)

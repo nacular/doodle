@@ -116,8 +116,8 @@ internal class TextMetricsImpl(
                     alignment   = Start,
                     lineSpacing = null,
                     textSpacing = textSpacing,
-                    possible    = wrappedElement,
-                ).also { wrappedElement = it })
+//                    possible    = wrappedElement,
+                )/*.also { wrappedElement = it }*/)
 
                 box.style.setWidth(width)
 
@@ -137,9 +137,14 @@ internal class TextMetricsImpl(
         when {
             canvasNotSupported(default) -> {
                 // Special check for empty added to avoid font black-holing if first text checked is empty string
-                elementRuler.height(textFactory.create(text.takeUnless { it.isBlank() } ?: " ", font, textSpacing = default))
+                elementRuler.height(textFactory.create(
+                    text.takeUnless { it.isBlank() } ?: " ",
+                    font,
+                    textSpacing = default,
+                    possible    = element
+                ).also { element = it })
             }
-            else -> textSize(text, POSITIVE_INFINITY, font, DEFAULT_LINE_SPACING, default).totalHeight
+            else -> textSize(text, POSITIVE_INFINITY, font, null, default).totalHeight
         }
     }
 
@@ -313,16 +318,15 @@ internal class TextMetricsImpl(
         renderingContext.wordSpacing   = "${max(0.0, textSpacing.wordSpacing  )}px"
         renderingContext.letterSpacing = "${max(0.0, textSpacing.letterSpacing)}px"
 
-        val paragraphs   = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
-//        var totalLines   = 0
+        val paragraphs = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
 
         // Mutable trackers initialized from the incoming cursor state
-        var runningX = cursor.currentX
-        var runningY = cursor.currentY
-        var lineCount = cursor.totalLines
+        var runningX     = cursor.currentX
+        var runningY     = cursor.currentY
+        var lineCount    = cursor.totalLines
         var maxLineWidth = cursor.maxLineWidthReached
 
-        val lineHeight = (lineSpacing ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
+        val lineHeight   = (lineSpacing ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
 
         paragraphs.forEachIndexed { index, paragraph ->
             val words = paragraph.split(" ")
@@ -368,18 +372,17 @@ internal class TextMetricsImpl(
         }
 
         val finalCursor = LayoutCursor(
-            currentX = runningX,
-            currentY = runningY,
-            totalLines = lineCount,
+            currentX            = runningX,
+            currentY            = runningY,
+            totalLines          = lineCount,
             maxLineWidthReached = maxLineWidth
         )
 
         return ChainedTextDimensions(
-            nextCursor = finalCursor,
-            totalWidth = maxLineWidth,
-            // Height spans from top 0.0 to the baseline layout block height of our final line
+            nextCursor  = finalCursor,
+            totalWidth  = maxLineWidth,
             totalHeight = runningY + lineHeight,
-            linesCount = lineCount
+            linesCount  = lineCount
         )
     }
 
@@ -404,8 +407,4 @@ internal class TextMetricsImpl(
             || noFontSupport
             || (textSpacing.wordSpacing   >= 0.0 && noWordSpacingSupport  )
             || (textSpacing.letterSpacing >= 0.0 && noLetterSpacingSupport)
-
-    companion object {
-        private val DEFAULT_LINE_SPACING = null as Float?
-    }
 }

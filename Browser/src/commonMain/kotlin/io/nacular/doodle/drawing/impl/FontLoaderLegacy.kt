@@ -22,7 +22,8 @@ internal class FontLoaderLegacy(
         private val systemStyler: SystemStyler,
         private val textFactory : TextFactory,
         private val elementRuler: ElementRuler,
-        private val scheduler   : Scheduler): FontLoader {
+        private val scheduler   : Scheduler
+): FontLoader {
 
     private val loadedFonts = mutableSetOf<Pair<String, FontInfo>>()
 
