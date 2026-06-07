@@ -660,10 +660,9 @@ public open class Carousel<T, M: ListModel<T>>(
     }
 
     internal fun update() {
-        if (updating) return
-        updating = true
+        if (updating || model.isEmpty) return
 
-        if (model.isEmpty) return
+        updating = true
 
         ignoreChildBoundsChanges = true
 
