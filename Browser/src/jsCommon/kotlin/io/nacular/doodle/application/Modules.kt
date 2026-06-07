@@ -182,7 +182,7 @@ public class Modules private constructor() {
 
         /** Enable use of [PathMetrics]. */
         public val PathModule: Module = Module(allowSilentOverride = true, name = "Path") {
-            bindSingleton<PathMetrics>{ PathMetricsImpl(instance()) }
+            bindSingleton<PathMetrics>{ PathMetricsImpl(instance(), instance()) }
         }
 
         /** Enable use of [UserPreferences]. */

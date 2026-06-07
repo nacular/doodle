@@ -19,22 +19,31 @@ import io.nacular.doodle.drawing.TextMetrics
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.maxFont
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.TextSpacing
 import io.nacular.doodle.text.TextSpacing.Companion.default
 import io.nacular.doodle.utils.LeastRecentlyUsedCache
 import io.nacular.doodle.utils.TextAlignment.Start
+import io.nacular.doodle.utils.autoCanceling
 import io.nacular.doodle.utils.splitMatches
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+import io.nacular.measured.units.Time.Companion.seconds
+import io.nacular.measured.units.times
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.max
 
 internal class TextMetricsImpl(
+    private val scheduler     : Scheduler,
     private val textFactory   : TextFactory,
     private val htmlFactory   : HtmlFactory,
     private val elementRuler  : ElementRuler,
     private val fontSerializer: FontSerializer,
                 cacheLength   : Int,
     private val noFontSupport : Boolean = false,
+    private val cleanupDelay  : Measure<Time> = 5 * seconds,
 ): TextMetrics {
     private data class TextInfo        (val text: String,     val font: Font?,   val textSpacing: TextSpacing = default)
     private data class StyledTextInfo  (val text: AnnotatedString, val textSpacing: TextSpacing = default)
@@ -70,25 +79,34 @@ internal class TextMetricsImpl(
     private val noWordSpacingSupport   = (renderingContext.wordSpacing   == null)
     private val noLetterSpacingSupport = (renderingContext.letterSpacing == null)
 
+    private fun addElementToRoot(element: HTMLElement) {
+        if (element.parent == null) {
+            element.style.setPosition(Point(0, 10_000))
+            htmlFactory.root.insert(element, 0)
+        }
+    }
+
+    private var elementTask: Task? by autoCanceling()
+
     private var element: HTMLElement? = null; set(value) {
         if (field != value) {
-            field = value?.also {
-                if (it.parent == null) {
-                    it.style.setPosition(Point(0, 10_000))
-                    htmlFactory.root.insert(it, 0)
-                }
-            }
+            field = value?.also { addElementToRoot(it) }
+        }
+
+        elementTask = scheduler.after(cleanupDelay) {
+            field?.remove()
+            field = null
         }
     }
 
     private var wrappedElement: HTMLElement? = null; set(value) {
         if (field != value) {
-            field = value?.also {
-                if (it.parent == null) {
-                    it.style.setPosition(Point(0, 10_000))
-                    htmlFactory.root.insert(it, 0)
-                }
-            }
+            field = value?.also { addElementToRoot(it) }
+        }
+
+        elementTask = scheduler.after(cleanupDelay) {
+            field?.remove()
+            field = null
         }
     }
 
