@@ -17,6 +17,7 @@ import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
@@ -54,29 +55,50 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
+    private val ReflectionVariable.targeted get() = constrained || edited
+
     fun commit() {
-        if (top.constrained ) target.y = y_
-        if (left.constrained) target.x = x_
+        if (top.targeted ) target.y = y_
+        if (left.targeted) target.x = x_
 
-        if (width.constrained) {
-            target.width = width_
+        when {
+            width.constrained -> {
+                target.width = width_
 
-//            if (solver.isUnderConstrained(width)) {
                 solver.computeRange(width, min = 0.0).let {
                     target.minSize = Size(it.start,        target.minSize.height)
                     target.maxSize = Size(it.endInclusive, target.maxSize.height)
                 }
-//            }
-        }
-        if (height.constrained) {
-            target.height = height_
+            }
+            width.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
 
-//            if (solver.isUnderConstrained(height)) {
+                target.width = width_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
+            }
+        }
+
+        when {
+            height.constrained -> {
+                target.height = height_
+
                 solver.computeRange(height, min = 0.0).let {
                     target.minSize = Size(target.minSize.width, it.start       )
                     target.maxSize = Size(target.maxSize.width, it.endInclusive)
                 }
-//            }
+            }
+            height.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
+
+                target.height = height_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
+            }
         }
     }
 
@@ -114,6 +136,7 @@ internal class ReflectionVariable(
     override val variable get() = this
     override var isReadOnly     = false
     override var constrained    = false
+    override var edited         = false
 
     override fun invoke() = delegate()
 
@@ -215,7 +238,7 @@ internal open class ConstraintLayoutImpl(
 
         viewBounds.values.forEach { it.reset() }
 
-        setupSolver(solver, context, blockTracker.values, ::notifyOfErrors)
+        setupSolver(solver, context, blockTracker.values, parentWidthPreservation, parentHeightPreservation, ::notifyOfErrors)
         solve      (solver, blockTracker.values.asSequence().flatMap { it.constraints })
 
         layingOut = false
@@ -277,21 +300,21 @@ internal open class ConstraintLayoutImpl(
 
     internal companion object {
         fun setupSolver(
-            solver         : Solver,
-            context        : ConstraintDslContext,
-            blocks         : Collection<BlockInfo>,
-            errorHandler   : (ConstraintException) -> Unit
+            solver                  : Solver,
+            context                 : ConstraintDslContext,
+            blocks                  : Collection<BlockInfo>,
+            parentWidthPreservation : Strength = Strong,
+            parentHeightPreservation: Strength = Strong,
+            errorHandler            : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
             val oldEdits       = context.edits
-
-            oldConstraints.forEach { it.expression.terms.forEach { it.variable.constrained = false } }
 
             context.reset()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
-                    constrainParent(width, height, min, max)
+                    constrainParent(width, parentWidthPreservation, height, parentHeightPreservation, min, max)
                 }
             }
 
@@ -303,8 +326,6 @@ internal open class ConstraintLayoutImpl(
                 context.constraints.add(it)
                 context.pendingAdd = null
             }
-
-            context.constraints.forEach { it.expression.terms.forEach { it.variable.constrained = true } }
 
             for (constraint in oldConstraints) {
                 if (constraint !in context.constraints) {
@@ -337,6 +358,7 @@ internal open class ConstraintLayoutImpl(
             for (edit in context.edits) {
                 if (edit !in oldEdits) {
                     doTrying(errorHandler) {
+                        edit.property.edited = true
                         solver.addEditVariable(edit.property, edit.strength)
                         solver.suggestValue   (edit.property, edit.value   )
                     }
@@ -358,7 +380,7 @@ internal open class ConstraintLayoutImpl(
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                newVariables.filter { it.variable.needsSynthetic }.forEach {
+                newVariables.filter { it.variable.constrained = true; it.variable.needsSynthetic }.forEach {
                     try {
                         // Add synthetic constraints that keep width and height positive
                         solver.addNegativeGuard(it.variable)
@@ -400,16 +422,28 @@ internal open class ConstraintLayoutImpl(
             }
         }
 
-        private fun ConstraintDslContext.constrainParent(width: Expression, height: Expression, min: Size, max: Size) {
-            constrainSide(width,  min.width,  max.width )
-            constrainSide(height, min.height, max.height)
+        private fun ConstraintDslContext.constrainParent(
+            width         : Expression,
+            widthStrength : Strength,
+            height        : Expression,
+            heightStrength: Strength,
+            min           : Size,
+            max           : Size
+        ) {
+            constrainSide(width,  min.width,  max.width,  widthStrength )
+            constrainSide(height, min.height, max.height, heightStrength)
         }
 
-        private fun ConstraintDslContext.constrainSide(property: Expression, minExtent: Double, maxExtent: Double) {
+        private fun ConstraintDslContext.constrainSide(
+            property : Expression,
+            minExtent: Double,
+            maxExtent: Double,
+            strength : Strength,
+        ) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {
-                    property preserve Strong // FIXME: REMOVE and let user choose
+                    property preserve strength
 
                     if (minExtent > 0.0              ) { property greaterEq maxExtent }
                     if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }

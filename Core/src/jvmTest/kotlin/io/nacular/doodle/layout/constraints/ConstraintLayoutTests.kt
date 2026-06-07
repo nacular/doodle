@@ -682,6 +682,19 @@ class ConstraintLayoutTests {
         }
     }
 
+    @Test fun `hint alone works`() {
+        val child = NamedView("child")
+
+        val layout = constrain(child) {
+            it.width hint 1200
+        }
+
+        layout.layout(sequenceOf(child.positionable), Empty, Empty, Infinite).also { child.positionable.finalize() }
+
+        expect(1200.0) { child.width }
+    }
+
+
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
     }

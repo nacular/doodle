@@ -8,10 +8,10 @@ import io.mockk.verify
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.Solver
-import org.junit.jupiter.api.Test
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.test.Test
 import kotlin.test.expect
 
 /**
@@ -581,6 +581,24 @@ class SolverTests {
                 updateVariables()
 
                 expect(range) { computeRange(b) }
+            }
+        }
+    }
+
+    @Test fun `hint alone works`() {
+        val property = property("a")
+
+        listOf(
+            constraints {
+                property hint 1200
+            } to 1200.0
+        ).forEach { (constraints, value) ->
+            Solver().apply {
+                sync(constraints)
+
+                updateVariables()
+
+                expect(value) { property() }
             }
         }
     }

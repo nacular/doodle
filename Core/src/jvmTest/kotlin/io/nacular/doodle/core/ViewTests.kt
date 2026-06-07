@@ -1095,7 +1095,7 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
-    @Test fun `scroll to works`() {
+    @Test fun `scroll to point panel direct parent works`() {
         val view  = view { suggestSize(Size(100)) }
 
         val panel = spyk<ScrollPanel>().apply {
@@ -1103,6 +1103,63 @@ class ViewTests {
         }
 
         panel.content = view
+
+        val point = Point(0, 55)
+
+        view.scrollTo(point)
+
+        verify {
+            panel.scrollToVisible(point)
+            panel.scrollTo       (point)
+        }
+    }
+
+    @Test fun `scroll to point panel in-direct parent works`() {
+        val view   = view {}.apply { forceSize(Size(100)) }
+        val parent = container { +view }.apply { forceSize(Size(50)) }
+        val panel  = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = parent
+
+        val point = Point(0, 55)
+
+        view.scrollTo(point)
+
+        verify {
+            panel.scrollToVisible(point)
+            panel.scrollTo       (point)
+        }
+    }
+
+    @Test fun `scroll to rect panel direct parent works`() {
+        val view  = view { suggestSize(Size(100)) }
+
+        val panel = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = view
+
+        val rect = Rectangle(0, 55, 10, 10)
+
+        view.scrollTo(rect)
+
+        verify {
+            panel.scrollToVisible(rect)
+            panel.scrollTo       (any()) // FIXME: This causes mockk to hang, maybe b/c it's a recursive method
+        }
+    }
+
+    @Test fun `scroll to rect panel in-direct parent works`() {
+        val view   = view {}.apply { forceSize(Size(100)) }
+        val parent = container { +view }.apply { forceSize(Size(50)) }
+        val panel  = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = parent
 
         val rect = Rectangle(0, 55, 10, 10)
 

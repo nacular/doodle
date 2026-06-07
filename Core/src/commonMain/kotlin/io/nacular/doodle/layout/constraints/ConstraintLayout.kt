@@ -14,6 +14,7 @@ import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
@@ -186,6 +187,32 @@ public abstract class ConstraintLayout internal constructor(): Layout {
      * Notified whenever an unhandled [ConstraintException] is thrown during layout.
      */
     public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
+
+    /**
+     * Indicates how much the `parent` should preserve its [width][ParentBounds.width]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.width eq max(chil1.width, child2.width)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's width will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentWidthPreservation: Strength = Strong
+
+    /**
+     * Indicates how much the `parent` should preserve its [height][ParentBounds.height]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.height eq max(chil1.height, child2.height)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's height will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentHeightPreservation: Strength = Strong
 }
 
 /**
@@ -380,6 +407,7 @@ public class ConstraintDslContext internal constructor() {
 
     private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
         private var  value          = 0.0
+        override var edited         = false
         override var constrained    = false
         override val needsSynthetic = false
         override var isReadOnly     = false
@@ -1092,10 +1120,10 @@ public class Constrainer: Layout {
 
     // Only implemented to allow usage of Positionable properties
     override fun layout(
-        views: Sequence<Positionable>,
-        min: Size,
+        views  : Sequence<Positionable>,
+        min    : Size,
         current: Size,
-        max: Size,
-        insets: Insets
+        max    : Size,
+        insets : Insets
     ): Size = Size.Empty
 }

@@ -121,6 +121,7 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 
 internal interface Variable {
     val name          : String
+    var edited        : Boolean
     var isReadOnly    : Boolean
     var constrained   : Boolean
     val needsSynthetic: Boolean
