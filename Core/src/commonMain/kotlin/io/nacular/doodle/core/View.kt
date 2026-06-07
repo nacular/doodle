@@ -1046,14 +1046,14 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var layoutNeeded = true
     private val needsLayout get() = layoutNeeded || renderManager?.layoutNeeded(this) != false
 
-    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) {
+    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size): Size {
         if (min == allowedMinSize && max == allowedMaxSize) {
             renderManager?.performedLayout(this)
         }
 
         layoutNeeded = false
 
-        layout.layout(
+        return layout.layout(
             children.asSequence().map {
                 it.positionable
             },
@@ -1061,9 +1061,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             max     = max,
             current = current,
             insets  = insets
-        )
-
-        children.forEach { it.positionable.finalize() }
+        ).also {
+            children.forEach { it.positionable.finalize() }
+        }
     }
 
     internal fun syncBounds() {
@@ -1082,10 +1082,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         if (!needsLayout) return
 
         layout?.let {
-            doLayout(it, min = min, max = max, current = current)
+            val layoutSize = doLayout(it, min = min, max = max, current = current)
 
             parent?.let { parent ->
-                if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
+                if (min != max && preferredSize == defaultPreferredSize && layoutSize.coerceIn(min, max) != size) {
                     parent.relayout()
                 }
             }
