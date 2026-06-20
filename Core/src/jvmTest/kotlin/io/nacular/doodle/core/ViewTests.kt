@@ -40,6 +40,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.coerceIn
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
@@ -492,8 +493,11 @@ class ViewTests {
         val child = view {}.apply { sizeAuditor = auditor }
         val parent = container {
             + child
-            layout = simpleLayout { views, min, current, max, insets ->
-                views.forEach { it.updateBounds(0.0, 0.0, Size.Empty, Size.Infinite) }
+            layout = simpleLayout { views,_,current,_,_ ->
+                views.forEach {
+                    it.position = Origin
+                    it.size     = it.idealSize
+                }
 
                 current
             }
@@ -516,8 +520,11 @@ class ViewTests {
         val child = view {}.apply { sizeAuditor = auditor }
         val parent = container {
             + child
-            layout = simpleLayout { views, _, current, _, insets ->
-                views.forEach { it.updateBounds(0.0, 0.0, min, max) }
+            layout = simpleLayout { views,_,current,_,_ ->
+                views.forEach {
+                    it.position = Origin
+                    it.size     = it.preferredSize(min, max)
+                }
 
                 current
             }
@@ -1088,7 +1095,45 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
-    @Test fun `scroll to works`() {
+    @Test fun `scroll to point panel direct parent works`() {
+        val view  = view { suggestSize(Size(100)) }
+
+        val panel = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = view
+
+        val point = Point(0, 55)
+
+        view.scrollTo(point)
+
+        verify {
+            panel.scrollToVisible(point)
+            panel.scrollTo       (point)
+        }
+    }
+
+    @Test fun `scroll to point panel in-direct parent works`() {
+        val view   = view {}.apply { forceSize(Size(100)) }
+        val parent = container { +view }.apply { forceSize(Size(50)) }
+        val panel  = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = parent
+
+        val point = Point(0, 55)
+
+        view.scrollTo(point)
+
+        verify {
+            panel.scrollToVisible(point)
+            panel.scrollTo       (point)
+        }
+    }
+
+    @Test fun `scroll to rect panel direct parent works`() {
         val view  = view { suggestSize(Size(100)) }
 
         val panel = spyk<ScrollPanel>().apply {
@@ -1107,21 +1152,40 @@ class ViewTests {
         }
     }
 
+    @Test fun `scroll to rect panel in-direct parent works`() {
+        val view   = view {}.apply { forceSize(Size(100)) }
+        val parent = container { +view }.apply { forceSize(Size(50)) }
+        val panel  = spyk<ScrollPanel>().apply {
+            suggestSize(Size(50))
+        }
+
+        panel.content = parent
+
+        val rect = Rectangle(0, 55, 10, 10)
+
+        view.scrollTo(rect)
+
+        verify {
+            panel.scrollToVisible(rect)
+            panel.scrollTo       (any()) // FIXME: This causes mockk to hang, maybe b/c it's a recursive method
+        }
+    }
+
     @Test fun `new bounds works`() {
         val child  = view {}
         val parent = container {
             + child
 
             suggestSize(Size(100))
-            layout = simpleLayout { items, min, _, max, _ ->
+            layout = simpleLayout { items,min,_,max,_ ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
                 items.forEach {
-                    it.updateBounds(it.position.x, it.position.y, min, max).apply {
-                        maxRight  = it.bounds.right
-                        maxBottom = it.bounds.bottom
-                    }
+                    it.assumeAnySize(min, max)
+
+                    maxRight  = it.right
+                    maxBottom = it.bottom
                 }
 
                 Size(maxRight, maxBottom)
@@ -1140,12 +1204,7 @@ class ViewTests {
         expect(Size(child.bounds.right, child.bounds.bottom)) { parent.idealSize }
     }
 
-    private class SubView: View() {
-        public override fun handleKeyEvent          (event: KeyEvent               ) { super.handleKeyEvent          (event   ) }
-        public override fun handlePointerEvent      (event: PointerEvent           ) { super.handlePointerEvent      (event   ) }
-        public override fun handleDisplayRectEvent  (old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent  (old, new) }
-        public override fun handlePointerMotionEvent(event: PointerEvent           ) { super.handlePointerMotionEvent(event   ) }
-    }
+    private class SubView: View()
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
         val view     = object: View() {}

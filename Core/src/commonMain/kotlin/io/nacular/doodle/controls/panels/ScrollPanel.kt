@@ -16,10 +16,9 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
-import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
-import io.nacular.doodle.layout.constraints.IdealSizedProperty
+import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -85,6 +84,21 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
  */
 @Suppress("PropertyName", "LeakingThis")
 public open class ScrollPanel(content: View? = null): View() {
+    public interface ContentSize {
+        /** The content's horizontal extent */
+        public val width: Property
+
+        /** The content's vertical extent */
+        public val height: Property
+
+        /** The content's ideal size */
+        public val idealSize: Size
+
+        public val idealWidth: Double get() = idealSize.width
+
+        public val idealHeight: Double get() = idealSize.height
+    }
+
     private val parentChanged_: (View, View?, View?) -> Unit = { view, old, new ->
         if (old == this) this.content = null
         if (new == this) this.content = view
@@ -133,15 +147,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /** Notifies of changes to [content]. */
     public val contentChanged: PropertyObservers<ScrollPanel, View?> = PropertyObserversImpl(this)
 
-    /** Determines how the [content] width changes as the panel resizes */
-    public var contentWidthConstraints: (ConstraintDslContext.(IdealSizedProperty) -> Result<Constraint>)? = null; set(new) {
-        field = new
-
-        (layout as? ConstraintLayout)?.also { updateConstraints(it) }
-    }
-
-    /** Determines how the [content] height changes as the panel resizes */
-    public var contentHeightConstraints: (ConstraintDslContext.(IdealSizedProperty) -> Result<Constraint>)? = null; set(new) {
+    public var contentConstraints: (ConstraintDslContext.(ContentSize) -> Unit)? = null; set(new) {
         field = new
 
         (layout as? ConstraintLayout)?.also { updateConstraints(it) }
@@ -189,19 +195,14 @@ public open class ScrollPanel(content: View? = null): View() {
     internal var _layout           get() = layout;           set(new) { layout           = new }
     internal var _isFocusCycleRoot get() = isFocusCycleRoot; set(new) { isFocusCycleRoot = new }
 
-    private val contentConstraints: ConstraintDslContext.(Bounds) -> Unit = {
+    private val contentConstraints_: ConstraintDslContext.(Bounds) -> Unit = {
         it.top  eq -scroll.y
         it.left eq -scroll.x
 
-        contentWidthConstraints?.invoke(this, object : IdealSizedProperty() {
-            override val idealValue get() = it.idealWidth
-            override val readOnly   get() = it.width.readOnly
-            override fun toTerm()         = it.width.toTerm()
-        })
-        contentHeightConstraints?.invoke(this, object : IdealSizedProperty() {
-            override val idealValue get() = it.idealHeight
-            override val readOnly   get() = it.height.readOnly
-            override fun toTerm()         = it.height.toTerm()
+        contentConstraints?.invoke(this, object: ContentSize {
+            override val width    : Property get() = it.width
+            override val height   : Property get() = it.height
+            override val idealSize: Size     get() = it.idealSize
         })
     }
 
@@ -218,7 +219,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /**
      * Used to avoid layouts on scroll
      */
-    private inner class CustomLayout: ConstraintLayoutImpl(content ?: view {}, originalLambda = contentConstraints, block = { (a) -> contentConstraints(a) }) {
+    private inner class CustomLayout: ConstraintLayoutImpl(content ?: view {}, originalLambda = contentConstraints_, block = { (a) -> contentConstraints_(a) }) {
         override fun requiresLayout(child: Positionable, within: Size, old: Rectangle, new: Rectangle) = when {
             old.size.fastEquals(new.size) -> false
             else                          -> super.requiresLayout(child, within, old, new)
@@ -331,12 +332,12 @@ public open class ScrollPanel(content: View? = null): View() {
     }
 
     private fun clearConstrains(layout: ConstraintLayout) {
-        content?.let { layout.unconstrain(it, contentConstraints) }
+        content?.let { layout.unconstrain(it, contentConstraints_) }
     }
 
     private fun updateConstraints(layout: ConstraintLayout) {
         content?.let { content ->
-            layout.constrain(content, contentConstraints)
+            layout.constrain(content, contentConstraints_)
         }
     }
 }

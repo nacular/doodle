@@ -3,34 +3,39 @@ package io.nacular.doodle.layout.constraints
 import io.nacular.doodle.core.Internal
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.Positionable.BoundsUpdateContext
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.position
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.solve
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
-import io.nacular.doodle.layout.constraints.impl.ReflectionVariable
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
+import kotlin.jvm.JvmName
 
 
-public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges  }
-public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.center eq parent.center }
+public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges                              }
+public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.size hint it.size.value; it.center eq parent.center }
 
 public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) strength strength }
 public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) strength strength }
-public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.center eq parent.center        ) strength strength }
+public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = {
+    it.size   hint it.size.value strength strength
+    it.center eq   parent.center strength strength
+}
 
 /**
  * A [Layout] that positions Views using a set of constraints. These layouts are created using
@@ -183,19 +188,39 @@ public abstract class ConstraintLayout internal constructor(): Layout {
      * Notified whenever an unhandled [ConstraintException] is thrown during layout.
      */
     public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
+
+    /**
+     * Indicates how much the `parent` should preserve its [width][ParentBounds.width]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.width eq max(chil1.width, child2.width)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's width will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentWidthPreservation: Strength = Strong
+
+    /**
+     * Indicates how much the `parent` should preserve its [height][ParentBounds.height]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.height eq max(chil1.height, child2.height)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's height will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentHeightPreservation: Strength = Strong
 }
 
 /**
  * Simple value within a [Bounds] set.
  */
-public abstract class Property internal constructor() {
-    /**
-     * Provides the Property's value directly, and does not treat it as
-     * a variable when used in a [Constraint]. This means the Property won't be
-     * altered to try and satisfy the constraint.
-     */
-    public abstract val readOnly: Double
-
+public abstract class Property internal constructor(): Expression() {
+    internal abstract val variable: Variable
     internal abstract fun toTerm(): Term
 }
 
@@ -220,19 +245,19 @@ public class Position internal constructor(internal val left: Expression, intern
      * a variable when used in a [Constraint]. This means the Position won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Point get() = Point(x = left.value, y = top.value)
+    public val value: Point get() = Point(x = left.value, y = top.value)
 }
 
 /**
  * 2-Dimensional value within a [Bounds] set.
  */
-public class Area internal constructor(internal val width: Expression, internal val height: Expression) {
+public class Area internal constructor(internal val width: Property, internal val height: Property) {
     /**
      * Provides the Area's value directly, and does not treat it as
      * a variable when used in a [Constraint]. This means the Area won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Size get() = Size(width = width.value, height = height.value)
+    public val value: Size get() = Size(width = width.value, height = height.value)
 }
 
 /**
@@ -249,7 +274,7 @@ public class Edges internal constructor(
      * a variable when used in a [Constraint]. This means the Edges won't be
      * altered to try and satisfy the constraint.
      */
-    public val readOnly: Rectangle get() {
+    public val value: Rectangle get() {
         val x = left?.value ?: 0.0
         val y = top?.value  ?: 0.0
         return Rectangle(x = x, y = y, width = right.value - x, height = bottom.value - y)
@@ -266,10 +291,10 @@ public interface AllowsForcedMutation<T, V> {
  */
 public interface Bounds {
     /** The rectangle's top edge */
-    public val top: Expression
+    public val top: Property
 
     /** The rectangle's left edge */
-    public val left: Expression
+    public val left: Property
 
     /** The rectangle's vertical extent */
     public val height: Property
@@ -365,8 +390,8 @@ public class DuplicateConstraintException(public val constraint: Constraint): Co
  * Indicates a [Constraint] is unsatisfiable.
  */
 public class UnsatisfiableConstraintException(
-    public val constraint: Constraint,
-    public val existingConstraints: Collection<Constraint>
+    public val constraint         : Constraint,
+               existingConstraints: Collection<Constraint>
 ): ConstraintException("""
     Failed Constraint: $constraint
     
@@ -380,7 +405,55 @@ public class UnsatisfiableConstraintException(
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class ConstraintDslContext internal constructor() {
-    internal var constraints = mutableListOf<Constraint>()
+
+    private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
+        private var  value          = 0.0
+        override var edited         = false
+        override var constrained    = false
+        override val needsSynthetic = false
+        override var isReadOnly     = false
+
+        override fun invoke() = value
+
+        override fun invoke(value: Double) {
+            this.value = value
+        }
+
+        override fun toString() = name
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is LocalVariable) return false
+
+            if (isReadOnly != other.isReadOnly) return false
+            if (name != other.name) return false
+            if (referent != other.referent) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = isReadOnly.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + (referent?.hashCode() ?: 0)
+            return result
+        }
+    }
+
+    private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
+        override var isReadOnly = true
+        override fun toString() = "readonly -> $referent"
+    }
+
+    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
+        override var constrained    = source.constrained
+        override val needsSynthetic = false
+        override var isReadOnly     = true
+        override fun toString()     = "readonly($source)"
+    }
+
+    internal var pendingAdd  = null as Constraint?
+    internal var constraints = hashSetOf<Constraint>()
+    internal var edits       = hashSetOf<Edit>()
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -389,80 +462,119 @@ public class ConstraintDslContext internal constructor() {
         (parent as ParentBoundsImpl).update(size, min, max, insets)
     }
 
+    public fun reset() {
+        pendingAdd  = null
+        constraints = hashSetOf()
+        edits       = hashSetOf()
+    }
+
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
-        else                             -> Result.success(constraint).also { constraints += constraint }
+        else                             -> Result.success(constraint).also {
+            pendingAdd?.let { constraints.add(it) }
+            pendingAdd = constraint
+        }
     }
+
+    private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
 
     public operator fun Property.plus(expression: Expression): Expression = expression + this
     public operator fun Property.plus(term      : Term      ): Expression = term + this
     public operator fun Property.plus(other     : Property  ): Expression = this.toTerm() + other
-    public operator fun Property.plus(constant  : Number    ): Expression = this.toTerm() + constant.toDouble()
+    public operator fun Property.plus(constant  : Number    ): Expression = this + constant.toDouble()
+    public operator fun Property.plus(constant  : Double    ): Expression = this.toTerm() + constant
 
     public operator fun Property.minus(expression: Expression): Expression = this + -expression
     public operator fun Property.minus(term      : Term      ): Expression = this + -term
     public operator fun Property.minus(other     : Property  ): Expression = this + -other
-    public operator fun Property.minus(constant  : Number    ): Expression = this + -constant.toDouble()
-
-    public operator fun Property.times     (coefficient: Number): Term = this.toTerm() * coefficient.toDouble()
-    public operator fun Property.div       (denominator: Number): Term = this * 1.0 / denominator
-    public operator fun Property.unaryMinus(                   ): Term = this * -1.0
+    public operator fun Property.minus(constant  : Number    ): Expression = this - constant.toDouble()
+    public operator fun Property.minus(constant  : Double    ): Expression = this + -constant
 
     /**
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
      * ```
-     * this eq this.readOnly
+     * this eq this.preserve Required
      * ```
      */
-    public val Property.preserve: Result<Constraint> get() = this eq this.readOnly
+    public val Property.preserve: Unit get() = this preserve Required
 
-//    public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
-//    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
-//    public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
-//    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
-//
-//    public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
-//    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
-//    public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
-//    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
+    /**
+     * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
+     *
+     * ```
+     * this eq this.value
+     * ```
+     */
+    public infix fun Property.preserve(strength: Strength) { this eq this.value strength strength }
+
+    public infix fun Property.hint(value: Number): Result<Edit> = this hint value.toDouble()
+    public infix fun Property.hint(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
+
+    public infix fun Area.hint(value: Size): Result<List<Edit>> = runCatching {
+        listOf(
+            add(Edit(width.variable,  value.width,  Required - 1)),
+            add(Edit(height.variable, value.height, Required - 1))
+        ).map { it.getOrThrow() }.toList()
+    }
+
+    public fun min(a: Property, b: Term      ): Expression = min(1 * a, b)
+    public fun min(a: Property, b: Number    ): Expression = min(1 * a, Expression(constant = b.toDouble()))
+    public fun min(a: Property, b: Double    ): Expression = min(1 * a, Expression(constant = b))
+    public fun min(a: Property, b: Property  ): Expression = min(a.toTerm(), b.toTerm())
+    public fun min(a: Property, b: Expression): Expression = min(1 * a, b)
+
+    public fun max(a: Property, b: Term      ): Expression = max(1 * a, b)
+    public fun max(a: Property, b: Number    ): Expression = max(1 * a, Expression(constant = b.toDouble()))
+    public fun max(a: Property, b: Double    ): Expression = max(1 * a, Expression(constant = b))
+    public fun max(a: Property, b: Property  ): Expression = max(a.toTerm(), b.toTerm())
+    public fun max(a: Property, b: Expression): Expression = max(1 * a, b)
 
     public operator fun Term.plus(term      : Term      ): Expression = Expression(this, term)
     public operator fun Term.plus(value     : Number    ): Expression = Expression(this, constant = value.toDouble())
+    public operator fun Term.plus(value     : Double    ): Expression = Expression(this, constant = value)
     public operator fun Term.plus(property  : Property  ): Expression = this + property.toTerm()
     public operator fun Term.plus(expression: Expression): Expression = expression + this
 
     public operator fun Term.minus(term      : Term      ): Expression = this + -term
-    public operator fun Term.minus(constant  : Number    ): Expression = this + -constant.toDouble()
+    public operator fun Term.minus(constant  : Number    ): Expression = this -constant.toDouble()
+    public operator fun Term.minus(constant  : Double    ): Expression = this + -constant
     public operator fun Term.minus(property  : Property  ): Expression = this + -property
     public operator fun Term.minus(expression: Expression): Expression = -expression + this
 
     public operator fun Term.div       (denominator: Number): Term = this * (1.0 / denominator.toDouble())
+    public operator fun Term.div       (denominator: Double): Term = this * (1.0 / denominator)
     public operator fun Term.unaryMinus(                   ): Term = this * -1.0
 
-//    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-//    public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
-//    public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
-//    public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
-//
-//    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-//    public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
-//    public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
-//    public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
+    public fun min(a: Term, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Term, b: Double    ): Expression = min(a, Expression(constant = b))
+    public fun min(a: Term, b: Property  ): Expression = min(a, 1 * b    )
+    public fun min(a: Term, b: Expression): Expression = min(a + 0, b    )
+    public fun min(a: Term, b: Term      ): Expression = min(a + 0, b + 0)
 
-    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                 )
-    public operator fun Expression.plus(constant: Number    ): Expression = Expression(terms, constant = this.constant + constant.toDouble())
+    public fun max(a: Term, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Term, b: Double    ): Expression = max(a, Expression(constant = b))
+    public fun max(a: Term, b: Property  ): Expression = max(a, 1 * b    )
+    public fun max(a: Term, b: Expression): Expression = max(a + 0, b    )
+    public fun max(a: Term, b: Term      ): Expression = max(a + 0, b + 0)
+
+    public operator fun Expression.plus(term    : Term      ): Expression = Expression(*terms, term,         constant = constant                           )
+    public operator fun Expression.plus(constant: Number    ): Expression = Expression(*terms,               constant = this.constant + constant.toDouble())
+    public operator fun Expression.plus(constant: Double    ): Expression = Expression(*terms,               constant = this.constant + constant)
     public operator fun Expression.plus(property: Property  ): Expression = this + property.toTerm()
-    public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant)
+    public operator fun Expression.plus(other   : Expression): Expression = Expression(*terms, *other.terms, constant = constant + other.constant          )
 
     public operator fun Expression.minus(term    : Term      ): Expression = this + -term
     public operator fun Expression.minus(value   : Number    ): Expression = this + -value.toDouble()
+    public operator fun Expression.minus(value   : Double    ): Expression = this + -value
     public operator fun Expression.minus(property: Property  ): Expression = this + -property
     public operator fun Expression.minus(other   : Expression): Expression = this + -other
 
-    public operator fun Expression.times(coefficient: Number): Expression = Expression(
-        *Array(terms.size) { terms[it] * coefficient.toDouble() },
-        constant = constant * coefficient.toDouble()
+    public inline operator fun Expression.times(coefficient: Number): Expression = this * coefficient.toDouble()
+
+    public operator fun Expression.times(coefficient: Double): Expression = Expression(
+        *Array(terms.size) { terms[it] * coefficient },
+        constant = constant * coefficient
     ) // TODO Do we need to make a copy of the term objects in the array?
 
     public operator fun Expression.times(other: Expression): Expression = when {
@@ -472,6 +584,7 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public operator fun Expression.div(denominator: Number    ): Expression = this * (1.0 / denominator.toDouble())
+    public operator fun Expression.div(denominator: Double    ): Expression = this * (1.0 / denominator)
     public operator fun Expression.div(other      : Expression): Expression = when {
         other.isConstant -> this / other.constant
         else             -> throw NonlinearExpressionException()
@@ -479,56 +592,80 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-//    private class LocalVariable(override val name: String, ) : Variable {
-//        private var value = 0.0
-//        override var constrained = false
-//        override val needsSynthetic = false
-//        override val needsStability = false
-//
-//        override fun invoke() = value
-//
-//        override fun invoke(value: Double) {
-//            this.value = value
-//        }
-//
-//        override fun toString() = name
-//    }
-//
-//    public fun min(a: Expression, b: Term      ): Expression = min(a, b + 0)
-//    public fun min(a: Expression, b: Number    ): Expression = min(a, Expression(constant = b.toDouble()))
-//    public fun min(a: Expression, b: Property  ): Expression = min(a, 1 * b)
-//    public fun min(a: Expression, b: Expression): Expression {
-//        // see: https://or.stackexchange.com/questions/1160/how-to-linearize-min-function-as-a-constraint
-//
-//        val x = VariableTerm(LocalVariable("x"))
-//        val y = VariableTerm(LocalVariable("y"))
-//        val m = 1_000_000_000
-//
-//        x lessEq    a
-//        x lessEq    b
-//        x greaterEq a - m * y
-//        x greaterEq b - m * (1 - y)
-//
-//        return x + 0
-//    }
-//
-//    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
-//    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
-//    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
-//    public fun max(a: Expression, b: Expression): Expression {
-//        // see: https://or.stackexchange.com/questions/711/how-to-formulate-linearize-a-maximum-function-in-a-constraint
-//
-//        val x = VariableTerm(LocalVariable("x"))
-//        val y = VariableTerm(LocalVariable("y"))
-//        val m = 1_000_000_000
-//
-//        x greaterEq a
-//        x greaterEq b
-//        x lessEq    a + m * (1 - y)
-//        x lessEq    b + m * y
-//
-//        return x + 0
-//    }
+    public val Expression.preserve: Unit get() = this preserve Required
+
+    public infix fun Expression.preserve(strength: Strength) {
+        this eq this.value strength strength
+    }
+
+    public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
+    public fun min(a: Expression, b: Number                             ): Expression = min(a, Expression(constant = b.toDouble()))
+    public fun min(a: Expression, b: Double                             ): Expression = min(a, Expression(constant = b))
+    public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
+    public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
+        val expressions = listOf(a, b, *rest)
+        val x           = VariableTerm(object: LocalVariable("min($expressions)", expressions) {
+            override fun toString() = "min($expressions)"
+        })
+
+        expressions.forEach {
+            x lessEq    it
+            x greaterEq it strength Weak
+        }
+
+        return x + 0
+    }
+
+    public fun max(a: Expression, b: Term      ): Expression = max(a, b + 0)
+    public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
+    public fun max(a: Expression, b: Double    ): Expression = max(a, Expression(constant = b))
+    public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
+    public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
+        val expressions = listOf(a, b, *rest)
+        val x           = VariableTerm(object: LocalVariable("max($expressions)", expressions) {
+            override fun toString() = "max($expressions)"
+        })
+
+        expressions.forEach {
+            x greaterEq it
+            x lessEq    it strength Weak
+        }
+
+        return x + 0
+    }
+
+    /**
+     * Provides the Expression's value, but does not treat its contents as
+     * variables when used in a [Constraint]. This means the Expression's variables won't be
+     * altered to try and satisfy the constraint.
+     *
+     * ```
+     * a eq readonly(2 * b + c)
+     * ```
+     * will be treated as
+     *
+     * ```
+     * a eq (2 * 10 + 11)
+     * ```
+     *
+     * if `b == 10` and `c == 11`
+     */
+    public fun readonly(e: Expression): Expression {
+        val newExpression = ExpressionImpl(e.terms.map {
+            when (it.variable) {
+                is ReadOnlyVariableRef -> it
+                else                   -> VariableTerm(LocalReadOnlyVariable("readonly", it.variable))
+            }
+        }, e.constant)
+
+        val readOnly = VariableTerm(ReadOnlyVariableRef(e))
+
+        readOnly eq newExpression
+
+        return readOnly + 0
+    }
+
+    public fun lerp(first: Expression, second: Expression, fraction: Float): Expression = first + (second - first) * fraction
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
@@ -539,63 +676,50 @@ public class ConstraintDslContext internal constructor() {
     public operator fun Number.minus(expression: Expression): Expression = -expression + this.toDouble()
 
     public operator fun Number.times(term      : Term      ): Term       = term       * this.toDouble()
-    public operator fun Number.times(property  : Property  ): Term       = property   * this.toDouble()
+    public operator fun Number.times(property  : Property  ): Expression = property   * this.toDouble()
     public operator fun Number.times(expression: Expression): Expression = expression * this.toDouble()
 
-//    public fun min(a: Number, b: Term      ): Expression = min(b, a)
-//    public fun min(a: Number, b: Property  ): Expression = min(b, a)
-//    public fun min(a: Number, b: Expression): Expression = min(b, a)
-//
-//    public fun max(a: Number, b: Term      ): Expression = max(b, a)
-//    public fun max(a: Number, b: Property  ): Expression = max(b, a)
-//    public fun max(a: Number, b: Expression): Expression = max(b, a)
+    public fun min(a: Number, b: Term      ): Expression = min(b, a)
+    public fun min(a: Number, b: Property  ): Expression = min(b, a)
+    public fun min(a: Number, b: Expression): Expression = min(b, a)
+
+    public fun max(a: Number, b: Term      ): Expression = max(b, a)
+    public fun max(a: Number, b: Property  ): Expression = max(b, a)
+    public fun max(a: Number, b: Expression): Expression = max(b, a)
 
     public class NonlinearExpressionException : Exception()
 
     public infix fun Expression.eq(term    : Term      ): Result<Constraint> = this eq Expression(term)
-    public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
-    public infix fun Expression.eq(property: Property  ): Result<Constraint> = this eq property.toTerm()
+    public infix fun Expression.eq(constant: Number    ): Result<Constraint> = add(Constraint(Expression(*terms, constant = this.constant - constant.toDouble()), EQ, Required))//this eq Expression(constant = constant.toDouble())
     public infix fun Expression.eq(other   : Expression): Result<Constraint> = add(Constraint(this - other, EQ, Required))
 
     public infix fun Expression.lessEq(term    : Term      ): Result<Constraint> = this lessEq Expression(term)
     public infix fun Expression.lessEq(constant: Number    ): Result<Constraint> = this lessEq Expression(constant = constant.toDouble())
-    public infix fun Expression.lessEq(property: Property  ): Result<Constraint> = this lessEq property.toTerm()
+    public infix fun Expression.lessEq(constant: Double    ): Result<Constraint> = this lessEq Expression(constant = constant)
     public infix fun Expression.lessEq(other   : Expression): Result<Constraint> = add(Constraint(this - other, LE, Required))
 
     public infix fun Expression.greaterEq(term    : Term      ): Result<Constraint> = this greaterEq Expression(term)
     public infix fun Expression.greaterEq(constant: Number    ): Result<Constraint> = this greaterEq Expression(constant = constant.toDouble())
-    public infix fun Expression.greaterEq(property: Property  ): Result<Constraint> = this greaterEq property.toTerm()
+    public infix fun Expression.greaterEq(constant: Double    ): Result<Constraint> = this greaterEq Expression(constant = constant)
     public infix fun Expression.greaterEq(second  : Expression): Result<Constraint> = add(Constraint(this - second, GE, Required))
 
     public infix fun Term.eq(term      : Term      ): Result<Constraint> = Expression(this) eq term
     public infix fun Term.eq(constant  : Number    ): Result<Constraint> = Expression(this) eq constant.toDouble()
+    public infix fun Term.eq(constant  : Double    ): Result<Constraint> = Expression(this) eq constant
     public infix fun Term.eq(property  : Property  ): Result<Constraint> = Expression(this) eq property
     public infix fun Term.eq(expression: Expression): Result<Constraint> = expression       eq this
 
     public infix fun Term.lessEq(term      : Term      ): Result<Constraint> = Expression(this) lessEq term
     public infix fun Term.lessEq(constant  : Number    ): Result<Constraint> = Expression(this) lessEq constant.toDouble()
+    public infix fun Term.lessEq(constant  : Double    ): Result<Constraint> = Expression(this) lessEq constant
     public infix fun Term.lessEq(property  : Property  ): Result<Constraint> = Expression(this) lessEq property
     public infix fun Term.lessEq(expression: Expression): Result<Constraint> = Expression(this) lessEq expression
 
     public infix fun Term.greaterEq(second    : Term      ): Result<Constraint> = Expression(this) greaterEq second
     public infix fun Term.greaterEq(constant  : Number    ): Result<Constraint> = Expression(this) greaterEq constant.toDouble()
+    public infix fun Term.greaterEq(constant  : Double    ): Result<Constraint> = Expression(this) greaterEq constant
     public infix fun Term.greaterEq(property  : Property  ): Result<Constraint> = Expression(this) greaterEq property
     public infix fun Term.greaterEq(expression: Expression): Result<Constraint> = Expression(this) greaterEq expression
-
-    public infix fun Property.eq(term      : Term      ): Result<Constraint> = term          eq this
-    public infix fun Property.eq(constant  : Number    ): Result<Constraint> = this.toTerm() eq constant.toDouble()
-    public infix fun Property.eq(property  : Property  ): Result<Constraint> = this.toTerm() eq property
-    public infix fun Property.eq(expression: Expression): Result<Constraint> = expression    eq this
-
-    public infix fun Property.lessEq(term      : Term      ): Result<Constraint> = this.toTerm() lessEq term
-    public infix fun Property.lessEq(constant  : Number    ): Result<Constraint> = this.toTerm() lessEq constant.toDouble()
-    public infix fun Property.lessEq(second    : Property  ): Result<Constraint> = this.toTerm() lessEq second
-    public infix fun Property.lessEq(expression: Expression): Result<Constraint> = this.toTerm() lessEq expression
-
-    public infix fun Property.greaterEq(term      : Term      ): Result<Constraint> = this.toTerm() greaterEq term
-    public infix fun Property.greaterEq(constant  : Number    ): Result<Constraint> = this.toTerm() greaterEq constant.toDouble()
-    public infix fun Property.greaterEq(second    : Property  ): Result<Constraint> = this.toTerm() greaterEq second
-    public infix fun Property.greaterEq(expression: Expression): Result<Constraint> = this.toTerm() greaterEq expression
 
     public infix fun Position.eq(other: Position): List<Result<Constraint>> = listOf(
         top  eq other.top,
@@ -605,11 +729,6 @@ public class ConstraintDslContext internal constructor() {
     public infix fun Position.eq(point: Point): List<Result<Constraint>> = listOf(
         top  eq point.y,
         left eq point.x
-    )
-
-    public val Position.preserve: List<Result<Constraint>> get() = listOf(
-        top  eq top.readOnly,
-        left eq left.readOnly
     )
 
     public operator fun Position.plus(point: Point): Position = Position(
@@ -642,14 +761,17 @@ public class ConstraintDslContext internal constructor() {
         height eq size.height
     )
 
-    public val Area.preserve: List<Result<Constraint>>
-        get() = listOf(
-            width eq width.readOnly,
-            height eq height.readOnly
-        )
+    public val Area.preserve: Unit get() = this preserve Required
 
-    public operator fun Edges.plus(value: Number): Edges = this + Insets(-(value.toDouble()))
+    public infix fun Area.preserve(strength: Strength) {
+        width  preserve strength
+        height preserve strength
+    }
+
+    public operator fun Edges.plus (value: Number): Edges = this + Insets(-(value.toDouble()))
+    public operator fun Edges.plus (value: Double): Edges = this + Insets(-(value))
     public operator fun Edges.minus(value: Number): Edges = this + Insets(value.toDouble())
+    public operator fun Edges.minus(value: Double): Edges = this + Insets(value)
 
     public operator fun Edges.plus (insets: Insets): Edges = Edges(
         top?.plus (insets.top ) ?: Expression(constant = insets.top ),
@@ -696,8 +818,6 @@ public class ConstraintDslContext internal constructor() {
         return result
     }
 
-    public val Edges.preserve: List<Result<Constraint>> get() = this eq this.readOnly
-
     public infix fun Number.eq(term      : Term      ): Result<Constraint> = term       eq this
     public infix fun Number.eq(variable  : Property  ): Result<Constraint> = variable   eq this
     public infix fun Number.eq(expression: Expression): Result<Constraint> = expression eq this
@@ -715,14 +835,29 @@ public class ConstraintDslContext internal constructor() {
         return this
     }
 
-    public infix fun Result<Constraint>.strength(strength: Int): Result<Constraint> {
-        this.getOrNull()?.strength = Strength(strength)
-        return this
-    }
+    public infix fun Result<Constraint>.strength(strength: Int): Result<Constraint> = strength(Strength(strength))
 
     public infix fun List<Result<Constraint>>.strength(strength: Strength): List<Result<Constraint>> {
         this.forEach { it.getOrNull()?.strength = strength }
         return this
+    }
+
+    public infix fun List<Result<Constraint>>.strength(strength: Int): List<Result<Constraint>> = strength(Strength(strength))
+
+    public infix fun Result<Edit>.strength(strength: Strength) {
+        this.getOrNull()?.strength = strength
+    }
+
+    public infix fun Result<Edit>.strength(strength: Int) { strength(Strength(strength)) }
+
+    @JvmName("resultStrengthEdit")
+    public infix fun Result<List<Edit>>.strength(strength: Strength) {
+        this.getOrNull()?.forEach { it.strength = strength }
+    }
+
+    @JvmName("resultStrengthEdit2")
+    public infix fun Result<List<Edit>>.strength(strength: Int) {
+        strength(Strength(strength))
     }
 
     public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
@@ -731,19 +866,30 @@ public class ConstraintDslContext internal constructor() {
     }
 
     public fun Bounds.withOffset(top: () -> Double = { 0.0 }, left: () -> Double = { 0.0 }): Bounds = object: Bounds by this {
-        override val top  get() = this@withOffset.top  - top ()
-        override val left get() = this@withOffset.left - left()
+        override val top = object: Property() {
+            override val terms    get() = this@withOffset.top.terms
+            override val constant get() = this@withOffset.top.constant - top()
+            override val variable get() = this@withOffset.top.variable
+            override fun toTerm()       = this@withOffset.top.toTerm()
+
+        }
+        override val left = object: Property() {
+            override val terms    get() = this@withOffset.left.terms
+            override val constant get() = this@withOffset.left.constant - left()
+            override val variable get() = this@withOffset.left.variable
+            override fun toTerm()       = this@withOffset.left.toTerm()
+        }
 
         private val t = this.top
         private val l = this.left
 
-        override val right   by lazy { l + width      }
-        override val centerX by lazy { l + width  / 2 }
-        override val bottom  by lazy { t + height     }
-        override val centerY by lazy { t + height / 2 }
+        override val right   = l + width
+        override val centerX = l + width  / 2
+        override val bottom  = t + height
+        override val centerY = t + height / 2
 
-        override val center by lazy { Position(left = centerX, top = centerY) }
-        override val edges  by lazy { Edges   (top = t, left = l, right = right, bottom = bottom) }
+        override val center = Position(left = centerX, top = centerY)
+        override val edges  = Edges   (top = t, left = l, right = right, bottom = bottom)
     }
 }
 
@@ -854,7 +1000,7 @@ public fun constrain(a: View, b: View, c: View, d: View, e: View, constraints: C
 public fun constrain(a: View, b: View, vararg others: View, constraints: ConstraintDslContext.(List<Bounds>) -> Unit): ConstraintLayout = ConstraintLayoutImpl(a, *listOf(b, *others).toTypedArray(), originalLambda = constraints, block = constraints)
 
 /**
- * Applies the given constraints to the Positionables as though they were each within the Rectangle provided by [within].
+ * Applies the given constraints to the [Positionable]s as though they were each within the Rectangle provided by [within].
  *
  * @param using this constraint for each View
  * @param within this rectangle
@@ -868,7 +1014,9 @@ public fun <T: Positionable> Iterable<T>.constrain(
 ): Unit = with(Constrainer()) {
     forEachIndexed { index, view ->
         this(view.bounds, within(index, view), forceSetup = false, probe = view, using).apply {
-            view.updatePosition(x, y)
+            view.bounds = this
+
+            (view as? View.PositionableView)?.finalize()
         }
     }
 }
@@ -879,67 +1027,34 @@ public fun <T: Positionable> Iterable<T>.constrain(
  * @suppress
  */
 @Internal
-public class Constrainer {
-    private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
-    private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
-
+public class Constrainer: Layout {
     private var using: ConstraintDslContext.(Bounds) -> Unit = {}
 
-    private var parentSize = Size.Empty
-    private val solver     = Solver()
-    private val context    = ConstraintDslContext()
+    private var parentSize      = Size.Empty
+    private val solver          = Solver()
+    private val context         = ConstraintDslContext()
 
-    private class FakePositionable: Positionable, BoundsUpdateContext {
+    private class FakePositionable: Positionable() {
         var probe = null as Positionable?
 
-        override var bounds          = Rectangle.Empty
+        override var x_      = 0.0
+        override var y_      = 0.0
+        override var size_   = Size.Empty
+        override var minSize = Size.Empty
+        override var maxSize = Size.Infinite
+
         override val visible         = true
         override val idealSize get() = probe?.idealSize ?: Size.Empty
-
-        private var x        : Double  = 0.0
-        private var y        : Double  = 0.0
-        private var minWidth : Double? = null
-        private var maxWidth : Double? = null
-        private var minHeight: Double? = null
-        private var maxHeight: Double? = null
-
-        override fun setX        (value: Double) { x         = value }
-        override fun setY        (value: Double) { y         = value }
-        override fun setMinWidth (value: Double) { minWidth  = value }
-        override fun setMaxWidth (value: Double) { maxWidth  = value }
-        override fun setMinHeight(value: Double) { minHeight = value }
-        override fun setMaxHeight(value: Double) { maxHeight = value }
 
         override fun contains(point: Point) = true
 
         override fun preferredSize(min: Size, max: Size) = probe?.preferredSize(min, max) ?: Size.Empty
 
-        override fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size {
-            bounds = Rectangle(x, y, max.width, max.height)
-
-            return bounds.size
-        }
-
-        override fun updatePosition(x: Double, y: Double) {
-            bounds = bounds.at(x, y)
-        }
-
-        override fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size {
-            x         = bounds.x
-            y         = bounds.y
-            maxWidth  = null
-            maxHeight = null
-
-            block(this)
-
-            return Rectangle(x, y, maxWidth ?: bounds.width, maxHeight ?: bounds.height).also { bounds = it }.size
-        }
-
         override fun toString() = "FakePositionable"
     }
 
     private val fakePositionable = FakePositionable()
-    private val fakeBounds       = BoundsImpl(fakePositionable, context)
+    private val fakeBounds       = BoundsImpl(fakePositionable, context, solver)
     private val blocks           = listOf(ConstraintLayoutImpl.BlockInfo(listOf(fakeBounds)) {
         (a) -> using(a)
     })
@@ -986,27 +1101,30 @@ public class Constrainer {
         if (fakePositionable.bounds != rectangle) {
             fakePositionable.bounds = rectangle
             fakeBounds.reset()
-
-            updatedBounds[fakeBounds.top_  ] = rectangle.y
-            updatedBounds[fakeBounds.left_ ] = rectangle.x
-            updatedBounds[fakeBounds.width ] = rectangle.width
-            updatedBounds[fakeBounds.height] = rectangle.height
         }
 
         if (forceSetup || within.size != parentSize || this.using != using) {
             this.using     = using
             parentSize     = within.size
             context.updateParent(size = within.size, min = within.size, max = within.size, insets = None)
+
             setupSolver(solver, context, blocks = blocks) { /*ignore*/ }
         }
 
         solve(
-            solver        = solver,
-            activeBounds  = activeBounds,
-            updatedBounds = updatedBounds,
-            bounds        = sequenceOf(fakeBounds),
-        ) { throw it }
+            solver = solver,
+            bounds = sequenceOf(fakeBounds),
+        )
 
         return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }
+
+    // Only implemented to allow usage of Positionable properties
+    override fun layout(
+        views  : Sequence<Positionable>,
+        min    : Size,
+        current: Size,
+        max    : Size,
+        insets : Insets
+    ): Size = Size.Empty
 }

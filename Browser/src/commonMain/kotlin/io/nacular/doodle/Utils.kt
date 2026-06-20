@@ -8,22 +8,27 @@ import io.nacular.doodle.dom.defaultFontWeight
 import io.nacular.doodle.dom.setFont
 import io.nacular.doodle.drawing.Font
 import io.nacular.doodle.drawing.FontInfo
+import io.nacular.doodle.text.AnnotatedString
+import io.nacular.doodle.utils.LeastRecentlyUsedCache
 
 internal interface FontSerializer {
     operator fun invoke(font: Font?   ): String
     operator fun invoke(info: FontInfo): String
 }
 
-internal class FontSerializerImpl(htmlFactory: HtmlFactory): FontSerializer {
-    private val element = htmlFactory.create<HTMLElement>()
+internal class FontSerializerImpl(htmlFactory: HtmlFactory, cacheLength: Int = 10): FontSerializer {
+    private val element         = htmlFactory.create<HTMLElement>()
+    private val serializedFonts = LeastRecentlyUsedCache<Font?, String> (maxSize = cacheLength)
 
-    override fun invoke(font: Font?): String = when {
-        font != null -> element.run {
-            style.setFont(font)
+    override fun invoke(font: Font?): String = serializedFonts.getOrPut(font) {
+        when {
+            font != null -> element.run {
+                style.setFont(font)
 
-            style.run { "$fontStyle $fontVariant $fontWeight $fontSize $fontFamily" }
+                style.run { "$fontStyle $fontVariant $fontWeight $fontSize $fontFamily" }
+            }
+            else -> "$defaultFontWeight ${defaultFontSize}px $defaultFontFamily"
         }
-        else -> "$defaultFontWeight ${defaultFontSize}px $defaultFontFamily"
     }
 
     override fun invoke(info: FontInfo) = invoke(object: Font {
@@ -33,3 +38,5 @@ internal class FontSerializerImpl(htmlFactory: HtmlFactory): FontSerializer {
         override val family get() = info.families.joinToString()
     })
 }
+
+internal val AnnotatedString.maxFont: Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }

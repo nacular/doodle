@@ -7,8 +7,10 @@ import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
+import io.nacular.doodle.layout.constraints.ReadOnlyVariable
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -19,9 +21,12 @@ import io.nacular.doodle.layout.constraints.impl.Solver.Type.Invalid
 import io.nacular.doodle.layout.constraints.impl.Solver.Type.Slack
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
-import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.MAX_VALUE
+import kotlin.Double.Companion.NEGATIVE_INFINITY
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 
 /**
@@ -66,10 +71,6 @@ internal class DuplicateEditVariableException: Exception()
 
 internal class RequiredFailureException: Exception()
 
-internal class UnknownConstraintException(val constraint: Constraint): Exception(constraint.toString())
-
-internal class UnknownEditVariableException(variable: Variable): Exception(variable.toString())
-
 internal class Solver {
     private class Tag {
         var marker = Symbol()
@@ -87,13 +88,16 @@ internal class Solver {
     }
 
     private inner class Row {
-        var symbol: Symbol? by observable(null) {_,new ->
+        var symbol: Symbol? = null; set(new) {
+            field = new
+
             if (new == null) {
                 cells.keys.forEach {
                     unregisterSymbol(it)
                 }
             }
         }
+
         var cells   = fastMutableMapOf<Symbol, Double>(); private set
         var constant: Double
 
@@ -241,6 +245,10 @@ internal class Solver {
     private val vars           = fastMutableMapOf<Variable, Symbol>()
     private val edits          = fastMutableMapOf<Variable, EditInfo>()
     private val infeasibleRows = mutableListOf<Symbol>()
+    private val readonlyVars   = fastMutableMapOf<Variable, MutableSet<ReadOnlyVariable>>()
+    private val readonlyConstraintDeps = fastMutableMapOf<Variable, MutableSet<Constraint>>()
+    private val readonlyLastValues = fastMutableMapOf<Variable, Double>()
+    private val readonlySymbols = fastMutableSetOf<Symbol>()
     private val objective      = Row()
     private var artificial     = null as Row?
     private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
@@ -272,15 +280,237 @@ internal class Solver {
         addConstraint(constraint, incrementVariableCounts = true)
     }
 
+    fun removeConstraint(constraint: Constraint) {
+        val tag = constraints.remove(constraint) ?: return
+
+        removeConstraint(constraint, tag)
+    }
+
+    fun addEditVariable(variable: Variable, strength: Strength) {
+        if (edits.containsKey(variable)) {
+            throw DuplicateEditVariableException()
+        }
+
+        if (strength == Required) {
+            throw RequiredFailureException()
+        }
+
+        val constraint = Constraint(Expression(VariableTerm(variable)), EQ, strength)
+
+        addConstraint(constraint)
+
+        edits[variable] = EditInfo(constraint, constraints[constraint]!!, 0.0)
+    }
+
+    fun removeEditVariable(variable: Variable) {
+        val edit = edits[variable] ?: return
+
+        removeConstraint(edit.constraint)
+
+        edits.remove(variable)
+    }
+
+    fun suggestValue(variable: Variable, value: Double) {
+        val info  = edits[variable] ?: return
+        val delta = value - info.constant
+
+        if (delta != 0.0) {
+            info.constant = value
+            updateRow(rows[info.tag.marker], info.tag, delta)
+        }
+    }
+
+    fun updateConstant(old: Constraint, new: Constraint) {
+        val tag   = constraints.remove(old) ?: return
+        val delta = new.expression.constant - old.expression.constant
+        constraints[new] = tag
+
+        if (delta != 0.0) {
+            updateRow(rows[tag.marker], tag, delta)
+        }
+    }
+
+    /**
+     * Update the values of the external solver variables.
+     */
+    fun updateVariables() {
+        vars.forEach { (variable, symbol) ->
+            if (symbol in readonlySymbols) return@forEach
+
+            rows[symbol]?.let { row ->
+                variable(row.constant.cleanUp())
+            }
+        }
+
+        var finalResolveRequired = false
+
+        readonlyVars.keys.forEach { source ->
+            val lastValue = readonlyLastValues[source] ?: return@forEach
+            val delta = source() - lastValue
+
+            if (delta != 0.0) {
+                finalResolveRequired = true
+                readonlyLastValues[source] = source()
+                readonlyConstraintDeps[source]?.forEach { constraint ->
+                    val tag = constraints[constraint] ?: return@forEach
+                    updateRow(rows[tag.marker], tag, delta)
+                }
+            }
+        }
+
+        if (finalResolveRequired) {
+            // Last round to finalize values
+            vars.forEach { (variable, symbol) ->
+                rows[symbol]?.let {
+                    variable(it.constant.cleanUp())
+                }
+            }
+        }
+    }
+
+    fun isUnderConstrained(v: Variable): Boolean = vars[v]?.let { isUnderConstrained(it) } ?: true // unknown variable = free
+
+    private fun isUnderConstrained(symbol: Symbol) = rows[symbol]?.run {
+        cells.any { (sym, coefficient) ->
+            if (coefficient == 0.0) return@any false
+            when (sym.type) {
+                Slack    -> sym !in rows
+                External -> sym !in rows
+                else     -> false
+            }
+        } || run {
+            cells.forEach { (sym, coefficient) ->
+                if (coefficient == 0.0 || sym.type == Dummy) return@run false
+
+                edits.values.forEach { editInfo ->
+                    if (sym != editInfo.tag.marker && sym != editInfo.tag.other)  return@run false
+                }
+            }
+
+            true
+        }
+    } ?: true
+
+    fun computeRange(variable: Variable, min: Double = -MAX_VALUE, max: Double = MAX_VALUE): ClosedFloatingPointRange<Double> {
+        val nominal = variable()
+        val symbol  = vars[variable] ?: return nominal..nominal
+        val row     = rows[symbol  ] ?: return nominal..nominal
+
+        var maxIncrease = max - nominal
+        var maxDecrease = nominal - min
+        var foundBound  = false
+
+        // For each non-basic symbol in variable's row, do a ratio test across ALL basic rows that contain that symbol
+        for ((symbol, variableRowCoefficient) in row.cells) {
+            if (variableRowCoefficient == 0.0) continue
+            if (symbol.type == Dummy) continue  // Dummy symbols are Required equality artifacts, never free
+
+            foundBound = true
+
+            val symRow = rows[symbol]
+
+            // If symbol is a basic slack, its row constant directly gives the bound
+            if (symbol.type == Slack && symRow == null) {
+                // non-basic slack at 0, can only increase → bounds v in one direction
+                if (variableRowCoefficient < 0) {
+                    maxIncrease = min(maxIncrease, 0.0)  // already at upper bound
+                } else {
+                    maxDecrease = min(maxDecrease, 0.0)  // already at lower bound
+                }
+            }
+
+            // For each basic row that contains this symbol
+            for ((basicSymbol, basicRow) in rows) {
+                val basicRowCoefficient = basicRow.cells[symbol] ?: continue
+
+                if (basicRowCoefficient == 0.0 || basicSymbol == symbol) continue  // skip self-referential row
+
+                // Skip rows belonging to edit variable error symbols
+                if (basicSymbol.type == Error && edits.values.any { it.tag.marker == basicSymbol || it.tag.other == basicSymbol }) continue
+
+                // If this row's basic variable is an external free variable, it can absorb the movement — skip it
+                if (basicSymbol.type == External && isUnderConstrained(basicSymbol)) continue
+
+                // Simpler: the ratio test directly on basicRow.constant / combined coeff:
+                val effectiveCoefficient = basicRowCoefficient / variableRowCoefficient
+                val limit                = basicRow.constant   / effectiveCoefficient
+
+                if (effectiveCoefficient > 0) {
+                    maxDecrease = min(maxDecrease, limit)
+                } else {
+                    maxIncrease = min(maxIncrease, -limit)
+                }
+            }
+        }
+
+        val lower = (nominal - maxDecrease).cleanUp()
+        val upper = max(lower, (nominal + maxIncrease).cleanUp())
+
+        return when {
+            !foundBound -> nominal..nominal
+            lower == NEGATIVE_INFINITY || upper == POSITIVE_INFINITY -> perturbationRange(variable, min, max)
+            !isUnderConstrained(variable) -> lower..upper
+            else -> perturbationRange(variable, min, max)
+        }
+    }
+
+    private fun perturbationRange(variable: Variable, min: Double, max: Double): ClosedFloatingPointRange<Double> {
+        val nominal  = variable()
+        val sentinel = 1e10
+
+        fun probe(target: Double): Double {
+            var addedEdit = false
+
+            return try {
+                if (variable !in edits.keys) {
+                    addEditVariable(variable, Strong)
+                    addedEdit = true
+                }
+
+                suggestValue(variable, target)
+                updateVariables()
+
+                val result = variable()
+
+                suggestValue(variable, nominal)
+                updateVariables()
+
+                if (addedEdit) {
+                    try { removeEditVariable(variable) } catch (_: Exception) {}
+                }
+
+                result
+            } catch (_: InternalSolverError) {
+                // Solver couldn't reach target — restore and return nominal
+                if (addedEdit) {
+                    try { removeEditVariable(variable) } catch (_: Exception) {}
+                }
+                try {
+                    addEditVariable(variable, Strong)
+                    suggestValue(variable, nominal)
+                    updateVariables()
+                    removeEditVariable(variable)
+                } catch (_: Exception) {}
+
+                nominal
+            }
+        }
+
+        val lower = probe(max(min, -sentinel)).let { if (it <= -sentinel + 1) NEGATIVE_INFINITY else it.cleanUp() }
+        val upper = probe(min(max,  sentinel)).let { if (it >=  sentinel - 1) POSITIVE_INFINITY else it.cleanUp() }
+
+        return lower..max(lower, upper)
+    }
+
     private fun addConstraint(constraint: Constraint, incrementVariableCounts: Boolean) {
         if (constraints.isNotEmpty() && constraints.containsKey(constraint)) {
             throw DuplicateConstraintException(constraint)
         }
 
-        val tag     = Tag()
+        val tag = Tag()
 
         try {
-            val row = createRow(constraint, tag)
+            val row     = createRow(constraint, tag)
             var subject = chooseSubject(row, tag)
 
             if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
@@ -307,7 +537,6 @@ internal class Solver {
             optimize(objective)
         } catch (e: ConstraintException) {
             removeConstraint(constraint, tag)
-
             throw e
         }
 
@@ -318,13 +547,6 @@ internal class Solver {
         }
     }
 
-    fun removeConstraint(constraint: Constraint) {
-        val tag = constraints.remove(constraint) ?: throw UnknownConstraintException(constraint)
-
-        removeConstraint(constraint, tag)
-    }
-
-
     private fun removeConstraint(constraint: Constraint, tag: Tag) {
         removeConstraintEffects(constraint, tag)
 
@@ -333,7 +555,7 @@ internal class Solver {
         when {
             row != null -> unregisterRow(tag.marker, cleanup = true)
             else        -> {
-                    row     = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
+                row         = getMarkerLeavingRow(tag.marker)            ?: throw InternalSolverError("internal solver error")
                 val leaving = rows.entries.find { it.value == row }?.key ?: throw InternalSolverError("internal solver error")
 
                 unregisterRow(leaving, cleanup = true)
@@ -345,57 +567,21 @@ internal class Solver {
         constraint.expression.reduce().terms.forEach {
             varCounts.remove(it.variable)?.let { count ->
                 when {
-                    count <= 0 -> vars.remove(it.variable)
+                    count <= 0 -> {
+                        it.variable.also { variable ->
+                            vars.remove(variable).also { readonlySymbols.remove(it) }
+
+                            readonlyVars           -= variable
+                            readonlyLastValues     -= variable
+                            readonlyConstraintDeps -= variable
+                        }
+                    }
                     else       -> varCounts[it.variable] = count - 1
                 }
             }
         }
 
         optimize(objective)
-    }
-
-    fun addEditVariable(variable: Variable, strength: Strength) {
-        if (edits.containsKey(variable)) {
-            throw DuplicateEditVariableException()
-        }
-
-        if (strength == Required) {
-            throw RequiredFailureException()
-        }
-
-        val constraint = Constraint(Expression(VariableTerm(variable)), EQ, strength)
-
-        addConstraint(constraint)
-
-        edits[variable] = EditInfo(constraint, constraints[constraint]!!, 0.0)
-    }
-
-    fun removeEditVariable(variable: Variable) {
-        val edit = edits[variable] ?: throw UnknownEditVariableException(variable)
-
-        removeConstraint(edit.constraint)
-
-        edits.remove(variable)
-    }
-
-    fun suggestValue(variable: Variable, value: Double) {
-        val info  = edits[variable] ?: throw UnknownEditVariableException(variable)
-        val delta = value - info.constant
-
-        if (delta != 0.0) {
-            info.constant = value
-            updateRow(rows[info.tag.marker], info.tag, delta)
-        }
-    }
-
-    fun updateConstant(old: Constraint, new: Constraint) {
-        val tag   = constraints.remove(old) ?: throw UnknownConstraintException(old)
-        val delta = new.expression.constant - old.expression.constant
-        constraints[new] = tag
-
-        if (delta != 0.0) {
-            updateRow(rows[tag.marker], tag, delta)
-        }
     }
 
     private fun updateRow(row: Row?, tag: Tag, delta: Double) {
@@ -435,17 +621,6 @@ internal class Solver {
         }
 
         dualOptimize()
-    }
-
-    /**
-     * Update the values of the external solver variables.
-     */
-    fun updateVariables() {
-        for ((variable, symbol) in vars) {
-            rows[symbol]?.let {
-                variable(it.constant)
-            }
-        }
     }
 
     private fun removeConstraintEffects(constraint: Constraint, tag: Tag) {
@@ -521,11 +696,22 @@ internal class Solver {
 
         for (term in expression.terms) {
             if (!nearZero(term.coefficient)) {
-                val symbol = getVarSymbol(term.variable)
+                when (val variable = term.variable) {
+                    is ReadOnlyVariable -> {
+                        val currentValue = variable.source()
+                        row.add(term.coefficient * currentValue)
+                        readonlyLastValues[variable.source] = currentValue
+                        readonlyVars.getOrPut(variable.source) { fastMutableSetOf() }.add(variable)
+                        readonlyConstraintDeps.getOrPut(variable.source) { fastMutableSetOf() }.add(constraint)
+                    }
+                    else -> {
+                        val symbol = getVarSymbol(term.variable)
 
-                when (val otherRow = rows[symbol]) {
-                    null -> row.insert(symbol,   term.coefficient)
-                    else -> row.insert(otherRow, term.coefficient)
+                        when (val otherRow = rows[symbol]) {
+                            null -> row.insert(symbol, term.coefficient)
+                            else -> row.insert(otherRow, term.coefficient)
+                        }
+                    }
                 }
             }
         }
@@ -758,7 +944,9 @@ internal class Solver {
      * If a symbol does not exist for the variable, one will be created.
      */
     private fun getVarSymbol(variable: Variable) = vars.getOrPut(variable) {
-        Symbol(External)
+        Symbol(External).also {
+            if (variable.isReadOnly) readonlySymbols.add(it)
+        }
     }
 
     /**
@@ -774,7 +962,7 @@ internal class Solver {
      */
     private fun chooseSubject(row: Row, tag: Tag): Symbol {
         for (key in row.cells.keys) {
-            if (key.type == External) {
+            if (key.type == External && key !in readonlySymbols) {
                 return key
             }
         }
@@ -800,4 +988,6 @@ internal class Solver {
     } ?: Symbol()
 
     private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
+
+    private fun Double.cleanUp() = if (nearZero(this)) 0.0 else this
 }

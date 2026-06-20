@@ -6,6 +6,7 @@ import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.inset
 
 /**
  * Created by Nicholas Eddy on 3/29/19.
@@ -35,7 +36,9 @@ public class ZoomedLayout(private val index: Int, private val targetBounds: Rect
                 val p2   = transform(Point(it.bounds.x + it.bounds.width, it.bounds.y + it.bounds.height))
                 val size = Size(p2.x - p1.x, p2.y - p1.y)
 
-                it.updateBounds(p1.x, p1.y, size, size)
+                it.x    = p1.x
+                it.y    = p1.y
+                it.size = size
             }
         }
 

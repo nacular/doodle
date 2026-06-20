@@ -21,7 +21,7 @@ public interface ListModel<T>: Iterable<T> {
 
     /**
      * @param index to retrieve
-     * @return item found at the index or `null` if index invalid
+     * @return item found at the index or failure if index invalid
      */
     public operator fun get(index: Int): Result<T>
 
@@ -251,6 +251,7 @@ public open class SimpleMutableListModel<T>(private val list: ObservableList<T>)
 
     public companion object {
         public operator fun <T> invoke(list: List<T> = emptyList()): SimpleMutableListModel<T> = SimpleMutableListModel(ObservableList(list))
+        public operator fun <T> invoke(vararg items: T): SimpleMutableListModel<T> = SimpleMutableListModel(items.toList())
     }
 }
 

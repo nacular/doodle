@@ -43,37 +43,20 @@ import kotlin.math.abs
  * @property terms (or variable-coefficient pairs) within the expression
  * @property constant value for the expression
  */
-public open class Expression internal constructor(terms: Array<out Term>, internal val constant: Double = 0.0) {
-    internal val terms = terms.filterIsInstance<VariableTerm>().toTypedArray()
+public abstract class Expression internal constructor() {
+    internal abstract val terms: Array<VariableTerm>
+
+    internal abstract val constant: Double
 
     /**
      * Computed value of this expression
      */
-    internal open val value: Double get() = terms.sumOf { it.value } + constant
+    public open val value: Double get() = terms.sumOf { it.value } + constant
 
     /**
      * `true` if the expression has no terms
      */
     internal open val isConstant: Boolean get() = terms.isEmpty()
-
-    /**
-     * Provides the Expression's value directly, and does not treat its contents as
-     * variables when used in a [Constraint]. This means the Expression's variables won't be
-     * altered to try and satisfy the constraint.
-     *
-     * ```
-     * a eq (2 * b + c).readOnly
-     * ```
-     * will be treated as
-     *
-     * ```
-     *
-     * a eq (2 * 10 + 11)
-     * ```
-     *
-     * if `b == 10` and `c == 11`
-     */
-    public val readOnly: Double get() = value
 
     override fun toString(): String = """
         ${terms.joinToString(" ")}${
@@ -86,9 +69,7 @@ public open class Expression internal constructor(terms: Array<out Term>, intern
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Expression
+        if (other !is Expression) return false
 
         if (!terms.contentEquals(other.terms)) return false
         if (constant != other.constant       ) return false
@@ -105,25 +86,21 @@ public open class Expression internal constructor(terms: Array<out Term>, intern
     internal fun reduce(): Expression {
         val vars = fastMutableMapOf<Variable, Double>()
         for (term in terms) {
-            var value = vars[term.variable]
-            if (value == null) {
-                value = 0.0
-            }
-            value += term.coefficient
-            vars[term.variable] = value
+            vars[term.variable] = (vars[term.variable] ?: 0.0) + term.coefficient
         }
-        val reducedTerms = mutableListOf<Term>()
-        for (variable in vars.keys) {
-            reducedTerms.add(VariableTerm(variable, vars[variable]!!))
-        }
-        return Expression(*reducedTerms.toTypedArray(), constant = constant)
+        return Expression(vars.map { (variable, coefficient) -> VariableTerm(variable, coefficient) }, constant)
     }
 
     internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
 
     internal companion object {
-        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = Expression(terms, constant)
+        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = ExpressionImpl(terms.toList(), constant)
+        operator fun invoke(terms: List<Term>, constant: Double = 0.0) = ExpressionImpl(terms, constant)
     }
+}
+
+internal class ExpressionImpl(terms: List<Term>, override val constant: Double = 0.0) : Expression() {
+    override val terms: Array<VariableTerm> = terms.filterIsInstance<VariableTerm>().toTypedArray()
 }
 
 /**
@@ -144,9 +121,15 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 
 internal interface Variable {
     val name          : String
-    val needsSynthetic: Boolean
+    var edited        : Boolean
+    var isReadOnly    : Boolean
     var constrained   : Boolean
+    val needsSynthetic: Boolean
 
     operator fun invoke(             ): Double
     operator fun invoke(value: Double)
+}
+
+internal interface ReadOnlyVariable: Variable {
+    val source: Variable
 }

@@ -48,7 +48,7 @@ public abstract class ConstraintBasedPresenter<T>(
         within     = Rectangle(size = viewPort),
         forceSetup = forceSetup,
         using      = itemConstraints,
-        probe      = item.view
+        probe      = item.dataChild.view
     )
 
     private val PresentedItem.constrainer: Constrainer get() = when (cache) {

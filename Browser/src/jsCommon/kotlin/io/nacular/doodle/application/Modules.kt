@@ -4,6 +4,8 @@ import io.nacular.doodle.UrlView
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
 import io.nacular.doodle.application.Modules.Companion.FocusModule
+import io.nacular.doodle.application.Modules.Companion.PointerModule
+import io.nacular.doodle.application.Modules.Companion.PopupModule
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.document.Document
@@ -53,7 +55,6 @@ import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
 import io.nacular.doodle.system.impl.KeyInputServiceImpl
 import io.nacular.doodle.system.impl.KeyInputServiceStrategy
 import io.nacular.doodle.system.impl.KeyInputStrategyWebkit
-import io.nacular.doodle.system.impl.NoOpViewPortHackDetector
 import io.nacular.doodle.system.impl.PointerInputServiceImpl
 import io.nacular.doodle.system.impl.PointerInputServiceStrategy
 import io.nacular.doodle.system.impl.PointerInputServiceStrategyWebkit
@@ -84,17 +85,13 @@ public class Modules private constructor() {
 
         /** Enables pointer use. */
         public val PointerModule: Module = Module(allowSilentOverride = true, name = "Pointer") {
-            bindSingleton<ViewPortHackDetector>        {
-                when {
-                    isSafari(window) -> SafariViewPortHackDetector(document, instance())
-                    else             -> NoOpViewPortHackDetector
-                }
-            }
-            bindInstance<ViewFinder>                   { ViewFinderImpl                                                                    }
-            bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                                    ) }
-            bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()            ) }
-            bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (window,     document,   instance(), instance()) }
-            bindSingleton<PointerInputServiceStrategy> { PointerInputServiceStrategyWebkit(document,   instance(), instance()            ) }
+            if (isSafari(window)) bindSingleton<ViewPortHackDetector> { SafariViewPortHackDetector(document, instance()) }
+
+            bindInstance<ViewFinder>                   { ViewFinderImpl                                                                          }
+            bindSingleton<PointerInputService>         { PointerInputServiceImpl          (instance()                                          ) }
+            bindSingleton<PointerInputManager>         { PointerInputManagerImpl          (instance(), instance(), instance()                  ) }
+            bindSingleton<PointerLocationResolver>     { PointerLocationResolverImpl      (window,     document,   instance(), instanceOrNull()) }
+            bindSingleton<PointerInputServiceStrategy> { PointerInputServiceStrategyWebkit(document,   instance(), instance()                  ) }
         }
 
         /** Enables keyboard use. Includes [FocusModule]. */
@@ -185,7 +182,7 @@ public class Modules private constructor() {
 
         /** Enable use of [PathMetrics]. */
         public val PathModule: Module = Module(allowSilentOverride = true, name = "Path") {
-            bindSingleton<PathMetrics>{ PathMetricsImpl(instance()) }
+            bindSingleton<PathMetrics>{ PathMetricsImpl(instance(), instance()) }
         }
 
         /** Enable use of [UserPreferences]. */

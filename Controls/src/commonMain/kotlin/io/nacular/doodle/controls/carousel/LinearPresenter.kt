@@ -5,6 +5,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Vector2D
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.lerp
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -78,19 +79,27 @@ public class LinearPresenter<T>(
             selectedBounds = selected.bounds
         }
 
-        // Add remaining to right
-        results += currentPosition?.allNext?.asSequence()?.mapNotNull { carousel.item(it)?.apply {
-            bounds        = rightOf(center(carousel.size), currentBounds!!, carousel.size)
-            currentBounds = bounds
-        } }?.takeWhile { it.bounds.x < carousel.size.width }?.toList() ?: emptyList()
+        // Add remaining items
+        results += currentPosition?.allNext?.asSequence()
+            ?.takeWhile  { currentBounds?.run { right < carousel.width - spacing } ?: false }
+            ?.mapNotNull {
+                carousel.item(it)?.apply {
+                    bounds        = rightOf(center(carousel.size), currentBounds!!, carousel.size)
+                    currentBounds = bounds
+                }
+            }?.toList() ?: emptyList()
 
         currentBounds = selectedBounds
 
-        // Add remaining to left
-        results += position.allPrevious.asSequence().mapNotNull { carousel.item(it)?.apply {
-            bounds        = leftOf(center(carousel.size), currentBounds!!, carousel.size)
-            currentBounds = bounds
-        } }.takeWhile { it.bounds.right > 0 }.toList()
+        // Add subsequent items
+        results += position.allPrevious.asSequence()
+            .takeWhile  { currentBounds?.run { x > spacing } ?: false }
+            .mapNotNull {
+                carousel.item(it)?.apply {
+                    bounds        = leftOf(center(carousel.size), currentBounds!!, carousel.size)
+                    currentBounds = bounds
+                }
+            }.toList()
 
         return Presentation(items = results)
     }

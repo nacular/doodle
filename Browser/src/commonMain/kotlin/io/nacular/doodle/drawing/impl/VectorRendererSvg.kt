@@ -106,6 +106,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
+import io.nacular.doodle.maxFont
 import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextSpacing
@@ -366,8 +367,7 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private val AnnotatedString.maxFont    : Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
-    private val AnnotatedString.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
+    private val AnnotatedString.maxFontSize: Int get() = maxFont?.size ?: defaultFontSize
 
     private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
         // shift text down since no other way to get baseline alignment to work
@@ -598,21 +598,17 @@ internal open class VectorRendererSvg(
         context.markDirty()
     }
 
-    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = renderPosition): T {
-        val element: Node? = possible
-
-        return when {
-            element == null || element.nodeName != tag -> svgFactory(tag)
-            element is SVGElement                      -> {
-                if (tag !in containerElements) { element.clear() }
-                element.style.filter         = ""
-                element.style.textDecoration = ""
-                element.removeTransform()
-                @Suppress("UNCHECKED_CAST")
-                element as T
-            }
-            else -> throw Exception("Error") // FIXME: handle better
+    protected fun <T: SVGElement> createOrUse(tag: String, possible: Node? = renderPosition): T = when {
+        possible == null || possible.nodeName != tag -> svgFactory(tag)
+        possible is SVGElement                      -> {
+            if (tag !in containerElements) { possible.clear() }
+            possible.style.filter         = ""
+            possible.style.textDecoration = ""
+            possible.removeTransform()
+            @Suppress("UNCHECKED_CAST")
+            possible as T
         }
+        else -> throw Exception("Error") // FIXME: handle better
     }
 
     private fun makeText(text: String, font: Font?, at: Point, stroke: Stroke?, fill: Paint?, textSpacing: TextSpacing) = createOrUse<SVGTextElement1>("text").apply {
@@ -1229,7 +1225,6 @@ internal open class VectorRendererSvg(
 
                     setPatternTransform(paint.transform)
                     setBounds          (paint.bounds   )
-                    clear              (               )
                 }
 
                 renderer.completeOperation(pattern)
@@ -1525,6 +1520,6 @@ internal open class VectorRendererSvg(
     }
 
     private companion object {
-        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient", "feMerge")
+        private val containerElements = arrayOf("svg", "filter", "linearGradient", "radialGradient", "feMerge", "pattern")
     }
 }

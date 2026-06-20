@@ -2,7 +2,6 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.position
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
@@ -16,14 +15,19 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         else       -> position.y
     }; set(new) {
         when (orientation) {
-            Horizontal -> updatePosition(new, position.y)
-            else       -> updatePosition(position.x, new)
+            Horizontal -> { x = new; y = position.y }
+            else       -> { x = position.x; y = new }
         }
     }
 
     private val Positionable.extent get() = when (orientation) {
-        Horizontal -> bounds.width
-        else       -> bounds.height
+        Horizontal -> width
+        else       -> height
+    }
+
+    private val Positionable.idealExtent get() = when (orientation) {
+        Horizontal -> idealSize.width
+        else       -> idealSize.height
     }
 
     private val Positionable.minExtent get() = 0.0
@@ -41,9 +45,9 @@ private open class FlexLayout(private val orientation: Orientation, private val 
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
         val x                      = insets.left
         val y                      = insets.top
-        val w                      = max(0.0, current.width  - insets.run { left + right })
-        val h                      = max(0.0, current.height - insets.run { top + bottom })
-        var offset                 = 0.0
+        val w                      = max(0.0, current.width  - insets.run { left + right  })
+        val h                      = max(0.0, current.height - insets.run { top  + bottom })
+        var offset                 = if (orientation == Horizontal) x else y
         val totalAvailableSpace    = current.extent - insets.extent
         var remainingSpace         = totalAvailableSpace
         val visibleChildren        = views.filter { it.visible }.toList()
@@ -62,27 +66,31 @@ private open class FlexLayout(private val orientation: Orientation, private val 
             }
         }
         val updateRemainingSpace = {
-            remainingSpace = totalAvailableSpace - offset
+            remainingSpace = totalAvailableSpace - (offset - if (orientation == Horizontal) x else y)
         }
 
         visibleChildren.forEachIndexed { index, child ->
-            val extent = child.minExtent
+            val extent = child.idealExtent
 
             if (index > 0) {
                 when {
                     extent > 0.0 -> offset += spacing
-                    else    -> ++numCollapsedSpaces
+                    else         -> ++numCollapsedSpaces
                 }
             }
 
             when (orientation) {
                 Horizontal -> {
-                    val size = Size(extent, h)
-                    child.updateBounds(offset, y, size, size)
+                    child.x      = offset
+                    child.y      = y
+                    child.width  = extent
+                    child.height = h
                 }
                 else       -> {
-                    val size = Size(w, extent)
-                    child.updateBounds(x, offset, size, size)
+                    child.x      = x
+                    child.y      = offset
+                    child.width  = w
+                    child.height = extent
                 }
             }
 
@@ -93,7 +101,7 @@ private open class FlexLayout(private val orientation: Orientation, private val 
         }
 
         while (remainingSpace != 0.0) {
-            offset = 0.0
+            offset = if (orientation == Horizontal) x else y
 
             when {
                 remainingSpace > 0.0 -> {
@@ -106,12 +114,12 @@ private open class FlexLayout(private val orientation: Orientation, private val 
 
                         when (orientation) {
                             Horizontal -> {
-                                val size = Size(newExtent, child.bounds.height)
-                                child.updateBounds(offset,  child.bounds.y, size, size)
+                                child.x      = offset
+                                child.width  = newExtent
                             }
                             else       -> {
-                                val size = Size(child.bounds.width, newExtent)
-                                child.updateBounds(child.bounds.x, offset,  size, size)
+                                child.y      = offset
+                                child.height = newExtent
                             }
                         }
 
@@ -139,12 +147,12 @@ private open class FlexLayout(private val orientation: Orientation, private val 
 
                                         when (orientation) {
                                             Horizontal -> {
-                                                val size = Size(child.extent - proportionalDecrease, child.bounds.height)
-                                                child.updateBounds(offset, child.bounds.y, size, size)
+                                                child.x      = offset
+                                                child.width  = child.extent - proportionalDecrease
                                             }
                                             else       -> {
-                                                val size = Size(child.bounds.width, child.extent - proportionalDecrease)
-                                                child.updateBounds(child.bounds.x, offset, size, size)
+                                                child.y      = offset
+                                                child.height = child.extent - proportionalDecrease
                                             }
                                         }
 

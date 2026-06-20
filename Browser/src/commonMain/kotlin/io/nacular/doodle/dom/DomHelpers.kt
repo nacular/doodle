@@ -71,39 +71,39 @@ internal inline fun HTMLElement.insert(element: Node, index: Int) = insertBefore
 
 internal inline val SVGElement.parent get() = parentNode
 
-internal inline fun SVGRectElement.setRX    (value: Double) = setAttribute("rx", "$value")
-internal inline fun SVGRectElement.setRY    (value: Double) = setAttribute("ry", "$value")
+internal inline fun SVGRectElement.setRX    (value: Double) = setAttributeIfDifferent("rx", "$value")
+internal inline fun SVGRectElement.setRY    (value: Double) = setAttributeIfDifferent("ry", "$value")
 internal inline fun SVGRectElement.setRadius(value: Double) { setRX(value); setRY(value) }
 
 internal inline fun SVGElement.setId      (value: String   ) { setAttributeNS(null, "id", value ); }
-internal inline fun SVGElement.setX       (value: Double   ) = setAttribute("x",      "$value")
-internal inline fun SVGElement.setY       (value: Double   ) = setAttribute("y",      "$value")
+internal inline fun SVGElement.setX       (value: Double   ) = setAttributeIfDifferent("x",      "$value")
+internal inline fun SVGElement.setY       (value: Double   ) = setAttributeIfDifferent("y",      "$value")
 internal inline fun SVGElement.setSize    (value: Size     ) { setWidth(value.width); setHeight(value.height) }
-internal inline fun SVGElement.setWidth   (value: Double   ) = setAttribute("width",  "$value")
-internal inline fun SVGElement.setHeight  (value: Double   ) = setAttribute("height", "$value")
+internal inline fun SVGElement.setWidth   (value: Double   ) = setAttributeIfDifferent("width",  "$value")
+internal inline fun SVGElement.setHeight  (value: Double   ) = setAttributeIfDifferent("height", "$value")
 internal inline fun SVGElement.setPosition(value: Point    ) { setX(value.x); setY(value.y) }
 internal inline fun SVGElement.setBounds  (value: Rectangle) { setPosition(value.position); setSize(value.size) }
 
-internal inline fun SVGLinearGradientElement.setX1(value: Double) = setAttribute("x1", "$value")
-internal inline fun SVGLinearGradientElement.setX2(value: Double) = setAttribute("x2", "$value")
-internal inline fun SVGLinearGradientElement.setY1(value: Double) = setAttribute("y1", "$value")
-internal inline fun SVGLinearGradientElement.setY2(value: Double) = setAttribute("y2", "$value")
+internal inline fun SVGLinearGradientElement.setX1(value: Double) = setAttributeIfDifferent("x1", "$value")
+internal inline fun SVGLinearGradientElement.setX2(value: Double) = setAttributeIfDifferent("x2", "$value")
+internal inline fun SVGLinearGradientElement.setY1(value: Double) = setAttributeIfDifferent("y1", "$value")
+internal inline fun SVGLinearGradientElement.setY2(value: Double) = setAttributeIfDifferent("y2", "$value")
 
 internal inline fun SVGRadialGradientElement.setStart(value: Circle) {
-    setAttribute("fx", "${value.center.x}")
-    setAttribute("fy", "${value.center.y}")
-    setAttribute("fr", "${value.radius  }")
+    setAttributeIfDifferent("fx", "${value.center.x}")
+    setAttributeIfDifferent("fy", "${value.center.y}")
+    setAttributeIfDifferent("fr", "${value.radius  }")
 }
 internal inline fun SVGRadialGradientElement.setEnd(value: Circle) {
-    setAttribute("cx", "${value.center.x}")
-    setAttribute("cy", "${value.center.y}")
-    setAttribute("r",  "${value.radius  }")
+    setAttributeIfDifferent("cx", "${value.center.x}")
+    setAttributeIfDifferent("cy", "${value.center.y}")
+    setAttributeIfDifferent("r",  "${value.radius  }")
 }
 
-internal inline fun SVGEllipseElement.setRX     (value: Double ) = setAttribute("rx", "$value")
-internal inline fun SVGEllipseElement.setRY     (value: Double ) = setAttribute("ry", "$value")
-internal inline fun SVGEllipseElement.setCX     (value: Double ) = setAttribute("cx", "$value")
-internal inline fun SVGEllipseElement.setCY     (value: Double ) = setAttribute("cy", "$value")
+internal inline fun SVGEllipseElement.setRX     (value: Double ) = setAttributeIfDifferent("rx", "$value")
+internal inline fun SVGEllipseElement.setRY     (value: Double ) = setAttributeIfDifferent("ry", "$value")
+internal inline fun SVGEllipseElement.setCX     (value: Double ) = setAttributeIfDifferent("cx", "$value")
+internal inline fun SVGEllipseElement.setCY     (value: Double ) = setAttributeIfDifferent("cy", "$value")
 internal inline fun SVGEllipseElement.setEllipse(value: Ellipse) {
     setCX(value.center.x)
     setCY(value.center.y)
@@ -111,20 +111,20 @@ internal inline fun SVGEllipseElement.setEllipse(value: Ellipse) {
     setRY(value.yRadius )
 }
 
-internal inline fun SVGCircleElement.setCX    (value: Double) = setAttribute  ("cx", "$value")
-internal inline fun SVGCircleElement.setCY    (value: Double) = setAttribute  ("cy", "$value")
-internal inline fun SVGCircleElement.setR     (value: Double) = setAttribute  ("r",  "$value")
+internal inline fun SVGCircleElement.setCX    (value: Double) = setAttributeIfDifferent  ("cx", "$value")
+internal inline fun SVGCircleElement.setCY    (value: Double) = setAttributeIfDifferent  ("cy", "$value")
+internal inline fun SVGCircleElement.setR     (value: Double) = setAttributeIfDifferent  ("r",  "$value")
 internal inline fun SVGCircleElement.setCircle(value: Circle) { setCX(value.center.x); setCY(value.center.y); setR(value.radius) }
 
-internal inline fun SVGElement.setPathData               (value: String      ) = setAttribute   ("d",                   value          )
-internal inline fun SVGElement.setStrokeWidth            (value: Double      ) = setAttribute   ("stroke-width",      "$value"         )
+internal inline fun SVGElement.setPathData               (value: String      ) = setAttributeIfDifferent   ("d",                   value          )
+internal inline fun SVGElement.setStrokeWidth            (value: Double      ) = setAttributeIfDifferent   ("stroke-width",      "$value"         )
 internal inline fun SVGElement.setDefaultStrokeWidth     (                   ) = removeAttribute("stroke-width"                        )
-internal inline fun SVGElement.setStrokeDash             (value: DoubleArray?) = setAttribute   ("stroke-dasharray",   dashArray(value))
+internal inline fun SVGElement.setStrokeDash             (value: DoubleArray?) = setAttributeIfDifferent   ("stroke-dasharray",   dashArray(value))
 internal inline fun SVGElement.setDefaultStrokeDash      (                   ) = removeAttribute("stroke-dasharray"                    )
-internal inline fun SVGElement.setStrokeDashOffset       (value: Double?     ) = setAttribute   ("stroke-dashoffset",  value?.let { "$it" } ?: "")
+internal inline fun SVGElement.setStrokeDashOffset       (value: Double?     ) = setAttributeIfDifferent   ("stroke-dashoffset",  value?.let { "$it" } ?: "")
 internal inline fun SVGElement.setDefaultStrokeDashOffset(                   ) = removeAttribute("stroke-dashoffset"                    )
 
-internal inline fun SVGElement.setStrokeJoint(value: LineJoint) = setAttribute("stroke-linejoin", when (value) {
+internal inline fun SVGElement.setStrokeJoint(value: LineJoint) = setAttributeIfDifferent("stroke-linejoin", when (value) {
     Miter -> "butt"
     Round -> "round"
     Bevel -> "bevel"
@@ -132,7 +132,7 @@ internal inline fun SVGElement.setStrokeJoint(value: LineJoint) = setAttribute("
 
 internal inline fun SVGElement.setDefaultStrokeJoint() = removeAttribute("stroke-linejoin")
 
-internal inline fun SVGElement.setStrokeLineCap(value: LineCap) = setAttribute("stroke-linecap", when (value) {
+internal inline fun SVGElement.setStrokeLineCap(value: LineCap) = setAttributeIfDifferent("stroke-linecap", when (value) {
     LineCap.Butt   -> "butt"
     LineCap.Round  -> "round"
     LineCap.Square -> "square"
@@ -140,7 +140,7 @@ internal inline fun SVGElement.setStrokeLineCap(value: LineCap) = setAttribute("
 
 internal inline fun SVGElement.setDefaultStrokeLineCap() = removeAttribute("stroke-linecap")
 
-internal inline fun SVGGeometryElement.setPoints(vararg points: Point) = setAttribute("points", points.joinToString(" ") { "${it.x},${it.y}" })
+internal inline fun SVGGeometryElement.setPoints(vararg points: Point) = setAttributeIfDifferent("points", points.joinToString(" ") { "${it.x},${it.y}" })
 
 internal fun SVGElement.setStopColor(color: Color) {
     setStopColor("#${color.hexString}")
@@ -154,11 +154,11 @@ internal fun SVGElement.setStopOffset(value: Float) {
     setStopOffsetInternal(min(1f, max(0f, value)))
 }
 
-internal fun SVGGradientElement.setGradientUnits(value: String) { setAttribute("gradientUnits", value) }
+internal fun SVGGradientElement.setGradientUnits(value: String) { setAttributeIfDifferent("gradientUnits", value) }
 
-private fun SVGElement.setStopColor         (value: String) { setAttribute("stop-color",     value ) }
-private fun SVGElement.setStopOpacity       (value: Float ) { setAttribute("stop-opacity", "$value") }
-private fun SVGElement.setStopOffsetInternal(value: Float ) { setAttribute("offset",       "$value") }
+private fun SVGElement.setStopColor         (value: String) { setAttributeIfDifferent("stop-color",     value ) }
+private fun SVGElement.setStopOpacity       (value: Float ) { setAttributeIfDifferent("stop-opacity", "$value") }
+private fun SVGElement.setStopOffsetInternal(value: Float ) { setAttributeIfDifferent("offset",       "$value") }
 
 internal fun convert(color: Color?, block: (String) -> Unit) = block(when (color) {
     null -> none
@@ -166,8 +166,8 @@ internal fun convert(color: Color?, block: (String) -> Unit) = block(when (color
 })
 
 internal fun SVGElement.setFill(color: Color?) = convert(color) {
-    setAttribute("fill", it)
-    color?.let { c -> setAttribute("fill-opacity", "${c.opacity}") }
+    setAttributeIfDifferent("fill", it)
+    color?.let { c -> setAttributeIfDifferent("fill-opacity", "${c.opacity}") }
 }
 
 internal inline fun SVGElement.setDefaultFill() {
@@ -175,7 +175,7 @@ internal inline fun SVGElement.setDefaultFill() {
 }
 
 internal fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
-    setAttribute("fill-rule", when (fillRule) {
+    setAttributeIfDifferent("fill-rule", when (fillRule) {
         Renderer.FillRule.EvenOdd -> "evenodd"
         Renderer.FillRule.NonZero -> "nonzero"
         else                      -> ""
@@ -183,17 +183,17 @@ internal fun SVGElement.setFillRule(fillRule: Renderer.FillRule?) {
 }
 
 internal fun SVGElement.setFloodColor(color: Color?) = convert(color) {
-    setAttribute("flood-color",  it)
+    setAttributeIfDifferent("flood-color",  it)
 }
 
 internal fun SVGElement.setFillPattern(id: String?, opacity: Float = 1f) {
-    setAttribute("fill", when (id) {
+    setAttributeIfDifferent("fill", when (id) {
         null -> none
         else -> "url(#$id)"
     })
 
     if (opacity != 1f) {
-        setAttribute("fill-opacity", "$opacity")
+        setAttributeIfDifferent("fill-opacity", "$opacity")
     }
 }
 
@@ -227,27 +227,27 @@ internal fun SVGElement.setStroke(stroke: Stroke?) {
 }
 
 internal fun SVGElement.setStrokePattern(id: String?, opacity: Float = 1f) {
-    setAttribute("stroke", when (id) {
+    setAttributeIfDifferent("stroke", when (id) {
         null -> none
         else -> "url(#$id)"
     })
 
-    setAttribute("stroke-opacity", "$opacity")
+    setAttributeIfDifferent("stroke-opacity", "$opacity")
 }
 
 private fun dashArray(dashes: DoubleArray?) = dashes?.map { max(0.0, it) }?.joinToString(",") ?: ""
 
 internal fun SVGElement.setStrokeColor(color: Color?) = convert(color) {
-    setAttribute("stroke", it)
+    setAttributeIfDifferent("stroke", it)
     when (color) {
         null -> removeAttribute("stroke-opacity"                    )
-        else -> setAttribute   ("stroke-opacity", "${color.opacity}")
+        else -> setAttributeIfDifferent   ("stroke-opacity", "${color.opacity}")
     }
 }
 
 internal fun SVGPatternElement.setPatternTransform(transform: AffineTransform2D?) = when {
     transform == null || transform.isIdentity -> removeAttribute("patternTransform")
-    else                                      -> setAttribute   ("patternTransform", transform.matrixString)
+    else                                      -> setAttributeIfDifferent   ("patternTransform", transform.matrixString)
 }
 
 private val AffineTransform.matrixString get() = run {
@@ -260,7 +260,7 @@ internal inline fun SVGElement.setTransform(transform: AffineTransform?) = when 
     else                                      -> { setTransform(transform.matrixString); style.setTransform(null) }
 }
 
-internal inline fun SVGElement.setTransform(transform: String) = setAttribute("transform", transform)
+internal inline fun SVGElement.setTransform(transform: String) = setAttributeIfDifferent("transform", transform)
 
 internal inline fun SVGElement.removeTransform() { removeAttribute("transform"); style.setTransform(null) }
 
@@ -269,3 +269,7 @@ internal enum class DominantBaseline(val value: String) {
 }
 
 private const val none = "none"
+
+private fun Element.setAttributeIfDifferent(name: String, value: String) {
+    if (value != getAttribute(name)) { setAttribute(name, value) }
+}

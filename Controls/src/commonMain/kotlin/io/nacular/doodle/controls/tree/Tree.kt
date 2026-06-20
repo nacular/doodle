@@ -184,13 +184,16 @@ public open class Tree<T, out M: TreeModel<T>>(
                 model[path].onSuccess { value ->
                     c.getOrNull(index % c.size)?.let { child ->
                         rowPositioner?.let {
-                            val b = it.rowBounds(this, value, path, index)
-                            child.updateBounds(it.rowBounds(this, value, path, index))
+                            val bounds = it.rowBounds(this@Tree, value, path, index)
 
-                            y += b.height
+                            child.x = bounds.x
+                            child.y = bounds.y
+                            child.assumeSize(of = bounds.size)
+
+                            y += bounds.height
                             if (y > minHeight) return@forEach
 
-                            maxRight = max(maxRight, b.right)
+                            maxRight = max(maxRight, bounds.right)
                         }
                     }
                 }

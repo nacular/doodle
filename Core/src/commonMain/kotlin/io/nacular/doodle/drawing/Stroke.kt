@@ -38,7 +38,7 @@ public class Stroke(
         Square
     }
 
-    /** `true` IFF [thickness] > 0 and [color] visible */
+    /** `true` IFF [thickness] > 0 and [paint] visible */
     public val visible: Boolean = thickness > 0 && fill.visible
 
     /** how much overlap the stroke would have with a shape's edge */

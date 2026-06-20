@@ -76,15 +76,18 @@ internal class TextMetricsImpl(private val defaultFont: SkiaFont, private val fo
         }
     }
 
-    override fun width(text: String,                                    font: Font?, textSpacing: TextSpacing) = width(text,                font.newTextStyle(textSpacing = textSpacing))
-    override fun width(text: String,     width: Double, indent: Double, font: Font?, textSpacing: TextSpacing) = width(text, width, indent, font.newTextStyle(textSpacing = textSpacing))
-    override fun width(text: AnnotatedString, textSpacing: TextSpacing) = max(0.0, text.paragraph(               textSpacing = textSpacing).longestWidth)
-    override fun width(text: AnnotatedString, width: Double, indent: Double, textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, textSpacing = textSpacing).longestWidth)
+    override fun width(text: String,                                         font: Font?, textSpacing: TextSpacing) = width(text,                font.newTextStyle(textSpacing = textSpacing))
+    override fun width(text: String,          width: Double, indent: Double, font: Font?, textSpacing: TextSpacing) = width(text, width, indent, font.newTextStyle(textSpacing = textSpacing))
+    override fun width(text: AnnotatedString,                                             textSpacing: TextSpacing) = max(0.0, text.paragraph(               textSpacing = textSpacing).longestWidth)
+    override fun width(text: AnnotatedString, width: Double, indent: Double,              textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, textSpacing = textSpacing).longestWidth)
 
-    override fun height(text: String,                                    font: Font?                                              ) = height(text,                font.newTextStyle)
-    override fun height(text: String,     width: Double, indent: Double, font: Font?, lineSpacing: Float, textSpacing: TextSpacing) = height(text, width, indent, font.newTextStyle(lineSpacing, textSpacing))
-    override fun height(text: AnnotatedString, textSpacing: TextSpacing) = max(0.0, text.paragraph(              textSpacing = textSpacing).totalHeight)
-    override fun height(text: AnnotatedString, width: Double, indent: Double, lineSpacing: Float, textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, lineSpacing, textSpacing).totalHeight)
+    override fun height(text: String,                                         font: Font?                                               ) = height(text,                font.newTextStyle)
+    override fun height(text: String,          width: Double, indent: Double, font: Font?,                      textSpacing: TextSpacing) = height(text, width, indent, font.newTextStyle(1f, textSpacing))
+    override fun height(text: String,          width: Double, indent: Double, font: Font?, lineSpacing: Float,  textSpacing: TextSpacing) = height(text, width, indent, font.newTextStyle(lineSpacing, textSpacing))
+
+    override fun height(text: AnnotatedString,                                                                  textSpacing: TextSpacing) = max(0.0, text.paragraph(              textSpacing = textSpacing).totalHeight)
+    override fun height(text: AnnotatedString, width: Double, indent: Double,                                   textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, 1f,          textSpacing).totalHeight)
+    override fun height(text: AnnotatedString, width: Double, indent: Double,               lineSpacing: Float, textSpacing: TextSpacing) = max(0.0, text.paragraph(indent, width, lineSpacing, textSpacing).totalHeight)
 
     internal fun width(text: String,                                    textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle               ).longestWidth)
     internal fun width(text: String,     width: Double, indent: Double, textStyle: TextStyle = defaultFont.textStyle()) = max(0.0, text.paragraph(textStyle, indent, width).longestWidth)

@@ -20,7 +20,7 @@ import io.nacular.doodle.drawing.GraphicsDevice
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.impl.NativeCanvas
 import io.nacular.doodle.drawing.impl.RealGraphicsSurface
-import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Task
 import io.nacular.doodle.text.AnnotatedString
@@ -49,7 +49,8 @@ internal class DocumentImpl(
 
         layout = simpleLayout { _,_,current,_,_ ->
             children.forEach {
-                it.suggestBounds(it.bounds.at(graphicsDevice[it].rootElement.run { Point(offsetLeft, offsetTop) }))
+                val root = graphicsDevice[it].rootElement
+                it.suggestBounds(it.bounds.at(root.offsetLeft.toDouble(), root.offsetTop.toDouble()))
             }
 
             resizeTask = resizeTask ?: scheduler.now { resize() }

@@ -576,8 +576,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     resizingCol = null
 
-                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
-                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
+                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this@TreeTable).height)
+                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this@TreeTable).height)
 
                     delegate.layout(items, min, current, max).run {
                         val auditor = SizeAuditor { _,_,new,_,_ ->
@@ -646,13 +646,12 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints = {
-                it greaterEq panel.idealSize.width
-                it eq        parent.width - verticalScrollBarWidth strength Strong
-            }
-            contentHeightConstraints = {
-                it greaterEq panel.idealSize.height
-                it eq        parent.height - horizontalScrollBarHeight strength Strong
+            contentConstraints = {
+                it.width  greaterEq panel.idealSize.width
+                it.width  eq        parent.width - verticalScrollBarWidth strength Strong
+
+                it.height greaterEq panel.idealSize.height
+                it.height eq        parent.height - horizontalScrollBarHeight strength Strong
             }
 
             scrollBarDimensionsChanged += {

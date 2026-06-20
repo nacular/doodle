@@ -289,10 +289,9 @@ public open class TreeColumns<T, M: TreeModel<T>>(
             var width = 0.0
 
             views.forEach {
-                it.updateBounds(Rectangle(x, y, it.bounds.width, h).also {
-                    x     += it.width
-                    width += it.width
-                })
+                it.bounds  = Rectangle(x, y, it.bounds.width, h)
+                x         += it.width
+                width     += it.width
             }
 
             if (width > 0) {
@@ -369,13 +368,15 @@ public open class TreeColumns<T, M: TreeModel<T>>(
     }
 
     private fun createScrollPanel(view: View) = ScrollPanel(view).apply {
-        contentWidthConstraints  = { it eq width - verticalScrollBarWidth }
-        contentHeightConstraints = { it eq height                         }
+        contentConstraints = {
+            it.width  eq width - verticalScrollBarWidth
+            it.height eq height
+        }
 
         // FIXME: REMOVE
         suggestWidth(200.0)
         Resizer(this).apply {
-            movable = false
+            movable    = false
             directions = setOf(East)
         }
     }

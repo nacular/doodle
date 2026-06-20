@@ -4,6 +4,8 @@ import io.nacular.doodle.core.LookupResult.Ignored
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.Size.Companion.Empty
+import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 
@@ -12,30 +14,16 @@ import io.nacular.doodle.layout.Insets.Companion.None
  *
  * @see View
  */
-public interface Positionable {
+public abstract class Positionable internal constructor() {
 
-    public interface BoundsUpdateContext {
-        public fun setX        (value: Double)
-        public fun setY        (value: Double)
-        public fun setWidth    (value: Double) { setMinWidth(value); setMaxWidth(value) }
-        public fun setWidth    (min: Double, max: Double) { setMinWidth(min); setMaxWidth(max) }
-        public fun setWidth    (within: ClosedFloatingPointRange<Double>): Unit = setWidth(within.start, within.endInclusive)
-        public fun setHeight   (value: Double) { setMinHeight(value); setMaxHeight(value) }
-        public fun setHeigh    (min: Double, max: Double) { setMinHeight(min); setMaxHeight(max) }
-        public fun setHeigh    (within: ClosedFloatingPointRange<Double>): Unit = setHeigh(within.start, within.endInclusive)
-        public fun setPosition (x: Double, y: Double) { setX(x); setY(y) }
-        public fun setPosition (point: Point): Unit = setPosition(point.x, point.y)
-        public fun setMinWidth (value: Double)
-        public fun setMaxWidth (value: Double)
-        public fun setMinHeight(value: Double)
-        public fun setMaxHeight(value: Double)
-    }
-
-    /** The current screen location/size */
-    public val bounds: Rectangle
+    internal abstract var x_     : Double
+    internal abstract var y_     : Double
+    internal abstract var size_  : Size
+    internal abstract var minSize: Size
+    internal abstract var maxSize: Size
 
     /** The ideal size */
-    public val idealSize: Size
+    public abstract val idealSize: Size
 
     /**
      * Preferred size within [min] and [max].
@@ -43,10 +31,10 @@ public interface Positionable {
      * @param min size allowed
      * @param max size allowed
      */
-    public fun preferredSize(min: Size, max: Size): Size
+    public abstract fun preferredSize(min: Size, max: Size): Size
 
     /** Whether this item is visible. */
-    public val visible: Boolean
+    public abstract val visible: Boolean
 
     /**
      * Checks whether this item contains [point].
@@ -54,22 +42,22 @@ public interface Positionable {
      * @param point within the item's parent
      * @return `true` IFF the point falls within the item
      */
-    public operator fun contains(point: Point): Boolean
-
+    public abstract operator fun contains(point: Point): Boolean
+/*
     /**
      * Sets item's [position] to [x] and [y]
      *
      * @param x to set
      * @param y to set
      */
-    public fun updatePosition(x: Double, y: Double)
+    public abstract fun updatePosition(x: Double, y: Double)
 
     /**
      * Sets item's [Positionable.position] to the given value
      *
      * @param position to set
      */
-    public fun updatePosition(position: Point) { updatePosition(position.x, position.y) }
+    public fun updatePosition(position: Point): Unit = updatePosition(position.x, position.y)
 
     /**
      * Asks the item to choose a size within [min] and [max]
@@ -80,7 +68,7 @@ public interface Positionable {
      */
     public fun updateSize(min: Size, max: Size): Size = updateBounds(position.x, position.y, min, max)
 
-    public fun updateSize(size: Size) { updateBounds(Rectangle(position, size)) }
+    public fun updateSize(size: Size) { updateBounds { setWidth(size.width); setHeight(size.height) } }
 
     /**
      * Sets the item's [position] and asks it to choose a size within [min] and [max]
@@ -91,7 +79,7 @@ public interface Positionable {
      * @param max size
      * @return size selected
      */
-    public fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
+    public abstract fun updateBounds(x: Double, y: Double, min: Size, max: Size): Size
 
     /**
      * Sets the item's [bounds] to [rectangle]
@@ -111,12 +99,14 @@ public interface Positionable {
      * @param height
      */
     public fun updateBounds(x: Double, y: Double, width: Double, height: Double) {
-        val size = Size(width, height)
-
-        updateBounds(x, y, size, size)
+        updateBounds {
+            setPosition(x, y)
+            setWidth(width)
+            setHeight(height)
+        }
     }
 
-    public fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size
+    public abstract fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size*/
 }
 
 /** The current screen location */
@@ -225,19 +215,57 @@ public interface Layout {
      */
     public fun item(of: Sequence<Positionable>, at: Point): LookupResult = Ignored
 
+    public var Positionable.x       : Double    get() = x_;                          set(value) { x_       = value                             }
+    public var Positionable.y       : Double    get() = y_;                          set(value) { y_       = value                             }
+    public var Positionable.width   : Double    get() = size_.width;                 set(value) { minSize = Size(value, minSize.height); maxSize = Size(value, maxSize.height); size_ = Size(value,       size.height)    }
+    public var Positionable.height  : Double    get() = size_.height;                set(value) { minSize = Size(minSize.width, value ); maxSize = Size(maxSize.width, value ); size_ = Size(size.width, value       )    }
+    public var Positionable.position: Point     get() = Point    (x,        y     ); set(value) { x        = value.x; y = value.y              }
+    public var Positionable.bounds  : Rectangle get() = Rectangle(position, size  ); set(value) { position = value.position; size = value.size }
+    public var Positionable.size    : Size      get() = size_;                       set(value) {
+        minSize = value
+        maxSize = value
+        size_   = value
+    }
+
+    public val Positionable.right   : Double get() = x + width;
+    public val Positionable.bottom  : Double get() = y + height
+    public val Positionable.center  : Point  get() = Point(x + width / 2, y + height / 2)
+
+    public fun Positionable.assumeAnySize(downTo: Size = Empty, upTo: Size = Infinite): Size = preferredSize(downTo, upTo).also {
+        assumeSize(it, downTo, upTo)
+    }
+
+    public fun Positionable.assumeAnySize(x: Double, y: Double, downTo: Size = Empty, upTo: Size = Infinite): Size = preferredSize(downTo, upTo).also {
+        assumeSize(x, y, it, downTo, upTo)
+    }
+
+    public fun Positionable.assumeSize(of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
+        this.size    = of
+        this.minSize = downTo
+        this.maxSize = upTo
+    }
+
+    public fun Positionable.assumeSize(x: Double, y: Double, of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
+        this.x       = x
+        this.y       = y
+        this.size    = of
+        this.minSize = downTo
+        this.maxSize = upTo
+    }
+
     public companion object {
         /**
          * @param layout delegated to for positioning
          * @return a Layout that delegates to [layout]
          */
-        public inline fun simpleLayout(crossinline layout: (views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
+        public inline fun simpleLayout(crossinline block: Layout.(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) -> Size): Layout = object: Layout {
             override fun layout(
                 views  : Sequence<Positionable>,
                 min    : Size,
                 current: Size,
                 max    : Size,
                 insets : Insets
-            ): Size = layout(views, min, current, max, insets)
+            ): Size = block(views, min, current, max, insets)
         }
     }
 }

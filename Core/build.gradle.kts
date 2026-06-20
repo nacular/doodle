@@ -1,12 +1,16 @@
-
 import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import org.gradle.api.attributes.Category.LIBRARY
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget
 import org.jetbrains.kotlin.gradle.plugin.usesPlatformOf
+
+plugins {
+    id("kotlin-multiplatform"  )
+    id("kover-conventions"     )
+    id("publishing-conventions")
+}
 
 kotlin {
     explicitApi()
@@ -60,7 +64,7 @@ kotlin {
                 vararg extendsFrom    : String
             ) {
                 attributes {
-                    attribute(USAGE_ATTRIBUTE,    objects.named(if (platformType == jvm) jvmUsageName else kotlinUsageName))
+                    attribute(USAGE_ATTRIBUTE,    objects.named(if (platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm) jvmUsageName else kotlinUsageName))
                     attribute(CATEGORY_ATTRIBUTE, objects.named(LIBRARY))
                 }
                 extendsFrom.forEach {

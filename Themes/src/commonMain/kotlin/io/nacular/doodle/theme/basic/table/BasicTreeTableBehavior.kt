@@ -31,8 +31,8 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.with
-import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Shift
@@ -212,7 +212,7 @@ public open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row.onSuccess {
-                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(Insets(top = 1.0)).with(width = canvas.width), ColorPaint(color))
+                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(top = 1.0).with(width = canvas.width), ColorPaint(color))
                 }
             }
         }

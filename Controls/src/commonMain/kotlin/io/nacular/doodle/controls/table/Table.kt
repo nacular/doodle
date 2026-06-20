@@ -288,8 +288,8 @@ public open class Table<T, M: ListModel<T>>(
 
                     resizingCol = null
 
-                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this).height)
-                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this).height)
+                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this@Table).height)
+                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this@Table).height)
 
                     delegate.layout(items, min, current, max).run {
                         val auditor = SizeAuditor { _, _, new, _, _ ->
@@ -360,13 +360,12 @@ public open class Table<T, M: ListModel<T>>(
                 }
             }
         }).apply {
-            contentWidthConstraints = {
-                it greaterEq panel.idealSize.width
-                it eq        parent.width - verticalScrollBarWidth strength Strong
-            }
-            contentHeightConstraints = {
-                it greaterEq panel.idealSize.height
-                it eq        parent.height - horizontalScrollBarHeight strength Strong
+            contentConstraints = {
+                it.width greaterEq panel.idealSize.width
+                it.width eq        parent.width - verticalScrollBarWidth strength Strong
+
+                it.height greaterEq panel.idealSize.height
+                it.height eq        parent.height - horizontalScrollBarHeight strength Strong
             }
 
             scrollBarDimensionsChanged += {

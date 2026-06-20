@@ -144,9 +144,9 @@ class PopupManagerTests {
         val displaySize = Size(display.width, display.height)
 
         verify(exactly = 1) { constraints(match {
-            it.parent.edges.readOnly.size == displaySize
+            it.parent.edges.value.size == displaySize
         }, match {
-            it.width.readOnly == viewSize.width && it.height.readOnly == viewSize.height
+            it.width.value == viewSize.width && it.height.value == viewSize.height
         }) }
     }
 
@@ -164,9 +164,9 @@ class PopupManagerTests {
         var displaySize = Size(display.width, display.height)
 
         verify(exactly = 1) { constraints(match {
-            it.parent.edges.readOnly.size == displaySize
+            it.parent.edges.value.size == displaySize
         }, match {
-            it.width.readOnly == viewSize.width && it.height.readOnly == viewSize.height
+            it.width.value == viewSize.width && it.height.value == viewSize.height
         }) }
 
         display.size_ = Size(200)
@@ -175,9 +175,9 @@ class PopupManagerTests {
         displaySize = Size(display.width, display.height)
 
         verify(exactly = 1) { constraints(match {
-            it.parent.edges.readOnly.size == displaySize
+            it.parent.edges.value.size == displaySize
         }, match {
-            it.width.readOnly == viewSize.width && it.height.readOnly == viewSize.height
+            it.width.value == viewSize.width && it.height.value == viewSize.height
         }) }
     }
 
@@ -202,7 +202,9 @@ class PopupManagerTests {
         val oldBounds = view.bounds
         val newBounds = Rectangle(10, 10, 10, 10)
 
-        every { positionable.bounds } answers { newBounds }
+        every { positionable.x_    } answers { newBounds.x    }
+        every { positionable.y_    } answers { newBounds.y    }
+        every { positionable.size_ } answers { newBounds.size }
 
         viewBoundsChanged.captured(view, oldBounds, newBounds)
 
@@ -211,10 +213,10 @@ class PopupManagerTests {
         verify(exactly = 1) {
             constraints(
                 match {
-                    it.parent.edges.readOnly.size == displaySize
+                    it.parent.edges.value.size == displaySize
                 },
                 match {
-                    it.edges.readOnly.also { println("edges: $it == $newBounds") } == newBounds
+                    it.edges.value.also { println("edges: $it == $newBounds") } == newBounds
                 }
             )
         }

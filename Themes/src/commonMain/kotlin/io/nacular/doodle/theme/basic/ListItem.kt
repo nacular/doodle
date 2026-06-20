@@ -15,6 +15,7 @@ import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
@@ -31,13 +32,14 @@ import kotlin.math.max
  */
 @Suppress("LeakingThis")
 public open class ListItem<T>(
-                    list                           : ListLike,
-        public  var item                           : T,
-        public  var index                          : Int,
-        private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
-        private val backgroundSelectionColor       : Color? = Blue,
-        private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
-        private val role                           : ListItemRole = ListItemRole()): View(role) {
+                list                           : ListLike,
+    public  var item                           : T,
+    public  var index                          : Int,
+    private val itemVisualizer                 : ItemVisualizer<T, IndexedItem>,
+    private val backgroundSelectionColor       : Color? = Blue,
+    private val backgroundSelectionBlurredColor: Color? = backgroundSelectionColor,
+    private val role                           : ListItemRole = ListItemRole()
+): View(role) {
 
     public var list: ListLike = list; private set(new) {
         field.focusChanged -= listFocusChanged
@@ -143,8 +145,9 @@ public open class ListItem<T>(
         role.selected = list.selected(index)
 
         children[0] = itemVisualizer(item, children.firstOrNull(), SimpleIndexedItem(index, role.selected)).also { visualizer ->
-            if (visualizer != oldChild) {
-                layout = constrainLayout(children[0])
+            when {
+                visualizer != oldChild -> layout = constrainLayout(children[0])
+                else                   -> relayout()
             }
         }
 
@@ -153,7 +156,7 @@ public open class ListItem<T>(
     }
 
     override fun render(canvas: Canvas) {
-        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(Insets(top = insetTop, left = insetLeft)), it.paint) }
+        backgroundColor?.let { canvas.rect(bounds.atOrigin.inset(top = insetTop, left = insetLeft), it.paint) }
     }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->

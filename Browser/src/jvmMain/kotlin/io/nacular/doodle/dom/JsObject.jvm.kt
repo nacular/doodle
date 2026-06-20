@@ -7,3 +7,6 @@ internal actual fun jsObject(): JsAny = object: JsAny {}
 
 internal actual operator fun JsAny.set(key: String, value: JsAny) {}
 internal actual operator fun JsAny.get(key: String              ): JsAny? = null
+
+internal actual fun JsAny.setString(key: String, value: String) {}
+internal actual fun JsAny.getString(key: String               ): String = ""

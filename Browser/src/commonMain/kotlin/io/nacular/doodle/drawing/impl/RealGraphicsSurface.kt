@@ -36,7 +36,6 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.utils.addOrAppend
-import io.nacular.doodle.utils.observable
 import kotlin.math.max
 import kotlin.math.min
 
@@ -160,7 +159,8 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    override var zOrder by observable(0) { _,_ ->
+    override var zOrder = 0; set(new) {
+        field = new
         updateIndex(shift = false)
     }
 
@@ -170,11 +170,11 @@ internal class RealGraphicsSurface private constructor(
 
     private var canvasElement = canvasElement as HTMLElement?
 
-    override var mirrored                   by observable(false              ) { _,_ -> updateTransform(position)    }
-    override var transform: AffineTransform by observable(Identity           ) { _,_ -> refreshAugmentedTransform () }
-    override var camera                     by observable(Camera(Origin, 0.0)) { _,_ -> refreshProjectionTransform() }
+    override var mirrored                   = false;               set(new) { if (field == new) return; field = new; updateTransform(position)    }
+    override var transform: AffineTransform = Identity;            set(new) { if (field == new) return; field = new; refreshAugmentedTransform () }
+    override var camera                     = Camera(Origin, 0.0); set(new) { if (field == new) return; field = new; refreshProjectionTransform() }
 
-    private var projectionTransform by observable(ProjectionTransform.Identity) { _,_ -> updateTransform(position) }
+    private var projectionTransform = ProjectionTransform.Identity; set(new) { if (field == new) return; field = new; updateTransform(position) }
 
     override var clipCanvasToBounds = true; set(new) {
         if (field != new) {
@@ -203,9 +203,14 @@ internal class RealGraphicsSurface private constructor(
         }
     }
 
-    private var augmentedTransform: AffineTransform by observable(Identity) { _,_ -> updateTransform(position) }
+    private var augmentedTransform: AffineTransform = Identity; set(new) { if (field == new) return; field = new; updateTransform(position) }
 
-    override var size: Size by observable(Empty) { old,new ->
+    override var size: Size = Empty; set(new) {
+        if (field == new) return
+
+        val old = field
+        field = new
+
         rootElement.parent?.let {
             rootElement.style.setSize(new)
 
@@ -213,11 +218,11 @@ internal class RealGraphicsSurface private constructor(
                 when {
                     old.empty && !new.empty -> {
                         rootElement.style.setOverflow  (Visible())
-                        canvasElement.style.setOverflow(Visible())
+                        canvasElement?.style?.setOverflow(Visible())
                     }
                     !old.empty && new.empty -> {
                         rootElement.style.setOverflow  (null)
-                        canvasElement.style.setOverflow(null)
+                        canvasElement?.style?.setOverflow(null)
                     }
                 }
             }
@@ -230,7 +235,7 @@ internal class RealGraphicsSurface private constructor(
     }
 
     private var isContainer = false; set(new) {
-        if (field == new) { return }
+        if (field == new) return
 
         field = new
 
@@ -296,8 +301,11 @@ internal class RealGraphicsSurface private constructor(
         parent?.parent?.remove(parent)
     }
 
-    override var position: Point by observable(Origin) { _,new ->
+    override var position: Point = Origin; set(new) {
+        if (field == new) return
+
         updateTransform(new)
+        field = new
     }
 
     init {

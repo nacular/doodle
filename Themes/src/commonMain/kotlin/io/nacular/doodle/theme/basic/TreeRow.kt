@@ -19,6 +19,7 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
@@ -113,7 +114,7 @@ public class TreeRow<T>(
     // FIXME: Shouldn't need the explicit left setting here
     public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({
         it.left    eq 0
-        it.width   eq it.idealWidth
+        it.size    eq it.idealSize
         it.centerY eq parent.centerY
     }) { _,_ ->
        updateLayout() //relayout()
@@ -145,8 +146,7 @@ public class TreeRow<T>(
     private val indent get() = iconWidth * (depth + 1)
 
     private val iconConstraints: ConstraintDslContext.(Bounds) -> Unit = {
-        it.width.preserve
-        it.height.preserve
+        it.size.preserve
 
         it.right   eq indent
         it.centerY eq parent.centerY

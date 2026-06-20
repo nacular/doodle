@@ -1,16 +1,17 @@
 package io.nacular.doodle.theme.basic.list
 
 import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.list.List
 import io.nacular.doodle.controls.list.ListBehavior
 import io.nacular.doodle.controls.list.ListBehavior.ItemGenerator
 import io.nacular.doodle.controls.list.ListBehavior.ItemPositioner
-import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Paint
 import io.nacular.doodle.drawing.horizontalStripedPaint
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.verticalStripedPaint
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -106,8 +107,10 @@ public inline fun <T> basicVerticalListBehavior(
     generator    = generator,
     positioner   = BasicVerticalListPositioner(itemHeight, numColumns),
     fill         = when {
-        evenItemColor != null || oddItemColor != null -> horizontalStripedPaint(itemHeight, evenItemColor, oddItemColor)
-        else                                          -> null
+        evenItemColor != oddItemColor -> horizontalStripedPaint(itemHeight, evenItemColor, oddItemColor)
+        evenItemColor != null         -> evenItemColor.paint
+        oddItemColor  != null         -> oddItemColor.paint
+        else                          -> null
     }
 )
 

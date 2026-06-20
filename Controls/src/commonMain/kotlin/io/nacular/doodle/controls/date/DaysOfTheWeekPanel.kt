@@ -39,12 +39,9 @@ public class DaysOfTheWeekPanel(weekStart: DayOfWeek = DayOfWeek.SUNDAY, public 
             val size        = Size(columnWidth, current.height)
 
             views.forEach {
-                it.updateBounds(
-                    x   = columnWidth * col,
-                    y   = 0.0,
-                    min = size,
-                    max = size
-                )
+                it.x    = columnWidth * col
+                it.y    = 0.0
+                it.size = size
 
                 col = (col + 1) % numColumns
             }

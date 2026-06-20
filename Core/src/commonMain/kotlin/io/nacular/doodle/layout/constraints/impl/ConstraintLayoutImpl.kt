@@ -1,10 +1,9 @@
 package io.nacular.doodle.layout.constraints.impl
 
+import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PositionableView
-import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Area
@@ -15,15 +14,11 @@ import io.nacular.doodle.layout.constraints.ConstraintException
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.Edges
 import io.nacular.doodle.layout.constraints.Expression
-import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
-import io.nacular.doodle.layout.constraints.Strength.Companion.Light
-import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
-import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
-import io.nacular.doodle.layout.constraints.Term
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
@@ -33,97 +28,115 @@ import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.X_
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.Y_ID
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
-import io.nacular.doodle.utils.diff.Delete
-import io.nacular.doodle.utils.diff.Insert
-import io.nacular.doodle.utils.diff.compare
-import io.nacular.doodle.utils.ifNull
-import io.nacular.doodle.utils.removeAll
 import kotlin.Double.Companion.POSITIVE_INFINITY
-import kotlin.reflect.KMutableProperty0
-
-internal interface BoundsAttemptObserver {
-    fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean)
-}
 
 @Suppress("PrivatePropertyName")
-internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext): Bounds {
-    private var x__      = target.bounds.x
-    private var y__      = target.bounds.y
-    private var width__  = target.bounds.width
-    private var height__ = target.bounds.height
+internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext, private val solver: Solver): Bounds, Layout {
+    private var x_      : Double = target.x
+    private var y_      : Double = target.y
+    private var width_  : Double = target.width
+    private var height_ : Double = target.height
 
-    // This looks strange, cut it works b/c the Solver reads variables and only updates them after computing their new
-    // values. Essentially, it never does read, ..., write, ..., read; only read, ..., read, write
-    private var x_      get() = target.bounds.x;      set(value) { x__      = value }
-    private var y_      get() = target.bounds.y;      set(value) { y__      = value }
-    private var width_  get() = target.bounds.width;  set(value) { width__  = value }
-    private var height_ get() = target.bounds.height; set(value) { height__ = value }
+    override val top     = ReflectionVariable(target, ReadWriteValue("y",      { y_      }, { y_      = it }), id = Y_ID                            )
+    override val left    = ReflectionVariable(target, ReadWriteValue("x",      { x_      }, { x_      = it }), id = X_ID                            )
+    override val width   = ReflectionVariable(target, ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID,  needsSynthetic = true)
+    override val height  = ReflectionVariable(target, ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID, needsSynthetic = true)
 
-    val top_     by lazy { ReflectionVariable(target, ::y_,      id = Y_ID                            ) }
-    val left_    by lazy { ReflectionVariable(target, ::x_,      id = X_ID                            ) }
+    override val right   = with(context) { left + width      }
+    override val bottom  = with(context) { top  + height     }
+    override val centerX = with(context) { left + width  / 2 }
+    override val centerY = with(context) { top  + height / 2 }
 
-    override val top     by lazy { with(context) { 0 + top_  } }
-    override val left    by lazy { with(context) { 0 + left_ } }
-    override val width   by lazy {                     ReflectionVariable(target, ::width_,  id = WIDTH_ID,  needsSynthetic = true) }
-    override val height  by lazy {                     ReflectionVariable(target, ::height_, id = HEIGHT_ID, needsSynthetic = true) }
-
-    override val right   by lazy { with(context) { left + width      } }
-    override val bottom  by lazy { with(context) { top  + height     } }
-    override val centerX by lazy { with(context) { left + width  / 2 } }
-    override val centerY by lazy { with(context) { top  + height / 2 } }
-
-    override val center  by lazy { Position(centerX, centerY) }
-    override val edges   by lazy { with(context) { Edges(top   + 0, left   + 0, right, bottom) } }
-    override val size    by lazy { with(context) { Area (width + 0, height + 0               ) } }
+    override val size    = Area (width, height                                   )
+    override val edges   = with(context) { Edges(top + 0, left + 0, right, bottom) }
+    override val center  = Position(centerX, centerY)
 
     override val idealSize get() = target.idealSize
 
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
+    private val ReflectionVariable.targeted get() = constrained || edited
+
     fun commit() {
-        val x         = if (left_.constrained ) x__      else x_
-        val y         = if (top_.constrained  ) y__      else y_
-        val minWidth  = if (width.constrained ) width__  else 0.0
-        val maxWidth  = if (width.constrained ) width__  else POSITIVE_INFINITY
-        val minHeight = if (height.constrained) height__ else 0.0
-        val maxHeight = if (height.constrained) height__ else POSITIVE_INFINITY
+        if (top.targeted ) target.y = y_
+        if (left.targeted) target.x = x_
 
         when {
-            !(width.constrained || height.constrained) -> target.updatePosition(x, y)
-            else -> target.updateBounds {
-                setX(x)
-                setY(y)
-                if (width.constrained ) { setMinWidth (minWidth ); setMaxWidth (maxWidth ) }
-                if (height.constrained) { setMinHeight(minHeight); setMaxHeight(maxHeight) }
+            width.constrained -> {
+                target.width = width_
+
+                solver.computeRange(width, min = 0.0).let {
+                    target.minSize = Size(it.start,        target.minSize.height)
+                    target.maxSize = Size(it.endInclusive, target.maxSize.height)
+                }
+            }
+            width.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
+
+                target.width = width_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
+            }
+        }
+
+        when {
+            height.constrained -> {
+                target.height = height_
+
+                solver.computeRange(height, min = 0.0).let {
+                    target.minSize = Size(target.minSize.width, it.start       )
+                    target.maxSize = Size(target.maxSize.width, it.endInclusive)
+                }
+            }
+            height.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
+
+                target.height = height_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
             }
         }
     }
 
     fun reset() {
-        x__      = target.bounds.x
-        y__      = target.bounds.y
-        width__  = target.bounds.width
-        height__ = target.bounds.height
+        x_      = target.bounds.x
+        y_      = target.bounds.y
+        width_  = target.bounds.width
+        height_ = target.bounds.height
     }
+
+    override fun layout(
+        views: Sequence<Positionable>,
+        min: Size,
+        current: Size,
+        max: Size,
+        insets: Insets
+    ): Size = Size.Empty
+}
+
+internal class ReadWriteValue(val name: String, private val getter: () -> Double, private val setter: (Double) -> Unit) {
+    operator fun invoke() = getter()
+    fun set(value: Double) { setter(value) }
 }
 
 internal class ReflectionVariable(
              val target        : Positionable? = null,
-    private  val delegate      : KMutableProperty0<Double>,
+    private  val delegate      : ReadWriteValue,
     private  val id            : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
     override val needsSynthetic: Boolean = false,
     private  val mapper        : (Double) -> Double = { it }
 ): Property(), Variable {
-    @Suppress("PrivatePropertyName")
-    private val hashCode_ by lazy {
-        var result = target?.hashCode() ?: 1
-        result = 31 * result + id
-        result
-    }
+    private val hashCode = 31 * (target?.hashCode() ?: 1) +id
 
     override val name     get() = delegate.name
-    override val readOnly get() = invoke()
-    override var constrained = false
+    override val variable get() = this
+    override var isReadOnly     = false
+    override var constrained    = false
+    override var edited         = false
 
     override fun invoke() = delegate()
 
@@ -131,7 +144,9 @@ internal class ReflectionVariable(
         delegate.set(mapper(value))
     }
 
-    override fun toTerm(): Term = VariableTerm(this)
+    override fun toTerm(): VariableTerm = VariableTerm(this)
+    override val terms: Array<VariableTerm> = arrayOf(toTerm())
+    override val constant = 0.0
 
     override fun toString(): String = when (target) {
         is PositionableView -> target.view.toString().takeIf { it != "[object Object]" } ?: target.view::class.simpleName ?: "??"
@@ -153,7 +168,7 @@ internal class ReflectionVariable(
         return true
     }
 
-    override fun hashCode() = hashCode_
+    override fun hashCode() = hashCode
 
     companion object {
         const val X_ID      = 0
@@ -171,27 +186,27 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
     var min = Size.Empty; private set
     var max = min;        private set
 
+    override var insets = Insets.None
+
     fun update(size: Size, min: Size, max: Size, insets: Insets) {
-        width_  = size.width
-        height_ = size.height
-        this.min = min
-        this.max = max
+        width_      = size.width
+        height_     = size.height
+        this.min    = min
+        this.max    = max
         this.insets = insets
     }
 
-    override val width   by lazy { with(context) { 0 + ReflectionVariable(delegate = ::width_,  id = WIDTH_ID ) } }
-    override val height  by lazy { with(context) { 0 + ReflectionVariable(delegate = ::height_, id = HEIGHT_ID) } }
+    override val width   = ReflectionVariable(delegate = ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID )
+    override val height  = ReflectionVariable(delegate = ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID)
 
-    override val right   by lazy { with(context) { 0 + width      } }
-    override val centerX by lazy { with(context) { 0 + width  / 2 } }
-    override val bottom  by lazy { with(context) { 0 + height     } }
-    override val centerY by lazy { with(context) { 0 + height / 2 } }
+    override val right   = with(context) { 0 + width      }
+    override val centerX = with(context) { 0 + width  / 2 }
+    override val bottom  = with(context) { 0 + height     }
+    override val centerY = with(context) { 0 + height / 2 }
 
-    override val center  by lazy { Position(centerX, centerY) }
-    override val edges   by lazy { Edges(null, null, right, bottom) }
-    override val size    by lazy { with(context) { Area (width + 0, height + 0) } }
-
-    override var insets: Insets = Insets.None
+    override val center  = Position(centerX, centerY      )
+    override val edges   = Edges(null, null, right, bottom)
+    override val size    = Area (width, height            )
 }
 
 internal open class ConstraintLayoutImpl(
@@ -199,32 +214,8 @@ internal open class ConstraintLayoutImpl(
     vararg others        : View,
            originalLambda: Any,
            block         : ConstraintDslContext.(List<Bounds>) -> Unit
-): ConstraintLayout(), BoundsAttemptObserver {
-    private var layingOut     = false
-    private val activeBounds  = mutableMapOf<ReflectionVariable, Double>()
-    private val updatedBounds = mutableMapOf<ReflectionVariable, Double>()
-
-    private val boundsChanged: (View, Rectangle, Rectangle) -> Unit = { view,_,new ->
-        updateBounds(view, new)
-    }
-
-    private fun updateBounds(view: View, new: Rectangle) = viewBounds[view]?.also {
-        updatedBounds[it.top_  ] = new.y
-        updatedBounds[it.left_ ] = new.x
-        updatedBounds[it.width ] = new.width
-        updatedBounds[it.height] = new.height
-    }
-
-    override fun boundsChangeAttempted(view: View, old: Rectangle, new: Rectangle, relayout: Boolean) {
-        updateBounds(view, new)?.let {
-            if (!layingOut && relayout && view.displayed && requiresLayout(view.positionable, withinSize(view), old, new)) {
-                when (val p = view.parent) {
-                    null -> view.display?.relayout()
-                    else -> p.relayout_()
-                }
-            }
-        }
-    }
+): ConstraintLayout() {
+    private var layingOut = false
 
     internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
 
@@ -245,12 +236,14 @@ internal open class ConstraintLayoutImpl(
 
         context.updateParent(current, min = min, max = max, insets = insets)
 
-        setupSolver(solver, context, updatedBounds, blockTracker.values, ::notifyOfErrors)
-        solve      (solver, activeBounds, updatedBounds, blockTracker.values.asSequence().flatMap { it.constraints }, ::notifyOfErrors)
+        viewBounds.values.forEach { it.reset() }
+
+        setupSolver(solver, context, blockTracker.values, parentWidthPreservation, parentHeightPreservation, ::notifyOfErrors)
+        solve      (solver, blockTracker.values.asSequence().flatMap { it.constraints })
 
         layingOut = false
 
-        return Size(context.parent.width.readOnly, context.parent.height.readOnly)
+        return Size(context.parent.width.value, context.parent.height.value)
     }
 
     override fun constrain  (view: View, constraints: ConstraintDslContext.(Bounds) -> Unit) = constrain  (listOf(view), originalLambda = constraints) { (a) -> constraints(a) }
@@ -279,7 +272,6 @@ internal open class ConstraintLayoutImpl(
         return this
     }
 
-    @Suppress("SpellCheckingInspection")
     private fun unconstrain(views: List<View>, constraintBlock: Any): ConstraintLayout {
         blockTracker.remove(views to constraintBlock)?.let {
             blocks -= it.block
@@ -288,9 +280,7 @@ internal open class ConstraintLayoutImpl(
         val remaining = blockTracker.flatMap { entry -> entry.key.first }.toSet()
 
         views.filter { it !in remaining }.forEach {
-            it.boundsChangeAttempted -= this
-            it.boundsChanged         -= boundsChanged
-            viewBounds               -= it
+            viewBounds -= it
 
             it.resetConstraints()
         }
@@ -299,20 +289,8 @@ internal open class ConstraintLayoutImpl(
     }
 
     private fun constraints(views: List<View>): List<BoundsImpl> = views.map { view ->
-        view.boundsChangeAttempted += this
-        view.boundsChanged         += boundsChanged
-
         viewBounds.getOrPut(view) {
-            BoundsImpl(view.positionable, context).also { bounds ->
-                view.positionable.bounds.let {
-                    if (it.position != Origin || it.width != 0.0 || it.height != 0.0) {
-                        updatedBounds[bounds.top_  ] = it.y
-                        updatedBounds[bounds.left_ ] = it.x
-                        updatedBounds[bounds.width ] = it.width
-                        updatedBounds[bounds.height] = it.height
-                    }
-                }
-            }
+            BoundsImpl(view.positionable, context, solver)
         }
     }
 
@@ -320,28 +298,23 @@ internal open class ConstraintLayoutImpl(
         (exceptionThrown as SetPool).forEach { it(this, exception) }
     }
 
-    private fun withinSize(view: View) = when (val p = view.parent) {
-        null -> view.display?.size ?: Size.Empty
-        else -> p.size
-    }
-
     internal companion object {
         fun setupSolver(
-            solver       : Solver,
-            context      : ConstraintDslContext,
-            updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
-            blocks       : Collection<BlockInfo>,
-            errorHandler : (ConstraintException) -> Unit
+            solver                  : Solver,
+            context                 : ConstraintDslContext,
+            blocks                  : Collection<BlockInfo>,
+            parentWidthPreservation : Strength = Strong,
+            parentHeightPreservation: Strength = Strong,
+            errorHandler            : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
+            val oldEdits       = context.edits
 
-            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = false } }
-
-            context.constraints = mutableListOf()
+            context.reset()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
-                    constrainParent(width, height, min, max)
+                    constrainParent(width, parentWidthPreservation, height, parentHeightPreservation, min, max)
                 }
             }
 
@@ -349,153 +322,72 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
-            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = true } }
+            context.pendingAdd?.let {
+                context.constraints.add(it)
+                context.pendingAdd = null
+            }
 
-            val failedInserts = mutableListOf<Constraint>()
-
-            var previousDelete: Delete<Constraint>? = null
-
-            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach { difference ->
-                when (difference) {
-                    is Delete -> {
-                        handlePreviousDelete(solver, previousDelete)
-                        previousDelete = difference
-                    }
-                    is Insert -> {
-                        difference.items.forEachIndexed { index, insertedConstraint ->
-                            previousDelete?.let {
-                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(it.items[index])) {
-                                    // update constraint
-                                    doTrying(errorHandler) {
-                                        solver.updateConstant(it.items[index], insertedConstraint)
-                                    }
-                                } else {
-                                    // handle delete
-                                    handlePreviousDelete(solver, previousDelete).also { previousDelete = null }
-                                    // handle insert
-                                    if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
-                                        failedInserts += insertedConstraint
-                                    }
-                                }
-                            }.ifNull {
-                                // handle insert
-                                if (!handleInsert(solver, insertedConstraint, updatedBounds)) {
-                                    failedInserts += insertedConstraint
-                                }
-                            }
-                        }
-
-                        previousDelete = null
-                    }
-                    else             -> {}
+            for (constraint in oldConstraints) {
+                if (constraint !in context.constraints) {
+                    handleDelete(solver, constraint)
                 }
             }
 
-            handlePreviousDelete(solver, previousDelete)
+            val failedInserts = mutableListOf<Constraint>()
 
-            // try again in case some items were unsatisfiable due to the order of delete vs insert
+            for (constraint in context.constraints) {
+                if (constraint !in oldConstraints) {
+                    if (!handleInsert(solver, constraint, errorHandler)) {
+                        failedInserts += constraint
+                    }
+                }
+            }
+
             failedInserts.forEach {
-                if (!handleInsert(solver, it, updatedBounds, errorHandler)) {
-                    context.constraints -= it
+                context.constraints -= it
+            }
+
+            for (edit in oldEdits) {
+                if (edit !in context.edits) {
+                    doTrying({}) {
+                        solver.removeEditVariable(edit.property)
+                    }
+                }
+            }
+
+            for (edit in context.edits) {
+                if (edit !in oldEdits) {
+                    doTrying(errorHandler) {
+                        edit.property.edited = true
+                        solver.addEditVariable(edit.property, edit.strength)
+                        solver.suggestValue   (edit.property, edit.value   )
+                    }
                 }
             }
         }
 
-        fun solve(
-            solver: Solver,
-            activeBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
-            updatedBounds: MutableMap<ReflectionVariable, Double> = mutableMapOf(),
-            bounds      : Sequence<BoundsImpl>,
-            errorHandler: (ConstraintException) -> Unit
-        ) {
-            updatedBounds.removeAll { variable, _ -> variable !in solver.variables }
-
-            activeBounds.removeAll { k,_ -> k !in updatedBounds }.forEach { (variable, value) ->
-                doTrying(errorHandler) {
-                    solver.removeEditVariable(variable)
-                }
-
-                doTrying(errorHandler) {
-                    solver.addEditVariable(variable, Weak)
-                    solver.suggestValue(variable, value)
-                }
-            }
-
-            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable,_) ->
-                doTrying(errorHandler) {
-                    solver.removeEditVariable(variable)
-                }
-
-                doTrying(errorHandler) {
-                    solver.addEditVariable(variable, Light)
-                }
-            }
-
-            updatedBounds.forEach { (variable, value) ->
-                doTrying(errorHandler) {
-                    solver.suggestValue(variable, value)
-                }
-            }
-
-            activeBounds.putAll(updatedBounds)
-
-            updatedBounds.clear()
-
+        fun solve(solver: Solver, bounds: Sequence<BoundsImpl>) {
             solver.updateVariables()
 
             bounds.forEach { it.commit() }
-
-            // Hold anything that changes. These should all have Weak strength
-            updatedBounds.filter { it.key !in activeBounds }.forEach { (variable, value) ->
-                try {
-                    solver.suggestValue(variable, value)
-                } catch (_: Exception) {}
-            }
-
-            // Cleanup holds
-            updatedBounds.clear()
         }
 
         private fun handleInsert(
             solver            : Solver,
             insertedConstraint: Constraint,
-            updatedBounds     : MutableMap<ReflectionVariable, Double>,
             errorHandler      : (ConstraintException) -> Unit = {}
         ): Boolean {
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                newVariables.forEach {
-                    val variable = it.variable
-
-                    if (variable.needsSynthetic) {
-                        try {
-                            // Add synthetic constraints that keep width and height positive
-                            solver.addNegativeGuard(variable)
-                        } catch (_: Exception) {}
-                    }
+                newVariables.filter { it.variable.constrained = true; it.variable.needsSynthetic }.forEach {
+                    try {
+                        // Add synthetic constraints that keep width and height positive
+                        solver.addNegativeGuard(it.variable)
+                    } catch (_: Exception) {}
                 }
 
                 solver.addConstraint(insertedConstraint)
-
-                newVariables.forEach {
-                    val variable = it.variable
-
-                    try {
-                        val strength = when {
-                            variable in updatedBounds -> Light
-                            else                      -> Weak
-                        }
-
-                        solver.addEditVariable(variable, strength)
-                    } catch (_: Exception) {}
-
-                    if (variable() != 0.0) {
-                        doTrying(errorHandler) {
-                            solver.suggestValue(variable, variable())
-                        }
-                    }
-                }
             } catch (exception: UnsatisfiableConstraintException) {
                 errorHandler(exception)
                 cleanupSynthetics(solver, insertedConstraint)
@@ -527,34 +419,34 @@ internal open class ConstraintLayoutImpl(
                 block()
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
-            } catch (_: UnknownEditVariableException) {
-            } catch (_: UnknownConstraintException  ) {}
-        }
-
-        private fun ensureNonNegative(variable: Variable) = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
-
-        private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
-            previousDelete?.let {
-                it.items.forEach { constraint ->
-                    handleDelete(solver, constraint)
-                }
             }
         }
 
-        private fun ConstraintDslContext.constrainParent(width: Expression, height: Expression, min: Size, max: Size) {
-            constrainSide(width,  min.width,  max.width )
-            constrainSide(height, min.height, max.height)
+        private fun ConstraintDslContext.constrainParent(
+            width         : Expression,
+            widthStrength : Strength,
+            height        : Expression,
+            heightStrength: Strength,
+            min           : Size,
+            max           : Size
+        ) {
+            constrainSide(width,  min.width,  max.width,  widthStrength )
+            constrainSide(height, min.height, max.height, heightStrength)
         }
 
-        private fun ConstraintDslContext.constrainSide(property: Expression, minExtent: Double, maxExtent: Double) {
+        private fun ConstraintDslContext.constrainSide(
+            property : Expression,
+            minExtent: Double,
+            maxExtent: Double,
+            strength : Strength,
+        ) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {
-                    // FIXME: Need to find a way to do this since updating a constraint that isn't REQUIRED leaks memory
-                    property eq        property.readOnly strength Strong
-                    property greaterEq minExtent
+                    property preserve strength
 
-                    if (maxExtent < POSITIVE_INFINITY) { property lessEq maxExtent }
+                    if (minExtent > 0.0              ) { property greaterEq maxExtent }
+                    if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
                 }
             }
         }

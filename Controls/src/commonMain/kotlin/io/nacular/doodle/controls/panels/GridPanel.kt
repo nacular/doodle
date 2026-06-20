@@ -44,6 +44,17 @@ public interface SizingPolicy {
 }
 
 /**
+ * Controls the look and feel for a [GridPanel].
+ */
+public abstract class GridPanelBehavior: Behavior<GridPanel> {
+    /** Indicates the boundaries between each row */
+    protected val GridPanel.rowBoundaries: Sequence<Double> get() = rowDimensions.dropLast(1).asSequence().map    { insets.top  + it.offset + it.size + rowSpacing   (width ) / 2 }
+
+    /** Indicates the boundaries between each col */
+    protected val GridPanel.columnBoundaries: Sequence<Double> get() = columnDimensions.dropLast(1).asSequence().map { insets.left + it.offset + it.size + columnSpacing(height) / 2 }
+}
+
+/**
  * Determines the spacing of a [GridPanel]'s rows or columns.
  */
 public typealias SpacingPolicy = (panelSize: Double) -> Double
@@ -70,7 +81,7 @@ public open class GridPanel: View() {
         }
     }
 
-    private class Dimensions(var offset: Double = 0.0, var size: Double = 0.0) {
+    internal class Dimensions(var offset: Double = 0.0, var size: Double = 0.0) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Dimensions) return false
@@ -88,11 +99,11 @@ public open class GridPanel: View() {
         }
     }
 
-    private val locations        = mutableMapOf<View, Set<Location>>()
-    private val rowSpans         = mutableMapOf<View, Int>().withDefault { 1 }
-    private val columnSpans      = mutableMapOf<View, Int>().withDefault { 1 }
-    private var rowDimensions    = mapOf<Int, Dimensions>()
-    private var columnDimensions = mapOf<Int, Dimensions>()
+    private  val locations        = mutableMapOf<View, Set<Location>>()
+    private  val rowSpans         = mutableMapOf<View, Int>().withDefault { 1 }
+    private  val columnSpans      = mutableMapOf<View, Int>().withDefault { 1 }
+    internal var rowDimensions    = listOf<Dimensions>()
+    internal var columnDimensions = listOf<Dimensions>()
 
     /**
      * Controls how items are aligned within the grid cells. Defaults to [fill].
@@ -123,7 +134,7 @@ public open class GridPanel: View() {
      * Controls how the panel behaves. The panel delegates rendering to its behavior when
      * specified.
      */
-    public var behavior: Behavior<GridPanel>? by behavior()
+    public var behavior: GridPanelBehavior? by behavior()
 
     final override var layout: Layout? = GridLayout()
 
@@ -211,34 +222,34 @@ public open class GridPanel: View() {
             val verticalSpacing   = rowSpacing  (panelHeight)
             val horizontalSpacing = columnSpacing(panelWidth)
 
-            rowDimensions    = rowSizingPolicy   (panelHeight, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }
-            columnDimensions = columnSizingPolicy(panelWidth,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }
+            rowDimensions    = rowSizingPolicy   (panelHeight, verticalSpacing,   rowLanes).mapValues { Dimensions(0.0, it.value) }.entries.sortedBy { it.key }.map { it.value }
+            columnDimensions = columnSizingPolicy(panelWidth,  horizontalSpacing, colLanes).mapValues { Dimensions(0.0, it.value) }.entries.sortedBy { it.key }.map { it.value }
 
             var offset = 0.0
-            rowDimensions.entries.sortedBy { it.key }.forEach {
-                it.value.offset = offset
-                offset += it.value.size + verticalSpacing
+            rowDimensions.forEach {
+                it.offset = offset
+                offset += it.size + verticalSpacing
             }
 
             idealHeight = offset - if (rowDimensions.size > 1) verticalSpacing else 0.0
 
             offset = 0.0
-            columnDimensions.entries.sortedBy { it.key }.forEach {
-                it.value.offset = offset
-                offset += it.value.size + horizontalSpacing
+            columnDimensions.forEach {
+                it.offset = offset
+                offset += it.size + horizontalSpacing
             }
 
             idealWidth = offset - if (columnDimensions.size > 1) horizontalSpacing else 0.0
 
-            children.forEach {
+            views.forEachIndexed { index, view ->
                 var x       = null as Double?
                 var y       = null as Double?
                 val widths  = mutableSetOf<Dimensions>()
                 val heights = mutableSetOf<Dimensions>()
 
-                locations[it]?.forEach {
-                    val rowDim = rowDimensions.getValue   (it.row   )
-                    val colDim = columnDimensions.getValue(it.column)
+                locations[children[index]]?.forEach {
+                    val rowDim = rowDimensions   [it.row   ]
+                    val colDim = columnDimensions[it.column]
 
                     x = min(x ?: colDim.offset, colDim.offset)
                     y = min(y ?: rowDim.offset, rowDim.offset)
@@ -246,16 +257,16 @@ public open class GridPanel: View() {
                     heights.add(rowDim)
                 }
 
-                it.suggestBounds(constrainer(
+                view.bounds = constrainer(
                     using     = cellAlignment,
-                    rectangle = it.bounds,
+                    rectangle = view.bounds,
                     within    = Rectangle(
                         (x ?: 0.0) + insets.left,
                         (y ?: 0.0) + insets.top,
                         widths.sumOf  { it.size } + horizontalSpacing * (widths.size  - 1),
                         heights.sumOf { it.size } + verticalSpacing *   (heights.size - 1)
                     ),
-                ))
+                )
             }
 
             return Size(idealWidth!! + insets.run { left + right }, idealHeight!! + insets.run { top + bottom })

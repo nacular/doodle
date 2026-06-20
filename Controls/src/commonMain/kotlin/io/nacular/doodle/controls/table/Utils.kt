@@ -41,11 +41,10 @@ internal class TableMetaRow(columns: List<InternalColumn<*,*,*,*>>, private val 
             var x = scrollOffset
 
             views.forEachIndexed { index, view ->
-                val size = Size(columns[index].width, current.height)
-
-                view.updateBounds(x, 0.0, size, size).let {
-                    x += it.width
-                }
+                view.x     = x
+                view.y     = 0.0
+                view.size  = Size(columns[index].width, current.height)
+                x         += view.width
             }
 
             Size(x, current.height)
@@ -64,24 +63,25 @@ internal open class TablePanel(
     init {
         focusable  = false
         children  += columns.map { it.view }
-        layout     = simpleLayout { views,_,current,_,_ ->
-            var width      = columns[0].width
-            val firstSize  = views.first().updateBounds(0.0, 0.0, Size(width, 0.0), Size(width, POSITIVE_INFINITY))
-            var x          = firstSize.width
-            var height     = firstSize.height
-            var totalWidth = firstSize.width
+        layout     = simpleLayout { views,_,_,_,_ ->
+            var width             = 0.0
+            var totalWidth        = 0.0
+            var firstColumnHeight = 0.0
 
-            views.drop(1).forEachIndexed { index, view ->
-                val col = columns[index + 1]
-                width   = col.width
+            views.forEachIndexed { index, view ->
+                width  = columns[index].width
+                view.y = 0.0
+                view.x = totalWidth
 
-                view.updateBounds(x, 0.0, Size(width, 0.0), Size(width, height)).also {
-                    x          += it.width
-                    totalWidth += it.width
+                when (index) {
+                    0    -> view.assumeAnySize(downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY)).also { firstColumnHeight = it.height }
+                    else -> view.assumeSize             (of = Size(width, firstColumnHeight), downTo = Size(width, 0.0), upTo = Size(width, POSITIVE_INFINITY))
                 }
+
+                totalWidth += width
             }
 
-            preferredSize = fixed(Size(totalWidth, height))
+            preferredSize = fixed(Size(totalWidth, firstColumnHeight))
             suggestSize(idealSize)
 
             idealSize

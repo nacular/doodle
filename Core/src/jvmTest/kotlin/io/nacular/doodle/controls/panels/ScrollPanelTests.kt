@@ -220,7 +220,7 @@ class ScrollPanelTests {
     @Test fun `width constraints work`() {
         val content = container { forceSize(Size(100)) }
         val panel   = ScrollPanel(content).apply {
-            contentWidthConstraints = { it eq parent.width }
+            contentConstraints = { it.width eq parent.width }
         }
 
         panel.forceWidth(300.0)
@@ -232,7 +232,7 @@ class ScrollPanelTests {
     @Test fun `height constraints work`() {
         val content = container { forceSize(Size(100)) }
         val panel   = ScrollPanel(content).apply {
-            contentHeightConstraints = { it eq parent.height / 2 }
+            contentConstraints = { it.height eq parent.height / 2 }
         }
 
         panel.forceHeight(650.0)

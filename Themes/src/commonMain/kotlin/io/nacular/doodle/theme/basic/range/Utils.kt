@@ -5,8 +5,8 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.circle
+import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.toPath
-import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.theme.basic.range.TickLocation.Groove
 import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
 import io.nacular.doodle.utils.Orientation
@@ -67,7 +67,7 @@ internal fun getSnapClip(
                             y      = grooveRect.y,
                             width  = it - offset,
                             height = grooveRect.height
-                        ).also { offset = it.right - grooveRect.x }.inset(Insets(left = tickInset, right = tickInset)).toPath(grooveRadius)
+                        ).also { offset = it.right - grooveRect.x }.inset(left = tickInset, right = tickInset).toPath(grooveRadius)
                     }
                     else       -> (tick * grooveRect.height).let {
                         Rectangle(
@@ -75,7 +75,7 @@ internal fun getSnapClip(
                             y      = grooveRect.y + offset,
                             width  = grooveRect.width,
                             height = it - offset
-                        ).also { offset = it.bottom - grooveRect.y }.inset(Insets(top = tickInset, bottom = tickInset)).toPath(grooveRadius)
+                        ).also { offset = it.bottom - grooveRect.y }.inset(top = tickInset, bottom = tickInset).toPath(grooveRadius)
                     }
                 }
             }.foldRight(Empty.toPath()) { a, b -> a + b } to tickPresentation.location

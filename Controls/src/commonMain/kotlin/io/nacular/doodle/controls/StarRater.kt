@@ -19,6 +19,7 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Polygon
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.path
 import io.nacular.doodle.geometry.rounded
