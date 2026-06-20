@@ -109,20 +109,6 @@ public abstract class Positionable internal constructor() {
     public abstract fun updateBounds(block: BoundsUpdateContext.() -> Unit): Size*/
 }
 
-/** The current screen location */
-public val Positionable.position: Point get() = bounds.position
-public val Positionable.size: Size get() = bounds.size
-
-public val Positionable.x: Double get() = bounds.x
-public val Positionable.y: Double get() = bounds.y
-public val Positionable.width: Double get() = bounds.width
-public val Positionable.height: Double get() = bounds.height
-
-public val Positionable.right: Double get() = bounds.right
-public val Positionable.bottom: Double get() = bounds.bottom
-
-public val Positionable.center: Point get() = bounds.center
-
 /**
  * The result of [Layout.item].
  */

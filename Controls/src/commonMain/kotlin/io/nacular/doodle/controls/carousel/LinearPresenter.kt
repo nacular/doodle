@@ -49,6 +49,7 @@ public class LinearPresenter<T>(
         progressToNext   : Float,
         supplementalViews: List<View>,
     ): Presentation {
+        val spacing         = spacing(carousel.size)
         val results         = mutableListOf<PresentedItem>()
         var currentBounds   = null as Rectangle?
         var selectedBounds  = null as Rectangle?

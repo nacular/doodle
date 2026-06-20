@@ -2,7 +2,6 @@ package io.nacular.doodle.layout
 
 import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
-import io.nacular.doodle.core.bottom
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.WidthSource.Children
 import io.nacular.doodle.layout.WidthSource.Parent
