@@ -344,7 +344,7 @@ internal class TextMetricsImpl(
         var lineCount    = cursor.totalLines
         var maxLineWidth = cursor.maxLineWidthReached
 
-        val lineHeight   = (lineSpacing ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
+        val lineHeight   = (lineSpacing?.takeIf { it >= 0 } ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
 
         paragraphs.forEachIndexed { index, paragraph ->
             val words = paragraph.split(" ")

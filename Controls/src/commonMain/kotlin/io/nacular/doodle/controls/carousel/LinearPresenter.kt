@@ -49,6 +49,7 @@ public class LinearPresenter<T>(
         progressToNext   : Float,
         supplementalViews: List<View>,
     ): Presentation {
+        val spacing         = spacing(carousel.size)
         val results         = mutableListOf<PresentedItem>()
         var currentBounds   = null as Rectangle?
         var selectedBounds  = null as Rectangle?
@@ -79,19 +80,27 @@ public class LinearPresenter<T>(
             selectedBounds = selected.bounds
         }
 
-        // Add remaining to right
-        results += currentPosition?.allNext?.asSequence()?.mapNotNull { carousel.item(it)?.apply {
-            bounds        = rightOf(center(carousel.size), currentBounds!!, carousel.size)
-            currentBounds = bounds
-        } }?.takeWhile { it.bounds.x < carousel.size.width }?.toList() ?: emptyList()
+        // Add remaining items
+        results += currentPosition?.allNext?.asSequence()
+            ?.takeWhile  { currentBounds?.run { right < carousel.width - spacing } ?: false }
+            ?.mapNotNull {
+                carousel.item(it)?.apply {
+                    bounds        = rightOf(center(carousel.size), currentBounds!!, carousel.size)
+                    currentBounds = bounds
+                }
+            }?.toList() ?: emptyList()
 
         currentBounds = selectedBounds
 
-        // Add remaining to left
-        results += position.allPrevious.asSequence().mapNotNull { carousel.item(it)?.apply {
-            bounds        = leftOf(center(carousel.size), currentBounds!!, carousel.size)
-            currentBounds = bounds
-        } }.takeWhile { it.bounds.right > 0 }.toList()
+        // Add subsequent items
+        results += position.allPrevious.asSequence()
+            .takeWhile  { currentBounds?.run { x > spacing } ?: false }
+            .mapNotNull {
+                carousel.item(it)?.apply {
+                    bounds        = leftOf(center(carousel.size), currentBounds!!, carousel.size)
+                    currentBounds = bounds
+                }
+            }.toList()
 
         return Presentation(items = results)
     }
