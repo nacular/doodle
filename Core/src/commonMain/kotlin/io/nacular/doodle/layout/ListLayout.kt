@@ -34,13 +34,12 @@ public class ListLayout(
                 else   -> 0.0                              to POSITIVE_INFINITY - horizontalInsets
             }
 
-            it.x    = insets.left
-            it.y    = y
-            it.size = it.preferredSize(Size(widths.first, minHeight), Size(widths.second, maxHeight))
+            it.assumeAnySize(insets.left, y, Size(widths.first, minHeight), Size(widths.second, maxHeight))
 
-            y        += it.bounds.height + spacing
+            h        = it.bottom
+            y        = h + spacing
             h         = it.bottom
-            maxWidth  = max(it.bounds.width, maxWidth)
+            maxWidth = max(it.width, maxWidth)
         }
 
         return Size(maxWidth, h + insets.bottom)

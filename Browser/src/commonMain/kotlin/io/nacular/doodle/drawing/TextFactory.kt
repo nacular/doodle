@@ -10,13 +10,13 @@ import io.nacular.doodle.utils.TextAlignment
  */
 
 internal interface TextFactory {
-    fun create (text: String, font: Font? = null, url: String? = null,                      textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun create (text: String, font: Font? = null, url: String? = null,  lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun create (text: AnnotatedString,                                                      textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun create (text: AnnotatedString,                                  lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun create (text: String, font: Font? = null, url: String? = null,                       textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun create (text: String, font: Font? = null, url: String? = null,  lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun create (text: AnnotatedString,                                                       textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun create (text: AnnotatedString,                                  lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
 
-    fun wrapped(text: String, font: Font? = null, url: String? = null,  width: Double, indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun wrapped(text: String, font: Font? = null, url: String? = null,                 indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun wrapped(text: AnnotatedString,                                  width: Double, indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
-    fun wrapped(text: AnnotatedString,                                                 indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun wrapped(text: String, font: Font? = null, url: String? = null,  width: Double, indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun wrapped(text: String, font: Font? = null, url: String? = null,                 indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun wrapped(text: AnnotatedString,                                  width: Double, indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
+    fun wrapped(text: AnnotatedString,                                                 indent: Double = 0.0, alignment: TextAlignment, lineSpacing: Float?, textSpacing: TextSpacing, possible: HTMLElement? = null): HTMLElement
 }

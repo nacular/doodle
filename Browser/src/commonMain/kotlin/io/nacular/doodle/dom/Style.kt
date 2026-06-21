@@ -55,8 +55,8 @@ internal fun Style.setTextAlignment(alignment: TextAlignment?) {
     }
 }
 
-internal fun Style.setLineHeight(value: Float) {
-    (if (value >= 0f) "$value" else "").also {
+internal fun Style.setLineHeight(value: Float?) {
+    (if ((value ?: -1f) >= 0f) "$value" else "").also {
         if (lineHeight != it) { lineHeight = it }
     }
 }

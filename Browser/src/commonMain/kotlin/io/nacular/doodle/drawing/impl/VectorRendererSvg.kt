@@ -106,6 +106,7 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.image.Image
 import io.nacular.doodle.image.impl.ImageImpl
+import io.nacular.doodle.maxFont
 import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.text.AnnotatedString.Annotation
 import io.nacular.doodle.text.TextSpacing
@@ -366,8 +367,7 @@ internal open class VectorRendererSvg(
         }
     }
 
-    private val AnnotatedString.maxFont    : Font? get() = mapNotNull { it.second.font }.maxByOrNull { it.size }
-    private val AnnotatedString.maxFontSize: Int   get() = maxFont?.size ?: defaultFontSize
+    private val AnnotatedString.maxFontSize: Int get() = maxFont?.size ?: defaultFontSize
 
     private fun adjustTextAfterDisplay(textElement: SVGTextElement1, yOffset: Double) {
         // shift text down since no other way to get baseline alignment to work

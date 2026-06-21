@@ -14,6 +14,7 @@ import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
@@ -186,6 +187,32 @@ public abstract class ConstraintLayout internal constructor(): Layout {
      * Notified whenever an unhandled [ConstraintException] is thrown during layout.
      */
     public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
+
+    /**
+     * Indicates how much the `parent` should preserve its [width][ParentBounds.width]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.width eq max(chil1.width, child2.width)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's width will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentWidthPreservation: Strength = Strong
+
+    /**
+     * Indicates how much the `parent` should preserve its [height][ParentBounds.height]. Use this to reduce the strength
+     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     *
+     * ```
+     * parent.height eq max(chil1.height, child2.height)
+     * ```
+     *
+     * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
+     * getting too large, so the parent's height will remain larger it uses anything greater to preserve itself.
+     */
+    public var parentHeightPreservation: Strength = Strong
 }
 
 /**
@@ -377,8 +404,55 @@ public class UnsatisfiableConstraintException(
  */
 @Suppress("MemberVisibilityCanBePrivate")
 public class ConstraintDslContext internal constructor() {
-    internal var constraints = mutableListOf<Constraint>()
-    internal var edits       = mutableListOf<Edit>()
+
+    private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
+        private var  value          = 0.0
+        override var edited         = false
+        override var constrained    = false
+        override val needsSynthetic = false
+        override var isReadOnly     = false
+
+        override fun invoke() = value
+
+        override fun invoke(value: Double) {
+            this.value = value
+        }
+
+        override fun toString() = name
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is LocalVariable) return false
+
+            if (isReadOnly != other.isReadOnly) return false
+            if (name != other.name) return false
+            if (referent != other.referent) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = isReadOnly.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + (referent?.hashCode() ?: 0)
+            return result
+        }
+    }
+
+    private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
+        override var isReadOnly = true
+        override fun toString() = "readonly -> $referent"
+    }
+
+    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
+        override var constrained    = source.constrained
+        override val needsSynthetic = false
+        override var isReadOnly     = true
+        override fun toString()     = "readonly($source)"
+    }
+
+    internal var pendingAdd  = null as Constraint?
+    internal var constraints = hashSetOf<Constraint>()
+    internal var edits       = hashSetOf<Edit>()
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -387,10 +461,21 @@ public class ConstraintDslContext internal constructor() {
         (parent as ParentBoundsImpl).update(size, min, max, insets)
     }
 
+    public fun reset() {
+        pendingAdd  = null
+        constraints = hashSetOf()
+        edits       = hashSetOf()
+    }
+
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
-        else                             -> Result.success(constraint).also { constraints += constraint }
+        else                             -> Result.success(constraint).also {
+            pendingAdd?.let { constraints.add(it) }
+            pendingAdd = constraint
+        }
     }
+
+    private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
 
     private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
 
@@ -508,29 +593,10 @@ public class ConstraintDslContext internal constructor() {
 
     public operator fun Expression.unaryMinus(): Expression = this * -1.0
 
-    private open class LocalVariable(override val name: String): Variable {
-        private var  value          = 0.0
-        override var constrained    = false
-        override val needsSynthetic = false
-        override var isReadOnly     = false
+    public val Expression.preserve: Unit get() = this preserve Required
 
-        override fun invoke() = value
-
-        override fun invoke(value: Double) {
-            this.value = value
-        }
-
-        override fun toString() = name
-    }
-
-    private class ReadOnlyVariableRef(referent: Expression): LocalVariable("readonly -> $referent") {
-        override var isReadOnly = true
-    }
-
-    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name), ReadOnlyVariable {
-        override var constrained    = source.constrained
-        override val needsSynthetic = false
-        override var isReadOnly     = true
+    public infix fun Expression.preserve(strength: Strength) {
+        this eq this.value strength strength
     }
 
     public fun min(a: Expression, b: Term                               ): Expression = min(a, b + 0)
@@ -539,7 +605,9 @@ public class ConstraintDslContext internal constructor() {
     public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
     public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(LocalVariable("min($expressions)"))
+        val x           = VariableTerm(object: LocalVariable("min($expressions)", expressions) {
+            override fun toString() = "min($expressions)"
+        })
 
         expressions.forEach {
             x lessEq    it
@@ -555,7 +623,9 @@ public class ConstraintDslContext internal constructor() {
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
     public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
         val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(LocalVariable("max($expressions)"))
+        val x           = VariableTerm(object: LocalVariable("max($expressions)", expressions) {
+            override fun toString() = "max($expressions)"
+        })
 
         expressions.forEach {
             x greaterEq it
@@ -585,9 +655,9 @@ public class ConstraintDslContext internal constructor() {
         val newExpression = ExpressionImpl(e.terms.map {
             when (it.variable) {
                 is ReadOnlyVariableRef -> it
-                else                   -> VariableTerm(LocalReadOnlyVariable("readonly($it)", it.variable))
+                else                   -> VariableTerm(LocalReadOnlyVariable("readonly", it.variable))
             }
-        }.toTypedArray(), e.constant)
+        }, e.constant)
 
         val readOnly = VariableTerm(ReadOnlyVariableRef(e))
 
@@ -1052,10 +1122,10 @@ public class Constrainer: Layout {
 
     // Only implemented to allow usage of Positionable properties
     override fun layout(
-        views: Sequence<Positionable>,
-        min: Size,
+        views  : Sequence<Positionable>,
+        min    : Size,
         current: Size,
-        max: Size,
-        insets: Insets
+        max    : Size,
+        insets : Insets
     ): Size = Size.Empty
 }

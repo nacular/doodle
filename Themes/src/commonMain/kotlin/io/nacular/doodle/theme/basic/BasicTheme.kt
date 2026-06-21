@@ -23,6 +23,7 @@ import io.nacular.doodle.controls.list.VerticalDynamicList
 import io.nacular.doodle.controls.list.VerticalList
 import io.nacular.doodle.controls.list.VerticalMutableList
 import io.nacular.doodle.controls.panels.GridPanel
+import io.nacular.doodle.controls.panels.GridPanelBehavior
 import io.nacular.doodle.controls.panels.SplitPanel
 import io.nacular.doodle.controls.panels.TabbedPanel
 import io.nacular.doodle.controls.popupmenu.Menu
@@ -962,7 +963,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         public fun basicGridPanelBehavior(background: Paint? = null): Module = basicThemeModule(name = "BasicGridPanelBehavior") {
             bindBehavior<GridPanel>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
-                    object: Behavior<GridPanel> {
+                    object: GridPanelBehavior() {
                         override fun render(view: GridPanel, canvas: Canvas) {
                             canvas.rect(view.bounds.atOrigin, fill = (background ?: this@run.backgroundColor.paint))
                         }

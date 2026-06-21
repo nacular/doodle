@@ -364,7 +364,6 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
     /** Notifies changes to [bounds]: [x], [y], [width], [height] */
     public val boundsChanged: PropertyObservers<View, Rectangle> field = PropertyObserversImpl(this)
-
     /**
      * The top, left, width, and height with respect to [parent], or the [Display] if top-level. Unlike [boundingBox], this value isn't affected
      * by any applied [transform].
@@ -390,6 +389,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             new.width.coerceIn (allowedMinSize.width,  allowedMaxSize.width ),
             new.height.coerceIn(allowedMinSize.height, allowedMaxSize.height)
         )
+
+        positionable.x_      = field.x
+        positionable.y_      = field.y
+        positionable.size_   = field.size
 
         if (actualBounds != field) {
             renderManager?.boundsChanged(this, actualBounds, field)
@@ -423,10 +426,12 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     internal var allowedMinSize = Empty; private set(new) {
         field = new
         layoutNeeded = true
+        positionable.minSize = field
     }
     internal var allowedMaxSize = Infinite; private set(new) {
         field = new
         layoutNeeded = true
+        positionable.maxSize = field
     }
 
     internal fun resetConstraints() {
@@ -1064,10 +1069,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         if (!needsLayout) return
 
         layout?.let {
-            doLayout(it, min = min, max = max, current = current)
+            val layoutSize = doLayout(it, min = min, max = max, current = current)
 
             parent?.let { parent ->
-                if (min != max && preferredSize(min, max).coerceIn(min, max) != size) {
+                if (min != max && preferredSize == defaultPreferredSize && layoutSize.coerceIn(min, max) != size) {
                     parent.relayout()
                 }
             }

@@ -12,8 +12,8 @@ import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.ObservableList
 import io.nacular.doodle.utils.SetPool
-import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
+import kotlin.test.Test
 import kotlin.test.expect
 
 class ViewFinderImplTests {
@@ -30,7 +30,8 @@ class ViewFinderImplTests {
         }
     }
 
-    @Test fun `finds item at point`() {
+    @Test
+    fun `finds item at point`() {
         val finder  = ViewFinderImpl
         val child   = mockk<View>("child") {
             every { enabled } returns true

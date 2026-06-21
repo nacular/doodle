@@ -69,9 +69,7 @@ public abstract class Expression internal constructor() {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Expression
+        if (other !is Expression) return false
 
         if (!terms.contentEquals(other.terms)) return false
         if (constant != other.constant       ) return false
@@ -88,28 +86,20 @@ public abstract class Expression internal constructor() {
     internal fun reduce(): Expression {
         val vars = fastMutableMapOf<Variable, Double>()
         for (term in terms) {
-            var value = vars[term.variable]
-            if (value == null) {
-                value = 0.0
-            }
-            value += term.coefficient
-            vars[term.variable] = value
+            vars[term.variable] = (vars[term.variable] ?: 0.0) + term.coefficient
         }
-        val reducedTerms = mutableListOf<Term>()
-        for (variable in vars.keys) {
-            reducedTerms.add(VariableTerm(variable, vars[variable]!!))
-        }
-        return Expression(*reducedTerms.toTypedArray(), constant = constant)
+        return Expression(vars.map { (variable, coefficient) -> VariableTerm(variable, coefficient) }, constant)
     }
 
     internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
 
     internal companion object {
-        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = ExpressionImpl(terms, constant)
+        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = ExpressionImpl(terms.toList(), constant)
+        operator fun invoke(terms: List<Term>, constant: Double = 0.0) = ExpressionImpl(terms, constant)
     }
 }
 
-internal class ExpressionImpl(terms: Array<out Term>, override val constant: Double = 0.0) : Expression() {
+internal class ExpressionImpl(terms: List<Term>, override val constant: Double = 0.0) : Expression() {
     override val terms: Array<VariableTerm> = terms.filterIsInstance<VariableTerm>().toTypedArray()
 }
 
@@ -131,6 +121,7 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 
 internal interface Variable {
     val name          : String
+    var edited        : Boolean
     var isReadOnly    : Boolean
     var constrained   : Boolean
     val needsSynthetic: Boolean

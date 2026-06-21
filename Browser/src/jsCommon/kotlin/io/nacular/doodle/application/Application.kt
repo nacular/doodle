@@ -239,7 +239,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                                                    ) }
         bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                                              ) }
         bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                                                  ) }
-        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), cacheLength = 1000, isSafari                ) }
+        bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), instance(), cacheLength = 1000, isSafari    ) }
         bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                                                  ) }
         bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode                            ) }
         bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), instance(), isSafari, instance()) }
@@ -255,6 +255,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<DisplayImpl>     () with singleton { instance<Display>     () as DisplayImpl      }
         bind<InternalDisplay> () with singleton { instance<DisplayImpl> ()                     }
         bind<TextFactoryImpl> () with singleton { instance<TextFactory> () as TextFactoryImpl  }
+        bind<TextMetricsImpl> () with singleton { instance<TextMetrics> () as TextMetricsImpl  }
         bind<ElementRulerImpl>() with singleton { instance<ElementRuler>() as ElementRulerImpl }
 
         importAll(modules, allowOverride = true)

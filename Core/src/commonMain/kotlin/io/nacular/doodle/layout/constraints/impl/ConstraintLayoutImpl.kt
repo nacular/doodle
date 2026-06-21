@@ -17,6 +17,7 @@ import io.nacular.doodle.layout.constraints.Expression
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
@@ -27,10 +28,6 @@ import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.X_
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.Y_ID
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
-import io.nacular.doodle.utils.diff.Delete
-import io.nacular.doodle.utils.diff.Insert
-import io.nacular.doodle.utils.diff.compare
-import io.nacular.doodle.utils.ifNull
 import kotlin.Double.Companion.POSITIVE_INFINITY
 
 @Suppress("PrivatePropertyName")
@@ -58,7 +55,31 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
+    private val ReflectionVariable.targeted get() = constrained || edited
+
     fun commit() {
+        if (top.targeted ) target.y = y_
+        if (left.targeted) target.x = x_
+
+        when {
+            width.constrained -> {
+                target.width = width_
+
+                solver.computeRange(width, min = 0.0).let {
+                    target.minSize = Size(it.start,        target.minSize.height)
+                    target.maxSize = Size(it.endInclusive, target.maxSize.height)
+                }
+            }
+            width.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
+
+                target.width = width_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
+            }
+        }
         if (top.constrained ) target.y = y_
         if (left.constrained) target.x = x_
 
@@ -75,12 +96,24 @@ internal open class BoundsImpl(private val target: Positionable, private val con
         if (height.constrained) {
             target.height = height_
 
-//            if (solver.isUnderConstrained(height)) {
+        when {
+            height.constrained -> {
+                target.height = height_
+
                 solver.computeRange(height, min = 0.0).let {
                     target.minSize = Size(target.minSize.width, it.start       )
                     target.maxSize = Size(target.maxSize.width, it.endInclusive)
                 }
-//            }
+            }
+            height.edited -> {
+                val oldMin = target.minSize
+                val oldMax = target.maxSize
+
+                target.height = height_
+
+                target.minSize = oldMin
+                target.maxSize = oldMax
+            }
         }
     }
 
@@ -118,6 +151,7 @@ internal class ReflectionVariable(
     override val variable get() = this
     override var isReadOnly     = false
     override var constrained    = false
+    override var edited         = false
 
     override fun invoke() = delegate()
 
@@ -219,7 +253,7 @@ internal open class ConstraintLayoutImpl(
 
         viewBounds.values.forEach { it.reset() }
 
-        setupSolver(solver, context, blockTracker.values, ::notifyOfErrors)
+        setupSolver(solver, context, blockTracker.values, parentWidthPreservation, parentHeightPreservation, ::notifyOfErrors)
         solve      (solver, blockTracker.values.asSequence().flatMap { it.constraints })
 
         layingOut = false
@@ -283,20 +317,19 @@ internal open class ConstraintLayoutImpl(
         fun setupSolver(
             solver         : Solver,
             context        : ConstraintDslContext,
-            blocks         : Collection<BlockInfo>,
+            blocks         : Collection<BlockInfo>,parentWidthPreservation : Strength = Strong,
+            parentHeightPreservation: Strength = Strong,
             errorHandler   : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
             val oldEdits       = context.edits
 
-            context.constraints.forEach { it.expression.terms.map { it.variable.constrained = false } }
-
-            context.constraints = mutableListOf()
+            context.reset()
             context.edits       = mutableListOf()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {
-                    constrainParent(width, height, min, max)
+                    constrainParent(width, parentWidthPreservation, height, parentHeightPreservation, min, max)
                 }
             }
 
@@ -304,87 +337,46 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
-            context.constraints.forEach { it.expression.terms.forEach { it.variable.constrained = true } }
+            context.pendingAdd?.let {
+                context.constraints.add(it)
+                context.pendingAdd = null
+            }
+
+            for (constraint in oldConstraints) {
+                if (constraint !in context.constraints) {
+                    handleDelete(solver, constraint)
+                }
+            }
 
             val failedInserts = mutableListOf<Constraint>()
 
-            var previousDelete: Delete<Constraint>? = null
-
-            compare(oldConstraints, context.constraints) { a, b -> a.hashCode() == b.hashCode() }.forEach { difference ->
-                when (difference) {
-                    is Delete -> {
-                        handlePreviousDelete(solver, previousDelete)
-                        previousDelete = difference
+            for (constraint in context.constraints) {
+                if (constraint !in oldConstraints) {
+                    if (!handleInsert(solver, constraint, errorHandler)) {
+                        failedInserts += constraint
                     }
-                    is Insert -> {
-                        difference.items.forEachIndexed { index, insertedConstraint ->
-                            previousDelete?.let {
-                                if (index < it.items.size && insertedConstraint.differsByConstantOnly(it.items[index])) {
-                                    // update constraint
-                                    doTrying(errorHandler) {
-                                        solver.updateConstant(it.items[index], insertedConstraint)
-                                    }
-                                } else {
-                                    // handle delete
-                                    handlePreviousDelete(solver, previousDelete)
-
-                                    previousDelete = null
-
-                                    // handle insert
-                                    if (!handleInsert(solver, insertedConstraint)) {
-                                        failedInserts += insertedConstraint
-                                    }
-                                }
-                            }.ifNull {
-                                // handle insert
-                                if (!handleInsert(solver, insertedConstraint)) {
-                                    failedInserts += insertedConstraint
-                                }
-                            }
-                        }
-
-                        previousDelete = null
-                    }
-                    else             -> {}
                 }
             }
 
-            handlePreviousDelete(solver, previousDelete)
-
-            // try again in case some items were unsatisfiable due to the order of delete vs insert
             failedInserts.forEach {
-                if (!handleInsert(solver, it, errorHandler)) {
-                    context.constraints -= it
+                context.constraints -= it
+            }
+
+            for (edit in oldEdits) {
+                if (edit !in context.edits) {
+                    doTrying({}) {
+                        solver.removeEditVariable(edit.property)
+                    }
                 }
             }
 
-            val trueEditDeletes = mutableListOf<Variable>()
-
-            compare(oldEdits, context.edits).forEach { difference ->
-                when (difference) {
-                    is Delete -> {
-                        difference.items.forEach {
-                            trueEditDeletes += it.property
-                        }
+            for (edit in context.edits) {
+                if (edit !in oldEdits) {
+                    doTrying(errorHandler) {
+                        edit.property.edited = true
+                        solver.addEditVariable(edit.property, edit.strength)
+                        solver.suggestValue   (edit.property, edit.value   )
                     }
-                    is Insert -> {
-                        difference.items.forEach {
-                            doTrying(errorHandler) {
-                                when (it.property) {
-                                    !in trueEditDeletes -> solver.addEditVariable(it.property, it.strength)
-                                    else                -> trueEditDeletes -= it.property
-                                }
-                                solver.suggestValue(it.property, it.value )
-                            }
-                        }
-                    }
-                    else -> {}
-                }
-            }
-
-            trueEditDeletes.forEach {
-                doTrying({}) {
-                    solver.removeEditVariable(it)
                 }
             }
         }
@@ -403,7 +395,7 @@ internal open class ConstraintLayoutImpl(
             try {
                 val newVariables = insertedConstraint.expression.terms.filter { it.variable !in solver.variables }
 
-                newVariables.filter { it.variable.needsSynthetic }.forEach {
+                newVariables.filter { it.variable.constrained = true; it.variable.needsSynthetic }.forEach {
                     try {
                         // Add synthetic constraints that keep width and height positive
                         solver.addNegativeGuard(it.variable)
@@ -442,32 +434,34 @@ internal open class ConstraintLayoutImpl(
                 block()
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
-            } catch (_: UnknownEditVariableException) {
-            } catch (_: UnknownConstraintException  ) {}
-        }
-
-        private fun handlePreviousDelete(solver: Solver, previousDelete: Delete<Constraint>?) {
-            previousDelete?.let {
-                it.items.forEach { constraint ->
-                    handleDelete(solver, constraint)
-                }
             }
         }
 
-        private fun ConstraintDslContext.constrainParent(width: Expression, height: Expression, min: Size, max: Size) {
-            constrainSide(width,  min.width,  max.width )
-            constrainSide(height, min.height, max.height)
+        private fun ConstraintDslContext.constrainParent(
+            width         : Expression,
+            widthStrength : Strength,
+            height        : Expression,
+            heightStrength: Strength,
+            min           : Size,
+            max           : Size
+        ) {
+            constrainSide(width,  min.width,  max.width,  widthStrength )
+            constrainSide(height, min.height, max.height, heightStrength)
         }
 
-        private fun ConstraintDslContext.constrainSide(property: Expression, minExtent: Double, maxExtent: Double) {
+        private fun ConstraintDslContext.constrainSide(
+            property : Expression,
+            minExtent: Double,
+            maxExtent: Double,
+            strength : Strength,
+        ) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {
-                    // FIXME: Need to find a way to do this since updating a constraint that isn't REQUIRED leaks memory
-                    property eq        property.value strength Strong
-                    property greaterEq minExtent
+                    property preserve strength
 
-                    if (maxExtent < POSITIVE_INFINITY) { property lessEq maxExtent }
+                    if (minExtent > 0.0              ) { property greaterEq maxExtent }
+                    if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
                 }
             }
         }

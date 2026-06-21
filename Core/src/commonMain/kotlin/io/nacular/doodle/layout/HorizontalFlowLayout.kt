@@ -79,14 +79,14 @@ public class HorizontalFlowLayout(private val justification    : HorizontalAlign
         itemList.forEach {
             val y = when (verticalAlignment) {
                 Top    -> lineY
-                Middle -> lineY + (lineHeight - it.bounds.height) / 2
-                else   -> lineY +  lineHeight - it.bounds.height
+                Middle -> lineY + (lineHeight - it.height) / 2
+                else   -> lineY +  lineHeight - it.height
             }
 
             it.x = startX
             it.y = y
 
-            startX += it.bounds.width + horizontalSpacing
+            startX += it.width + horizontalSpacing
         }
     }
 }

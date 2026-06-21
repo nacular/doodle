@@ -107,8 +107,13 @@ public inline operator fun Strength.minus(value: Int): Strength = this + -value
  * @property operator defining the relationship between the elements of [expression]
  * @property strength that determines the degree to which the relationship is enforced
  */
-public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, internal var strength: Strength = Required) {
-    private val hashCode = 31 * (31 * operator.hashCode() + expression.hashCode()) + strength.hashCode()
+public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, strength: Strength = Required) {
+    internal var strength: Strength = strength; set(new) {
+        field = new
+        hashCode = computeHashCode()
+    }
+
+    private var hashCode = computeHashCode()
 
     override fun toString(): String = "$expression $operator ~ $strength"
 
@@ -133,4 +138,6 @@ public class Constraint internal constructor(internal val expression: Expression
         strength == other.strength &&
         strength == Required       &&
         expression.differsByConstantOnly(other.expression)
+
+    private fun computeHashCode() = 31 * (31 * operator.hashCode() + expression.hashCode()) + strength.hashCode()
 }
