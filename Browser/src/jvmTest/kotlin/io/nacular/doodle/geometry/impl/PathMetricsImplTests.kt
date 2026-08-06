@@ -19,34 +19,34 @@ class PathMetricsImplTests {
 
     @Test fun `width correct`() {
         val size    = Size(100, 45)
-        val metrics = PathMetricsImpl(svgFactory(size))
+        val metrics = PathMetricsImpl(svgFactory(size), mockk())
 
         expect(metrics.width(mockk())) { 100.0 }
     }
 
     @Test fun `height correct`() {
         val size    = Size(100, 45)
-        val metrics = PathMetricsImpl(svgFactory(size))
+        val metrics = PathMetricsImpl(svgFactory(size), mockk())
 
         expect(metrics.height(mockk())) { 45.0 }
     }
 
     @Test fun `size correct`() {
         val size    = Size(100, 45)
-        val metrics = PathMetricsImpl(svgFactory(size))
+        val metrics = PathMetricsImpl(svgFactory(size), mockk())
 
         expect(metrics.size(mockk())) { size }
     }
 
     @Test fun `bounds correct`() {
         val bounds  = Rectangle(10, 2, 45, 67)
-        val metrics = PathMetricsImpl(svgFactory(bounds))
+        val metrics = PathMetricsImpl(svgFactory(bounds), mockk())
 
         expect(metrics.bounds(mockk())) { bounds }
     }
 
     @Test fun `length correct`() {
-        val metrics = PathMetricsImpl(svgFactory(Size.Empty, 89.0))
+        val metrics = PathMetricsImpl(svgFactory(Size.Empty, 89.0), mockk())
 
         expect(metrics.length(mockk())) { 89.0 }
     }

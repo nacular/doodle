@@ -557,9 +557,6 @@ class ConstraintLayoutTests {
         val w1     = 1000.0
         val w2     = 1000.1
 
-        val w1     = 1000.0
-        val w2     = 1000.1
-
         val child1 = NamedView("child1")
         val child2 = NamedView("child2")
         val child3 = NamedView("child3")
