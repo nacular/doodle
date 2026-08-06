@@ -226,17 +226,17 @@ public interface Layout {
     }
 
     public fun Positionable.assumeSize(of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
-        this.size    = of
         this.minSize = downTo
         this.maxSize = upTo
+        this.size_   = of
     }
 
     public fun Positionable.assumeSize(x: Double, y: Double, of: Size, downTo: Size = Empty, upTo: Size = Infinite) {
         this.x       = x
         this.y       = y
-        this.size    = of
         this.minSize = downTo
         this.maxSize = upTo
+        this.size_   = of
     }
 
     public companion object {

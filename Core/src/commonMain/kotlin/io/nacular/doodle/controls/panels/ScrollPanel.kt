@@ -219,7 +219,7 @@ public open class ScrollPanel(content: View? = null): View() {
     /**
      * Used to avoid layouts on scroll
      */
-    private inner class CustomLayout: ConstraintLayoutImpl(content ?: view {}, originalLambda = contentConstraints_, block = { (a) -> contentConstraints_(a) }) {
+    private inner class CustomLayout: ConstraintLayoutImpl(content?.let { listOf(it) } ?: emptyList(), originalLambda = contentConstraints_, block = { (a) -> contentConstraints_(a) }) {
         override fun requiresLayout(child: Positionable, within: Size, old: Rectangle, new: Rectangle) = when {
             old.size.fastEquals(new.size) -> false
             else                          -> super.requiresLayout(child, within, old, new)

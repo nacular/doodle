@@ -80,21 +80,6 @@ internal open class BoundsImpl(private val target: Positionable, private val con
                 target.maxSize = oldMax
             }
         }
-        if (top.constrained ) target.y = y_
-        if (left.constrained) target.x = x_
-
-        if (width.constrained) {
-            target.width = width_
-
-//            if (solver.isUnderConstrained(width)) {
-                solver.computeRange(width, min = 0.0).let {
-                    target.minSize = Size(it.start,        target.minSize.height)
-                    target.maxSize = Size(it.endInclusive, target.maxSize.height)
-                }
-//            }
-        }
-        if (height.constrained) {
-            target.height = height_
 
         when {
             height.constrained -> {
@@ -125,11 +110,11 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     }
 
     override fun layout(
-        views: Sequence<Positionable>,
-        min: Size,
+        views  : Sequence<Positionable>,
+        min    : Size,
         current: Size,
-        max: Size,
-        insets: Insets
+        max    : Size,
+        insets : Insets
     ): Size = Size.Empty
 }
 
@@ -225,11 +210,17 @@ internal open class ParentBoundsImpl(private val context: ConstraintDslContext):
 }
 
 internal open class ConstraintLayoutImpl(
-           view          : View,
-    vararg others        : View,
-           originalLambda: Any,
-           block         : ConstraintDslContext.(List<Bounds>) -> Unit
+       views          : List<View>,
+       originalLambda: Any,
+       block         : ConstraintDslContext.(List<Bounds>) -> Unit
 ): ConstraintLayout() {
+    internal constructor(
+               view          : View,
+        vararg others: View,
+               originalLambda: Any,
+               block         : ConstraintDslContext.(List<Bounds>) -> Unit
+    ): this(listOf(view) + others, originalLambda = originalLambda, block = block)
+
     private var layingOut = false
 
     internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
@@ -243,7 +234,9 @@ internal open class ConstraintLayoutImpl(
     override val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit> = SetPool()
 
     init {
-        constrain(listOf(view) + others, originalLambda, block)
+        if (views.isNotEmpty()) {
+            constrain(views, originalLambda, block)
+        }
     }
 
     override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
@@ -315,17 +308,17 @@ internal open class ConstraintLayoutImpl(
 
     internal companion object {
         fun setupSolver(
-            solver         : Solver,
-            context        : ConstraintDslContext,
-            blocks         : Collection<BlockInfo>,parentWidthPreservation : Strength = Strong,
+            solver                  : Solver,
+            context                 : ConstraintDslContext,
+            blocks                  : Collection<BlockInfo>,
+            parentWidthPreservation : Strength = Strong,
             parentHeightPreservation: Strength = Strong,
-            errorHandler   : (ConstraintException) -> Unit
+            errorHandler            : (ConstraintException) -> Unit
         ) {
             val oldConstraints = context.constraints
             val oldEdits       = context.edits
 
             context.reset()
-            context.edits       = mutableListOf()
 
             context.apply {
                 (parent as ParentBoundsImpl).apply {

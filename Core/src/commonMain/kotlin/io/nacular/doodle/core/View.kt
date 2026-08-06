@@ -77,6 +77,7 @@ import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.observable
 import kotlin.js.JsName
+import kotlin.math.abs
 import kotlin.math.min
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -1031,7 +1032,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     private var layoutNeeded = true
     private val needsLayout get() = layoutNeeded || renderManager?.layoutNeeded(this) != false
 
-    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size) {
+    private fun doLayout(layout: Layout, min: Size, current: Size, max: Size): Size {
         if (min == allowedMinSize && max == allowedMaxSize) {
             renderManager?.performedLayout(this)
         }
@@ -1040,7 +1041,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
 
         children.forEach { it.positionable.reset() }
 
-        layout.layout(
+        return layout.layout(
             children.asSequence().map {
                 it.positionable
             },
@@ -1048,9 +1049,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
             max     = max,
             current = current,
             insets  = insets
-        )
-
-        children.forEach { it.positionable.finalize() }
+        ).also {
+            children.forEach { it.positionable.finalize() }
+        }
     }
 
     internal fun syncBounds() {
@@ -1071,13 +1072,13 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         layout?.let {
             val layoutSize = doLayout(it, min = min, max = max, current = current)
 
-            parent?.let { parent ->
-                if (min != max && preferredSize == defaultPreferredSize && layoutSize.coerceIn(min, max) != size) {
-                    parent.relayout()
-                }
+            if (min != max && preferredSize == defaultPreferredSize && !layoutSize.coerceIn(min, max).essentiallyEqual(size)) {
+                parent?.relayout() ?: run { display?.relayout() }
             }
         }
     }
+
+    private fun Size.essentiallyEqual(other: Size): Boolean = abs(width - other.width) < 1.0e-4 && abs(height - other.height) < 1.0e-4
 
     /**
      * Gets the child (if any) at the given point in the View's coordinate system (relative to the View).
