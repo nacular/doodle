@@ -112,14 +112,17 @@ public fun Size.coerceIn(min: Size, max: Size): Size {
 }
 
 /**
- * @return return a [Size] based on [this] that is within the given limits with the same aspect ratio
+ * @return return a [Size] based on [this] that is within [target] with the same aspect ratio
  */
-public fun Size.coerceInAspect(min: Size, max: Size): Size {
-    val w = width.coerceIn(min.width, max.width)
+public fun Size.coerceInAspect(target: Size): Size {
+    if (aspectRatio == 0.0) return Size.Empty
 
-    return when (val h = w / aspectRatio) {
-        in min.height..max.height -> Size(w, h)
-        else                            -> height.coerceIn(min.height, max.height).let {
+    val w = target.width
+    val h = w / aspectRatio
+
+    return when {
+        h <= target.height -> Size(w, h)
+        else               -> target.height.let {
             val newW = it * aspectRatio
 
             when {

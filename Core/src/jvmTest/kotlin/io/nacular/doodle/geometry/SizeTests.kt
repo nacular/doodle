@@ -53,13 +53,21 @@ class SizeTests {
         expect(it.second) { it.first.first / it.first.second }
     }
 
-    @Test fun `coerce in aspect works`() = listOf(
-        (800 by 600) to (0 by 795) to (793 by 795) to Size(795 * 800.0 / 600, 795.0)
-    ).forEach { (a, result) ->
-        val (b,    max) = a
-        val (size, min) = b
+//    @Test fun `coerce in range aspect works`() = listOf(
+//        (800 by 600) to (0 by 795) to (793 by 795) to Size(795 * 800.0 / 600, 795.0),
+//    ).forEach { (a, result) ->
+//        val (b,    max) = a
+//        val (size, min) = b
+//
+//        expect(result) { size.coerceInAspect(min, max) }
+//    }
 
-        expect(result) { size.coerceInAspect(min, max) }
+    @Test fun `coerce in aspect works`() = listOf(
+        (730 by 600) to (420 by 398) to Size(420.0, 420.0 * 600 / 730),
+    ).forEach { (a, result) ->
+        val (size, target) = a
+
+        expect(result) { size.coerceInAspect(target) }
     }
 
     private infix fun Number.by(that: Number) = Size(width = this.toDouble(), height = that.toDouble())
