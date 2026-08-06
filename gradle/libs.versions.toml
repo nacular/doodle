@@ -3,7 +3,7 @@
 coroutinesVersion = { strictly = "1.8.0"   }
 dateTimeVersion   = { strictly = "0.5.0"   }
 dokkaVersion      = { strictly = "2.1.0"   }
-jupiterVersion    = { strictly = "5.10.0"  }
+jupiterVersion    = { strictly = "5.10.1"  }
 kodeinVersion     = { strictly = "7.21.1"  }
 kotlinVersion     = { strictly = "2.4.0"   }
 koverVersion      = { strictly = "0.9.8"   }
