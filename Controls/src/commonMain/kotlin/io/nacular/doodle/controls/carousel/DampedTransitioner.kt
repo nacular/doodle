@@ -24,6 +24,7 @@ import io.nacular.measured.units.times
 import kotlin.math.E
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 /**
@@ -38,11 +39,16 @@ import kotlin.math.pow
  * @see Carousel.completeManualMove
  */
 public open class DampedTransitioner<T>(
-    private val timer           : Timer,
-    private val scheduler       : AnimationScheduler,
-    private val decelerationTime: Measure<Time>               =  1 * seconds,
-    private val dampLevel       : Measure<InverseUnits<Time>> = 10 / seconds
+    private val timer                : Timer,
+    private val scheduler            : AnimationScheduler,
+    private val dampLevel            : Measure<InverseUnits<Time>> =  10 / seconds,
+    private val decelerationTime     : Measure<Time>               =   1 * seconds,
+    private val stopSpeedThreshold   : Measure<InverseUnits<Time>> =  10 / seconds,
+    private val velocitySampleWindow : Measure<Time>               = 100 * milliseconds,
+    private val stopDistanceThreshold: Float                       = 0.01f
 ): Transitioner<T> {
+
+    private data class PositionSample(val time: Measure<Time>, val position: Vector2D)
 
     private class AnimationTask(var task: Task): CompletableImpl() {
         public override fun completed() = super.completed()
@@ -57,10 +63,18 @@ public open class DampedTransitioner<T>(
         val x: Measure<InverseUnits<Time>> = 0 / milliseconds,
         val y: Measure<InverseUnits<Time>> = 0 / milliseconds
     ) {
+        val units = (1 / milliseconds).units
+
         operator fun div       (time : Measure<Time>) = Acceleration2D( x / time,     y / time   )
         operator fun plus      (other: Velocity2D   ) = Velocity2D    ( x + other.x,  y + other.y)
         operator fun times     (time : Measure<Time>) = Vector2D      ( x * time,     y * time   )
         operator fun unaryMinus(                    ) = Velocity2D    (-x,           -y          )
+
+        fun magnitude(): Measure<InverseUnits<Time>> {
+            val vx = x `in` units
+            val vy = y `in` units
+            return sqrt(vx * vx + vy * vy) / milliseconds
+        }
     }
 
     private class Acceleration2D(
@@ -71,6 +85,7 @@ public open class DampedTransitioner<T>(
         operator fun times(timeSquared: Measure<Square<Time>>) = Vector2D(x * timeSquared, y * timeSquared)
     }
 
+    private          var currentTime          = timer.now
     private lateinit var endTime              : Measure<Time>
     private          var lastTime             = zeroMillis
     private          var velocity             = Velocity2D()
@@ -78,8 +93,8 @@ public open class DampedTransitioner<T>(
     private          var animation            : AnimationTask? by autoCanceling()
     private          var lastPosition         = Vector2D()
     private lateinit var acceleration         : Acceleration2D
+    private          val positionSamples      = ArrayDeque<PositionSample>()
     private          var predictedEndPosition = Vector2D()
-    private          val stopThreshold        = 0.01
 
     private val constantAccelerationMotion = { initialPosition: Vector2D, time: Measure<Time> ->
         initialPosition + velocity * time + 0.5 * (acceleration * time * time)
@@ -89,11 +104,24 @@ public open class DampedTransitioner<T>(
      * https://www.ryanjuckett.com/damped-springs/
      */
     private val criticallyDampedMotion = { initialPosition: Vector2D, totalElapsedTime: Measure<Time> ->
-        // x(t) = ((v0 + x0 w) t + x_0) e^(-wt)
+        // x(t) = ((v0 + x0·w)·t + x0)·e^(-w·t)
 
-        val eW = E.pow(-dampLevel * totalElapsedTime)
+        val wt = dampLevel * totalElapsedTime
+        val eW = E.pow(-wt)
 
-        (initialPosition + velocity * totalElapsedTime + initialPosition * (dampLevel * totalElapsedTime)) * eW
+        (initialPosition * (1 + wt) + velocity * totalElapsedTime) * eW
+    }
+
+    private val criticallyDampedVelocity = { relativePosition: Vector2D, totalElapsedTime: Measure<Time> ->
+        // x'(t) = (v0 - (v0 + x0·w)·w·t) · e^(-w·t)
+
+        val wt = dampLevel * totalElapsedTime
+        val eW = E.pow(-wt)
+
+        Velocity2D(
+            x = (velocity.x - velocity.x * wt - relativePosition.x * (dampLevel * wt)) * eW,
+            y = (velocity.y - velocity.y * wt - relativePosition.y * (dampLevel * wt)) * eW
+        )
     }
 
     private val endAfterTime = { _: Vector2D, elapsedTime: Measure<Time> -> elapsedTime > endTime }
@@ -110,17 +138,32 @@ public open class DampedTransitioner<T>(
         velocity     = Velocity2D()
         endChosen    = false
         lastPosition = position
+        animation    = null
+
+        positionSamples.clear()
+        positionSamples.addLast(PositionSample(lastTime, position))
     }
 
     override fun moveUpdated(carousel: Carousel<T, *>, position: Vector2D) {
         val currentTime = timer.now
-        val deltaTime   = currentTime - lastTime
+
+        positionSamples.addLast(PositionSample(currentTime, position))
+
+        // drop samples that have aged out of the window, but always keep at least one
+        // so a low pointer-event rate degrades gracefully instead of dividing by zero
+        while (positionSamples.size > 1 && currentTime - positionSamples.first().time > velocitySampleWindow) {
+            positionSamples.removeFirst()
+        }
+
+        val oldest    = positionSamples.first()
+        val deltaTime = currentTime - oldest.time
 
         if (deltaTime > zeroMillis) {
-            velocity     = (position - lastPosition).run { Velocity2D(x / deltaTime, y / deltaTime) }
-            lastTime     = currentTime
-            lastPosition = position
+            velocity = (position - oldest.position).run { Velocity2D(x / deltaTime, y / deltaTime) }
         }
+
+        lastTime     = currentTime
+        lastPosition = position
     }
 
     override fun moveEnded(
@@ -147,40 +190,53 @@ public open class DampedTransitioner<T>(
 
         val distanceBetweenPrevNext = (markers.next - markers.previous).magnitude()
         val distanceAlongDirection  = abs((predictedEndPosition - markers.previous) * (markers.next - markers.previous).normalize())
-        var positionAtDamp          = predictedEndPosition
-        var timeAtDamp              = zeroMillis
-        val updateDampedStartState  = {
+        val stopDistance            = stopDistanceThreshold * distanceBetweenPrevNext
+
+        var positionAtDamp = predictedEndPosition
+        var timeAtDamp     = zeroMillis
+
+        val updateDampedStartState = {
             timeAtDamp     = timer.now - lastTime
             positionAtDamp = lastPosition + velocity * timeAtDamp + 0.5 * (acceleration * (timeAtDamp * timeAtDamp))
-
-            velocity += acceleration * timeAtDamp
+            velocity      += acceleration * timeAtDamp
         }
 
         if (distanceAlongDirection < distanceBetweenPrevNext / 2) {
             updateDampedStartState()
 
-            motionFunction = { _, time ->
-                criticallyDampedMotion(positionAtDamp - markers.previous, time - timeAtDamp).run {
+            val relativeStart = positionAtDamp - markers.previous
+
+            motionFunction = { _,time ->
+                criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
                     Vector2D(markers.previous.x + x, markers.previous.y + y)
                 }
             }
-            endAnimation = { newPos, _ ->
-                abs((newPos - markers.previous) * (markers.next - markers.previous).normalize()) < stopThreshold
+
+            endAnimation = { newPos, time ->
+                val closeEnough = abs((newPos - markers.previous) * (markers.next - markers.previous).normalize()) < stopDistance
+                val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
+
+                closeEnough && slowEnough
             }
 
             endChosen = true
         } else if (distanceAlongDirection < distanceBetweenPrevNext) {
             updateDampedStartState()
-
             velocity = -velocity
 
-            motionFunction = { _, time ->
-                criticallyDampedMotion(markers.next - positionAtDamp, time - timeAtDamp).run {
+            val relativeStart = markers.next - positionAtDamp
+
+            motionFunction = { _,time ->
+                criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
                     Vector2D(markers.next.x - x, markers.next.y - y)
                 }
             }
-            endAnimation = { newPos, _ ->
-                abs((markers.next - newPos) * (markers.next - markers.previous).normalize()) < stopThreshold
+
+            endAnimation = { newPos, time ->
+                val closeEnough = abs((markers.next - newPos) * (markers.next - markers.previous).normalize()) < stopDistance
+                val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
+
+                closeEnough && slowEnough
             }
 
             endChosen = true
@@ -194,8 +250,8 @@ public open class DampedTransitioner<T>(
         position      : Vector2D,
         decelerateWhile: (position: Vector2D) -> ItemMarkers
     ): Completable = scheduler.onNextFrame {
-        val now         = timer.now
-        val elapsedTime = now - lastTime
+        currentTime     = timer.now
+        val elapsedTime = currentTime - lastTime
         val newPos      = motionFunction(position, elapsedTime)
         markers         = decelerateWhile(newPos)
 
@@ -224,17 +280,28 @@ public open class DampedTransitioner<T>(
  * frames.
  */
 public fun <T> dampedTransitioner(
-    timer           : Timer,
-    scheduler       : AnimationScheduler,
-    decelerationTime: Measure<Time>               =  1 * seconds,
-    dampLevel       : Measure<InverseUnits<Time>> = 10 / seconds,
+    timer                : Timer,
+    scheduler            : AnimationScheduler,
+    decelerationTime     : Measure<Time>               =   1 * seconds,
+    dampLevel            : Measure<InverseUnits<Time>> =  10 / seconds,
+    stopSpeedThreshold   : Measure<InverseUnits<Time>> =  10 / seconds,
+    velocitySampleWindow : Measure<Time>               = 100 * milliseconds,
+    stopDistanceThreshold: Float                       = 0.01f,
     transition      : (
         carousel : Carousel<T, *>,
         startItem: Int,
         endItem  : Int,
         update   : (progress: Float) -> Unit
     ) -> Pausable
-): DampedTransitioner<T> = object: DampedTransitioner<T>(timer, scheduler, decelerationTime, dampLevel) {
+): DampedTransitioner<T> = object: DampedTransitioner<T>(
+    timer                 = timer,
+    scheduler             = scheduler,
+    dampLevel             = dampLevel,
+    decelerationTime      = decelerationTime,
+    stopSpeedThreshold    = stopSpeedThreshold,
+    velocitySampleWindow  = velocitySampleWindow,
+    stopDistanceThreshold = stopDistanceThreshold,
+) {
     override fun transition(
         carousel : Carousel<T, *>,
         startItem: Int,
