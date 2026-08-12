@@ -31,21 +31,24 @@ import kotlin.math.sqrt
  * Carousel [Transitioner] that provides smooth, physics-based deceleration at the end of a Carousel's
  * manual movement.
  *
- * @param timer used to track current time
- * @param scheduler used to manage animation
- * @param decelerationTime indicating how quickly stops should decelerate to 0 velocity
- * @param dampLevel indicating how much critical damping should be applied during stopping
+ * @param timer                 used to track current time
+ * @param scheduler             used to manage animation
+ * @param decelerationTime      indicating how quickly stops should decelerate to 0 velocity
+ * @param dampLevel             indicating how much critical damping should be applied during stopping
+ * @param stopSpeedThreshold    the speed below which the transition is considered done
+ * @param stopDistanceThreshold the threshold from the target that is considered close enough to stop
+ * @param velocitySampleWindow  use to average velocity across
  *
  * @see Carousel.completeManualMove
  */
 public open class DampedTransitioner<T>(
     private val timer                : Timer,
     private val scheduler            : AnimationScheduler,
-    private val dampLevel            : Measure<InverseUnits<Time>> =  10 / seconds,
     private val decelerationTime     : Measure<Time>               =   1 * seconds,
+    private val dampLevel            : Measure<InverseUnits<Time>> =  10 / seconds,
     private val stopSpeedThreshold   : Measure<InverseUnits<Time>> =  10 / seconds,
-    private val velocitySampleWindow : Measure<Time>               = 100 * milliseconds,
-    private val stopDistanceThreshold: Float                       = 0.01f
+    private val stopDistanceThreshold: Double                      = 0.01,
+    private val velocitySampleWindow : Measure<Time>               = 100 * milliseconds
 ): Transitioner<T> {
 
     private data class PositionSample(val time: Measure<Time>, val position: Vector2D)
@@ -188,12 +191,12 @@ public open class DampedTransitioner<T>(
 
         predictedEndPosition = lastPosition + velocity * endTime + 0.5 * (acceleration * endTime2)
 
-        val distanceBetweenPrevNext = (markers.next - markers.previous).magnitude()
-        val distanceAlongDirection  = abs((predictedEndPosition - markers.previous) * (markers.next - markers.previous).normalize())
-        val stopDistance            = stopDistanceThreshold * distanceBetweenPrevNext
+        val distanceBetweenPrevNext      = (markers.next - markers.previous).magnitude()
+        val signedDistanceAlongDirection = (predictedEndPosition - markers.previous) * (markers.next - markers.previous).normalize()
+        val stopDistance                 = stopDistanceThreshold //* distanceBetweenPrevNext
 
         var positionAtDamp = predictedEndPosition
-        var timeAtDamp     = zeroMillis
+        var timeAtDamp      = zeroMillis
 
         val updateDampedStartState = {
             timeAtDamp     = timer.now - lastTime
@@ -201,48 +204,61 @@ public open class DampedTransitioner<T>(
             velocity      += acceleration * timeAtDamp
         }
 
-        if (distanceAlongDirection < distanceBetweenPrevNext / 2) {
-            updateDampedStartState()
+        when {
+            // predicted stop is behind `previous` — not this segment's decision; keep waiting
+            signedDistanceAlongDirection < 0 -> {
+                motionFunction = constantAccelerationMotion
+                endAnimation   = endAfterTime
+            }
 
-            val relativeStart = positionAtDamp - markers.previous
+            signedDistanceAlongDirection < distanceBetweenPrevNext / 2 -> {
+                updateDampedStartState()
 
-            motionFunction = { _,time ->
-                criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
-                    Vector2D(markers.previous.x + x, markers.previous.y + y)
+                val relativeStart = positionAtDamp - markers.previous
+
+                motionFunction = { _,time ->
+                    criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
+                        Vector2D(markers.previous.x + x, markers.previous.y + y)
+                    }
                 }
-            }
 
-            endAnimation = { newPos, time ->
-                val closeEnough = abs((newPos - markers.previous) * (markers.next - markers.previous).normalize()) < stopDistance
-                val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
+                endAnimation = { newPos, time ->
+                    val closeEnough = abs((newPos - markers.previous) * (markers.next - markers.previous).normalize()) < stopDistance
+                    val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
 
-                closeEnough && slowEnough
-            }
-
-            endChosen = true
-        } else if (distanceAlongDirection < distanceBetweenPrevNext) {
-            updateDampedStartState()
-            velocity = -velocity
-
-            val relativeStart = markers.next - positionAtDamp
-
-            motionFunction = { _,time ->
-                criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
-                    Vector2D(markers.next.x - x, markers.next.y - y)
+                    closeEnough && slowEnough
                 }
+
+                endChosen = true
             }
 
-            endAnimation = { newPos, time ->
-                val closeEnough = abs((markers.next - newPos) * (markers.next - markers.previous).normalize()) < stopDistance
-                val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
+            signedDistanceAlongDirection < distanceBetweenPrevNext -> {
+                updateDampedStartState()
+                velocity = -velocity
 
-                closeEnough && slowEnough
+                val relativeStart = markers.next - positionAtDamp
+
+                motionFunction = { _,time ->
+                    criticallyDampedMotion(relativeStart, time - timeAtDamp).run {
+                        Vector2D(markers.next.x - x, markers.next.y - y)
+                    }
+                }
+
+                endAnimation = { newPos, time ->
+                    val closeEnough = abs((markers.next - newPos) * (markers.next - markers.previous).normalize()) < stopDistance
+                    val slowEnough  = criticallyDampedVelocity(relativeStart, time - timeAtDamp).magnitude() < stopSpeedThreshold
+
+                    closeEnough && slowEnough
+                }
+
+                endChosen = true
             }
 
-            endChosen = true
-        } else {
-            motionFunction = constantAccelerationMotion
-            endAnimation   = endAfterTime
+            // predicted stop is beyond `next` — symmetric "not yet" case
+            else -> {
+                motionFunction = constantAccelerationMotion
+                endAnimation   = endAfterTime
+            }
         }
     }
 
@@ -286,8 +302,8 @@ public fun <T> dampedTransitioner(
     dampLevel            : Measure<InverseUnits<Time>> =  10 / seconds,
     stopSpeedThreshold   : Measure<InverseUnits<Time>> =  10 / seconds,
     velocitySampleWindow : Measure<Time>               = 100 * milliseconds,
-    stopDistanceThreshold: Float                       = 0.01f,
-    transition      : (
+    stopDistanceThreshold: Double                      = 0.01,
+    transition           : (
         carousel : Carousel<T, *>,
         startItem: Int,
         endItem  : Int,
