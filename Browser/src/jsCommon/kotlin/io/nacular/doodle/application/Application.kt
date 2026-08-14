@@ -234,7 +234,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<Scene>                                      () with singleton { SingleDisplayScene        (instance()                                                                                  ) }
         bind<Strand>                                     () with singleton { StrandImpl                (instance(), instance()                                                                      ) }
         bind<Display>                                    () with singleton { DisplayImpl               (instance(), instance(), root                                                                ) }
-        bind<Scheduler>                                  () with singleton { SchedulerImpl             (window, instance()                                                                          ) }
+        bind<Scheduler>                                  () with singleton { SchedulerImpl             (window, instance(), instance()                                                              ) }
         bind<SvgFactory>                                 () with singleton { SvgFactoryImpl            (root, document                                                                              ) }
         bind<IdGenerator>                                () with singleton { SimpleIdGenerator         (idPrefix                                                                                    ) }
         bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                                              ) }

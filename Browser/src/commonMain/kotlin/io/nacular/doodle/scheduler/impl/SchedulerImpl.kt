@@ -12,10 +12,10 @@ import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by Nicholas Eddy on 10/19/17.
@@ -34,20 +34,17 @@ private class SimpleTask(private val window: Window, timer: Timer, time: Measure
     }
 }
 
-private open class AnimationTask(private val window: Window, job: (Measure<Time>) -> Unit): Task {
-    private var last = 0.0
-
-    private val value = window.requestAnimationFrame {
+private open class AnimationTask(private val job: (Measure<Time>) -> Unit): Task {
+    fun run(elapsedTime: Measure<Time>) {
+        if (completed) return
         completed = true
-        job((it - last) * milliseconds)
-        last = it
+        job(elapsedTime)
     }
 
     override var completed = false
 
     override fun cancel() {
         completed = true
-        window.cancelAnimationFrame(value)
     }
 }
 
@@ -64,10 +61,14 @@ private class RecurringTask(private val window: Window, timer: Timer, time : Mea
     }
 }
 
-internal class SchedulerImpl(private val window: Window, private val timer: Timer): Scheduler {
+internal class SchedulerImpl(
+    private val window            : Window,
+    private val timer             : Timer,
+    private val animationScheduler: AnimationScheduler
+): Scheduler {
     private var shutdown = false
 
-    override suspend fun delay(time: Measure<Time>) = suspendCoroutine { coroutine ->
+    override suspend fun delay(time: Measure<Time>) = suspendCancellableCoroutine { coroutine ->
         after(time) {
             try {
                 coroutine.context.ensureActive()
@@ -78,7 +79,7 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
         }
     }
 
-    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCoroutine { coroutine ->
+    override suspend fun delayUntil(predicate: (Measure<Time>) -> Boolean) = suspendCancellableCoroutine { coroutine ->
         try {
             check(predicate, coroutine.context) {
                 coroutine.resume(Unit)
@@ -98,7 +99,7 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
         }
     }
 
-    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) AnimationTask(window, job) else SimpleTask(window, timer, time, job)
+    override fun after(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = if (time.amount == 0.0) animationScheduler.onNextFrame(job) else SimpleTask(window, timer, time, job)
     override fun every(time: Measure<Time>, job: (Measure<Time>) -> Unit): Task = RecurringTask(window, timer, time, job)
 
     fun shutdown() {
@@ -107,7 +108,29 @@ internal class SchedulerImpl(private val window: Window, private val timer: Time
 }
 
 internal class AnimationSchedulerImpl(private val window: Window): AnimationScheduler {
-    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(window, job)
+    private var last           = 0.0
+    private var animationFrame = null as Int?
+
+    private val pendingTasks = mutableListOf<AnimationTask>()
+
+    override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(job).also {
+        pendingTasks.add(it)
+
+        if (animationFrame == null) {
+            animationFrame = window.requestAnimationFrame { now ->
+                val runningTasks = pendingTasks.subList(0, pendingTasks.size)
+
+                animationFrame = null
+
+                val elapsed = (now - last) * milliseconds
+                last = now
+
+                while (runningTasks.isNotEmpty()) {
+                    runningTasks.removeAt(0).run(elapsed)
+                }
+            }
+        }
+    }
 }
 
 private open class DistributedAnimationTask(private val scheduler: AnimationScheduler, private val timer: Timer, private val jobs: Iterator<() -> Unit>): Task {
