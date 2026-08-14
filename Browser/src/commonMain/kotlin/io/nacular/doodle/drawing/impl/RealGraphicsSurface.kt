@@ -60,14 +60,14 @@ internal class RealGraphicsSurface private constructor(
         nonPopupTopLevelSurfaces: MutableList<RealGraphicsSurface>,
         rootElementOffset       : () -> Int
     ): this(
-        htmlFactory,
-        canvasFactory,
-        null,
-        false,
-        element,
-        true,
-        nonPopupTopLevelSurfaces,
-        rootElementOffset
+        htmlFactory              = htmlFactory,
+        canvasFactory            = canvasFactory,
+        parent                   = null,
+        isContainer              = false,
+        canvasElement            = element,
+        addToRootIfNoParent      = true,
+        nonPopupTopLevelSurfaces = nonPopupTopLevelSurfaces,
+        rootElementOffset        = rootElementOffset
     )
 
     constructor(
@@ -80,14 +80,14 @@ internal class RealGraphicsSurface private constructor(
         addToRootIfNoParent     : Boolean = true,
         rootElementOffset       : () -> Int
     ): this(
-        htmlFactory,
-        canvasFactory,
-        parent,
-        isContainer,
-        canvasElement(view, htmlFactory),
-        addToRootIfNoParent,
-        nonPopupTopLevelSurfaces,
-        rootElementOffset
+        htmlFactory              = htmlFactory,
+        canvasFactory            = canvasFactory,
+        parent                   = parent,
+        isContainer              = isContainer,
+        canvasElement            = canvasElement(view, htmlFactory),
+        addToRootIfNoParent      = addToRootIfNoParent,
+        nonPopupTopLevelSurfaces = nonPopupTopLevelSurfaces,
+        rootElementOffset        = rootElementOffset
     )
 
     override var visible = true; set(new) {

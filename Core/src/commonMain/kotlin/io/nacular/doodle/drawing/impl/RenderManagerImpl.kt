@@ -22,7 +22,6 @@ import io.nacular.doodle.utils.diff.Differences
 import io.nacular.doodle.utils.diff.Insert
 import io.nacular.doodle.utils.fastMutableMapOf
 import io.nacular.doodle.utils.fastMutableSetOf
-import io.nacular.doodle.utils.firstOrNull
 import io.nacular.doodle.utils.ifTrue
 import kotlin.math.abs
 
@@ -36,6 +35,46 @@ public open class RenderManagerImpl(
     private val accessibilityManager: AccessibilityManager?,
     private val graphicsDevice      : GraphicsDevice<*>
 ): RenderManager() {
+
+    protected class WorkingSet<T> {
+        private val queue  = ArrayDeque<T>()
+        private val queued = HashSet<T>()
+
+        public val size: Int get() = queue.size
+
+        public fun isEmpty   (): Boolean = queue.isEmpty()
+        public fun isNotEmpty(): Boolean = queue.isNotEmpty()
+
+        public fun firstOrNull(): T? {
+            if (isEmpty()) return null
+
+            val item = queue.removeFirst()
+            queued.remove(item)
+            return item
+        }
+
+        public fun none(predicate: (T) -> Boolean): Boolean = queue.none(predicate)
+
+        public operator fun contains(item: T): Boolean = item in queued
+
+        public operator fun plusAssign(item: T) {
+            if (queued.add(item)) {
+                queue.addLast(item)
+            }
+        }
+
+        public operator fun plusAssign(items: Collection<T>) {
+            items.forEach {
+                this += it
+            }
+        }
+
+        public operator fun minusAssign(item: T) {
+            if (queued.remove(item)) {
+                queue.remove(item)
+            }
+        }
+    }
 
     private var painting  = false
     private var layingOut = null as View?
@@ -67,11 +106,11 @@ public open class RenderManagerImpl(
     protected open val neverRendered       : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingLayout       : MutableSet<View>                   = MutableTreeSet(generationComparator)
     protected open val layoutOverflow      : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingRender       : MutableSet<View>                   = LinkedHashSet()
+    protected open val pendingRender       : WorkingSet<View> = WorkingSet()//MutableSet<View>                   = LinkedHashSet()
     protected open val pendingCleanup      : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
     protected open val addedInvisible      : MutableSet<View>                   = fastMutableSetOf()
     protected open val visibilityChanged   : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingBoundsChange : MutableSet<View>                   = fastMutableSetOf()
+    protected open val pendingBoundsChange : WorkingSet<View> = WorkingSet()//MutableSet<View>                   = fastMutableSetOf()
     protected open val popups              : MutableSet<View>                   = fastMutableSetOf()
     protected open val livingViews         : MutableSet<View>                   = fastMutableSetOf()
     protected open var displayPendingLayout: Boolean                            = false
@@ -299,7 +338,7 @@ public open class RenderManagerImpl(
                 pendingRender.firstOrNull()?.let { item ->
                     val renderResult = performRender(item)
 
-                    pendingRender.remove(item)
+                    pendingRender -= item
 
                     if (!renderResult.rendered && renderResult.renderable && !item.bounds.empty && item in dirtyViews) {
                         newRenders += item
@@ -307,7 +346,7 @@ public open class RenderManagerImpl(
                 }
             } while (pendingRender.isNotEmpty())
 
-            pendingRender.addAll(newRenders)
+            pendingRender += newRenders
 
             var numIterations = 0
             val maxIterations = pendingBoundsChange.size
@@ -316,12 +355,12 @@ public open class RenderManagerImpl(
                 pendingBoundsChange.firstOrNull()?.also { item ->
                     when {
                         item !in neverRendered -> {
-                            pendingBoundsChange.remove(item)
+                            pendingBoundsChange -= item
 
                             updateGraphicsSurface(item, graphicsDevice[item])
                         }
                         // remove zero sized items that have never rendered since they won't be cleaned up otherwise
-                        item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange.remove(item)
+                        item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange -= item
                     }
                 }
             } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
@@ -677,7 +716,7 @@ public open class RenderManagerImpl(
         // Early exit if this event was triggered by an item as it is being removed from the container tree.
         //
         // Same for invisible items.
-        if ((parent == null && view !in display && view !in popups) || !view.visible) {
+        if (!view.visible || (parent == null && !view.displayed && view !in display && view !in popups)) {
             return
         }
 

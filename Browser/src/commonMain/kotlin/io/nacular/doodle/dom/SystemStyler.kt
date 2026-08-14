@@ -84,7 +84,7 @@ internal class SystemStylerImpl(
                 tryInsertRule("${prefix("body")} { height:100%;width:100%;overflow:hidden;cursor:default;margin:0;padding:0;font-weight:$defaultFontWeight;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
                 tryInsertRule("html { height:100%;width:100% }", numStyles)
 
-                tryInsertRule("${prefix()} * { box-sizing:inherit }", numStyles)
+                tryInsertRule("${prefix()} * { box-sizing:border-box }", numStyles)
 
                 tryInsertRule("${prefix("body")} * { position:absolute;overflow:hidden;font-weight:$defaultFontSize;font-family:$defaultFontFamily;font-size:${defaultFontSize}px }", numStyles)
                 tryInsertRule("${prefix("body")} pre { overflow:visible }", numStyles)

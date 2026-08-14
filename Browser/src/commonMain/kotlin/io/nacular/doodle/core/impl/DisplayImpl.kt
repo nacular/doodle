@@ -54,7 +54,10 @@ internal class DisplayImpl(htmlFactory: HtmlFactory, canvasFactory: CanvasFactor
 
     override var insets = None
 
-    override var layout: Layout? by observable(null) { _,_ ->
+    override var layout: Layout? = null; set(new) {
+        if (field == new) return
+
+        field = new
         relayout()
     }
 
