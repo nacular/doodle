@@ -136,7 +136,7 @@ internal class DragManagerImpl(
         })
 
         rootElement.ondragover = { event ->
-            if (event.target?.isHTMLInputElement() == true) {
+            if (event.target?.isHTMLInputElement() == false) {
                 (dataBundle ?: createBundle(event.dataTransfer))?.let {
                     if (::visualCanvas.isInitialized) {
                         visualCanvas.release()
