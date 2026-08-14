@@ -105,7 +105,7 @@ public class PointerInputManagerImpl(
         }
     }
 
-    private inner class CoveredPassThroughViewMap {
+    private class CoveredPassThroughViewMap {
         private val map: MutableMap<Int, MutableSet<View>> = mutableMapOf()
 
         fun add   (event: SystemPointerEvent, value: View) { map.getOrPut(event.id) { mutableSetOf() } }
