@@ -86,10 +86,12 @@ internal class TextMetricsImpl(
         }
     }
 
-    private var elementTask: Task? by autoCanceling()
+    private var elementTask    : Task? by autoCanceling()
+    private var wrapElementTask: Task? by autoCanceling()
 
     private var element: HTMLElement? = null; set(value) {
         if (field != value) {
+            field?.remove()
             field = value?.also { addElementToRoot(it) }
         }
 
@@ -101,10 +103,11 @@ internal class TextMetricsImpl(
 
     private var wrappedElement: HTMLElement? = null; set(value) {
         if (field != value) {
+            field?.remove()
             field = value?.also { addElementToRoot(it) }
         }
 
-        elementTask = scheduler.after(cleanupDelay) {
+        wrapElementTask = scheduler.after(cleanupDelay) {
             field?.remove()
             field = null
         }
