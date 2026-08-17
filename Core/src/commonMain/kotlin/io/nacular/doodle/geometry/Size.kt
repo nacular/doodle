@@ -14,8 +14,10 @@ import kotlin.math.max
  */
 public class Size private constructor(public val width: Double = 0.0, public val height: Double = width) {
 
+    private var area_: Double? = null
+
     /** The area represented: [width] * [height] */
-    public val area: Double by lazy { width * height }
+    public val area: Double get() = area_ ?: (width * height ).also { area_ = it }
 
     /** `true` IFF [area] == `0` */
     public val empty: Boolean = width == 0.0 || height == 0.0

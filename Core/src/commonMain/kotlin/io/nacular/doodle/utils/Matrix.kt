@@ -60,31 +60,41 @@ public open class SquareMatrix<T: Number> internal constructor(values: Array<Arr
         }
     }
 
+    private var inverseCalculated = false
+    private var inverse_: SquareMatrix<Double>? = null
+
     /**
      * The inverse of this matrix if it is [invertible](https://en.wikipedia.org/wiki/Invertible_matrix).
      */
-    public val inverse: SquareMatrix<Double>? by lazy {
-        when {
-            isIdentity         -> SquareMatrix(values.map { it.map { it.toDouble() }.toTypedArray() }.toTypedArray()) // TODO: This shouldn't require any copy
-            determinant == 0.0 -> null
-            else               -> {
-                val cofactors = values.mapIndexed { r, values ->
-                    values.mapIndexed { c, _ ->
-                        determinant(r, c) * when {
-                            (r + c).isOdd -> -1
-                            else          ->  1
-                        }
-                    }.toTypedArray()
-                }.toTypedArray().let {
-                    val l: (Int, Int) -> Double = { row, col -> it[row][col] }
-                    squareMatrixOf(numRows, l)
+    public val inverse: SquareMatrix<Double>? get() {
+        if (!inverseCalculated) {
+            inverseCalculated = true
+
+            inverse_ = when {
+                isIdentity -> SquareMatrix(values.map { it.map { it.toDouble() }.toTypedArray() }
+                    .toTypedArray()) // TODO: This shouldn't require any copy
+                determinant == 0.0 -> null
+                else -> {
+                    val cofactors = values.mapIndexed { r, values ->
+                        values.mapIndexed { c, _ ->
+                            determinant(r, c) * when {
+                                (r + c).isOdd -> -1
+                                else -> 1
+                            }
+                        }.toTypedArray()
+                    }.toTypedArray().let {
+                        val l: (Int, Int) -> Double = { row, col -> it[row][col] }
+                        squareMatrixOf(numRows, l)
+                    }
+
+                    val transposed = cofactors.transpose()
+
+                    (transposed * (1.0 / determinant))
                 }
-
-                val transposed = cofactors.transpose()
-
-                (transposed * (1.0 / determinant))
             }
         }
+
+        return inverse_
     }
 
     private val determinant: Double by lazy {
