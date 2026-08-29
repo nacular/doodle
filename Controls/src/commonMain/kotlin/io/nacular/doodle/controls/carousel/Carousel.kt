@@ -368,12 +368,17 @@ public open class Carousel<T, M: ListModel<T>>(
         layout = simpleLayout { views,_,currentSize,_,_ ->
             update()
 
-            views.forEachIndexed { index, view ->
+            views.take(dataChildren.size).forEachIndexed { index, view ->
                 dataChildren[index].run {
-                    view.x      = x
-                    view.y      = y
-                    view.width  = width
-                    view.height = height
+                    when (clipPath) {
+                        null -> {
+                            view.x      = x
+                            view.y      = y
+                            view.width  = width
+                            view.height = height
+                        }
+                        else -> view.size = this@Carousel.size
+                    }
                 }
             }
 
@@ -759,27 +764,38 @@ public open class Carousel<T, M: ListModel<T>>(
 
                 children.batch {
                     val finalDataChildren = dataChildren.mapIndexed { index, dataChild ->
+                        val l = simpleLayout { views, _, current, _, _ ->
+                            views.forEach {
+                                it.x      = dataChild.x
+                                it.y      = dataChild.y
+                                it.width  = dataChild.width
+                                it.height = dataChild.height
+                            }
+
+                            current
+                        }
+
                         when (dataChild.clipPath) {
                             null -> dataChild.view
                             else -> when (val current = this.getOrNull(index)) {
                                 is ClipContainer -> current.apply {
+                                    layout   = l
                                     clipPath = dataChild.clipPath
                                     if (dataChild.view.parent != this) {
                                         when {
-                                            children.isNotEmpty() -> children[0] = dataChild.view
-                                            else -> children += dataChild.view
+                                            children.isNotEmpty() -> children[0]  = dataChild.view
+                                            else                  -> children    += dataChild.view
                                         }
 
                                         changedViews += dataChild.view
                                     }
                                 }
                                 else -> ClipContainer().apply {
+                                    layout        = l
                                     clipPath      = dataChild.clipPath
                                     children     += dataChild.view
                                     changedViews += dataChild.view
                                 }
-                            }.apply {
-                                suggestBounds(Rectangle(size = this@Carousel.size))
                             }
                         }
                     }

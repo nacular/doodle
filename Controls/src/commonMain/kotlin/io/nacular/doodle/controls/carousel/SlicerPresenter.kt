@@ -3,6 +3,7 @@ package io.nacular.doodle.controls.carousel
 import io.nacular.doodle.controls.Anchor
 import io.nacular.doodle.controls.Anchor.Leading
 import io.nacular.doodle.controls.carousel.Carousel.PresentedItem
+import io.nacular.doodle.controls.carousel.SlicerPresenter.CutRelativeTo.Carousel
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.View.PolyClipPath
 import io.nacular.doodle.geometry.Rectangle
@@ -24,16 +25,24 @@ import kotlin.math.pow
 /**
  * Shows contents of a [Carousel] one by one, and "slices" them into ribbons as it transitions between frames.
  *
- * @param numSlices to split the frame into when transitioning
- * @param orientation indicates which direction the items fill travel when transitioning
+ * @param numSlices       to split the frame into when transitioning
+ * @param orientation     indicates which direction the items fill travel when transitioning
+ * @param anchor          indicates which part of the item starts moving first
+ * @param cutRelativeTo   indicates whether cuts are relative to the Carousel or the item
  * @param itemConstraints that determine the bounds of each item relative to the Carousel
  */
 public class SlicerPresenter<T>(
                 numSlices      : Int                                   = 5,
     private val orientation    : Orientation                           = Vertical,
     private val anchor         : Anchor                                = Leading,
+    private val cutRelativeTo  : CutRelativeTo                         = Carousel,
                 itemConstraints: ConstraintDslContext.(Bounds) -> Unit = fill,
 ): ConstraintBasedPresenter<T>(itemConstraints) {
+    public enum class CutRelativeTo {
+        Carousel,
+        Item
+    }
+
     private val numSlices = max(1, numSlices)
 
     override fun present(
@@ -47,22 +56,22 @@ public class SlicerPresenter<T>(
         when (progressToNext) {
             0f -> carousel.item(position)?.apply {
                 results += this
-                setBounds(this, carousel.size)
+                bounds = boundsFromConstraint(this, carousel.size, forceSetup = true)
             }
             1f -> position.next?.let(carousel::item)?.apply {
                 results += this
-                setBounds(this, carousel.size)
+                bounds = boundsFromConstraint(this, carousel.size, forceSetup = true)
             }
             else -> {
                 when (val next = position.next) {
                     null -> carousel.item(position)?.apply {
                         results += this
-                        setBounds(this, carousel.size)
+                        bounds = boundsFromConstraint(this, carousel.size, forceSetup = true)
                     }
                     else -> {
-                        val sliceWidth  = (if (orientation == Vertical) carousel.width  else carousel.height) / numSlices
-                        val sliceLength =  if (orientation == Vertical) carousel.height else carousel.width
-                        var bounds      = null as Rectangle?
+                        val sliceLength   =  if (orientation == Vertical) carousel.height else carousel.width
+                        var boundsCurrent = null as Rectangle?
+                        var boundsNext    = null as Rectangle?
 
                         repeat(abs(numSlices)) { slice ->
                             val exponent = when (anchor) {
@@ -70,63 +79,47 @@ public class SlicerPresenter<T>(
                                 else    -> numSlices - (slice - 1)
                             }
 
-                            val offset   = lerp(0.0, -sliceLength, sin(_90 * progressToNext.pow(exponent)).toFloat())
-
-                            val clipRect = when (orientation) {
-                                Vertical -> Rectangle(sliceWidth * slice - 1, offset,             sliceWidth + 1, sliceLength   )
-                                else     -> Rectangle(offset,                 sliceWidth * slice, sliceLength,    sliceWidth + 1)
-                            }
+                            val offset = lerp(0.0, -sliceLength, sin(_90 * progressToNext.pow(exponent)).toFloat())
 
                             carousel.item(position)?.apply {
                                 results  += this
 
-                                when (bounds) {
-                                    null -> setBounds(this, carousel.size) {
-                                        bounds = it
-
-                                        it.run {
-                                            when (orientation) {
-                                                Vertical -> at(y = y + offset)
-                                                else     -> at(x = x + offset)
-                                            }
-                                        }
-                                    }
-                                    else -> this.bounds = bounds!!.run {
+                                (boundsCurrent ?: boundsFromConstraint(this, carousel.size, forceSetup = true)).let {
+                                    this.bounds = it.run {
                                         when (orientation) {
                                             Vertical -> at(y = y + offset)
                                             else     -> at(x = x + offset)
                                         }
                                     }
+
+                                    boundsCurrent = it
                                 }
-                                clipPath = PolyClipPath(clipRect)
+
+                                clipPath = computeClipPath(carousel, slice, sliceLength)
                             }
 
                             carousel.item(next)?.apply {
                                 results  += this
-                                when (bounds) {
-                                    null -> setBounds(this, carousel.size) {
-                                        bounds = it
 
-                                        it.run {
-                                            when (orientation) {
-                                                Vertical -> at(y = y + sliceLength + offset)
-                                                else     -> at(x = x + sliceLength + offset)
-                                            }
-                                        }
-                                    }
-                                    else -> this.bounds = bounds!!.run {
+                                (boundsNext ?: boundsFromConstraint(this, carousel.size, forceSetup = true)).let {
+                                    this.bounds = it.run {
                                         when (orientation) {
-                                            Vertical -> at(y = y + sliceLength + offset)
-                                            else     -> at(x = x + sliceLength + offset)
+                                            Vertical -> at(y = y + offset + sliceLength)
+                                            else     -> at(x = x + offset + sliceLength)
                                         }
                                     }
+
+                                    boundsNext = it
                                 }
-                                clipPath = PolyClipPath(
-                                    when (orientation) {
-                                        Vertical -> clipRect.at(y = offset + sliceLength)
-                                        else     -> clipRect.at(x = offset + sliceLength)
-                                    }
-                                )
+
+                                clipPath = computeClipPath(carousel, slice, sliceLength)
+
+//                                clipPath = PolyClipPath(
+//                                    when (orientation) {
+//                                        Vertical -> clipRect.at(y = offset + sliceLength)
+//                                        else     -> clipRect.at(x = offset + sliceLength)
+//                                    }
+//                                )
                             }
                         }
                     }
@@ -140,5 +133,19 @@ public class SlicerPresenter<T>(
     override fun distanceToNext(carousel: Carousel<T, *>, position: Position, offset: Vector2D): Distance = when (orientation) {
         Horizontal -> Distance(Vector2D(x = 1), carousel.width )
         else       -> Distance(Vector2D(y = 1), carousel.height)
+    }
+
+    private fun PresentedItem.computeClipPath(carousel: Carousel<T, *>, slice: Int, sliceLength: Double): View.ClipPath {
+        val sliceWidthSource = when (cutRelativeTo) {
+            Carousel -> carousel.bounds.atOrigin
+            else     -> bounds
+        }
+
+        val sliceWidth = (if (orientation == Vertical) sliceWidthSource.width else sliceWidthSource.height) / numSlices
+
+        return PolyClipPath(when (orientation) {
+            Vertical -> Rectangle(sliceWidthSource.x + sliceWidth * slice, bounds.y,                                sliceWidth + 1,  sliceLength   )
+            else     -> Rectangle(bounds.x,                                sliceWidthSource.y + sliceWidth * slice, sliceLength,     sliceWidth + 1)
+        })
     }
 }
