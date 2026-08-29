@@ -38,7 +38,7 @@ public class ListLayout(
 
             h        = it.bottom
             y        = h + spacing
-            h         = it.bottom
+            h        = it.bottom
             maxWidth = max(it.width, maxWidth)
         }
 
