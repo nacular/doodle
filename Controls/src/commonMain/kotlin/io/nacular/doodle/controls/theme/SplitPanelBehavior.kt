@@ -19,7 +19,11 @@ public interface SplitPanelBehavior: Behavior<SplitPanel> {
     public val dividerVisible: Boolean
 }
 
-public abstract class CommonSplitPanelBehavior(private val divider: View = object: View() {}, private val size: Double, override val dividerVisible: Boolean = false): SplitPanelBehavior, PointerListener, PointerMotionListener {
+public abstract class CommonSplitPanelBehavior(
+    private  val divider       : View = object : View() {},
+    private  val size          : Double,
+    override val dividerVisible: Boolean = false
+): SplitPanelBehavior, PointerListener, PointerMotionListener {
 
     private var splitPanel      = null as SplitPanel?
     private var pressedLocation = 0.0

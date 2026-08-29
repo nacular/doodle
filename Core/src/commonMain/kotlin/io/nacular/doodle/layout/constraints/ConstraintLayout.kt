@@ -495,7 +495,7 @@ public class ConstraintDslContext internal constructor() {
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
      * ```
-     * this eq this.preserve Required
+     * this preserve Required
      * ```
      */
     public val Property.preserve: Unit get() = this preserve Required
@@ -504,7 +504,7 @@ public class ConstraintDslContext internal constructor() {
      * Creates a [Constraint] that keeps the Property's current value. This is equivalent to:
      *
      * ```
-     * this eq this.value
+     * this eq this.value strength strength
      * ```
      */
     public infix fun Property.preserve(strength: Strength) { this eq this.value strength strength }

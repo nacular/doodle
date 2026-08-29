@@ -2,14 +2,15 @@ package io.nacular.doodle.controls.table
 
 import io.nacular.doodle.controls.table.MetaRowVisibility.Always
 import io.nacular.doodle.controls.table.MetaRowVisibility.HasContents
-import io.nacular.doodle.controls.table.MetaRowVisibility.Never
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Size
-import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.utils.observable
 import kotlin.Double.Companion.POSITIVE_INFINITY
 
@@ -130,8 +131,8 @@ internal fun <T: View> tableLayout(
         footer_.height eq footerHeight
 
         when {
-            isFooterSticky -> footer_.bottom eq parent.bottom - insetBottom - parent.height + displayRect.bottom strength Strong
-            else           -> footer_.bottom eq parent.bottom - insetBottom                                      strength Strong
+            isFooterSticky -> footer_.bottom eq parent.bottom - insetBottom - parent.height + displayRect.bottom strength Required - 1
+            else           -> footer_.bottom eq parent.bottom - insetBottom                                      strength Required - 1
         }
     }
 
@@ -141,12 +142,12 @@ internal fun <T: View> tableLayout(
 
     when {
         (isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect -> {
-            panel_.height eq panel_.idealHeight
-            panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Strong
-            parent.height eq panel_.bottom + footer_.height + footerPadding                                    strength Strong
+            panel_.height hint ideal
+            panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Required - 1
         }
-        else -> panel_.bottom eq parent.bottom - (footer_.height + footerPadding)
     }
+
+    panel_.bottom eq parent.bottom - (footer_.height + footerPadding)
 }
 
 internal fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {

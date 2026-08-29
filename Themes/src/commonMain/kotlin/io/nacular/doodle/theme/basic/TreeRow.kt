@@ -25,7 +25,10 @@ import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Ctrl
 import io.nacular.doodle.system.SystemInputEvent.Modifier.Meta
@@ -113,9 +116,9 @@ public class TreeRow<T>(
 
     // FIXME: Shouldn't need the explicit left setting here
     public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({
-        it.left    eq 0
-        it.size    eq it.idealSize
-        it.centerY eq parent.centerY
+        it.left    eq   0
+        it.size    hint ideal
+        it.centerY eq   parent.centerY
     }) { _,_ ->
        updateLayout() //relayout()
     }
@@ -158,7 +161,7 @@ public class TreeRow<T>(
         }
 
         // FIXME: This doesn't really make much sense
-        parent.width eq it.right + indent
+        parent.width eq readonly(it.right) + indent strength Required - 1
     }
 
     init {

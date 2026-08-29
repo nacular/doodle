@@ -214,7 +214,6 @@ internal class NativeScrollPanel internal constructor(
     }
 
     fun discard() {
-        println("discard")
         panel.boundsChanged  -= boundsChanged
         panel.contentChanged -= contentChanged
 

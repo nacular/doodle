@@ -162,12 +162,14 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                     when (orientation) {
                         Vertical -> {
                             divider.top     eq first.top
+                            divider.width.preserve
                             divider.bottom  eq first.bottom
                             divider.centerX eq first.right + panelSpacing() / 2
                         }
                         else -> {
                             divider.left    eq first.left
                             divider.right   eq first.right
+                            divider.height.preserve
                             divider.centerY eq first.bottom + panelSpacing() / 2
                         }
                     }

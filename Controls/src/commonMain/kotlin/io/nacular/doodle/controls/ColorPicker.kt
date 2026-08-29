@@ -26,7 +26,9 @@ import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.div
 import io.nacular.doodle.geometry.inset
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
 import io.nacular.doodle.system.Cursor.Companion.Grab
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
@@ -180,8 +182,8 @@ public class ColorPicker(color: Color): View() {
 
             layout = constrain(handle) {
                 it.left    eq min(readonly(parent.right) - handle.width, max(0.0, readonly(parent.width) * this@Strip.ratio - handle.width / 2))
-                it.centerY eq parent.centerY
                 it.height  eq parent.height
+                it.centerY eq parent.centerY
             }
 
             pointerChanged += object: PointerListener {
@@ -386,23 +388,22 @@ public class ColorPicker(color: Color): View() {
         layout = constrain(colorRect, hueStrip, opacityStrip, colorSquare) { colorRect, hueStrip, opacityStrip, colorSquare ->
             colorRect.top        eq inset
             colorRect.left       eq inset
-            colorRect.right      eq readonly(parent.right) - inset
-            colorRect.bottom     eq hueStrip.top  - inset
+            colorRect.right      eq max(inset, parent.right - inset) - inset strength Required - 1
+            colorRect.bottom     eq max(inset, hueStrip.top - inset)
 
             hueStrip.left        eq inset
             hueStrip.height.preserve
-            hueStrip.right       eq colorSquare.left - inset
+            hueStrip.right       eq max(inset, colorSquare.left - inset)
             hueStrip.bottom      eq opacityStrip.top - inset
 
             opacityStrip.left    eq inset
             opacityStrip.height.preserve
-            opacityStrip.right   eq colorSquare.left - inset
-            opacityStrip.bottom  eq readonly(parent.bottom)    - inset
+            opacityStrip.right   eq max(inset, colorSquare.left - inset)
+            opacityStrip.bottom  eq parent.bottom - inset strength Required - 1
 
-            colorSquare.width.preserve
-            colorSquare.height.preserve
-            colorSquare.right    eq readonly(parent.right ) - inset
-            colorSquare.bottom   eq readonly(parent.bottom) - inset
+            colorSquare.size.preserve
+            colorSquare.right    eq parent.right  - inset strength Required - 1
+            colorSquare.bottom   eq parent.bottom - inset strength Required - 1
         }
     }
 }

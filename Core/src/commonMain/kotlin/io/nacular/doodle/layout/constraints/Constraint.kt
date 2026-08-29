@@ -109,7 +109,7 @@ public inline operator fun Strength.minus(value: Int): Strength = this + -value
  */
 public class Constraint internal constructor(internal val expression: Expression, internal val operator: Operator, strength: Strength = Required) {
     internal var strength: Strength = strength; set(new) {
-        field = new
+        field    = new
         hashCode = computeHashCode()
     }
 
@@ -131,13 +131,6 @@ public class Constraint internal constructor(internal val expression: Expression
     }
 
     override fun hashCode(): Int = hashCode
-
-    internal fun differsByConstantOnly(other: Constraint): Boolean =
-        operator == Operator.EQ    &&
-        operator == other.operator &&
-        strength == other.strength &&
-        strength == Required       &&
-        expression.differsByConstantOnly(other.expression)
 
     private fun computeHashCode() = 31 * (31 * operator.hashCode() + expression.hashCode()) + strength.hashCode()
 }

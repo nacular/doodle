@@ -63,8 +63,11 @@ import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.text.AnnotatedString
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.CharInterpolator
@@ -243,17 +246,16 @@ public fun switch(label: View): FieldVisualizer<Boolean> = field {
 
         layout = constrain(children[0], children[1]) { label, switch ->
             switch.left    greaterEq 0
-            switch.right   eq parent.right strength Strong
-            switch.width   eq 30
-            switch.height  eq 20
-            switch.centerY eq parent.centerY
+            switch.right   eq        parent.right strength Strong
+            switch.width   eq        30
+            switch.height  eq        20
+            switch.centerY eq        parent.centerY
 
-            label.left     eq 0
-            label.height   eq label.idealHeight
-            label.centerY  eq switch.centerY
+            label.left     eq        0
+            label.height   eq        label.idealHeight
+            label.centerY  eq        switch.centerY
 
-            parent.height greaterEq label.bottom
-            parent.height greaterEq switch.bottom
+            parent.height  greaterEq max(label.bottom, switch.bottom)
         }
     }
 }
@@ -2412,11 +2414,11 @@ public fun <T> switchList(
             switch_.right   eq parent.right
             switch_.centerY eq parent.centerY
 
-            label_.left     eq 0
-            label_.centerY  eq switch_.centerY
+            label_.size     hint ideal
+            label_.left     eq   0
+            label_.centerY  eq   switch_.centerY
 
-            parent.height  greaterEq label.height
-            parent.height  greaterEq switch.height
+            parent.height eq max(readonly(label_.height), switch_.height)
         }
     }
 ) {
@@ -3215,16 +3217,14 @@ private fun expandingVerticalLayout(spacing: Double, itemHeight: Double? = null)
 
 @Suppress("LocalVariableName")
 private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26.0) = constrain(button, label) { button_, label_ ->
-    button_.top    eq 0
-    button_.size   eq parent.size
+    button_.top   eq 0
+    button_.size  eq parent.size
 
-    label_.left    eq labelOffset
-    label_.width   eq label_.idealWidth
-    label_.height  eq parent.height
-    label_.centerY eq button_.centerY
+    label_.left   eq   labelOffset
+    label_.size   hint ideal
 
-    parent.right  eq labelOffset + label_.idealWidth
-    parent.height eq label_.idealHeight
+    parent.width  eq labelOffset + readonly(label_.width ) strength Required - 1
+    parent.height eq               readonly(label_.height) strength Required - 1
 }
 
 private fun <T> FieldInfo<T>.updateRequiredText(

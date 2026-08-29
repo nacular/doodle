@@ -15,8 +15,10 @@ import io.nacular.doodle.layout.ListLayout
 import io.nacular.doodle.layout.WidthSource.Parent
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.layout.constraints.withSizeInsets
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.NoOpCompletable
@@ -76,7 +78,7 @@ public open class BasicSection<T>(
                 icon.size    eq icon.idealSize
                 icon.right   eq parent.right - 2
                 icon.centerY eq parent.centerY
-            }.also { it.exceptionThrown += { _,e -> e.printStackTrace()} }
+            }
 
             selectedChanged += { _,_,new ->
                 when {
@@ -114,13 +116,10 @@ public open class BasicSection<T>(
     }
 
     public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = {
-        it.width      lessEq    parent.width strength Strong
-
-        it.left       eq        0
-        it.size       eq        it.idealSize
-        it.width      greaterEq 0
-        it.centerY    eq        parent.centerY
-        parent.height eq        it.height + 4
+        it.left       eq   0
+        it.size       hint ideal
+        it.centerY    eq   parent.centerY
+        parent.height eq   it.height + 4 strength Required - 1
     }
 
     init {
@@ -130,23 +129,17 @@ public open class BasicSection<T>(
     }
 
     private fun constrainLayout(header: View, body: View) = constrain(header, body) { h, b ->
-        h.top    eq 0
-        h.left   eq 0
-        h.width  eq parent.width
-        h.height eq h.idealHeight
+        h.top    eq   0
+        h.left   eq   0
+        h.width  eq   parent.width
+        h.height hint ideal
 
-        b.top    eq h.bottom
-        b.left   eq h.left
-        b.width  eq h.width
+        b.top    eq   h.top + readonly(h.height)
+        b.left   eq   h.left
+        b.width  eq   h.width
+        b.height hint lerp(0.0, b.idealHeight, expansionProgress)
 
-        b.height eq lerp(0.0, b.idealHeight, expansionProgress)
-
-//        when {
-//            expanded -> b.height eq b.idealHeight
-//            else     -> b.height eq 0
-//        }
-
-        parent.bottom eq b.bottom
+        parent.height eq b.top + readonly(b.height) strength Required - 1
     }
 }
 

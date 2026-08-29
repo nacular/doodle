@@ -3,10 +3,10 @@ package io.nacular.doodle.theme.basic.spinbutton
 import io.nacular.doodle.controls.StringVisualizer
 import io.nacular.doodle.controls.buttons.Button
 import io.nacular.doodle.controls.buttons.PushButton
+import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.controls.spinbutton.SpinButton
 import io.nacular.doodle.controls.spinbutton.SpinButtonBehavior
 import io.nacular.doodle.controls.spinbutton.SpinButtonModel
-import io.nacular.doodle.controls.invoke
 import io.nacular.doodle.core.Container
 import io.nacular.doodle.core.Icon
 import io.nacular.doodle.core.View
@@ -36,11 +36,13 @@ import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
 import io.nacular.doodle.theme.basic.BasicButtonBehavior
 import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
+import kotlin.math.max
 
 public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     private val textMetrics        : TextMetrics,
@@ -180,10 +182,12 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
             previous_.left   eq next_.left
             previous_.right  eq next_.right
             previous_.bottom eq parent.bottom - INSET strength Strong
+        }
 
-            center.firstOrNull()?.idealSize?.height?.let {
-                parent.height eq it + 4 * INSET
-            }
+        view.preferredSize = { _,_ ->
+            val centerSize = center.firstOrNull()?.idealSize ?: Size.Empty
+
+            Size(centerSize.width + buttonWidth + 2 * INSET, max(20.0, centerSize.height) + 2 * INSET)
         }
 
         updateCenter(view)
@@ -236,10 +240,8 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
 
     private fun updateAlignment(spinButton: SpinButton<T, M>, centerView: Container) {
         val constrains: ConstraintDslContext.(Bounds) -> Unit = spinButton.cellAlignment ?: {
-            it.size   eq     it.idealSize strength Strong
-            it.center eq     parent.center
-            it.width  lessEq parent.width
-            it.height lessEq parent.height
+            it.size   hint ideal
+            it.center eq   parent.center//.value
         }
 
         centerView.firstOrNull()?.let { child ->
