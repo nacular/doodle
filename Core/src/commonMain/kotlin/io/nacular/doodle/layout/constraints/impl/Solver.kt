@@ -258,7 +258,10 @@ internal class Solver {
     val variables: Set<Variable> get() = vars.keys
 
     fun addNegativeGuard(variable: Variable) {
-        addConstraint(Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required), incrementVariableCounts = false)
+        val constraint = Constraint(Expression(VariableTerm(variable, 1.0)), GE, Required)
+        guards[variable] = constraint
+
+        addConstraint(constraint, incrementVariableCounts = false)
     }
 
     fun cleanupNegativeGuard(variable: Variable) {
@@ -476,7 +479,10 @@ internal class Solver {
                 updateVariables()
 
                 if (addedEdit) {
-                    try { removeEditVariable(variable) } catch (_: Exception) {}
+                    try { removeEditVariable(variable) } catch (e: Exception) {
+                        println("Failed to remove variable $variable")
+                        e.printStackTrace()
+                    }
                 }
 
                 result
@@ -536,6 +542,9 @@ internal class Solver {
 
             optimize(objective)
         } catch (e: ConstraintException) {
+            println("Constraint failed")
+            e.printStackTrace()
+
             removeConstraint(constraint, tag)
             throw e
         }
