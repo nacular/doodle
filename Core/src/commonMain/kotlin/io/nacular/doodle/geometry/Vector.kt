@@ -112,7 +112,7 @@ public sealed interface Point: Vector3D {
          * @param x position
          * @param y position
          */
-        public operator fun invoke(x: Number, y: Number = 0.0): Vector2D = VectorImpl(x.toDouble(), y.toDouble())
+        public operator fun invoke(x: Number = 0.0, y: Number = 0.0): Vector2D = VectorImpl(x.toDouble(), y.toDouble())
 
         /**
          * Creates a new Vector2D.
@@ -120,21 +120,7 @@ public sealed interface Point: Vector3D {
          * @param x position
          * @param y position
          */
-        public operator fun invoke(x: Double, y: Double = 0.0): Vector2D = VectorImpl(x, y)
-
-        /**
-         * Creates a new Vector2D with `x` = `0.0`.
-         *
-         * @param y position
-         */
-        public operator fun invoke(y: Number): Vector2D = VectorImpl(0.0, y.toDouble())
-
-        /**
-         * Creates a new Vector2D with `x` = `0.0`.
-         *
-         * @param y position
-         */
-        public operator fun invoke(y: Double): Vector2D = VectorImpl(0.0, y)
+        public operator fun invoke(x: Double = 0.0, y: Double = 0.0): Vector2D = VectorImpl(x, y)
 
         /**
          * Creates a new Vector2D with `x` = `0.0` and `y` == `0.0`.

@@ -47,7 +47,7 @@ fun main() {
 
 Check out the [documentation](https://nacular.github.io/doodle/) site for more details and examples. You can also find helpful tutorials at [doodle-tutorials](https://nacular.github.io/doodle-tutorials).
 
-Doodle is still under active development, so there are going to be gaps and bugs. Please report [issues](https://github.com/pusolito/doodle/issues), and submit feature requests.
+Doodle is still under active development, so there are going to be gaps and bugs. Please report [issues](https://github.com/nacular/doodle/issues), and submit feature requests.
 
 You can also join the discussion on the [#doodle](https://kotlinlang.slack.com/messages/doodle) Kotlin Slack channel. Go to http://slack.kotl.in for instructions on getting an invitation.
 
