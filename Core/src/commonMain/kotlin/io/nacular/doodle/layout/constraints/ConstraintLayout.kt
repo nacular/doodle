@@ -197,7 +197,7 @@ public abstract class ConstraintLayout internal constructor(): Layout {
      * ```
      *
      * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
-     * getting too large, so the parent's width will remain larger it uses anything greater to preserve itself.
+     * getting too large, so the parent's width will remain larger if it uses anything greater to preserve itself.
      */
     public var parentWidthPreservation: Strength = Strong
 
@@ -210,7 +210,7 @@ public abstract class ConstraintLayout internal constructor(): Layout {
      * ```
      *
      * [max][io.nacular.doodle.layout.constraints.ConstraintDslContext.max] relies on a [Weak] constraint to avoid
-     * getting too large, so the parent's height will remain larger it uses anything greater to preserve itself.
+     * getting too large, so the parent's height will remain larger if it uses anything greater to preserve itself.
      */
     public var parentHeightPreservation: Strength = Strong
 }
