@@ -42,11 +42,11 @@ internal actual operator fun DataTransferItemList.get(index: Int): DataTransferI
 
 private fun jsGet(list: DataTransferItemList, index: Int): DataTransferItem? = js("list[index]") as? DataTransferItem?
 
-internal actual fun JsAny.isNode             (): Boolean = js("this instanceof Node"             )
-internal actual fun JsAny.isHTMLElement      (): Boolean = js("this instanceof HTMLElement"      )
-internal actual fun JsAny.isHTMLInputElement (): Boolean = js("this instanceof HTMLInputElement" )
-internal actual fun JsAny.isHTMLButtonElement(): Boolean = js("this instanceof HTMLAnchorElement")
-internal actual fun JsAny.isHTMLAnchorElement(): Boolean = js("this instanceof HTMLButtonElement")
+internal actual fun JsAny.isNode             (): Boolean = this is Node
+internal actual fun JsAny.isHTMLElement      (): Boolean = this is HTMLElement
+internal actual fun JsAny.isHTMLInputElement (): Boolean = this is HTMLInputElement
+internal actual fun JsAny.isHTMLButtonElement(): Boolean = this is HTMLAnchorElement
+internal actual fun JsAny.isHTMLAnchorElement(): Boolean = this is HTMLButtonElement
 
 internal actual fun JsAny.asNodeOrNull             (): Node?              = if (this.isNode             ()) this.unsafeCast<Node>             () else null
 internal actual fun JsAny.asHTMLElementOrNull      (): HTMLElement?       = if (this.isHTMLElement      ()) this.unsafeCast<HTMLElement>      () else null
