@@ -8,20 +8,24 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Area
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.BoundsArea
 import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintException
 import io.nacular.doodle.layout.constraints.ConstraintLayout
 import io.nacular.doodle.layout.constraints.Edges
 import io.nacular.doodle.layout.constraints.Expression
+import io.nacular.doodle.layout.constraints.HeightProperty
 import io.nacular.doodle.layout.constraints.ParentBounds
 import io.nacular.doodle.layout.constraints.Position
 import io.nacular.doodle.layout.constraints.Property
 import io.nacular.doodle.layout.constraints.Strength
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
 import io.nacular.doodle.layout.constraints.VariableTerm
+import io.nacular.doodle.layout.constraints.WidthProperty
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.HEIGHT_ID
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.WIDTH_ID
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.X_ID
@@ -239,7 +243,35 @@ internal open class ConstraintLayoutImpl(
         }
     }
 
-    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets): Size {
+    override fun layout(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) = layoutInternal(
+        views                    = views,
+        min                      = min,
+        current                  = current,
+        max                      = max,
+        insets                   = insets,
+        parentWidthPreservation  = Required,
+        parentHeightPreservation = Required
+    )
+
+    override fun preferredSize(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) = layoutInternal(
+        views                    = views,
+        min                      = min,
+        current                  = current,
+        max                      = max,
+        insets                   = insets,
+        parentWidthPreservation  = parentWidthPreservation,
+        parentHeightPreservation = parentHeightPreservation
+    )
+
+    private fun layoutInternal(
+        @Suppress("unused") views  : Sequence<Positionable>,
+                            min    : Size,
+                            current: Size,
+                            max    : Size,
+                            insets : Insets,
+                            parentWidthPreservation : Strength,
+                            parentHeightPreservation: Strength
+    ): Size {
         layingOut = true
 
         context.updateParent(current, min = min, max = max, insets = insets)
@@ -363,6 +395,12 @@ internal open class ConstraintLayoutImpl(
                 }
             }
 
+            for (edit in oldIdealEdits) {
+                if (edit !in context.idealEdits) {
+                    solver.removeIdealEdit(edit)
+                }
+            }
+
             for (edit in context.edits) {
                 if (edit !in oldEdits) {
                     doTrying(errorHandler) {
@@ -453,8 +491,10 @@ internal open class ConstraintLayoutImpl(
                 else      -> {
                     property preserve strength
 
-                    if (minExtent > 0.0              ) { property greaterEq maxExtent }
-                    if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
+                    if (strength != Required) {
+                        if (minExtent > 0.0              ) { property greaterEq minExtent }
+                        if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
+                    }
                 }
             }
         }

@@ -189,8 +189,9 @@ public abstract class ConstraintLayout internal constructor(): Layout {
     public abstract val exceptionThrown: Pool<(ConstraintLayout, ConstraintException) -> Unit>
 
     /**
-     * Indicates how much the `parent` should preserve its [width][ParentBounds.width]. Use this to reduce the strength
-     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     * Indicates how much the `parent` should preserve its [width][ParentBounds.width] when calculating [preferredSize].
+     * Use this to reduce the strength of rigidity in cases where you want the constraints to have more effect on the
+     * parent. For example:
      *
      * ```
      * parent.width eq max(chil1.width, child2.width)
@@ -202,8 +203,9 @@ public abstract class ConstraintLayout internal constructor(): Layout {
     public var parentWidthPreservation: Strength = Strong
 
     /**
-     * Indicates how much the `parent` should preserve its [height][ParentBounds.height]. Use this to reduce the strength
-     * of rigidity in cases where you want the constraints to have more effect on the parent. For example:
+     * Indicates how much the `parent` should preserve its [height][ParentBounds.height] when calculating [preferredSize].
+     * Use this to reduce the strength of rigidity in cases where you want the constraints to have more effect on the
+     * parent. For example:
      *
      * ```
      * parent.height eq max(chil1.height, child2.height)
