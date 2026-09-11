@@ -30,6 +30,7 @@ import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.width
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -217,7 +218,7 @@ public open class BasicTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (index, row) ->
                 row.onSuccess {
-                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(top = 1.0).with(width = canvas.width), ColorPaint(color))
+                    canvas.rect(rowPositioner.rowBounds(table, it, index).inset(top = 1.0).with(width = canvas.width), color.paint)
                 }
             }
         }
@@ -225,7 +226,7 @@ public open class BasicTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor opacity 0.2f))
         }
     }
 

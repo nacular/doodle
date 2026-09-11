@@ -41,7 +41,6 @@ import io.nacular.doodle.event.PointerListener.Companion.clicked
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.layout.Insets
@@ -165,15 +164,6 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         if (!selectBox.enabled) {
             (selectBox as? SelectBox<T, M>)?.let { hideList(it) }
         }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private val boundsChanged: PropertyObserver<View, Rectangle> = { selectBox, old, new ->
-//        if (old.height != new.height) {
-//            (selectBox as? SelectBox<T, M>)?.apply {
-//                list?.behavior = listBehavior(selectBox)
-//            }
-//        }
     }
 
     private inner class CustomListRow(
@@ -338,7 +328,6 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
 
         view.changed        += changeObserver
         view.keyChanged     += this
-        view.boundsChanged  += boundsChanged // FIXME: This is a hack b/c List doesn't behave well if row dimensions are changed dynamically. That will eventually be fixed.
         view.pointerChanged += this
         view.enabledChanged += enabledChanged
         view.preferredSize   = { _,_ ->
@@ -358,7 +347,6 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
         view.list            = null
         view.changed        -= changeObserver
         view.keyChanged     -= this
-        view.boundsChanged  -= boundsChanged // FIXME: This is a hack b/c List doesn't behave well if row dimensions are changed dynamically. That will eventually be fixed.
         view.pointerChanged -= this
         view.enabledChanged -= enabledChanged
     }
