@@ -7,6 +7,7 @@ import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
 import io.nacular.doodle.dom.Window
+import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.impl.AnimationSchedulerImpl
 import io.nacular.doodle.scheduler.impl.SchedulerImpl
 import io.nacular.doodle.time.Timer
@@ -40,14 +41,23 @@ class SchedulerImplTests {
     @Test fun `scheduler calls after delay`() {
         val window = window()
 
-        val timer = mockk<Timer>().apply {
-            every { this@apply.now } returnsMany listOf(10, 12, 13).map { it * seconds }
+        val timer = mockk<Timer> {
+            every { now } returnsMany listOf(10, 12, 13).map { it * seconds }
+        }
+
+        val slot = slot<(Measure<Time>) -> Unit>()
+
+        val animationScheduler = mockk<AnimationScheduler> {
+            every { onNextFrame(capture(slot)) } answers {
+                slot.captured(10 * milliseconds)
+                mockk()
+            }
         }
 
         val callback1 = mockk<(Measure<Time>) -> Unit>()
         val callback2 = mockk<(Measure<Time>) -> Unit>()
 
-        SchedulerImpl(window, timer).apply {
+        SchedulerImpl(window, timer, animationScheduler).apply {
             after(1 * seconds, callback1)
             after(0 * seconds, callback2)
         }
@@ -67,7 +77,7 @@ class SchedulerImplTests {
 
         val callback = mockk<(Measure<Time>) -> Unit>()
 
-        SchedulerImpl(window, timer).apply {
+        SchedulerImpl(window, timer, mockk()).apply {
             every(1 * seconds, callback)
         }
 
@@ -87,7 +97,7 @@ class SchedulerImplTests {
         }
 
         runBlocking {
-            SchedulerImpl(window, timer).delay(10 * seconds)
+            SchedulerImpl(window, timer, mockk()).delay(10 * seconds)
         }
 
         verifyOrder {
@@ -107,7 +117,7 @@ class SchedulerImplTests {
         }
 
         runBlocking {
-            SchedulerImpl(window, timer).delayUntil(condition)
+            SchedulerImpl(window, timer, mockk()).delayUntil(condition)
         }
 
         verifyOrder {
@@ -118,7 +128,7 @@ class SchedulerImplTests {
     }
 
     @Test fun `scheduler shuts down`() {
-        SchedulerImpl(window(), mockk()).shutdown()
+        SchedulerImpl(window(), mockk(), mockk()).shutdown()
     }
 
     private fun window() = mockk<Window>().apply {
