@@ -159,7 +159,7 @@ internal class DragManagerImpl(
         }
 
         rootElement.ondrop = { event ->
-            if (event.target?.isHTMLInputElement() == true) {
+            if (event.target?.isHTMLInputElement() == false) {
                 // This is the case of a drop that originated from outside the browser
                 if (dataBundle == null) {
                     createBundle(event.dataTransfer)?.let {
