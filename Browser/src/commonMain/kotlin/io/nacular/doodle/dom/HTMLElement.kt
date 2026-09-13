@@ -2,7 +2,6 @@
 
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 
 /**
@@ -122,7 +121,6 @@ internal expect abstract external class CanvasRenderingContext2D: JsAny {
 
 internal expect var CanvasRenderingContext2D.wordSpacing  : String?
 internal expect var CanvasRenderingContext2D.letterSpacing: String?
-internal expect fun CanvasRenderingContext2D.measureText_(string: String): Size
 
 internal expect external interface RenderingContext
 

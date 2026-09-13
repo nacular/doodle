@@ -27,7 +27,7 @@ internal class OptionalDynamicProperty<T: JsAny>(private val name: String, priva
     override fun setValue(thisRef: T, property: KProperty<*>, value: String?) {
         try {
             value?.toJsString()?.let {
-            thisRef[name] = it
+                thisRef[name] = it
             }
         } catch (throwable: Throwable) {
             onError?.invoke(throwable)

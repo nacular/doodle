@@ -1,6 +1,5 @@
 package io.nacular.doodle.dom
 
-import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.utils.Orientation
 
 /**
@@ -145,7 +144,6 @@ internal actual abstract class CanvasRenderingContext2D: JsAny {
 
 internal actual var CanvasRenderingContext2D.wordSpacing  : String? get() = _wordSpacing;   set(new) { _wordSpacing   = new }
 internal actual var CanvasRenderingContext2D.letterSpacing: String? get() = _letterSpacing; set(new) { _letterSpacing = new }
-internal actual fun CanvasRenderingContext2D.measureText_(string: String): Size = Size.Empty
 
 internal actual interface RenderingContext
 
