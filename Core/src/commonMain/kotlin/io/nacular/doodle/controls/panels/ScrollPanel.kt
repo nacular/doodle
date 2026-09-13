@@ -7,8 +7,6 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.Positionable
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.behavior
-import io.nacular.doodle.core.scrollTo
-import io.nacular.doodle.core.view
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
@@ -16,9 +14,11 @@ import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.BoundsArea
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
 import io.nacular.doodle.layout.constraints.ConstraintLayout
-import io.nacular.doodle.layout.constraints.Property
+import io.nacular.doodle.layout.constraints.HeightProperty
+import io.nacular.doodle.layout.constraints.WidthProperty
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
@@ -86,10 +86,13 @@ public interface ScrollPanelBehavior: Behavior<ScrollPanel> {
 public open class ScrollPanel(content: View? = null): View() {
     public interface ContentSize {
         /** The content's horizontal extent */
-        public val width: Property
+        public val width: WidthProperty
 
         /** The content's vertical extent */
-        public val height: Property
+        public val height: HeightProperty
+
+        /** The content's size */
+        public val size: BoundsArea
 
         /** The content's ideal size */
         public val idealSize: Size
@@ -200,9 +203,10 @@ public open class ScrollPanel(content: View? = null): View() {
         it.left eq -scroll.x
 
         contentConstraints?.invoke(this, object: ContentSize {
-            override val width    : Property get() = it.width
-            override val height   : Property get() = it.height
-            override val idealSize: Size     get() = it.idealSize
+            override val width     get() = it.width
+            override val height    get() = it.height
+            override val size      get() = it.size
+            override val idealSize get() = it.idealSize
         })
     }
 
