@@ -36,6 +36,58 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 
 @Suppress("PrivatePropertyName")
 internal open class BoundsImpl(private val target: Positionable, private val context: ConstraintDslContext, private val solver: Solver): Bounds, Layout {
+    private inner class WidthPropertyImpl: WidthProperty() {
+        private  val delegate       = ReflectionVariable(target, ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID,  needsSynthetic = true)
+        override val bounds   get() = this@BoundsImpl
+        override val variable get() = delegate
+        override val terms    get() = delegate.terms
+        override val constant get() = delegate.constant
+
+        override fun toTerm() = delegate.toTerm()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is WidthPropertyImpl) return false
+            if (!super.equals(other)) return false
+
+            if (delegate != other.delegate) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + delegate.hashCode()
+            return result
+        }
+    }
+
+    private inner class HeightPropertyImpl: HeightProperty() {
+        private  val delegate       = ReflectionVariable(target, ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID, needsSynthetic = true)
+        override val bounds   get() = this@BoundsImpl
+        override val variable get() = delegate
+        override val terms    get() = delegate.terms
+        override val constant get() = delegate.constant
+
+        override fun toTerm() = delegate.toTerm()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is HeightPropertyImpl) return false
+            if (!super.equals(other)) return false
+
+            if (delegate != other.delegate) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + delegate.hashCode()
+            return result
+        }
+    }
+
     private var x_      : Double = target.x
     private var y_      : Double = target.y
     private var width_  : Double = target.width
@@ -43,15 +95,15 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 
     override val top     = ReflectionVariable(target, ReadWriteValue("y",      { y_      }, { y_      = it }), id = Y_ID                            )
     override val left    = ReflectionVariable(target, ReadWriteValue("x",      { x_      }, { x_      = it }), id = X_ID                            )
-    override val width   = ReflectionVariable(target, ReadWriteValue("width",  { width_  }, { width_  = it }), id = WIDTH_ID,  needsSynthetic = true)
-    override val height  = ReflectionVariable(target, ReadWriteValue("height", { height_ }, { height_ = it }), id = HEIGHT_ID, needsSynthetic = true)
+    override val width   = WidthPropertyImpl () as WidthProperty
+    override val height  = HeightPropertyImpl() as HeightProperty
 
     override val right   = with(context) { left + width      }
     override val bottom  = with(context) { top  + height     }
     override val centerX = with(context) { left + width  / 2 }
     override val centerY = with(context) { top  + height / 2 }
 
-    override val size    = Area (width, height                                   )
+    override val size    = BoundsArea(width, height)
     override val edges   = with(context) { Edges(top + 0, left + 0, right, bottom) }
     override val center  = Position(centerX, centerY)
 
@@ -66,15 +118,15 @@ internal open class BoundsImpl(private val target: Positionable, private val con
         if (left.targeted) target.x = x_
 
         when {
-            width.constrained -> {
+            width.variable.constrained -> {
                 target.width = width_
 
-                solver.computeRange(width, min = 0.0).let {
+                solver.computeRange(width.variable, min = 0.0).let {
                     target.minSize = Size(it.start,        target.minSize.height)
                     target.maxSize = Size(it.endInclusive, target.maxSize.height)
                 }
             }
-            width.edited -> {
+            width.variable.edited -> {
                 val oldMin = target.minSize
                 val oldMax = target.maxSize
 
@@ -86,15 +138,15 @@ internal open class BoundsImpl(private val target: Positionable, private val con
         }
 
         when {
-            height.constrained -> {
+            height.variable.constrained -> {
                 target.height = height_
 
-                solver.computeRange(height, min = 0.0).let {
+                solver.computeRange(height.variable, min = 0.0).let {
                     target.minSize = Size(target.minSize.width, it.start       )
                     target.maxSize = Size(target.maxSize.width, it.endInclusive)
                 }
             }
-            height.edited -> {
+            height.variable.edited -> {
                 val oldMin = target.minSize
                 val oldMax = target.maxSize
 
@@ -127,7 +179,7 @@ internal class ReadWriteValue(val name: String, private val getter: () -> Double
     fun set(value: Double) { setter(value) }
 }
 
-internal class ReflectionVariable(
+internal open class ReflectionVariable(
              val target        : Positionable? = null,
     private  val delegate      : ReadWriteValue,
     private  val id            : Int, // ugly work-around for https://youtrack.jetbrains.com/issue/KT-15101
@@ -138,7 +190,7 @@ internal class ReflectionVariable(
 
     override val name     get() = delegate.name
     override val variable get() = this
-    override var isReadOnly     = false
+    override var isReference    = false
     override var constrained    = false
     override var edited         = false
 
@@ -230,8 +282,8 @@ internal open class ConstraintLayoutImpl(
     internal data class BlockInfo(val constraints: List<BoundsImpl>, val block: ConstraintDslContext.(List<Bounds>) -> Unit)
 
     private val solver       = Solver()
-    private val blocks       = mutableListOf(block)
-    private val context      = ConstraintDslContext()
+    private val blocks       = mutableListOf<ConstraintDslContext.(List<Bounds>) -> Unit>()
+    private val context      = ConstraintDslContext(solver)
     private val blockTracker = mutableMapOf<Pair<List<View>, Any>, BlockInfo>()
     private val viewBounds   = mutableMapOf<View, BoundsImpl>()
 
@@ -349,6 +401,7 @@ internal open class ConstraintLayoutImpl(
         ) {
             val oldConstraints = context.constraints
             val oldEdits       = context.edits
+            val oldIdealEdits  = context.idealEdits
 
             context.reset()
 
@@ -408,6 +461,13 @@ internal open class ConstraintLayoutImpl(
                         solver.addEditVariable(edit.property, edit.strength)
                         solver.suggestValue   (edit.property, edit.value   )
                     }
+                }
+            }
+
+            for (edit in context.idealEdits) {
+                if (edit !in oldIdealEdits) {
+                    edit.property.edited = true
+                    solver.addIdealEdit(edit)
                 }
             }
         }

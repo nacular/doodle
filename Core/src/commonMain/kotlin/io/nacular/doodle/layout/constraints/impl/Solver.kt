@@ -4,10 +4,11 @@ import io.nacular.doodle.layout.constraints.Constraint
 import io.nacular.doodle.layout.constraints.ConstraintException
 import io.nacular.doodle.layout.constraints.DuplicateConstraintException
 import io.nacular.doodle.layout.constraints.Expression
+import io.nacular.doodle.layout.constraints.IdealEdit
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
-import io.nacular.doodle.layout.constraints.ReadOnlyVariable
+import io.nacular.doodle.layout.constraints.ReferenceVariable
 import io.nacular.doodle.layout.constraints.Strength
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
@@ -240,20 +241,21 @@ internal class Solver {
         }
     }
 
-    private val constraints    = fastMutableMapOf<Constraint, Tag>()
-    private val rows           = fastMutableMapOf<Symbol, Row>()
-    private val vars           = fastMutableMapOf<Variable, Symbol>()
-    private val edits          = fastMutableMapOf<Variable, EditInfo>()
-    private val infeasibleRows = mutableListOf<Symbol>()
-    private val readonlyVars   = fastMutableMapOf<Variable, MutableSet<ReadOnlyVariable>>()
-    private val readonlyConstraintDeps = fastMutableMapOf<Variable, MutableSet<Constraint>>()
-    private val readonlyLastValues = fastMutableMapOf<Variable, Double>()
-    private val readonlySymbols = fastMutableSetOf<Symbol>()
-    private val objective      = Row()
-    private var artificial     = null as Row?
-    private val rowsWithSymbol = fastMutableMapOf<Symbol, MutableSet<Row>>()
-    private val varCounts      = fastMutableMapOf<Variable, Int>()
-    private val guards         = fastMutableMapOf<Variable, Constraint>()
+    private val constraints             = fastMutableMapOf<Constraint, Tag>()
+    private val rows                    = fastMutableMapOf<Symbol, Row>()
+    private val vars                    = fastMutableMapOf<Variable, Symbol>()
+    private val edits                   = fastMutableMapOf<Variable, EditInfo>()
+    private val idealEdits              = fastMutableSetOf<IdealEdit>()
+    private val infeasibleRows          = mutableListOf<Symbol>()
+    private val referenceVars           = fastMutableSetOf<Variable>()
+    private val referenceConstraintDeps = fastMutableMapOf<Variable, MutableSet<Constraint>>()
+    private val referentLastValues      = fastMutableMapOf<Variable, Double>()
+    private val referenceSymbols        = fastMutableSetOf<Symbol>()
+    private val objective               = Row()
+    private var artificial              = null as Row?
+    private val rowsWithSymbol          = fastMutableMapOf<Symbol, MutableSet<Row>>()
+    private val varCounts               = fastMutableMapOf<Variable, Int>()
+    private val guards                  = fastMutableMapOf<Variable, Constraint>()
 
     val variables: Set<Variable> get() = vars.keys
 
@@ -313,6 +315,16 @@ internal class Solver {
         edits.remove(variable)
     }
 
+    fun addIdealEdit(edit: IdealEdit) {
+        idealEdits += edit
+    }
+
+    fun removeIdealEdit(edit: IdealEdit) {
+        idealEdits -= edit
+
+        removeEditVariable(edit.property)
+    }
+
     fun suggestValue(variable: Variable, value: Double) {
         val info  = edits[variable] ?: return
         val delta = value - info.constant
@@ -321,6 +333,8 @@ internal class Solver {
             info.constant = value
             updateRow(rows[info.tag.marker], info.tag, delta)
         }
+
+        updateReadOnlyVariables()
     }
 
     fun updateConstant(old: Constraint, new: Constraint) {
@@ -337,38 +351,59 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
+        // FIXME: Need to make sure this can be done exhaustively
+        finalizeVariables(skipReadOnly = true)
+
+        var furtherResolutionRequired = updateReadOnlyVariables()
+
+        if (furtherResolutionRequired) {
+            finalizeVariables()
+        }
+
+        idealEdits.forEach {
+            try {
+                addEditVariable(it.property, it.strength)
+            } catch (_: DuplicateEditVariableException) {}
+            suggestValue(it.property, it.invoke())
+            furtherResolutionRequired = true
+        }
+
+        if (furtherResolutionRequired) {
+            finalizeVariables()
+            if (updateReadOnlyVariables()) {
+                finalizeVariables()
+            }
+        }
+    }
+
+    fun finalizeVariables(skipReadOnly: Boolean = false) {
         vars.forEach { (variable, symbol) ->
-            if (symbol in readonlySymbols) return@forEach
+            if (skipReadOnly && symbol in referenceSymbols) return@forEach
 
             rows[symbol]?.let { row ->
                 variable(row.constant.cleanUp())
             }
         }
+    }
 
-        var finalResolveRequired = false
+    fun updateReadOnlyVariables(): Boolean {
+        var furtherResolutionRequired = false
 
-        readonlyVars.keys.forEach { source ->
-            val lastValue = readonlyLastValues[source] ?: return@forEach
-            val delta = source() - lastValue
+        referenceVars.forEach { variable ->
+            val lastValue = referentLastValues[variable] ?: return@forEach
+            val delta = variable() - lastValue
 
             if (delta != 0.0) {
-                finalResolveRequired = true
-                readonlyLastValues[source] = source()
-                readonlyConstraintDeps[source]?.forEach { constraint ->
+                furtherResolutionRequired = true
+                referentLastValues[variable] = variable()
+                referenceConstraintDeps[variable]?.forEach { constraint ->
                     val tag = constraints[constraint] ?: return@forEach
                     updateRow(rows[tag.marker], tag, delta)
                 }
             }
         }
 
-        if (finalResolveRequired) {
-            // Last round to finalize values
-            vars.forEach { (variable, symbol) ->
-                rows[symbol]?.let {
-                    variable(it.constant.cleanUp())
-                }
-            }
-        }
+        return furtherResolutionRequired
     }
 
     fun isUnderConstrained(v: Variable): Boolean = vars[v]?.let { isUnderConstrained(it) } ?: true // unknown variable = free
@@ -471,12 +506,12 @@ internal class Solver {
                 }
 
                 suggestValue(variable, target)
-                updateVariables()
+                finalizeVariables()
 
                 val result = variable()
 
                 suggestValue(variable, nominal)
-                updateVariables()
+                finalizeVariables()
 
                 if (addedEdit) {
                     try { removeEditVariable(variable) } catch (e: Exception) {
@@ -494,7 +529,7 @@ internal class Solver {
                 try {
                     addEditVariable(variable, Strong)
                     suggestValue(variable, nominal)
-                    updateVariables()
+                    finalizeVariables()
                     removeEditVariable(variable)
                 } catch (_: Exception) {}
 
@@ -518,6 +553,7 @@ internal class Solver {
         try {
             val row     = createRow(constraint, tag)
             var subject = chooseSubject(row, tag)
+
 
             if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
                 subject = when {
@@ -576,13 +612,13 @@ internal class Solver {
         constraint.expression.reduce().terms.forEach {
             varCounts.remove(it.variable)?.let { count ->
                 when {
-                    count <= 0 -> {
+                    count <= 1 -> {
                         it.variable.also { variable ->
-                            vars.remove(variable).also { readonlySymbols.remove(it) }
+                            vars.remove(variable).also { referenceSymbols.remove(it) }
 
-                            readonlyVars           -= variable
-                            readonlyLastValues     -= variable
-                            readonlyConstraintDeps -= variable
+                            referenceVars           -= variable
+                            referentLastValues      -= variable
+                            referenceConstraintDeps -= variable
                         }
                     }
                     else       -> varCounts[it.variable] = count - 1
@@ -706,12 +742,12 @@ internal class Solver {
         for (term in expression.terms) {
             if (!nearZero(term.coefficient)) {
                 when (val variable = term.variable) {
-                    is ReadOnlyVariable -> {
-                        val currentValue = variable.source()
+                    is ReferenceVariable -> {
+                        val currentValue = variable.initial()
                         row.add(term.coefficient * currentValue)
-                        readonlyLastValues[variable.source] = currentValue
-                        readonlyVars.getOrPut(variable.source) { fastMutableSetOf() }.add(variable)
-                        readonlyConstraintDeps.getOrPut(variable.source) { fastMutableSetOf() }.add(constraint)
+                        referentLastValues[variable] = currentValue
+                        referenceVars += variable
+                        referenceConstraintDeps.getOrPut(variable) { fastMutableSetOf() }.add(constraint)
                     }
                     else -> {
                         val symbol = getVarSymbol(term.variable)
@@ -954,7 +990,7 @@ internal class Solver {
      */
     private fun getVarSymbol(variable: Variable) = vars.getOrPut(variable) {
         Symbol(External).also {
-            if (variable.isReadOnly) readonlySymbols.add(it)
+            if (variable.isReference) referenceSymbols.add(it)
         }
     }
 
@@ -971,7 +1007,7 @@ internal class Solver {
      */
     private fun chooseSubject(row: Row, tag: Tag): Symbol {
         for (key in row.cells.keys) {
-            if (key.type == External && key !in readonlySymbols) {
+            if (key.type == External && key !in referenceSymbols) {
                 return key
             }
         }
@@ -999,4 +1035,17 @@ internal class Solver {
     private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
 
     private fun Double.cleanUp() = if (nearZero(this)) 0.0 else this
+
+    fun printState(): String = "" /*(
+        constraints.keys.map { "$it" } +
+        variables.map { x ->
+            """
+                vars[$x] = ${vars[x]}
+                rows[vars[$x]] = ${rows[vars[x]]?.let { "${it.constant}, ${it.cells}" }}
+            """.trimIndent()
+        } +
+        rows.map { (sym, row) ->
+            "$sym -> constant: ${row.constant}, cells: ${row.cells}"
+        }
+    ).joinToString("\n")*/
 }

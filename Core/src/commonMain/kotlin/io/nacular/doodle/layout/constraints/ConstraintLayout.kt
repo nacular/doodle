@@ -23,6 +23,7 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
+import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 
 
@@ -225,6 +226,16 @@ public abstract class Property internal constructor(): Expression() {
     internal abstract fun toTerm(): Term
 }
 
+public object ideal
+
+public abstract class WidthProperty internal constructor(): Property() {
+    public abstract val bounds: Bounds
+}
+
+public abstract class HeightProperty internal constructor(): Property() {
+    public abstract val bounds: Bounds
+}
+
 /**
  * Simple value within a [Bounds] set that has an ideal value.
  */
@@ -252,7 +263,7 @@ public class Position internal constructor(internal val left: Expression, intern
 /**
  * 2-Dimensional value within a [Bounds] set.
  */
-public class Area internal constructor(internal val width: Property, internal val height: Property) {
+public open class Area internal constructor(internal val width: Property, internal val height: Property) {
     /**
      * Provides the Area's value directly, and does not treat it as
      * a variable when used in a [Constraint]. This means the Area won't be
@@ -260,6 +271,8 @@ public class Area internal constructor(internal val width: Property, internal va
      */
     public val value: Size get() = Size(width = width.value, height = height.value)
 }
+
+public class BoundsArea internal constructor(internal val width_: WidthProperty, internal val height_: HeightProperty): Area(width_, height_)
 
 /**
  * External boundaries of a constrained item.
@@ -298,7 +311,7 @@ public interface Bounds {
     public val left: Property
 
     /** The rectangle's vertical extent */
-    public val height: Property
+    public val height: HeightProperty
 
     /** The rectangle's bottom edge */
     public val bottom: Expression
@@ -307,7 +320,7 @@ public interface Bounds {
     public val centerY: Expression
 
     /** The rectangle's horizontal extent */
-    public val width: Property
+    public val width: WidthProperty
 
     /** The rectangle's right side */
     public val right: Expression
@@ -316,7 +329,7 @@ public interface Bounds {
     public val centerX: Expression
 
     /** The rectangle's width/height */
-    public val size: Area
+    public val size: BoundsArea
 
     /** The rectangle's 4 sides */
     public val edges: Edges
@@ -405,14 +418,14 @@ public class UnsatisfiableConstraintException(
  * Block within which constraints can be defined and captured.
  */
 @Suppress("MemberVisibilityCanBePrivate")
-public class ConstraintDslContext internal constructor() {
+public class ConstraintDslContext internal constructor(private val solver: Solver) {
 
     private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
         private var  value          = 0.0
         override var edited         = false
         override var constrained    = false
         override val needsSynthetic = false
-        override var isReadOnly     = false
+        override var isReference     = false
 
         override fun invoke() = value
 
@@ -425,7 +438,7 @@ public class ConstraintDslContext internal constructor() {
             if (this === other) return true
             if (other !is LocalVariable) return false
 
-            if (isReadOnly != other.isReadOnly) return false
+            if (isReference != other.isReference) return false
             if (name != other.name) return false
             if (referent != other.referent) return false
 
@@ -433,7 +446,7 @@ public class ConstraintDslContext internal constructor() {
         }
 
         override fun hashCode(): Int {
-            var result = isReadOnly.hashCode()
+            var result = isReference.hashCode()
             result = 31 * result + name.hashCode()
             result = 31 * result + (referent?.hashCode() ?: 0)
             return result
@@ -441,20 +454,52 @@ public class ConstraintDslContext internal constructor() {
     }
 
     private class ReadOnlyVariableRef(private val referent: Expression): LocalVariable("readonly-ref", referent) {
-        override var isReadOnly = true
+        override var isReference = true
         override fun toString() = "readonly -> $referent"
     }
 
-    private class LocalReadOnlyVariable(override val name: String, override val source: Variable) : LocalVariable(name, source), ReadOnlyVariable {
+    private class LocalReadOnlyVariable(override val name: String, val source: Variable): LocalVariable(name, source), ReferenceVariable {
         override var constrained    = source.constrained
         override val needsSynthetic = false
-        override var isReadOnly     = true
+        override var isReference     = true
         override fun toString()     = "readonly($source)"
+
+        override fun invoke () = source()
+        override fun initial() = invoke()
+    }
+
+    private class PreferredSizeVariable(
+        private val solver: Solver,
+        private val bounds: Bounds,
+        private val block : (Size) -> Double
+    ): ReferenceVariable {
+        override val name get()     = "idealSize"
+        override var edited         = false
+        override var constrained    = true
+        override val needsSynthetic = false
+
+        override fun initial() = 0.0
+        override fun invoke (): Double {
+            val widthRange  = if (bounds.width.variable.constrained ) solver.computeRange(bounds.width.variable,  0.0) else 0.0 ..POSITIVE_INFINITY
+            val heightRange = if (bounds.height.variable.constrained) solver.computeRange(bounds.height.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
+
+            return block(bounds.preferredSize(
+                Size(widthRange.start,        heightRange.start       ),
+                Size(widthRange.endInclusive, heightRange.endInclusive)
+            ))
+        }
+
+        override fun invoke(value: Double) {
+            // No-op
+        }
+
+        override fun toString() = "idealSize($bounds)"
     }
 
     internal var pendingAdd  = null as Constraint?
     internal var constraints = hashSetOf<Constraint>()
     internal var edits       = hashSetOf<Edit>()
+    internal var idealEdits  = hashSetOf<IdealEdit>()
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -467,6 +512,7 @@ public class ConstraintDslContext internal constructor() {
         pendingAdd  = null
         constraints = hashSetOf()
         edits       = hashSetOf()
+        idealEdits  = hashSetOf()
     }
 
     private fun add(constraint: Constraint) = when {
@@ -477,9 +523,8 @@ public class ConstraintDslContext internal constructor() {
         }
     }
 
-    private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
-
-    private fun add(edit: Edit) = Result.success(edit).also { edits += edit }
+    private fun add(edit: Edit     ) = Result.success(edit).also { edits      += edit }
+    private fun add(edit: IdealEdit) = Result.success(edit).also { idealEdits += edit }
 
     public operator fun Property.plus(expression: Expression): Expression = expression + this
     public operator fun Property.plus(term      : Term      ): Expression = term + this
@@ -514,10 +559,35 @@ public class ConstraintDslContext internal constructor() {
     public infix fun Property.hint(value: Number): Result<Edit> = this hint value.toDouble()
     public infix fun Property.hint(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
 
+    public infix fun WidthProperty.hint(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
+        add(IdealEdit(variable, Required - 1) {
+            val widthRange  = if (variable.constrained       ) solver.computeRange(variable,        0.0) else 0.0 ..POSITIVE_INFINITY
+            val heightRange = if (height.variable.constrained) solver.computeRange(height.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
+
+            preferredSize(Size(widthRange.start, heightRange.start), Size(widthRange.endInclusive, heightRange.endInclusive)).width
+        })
+    }
+
+    public infix fun HeightProperty.hint(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
+        add(IdealEdit(variable, Required - 1) {
+            val widthRange  = if (width.variable.constrained ) solver.computeRange(width.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
+            val heightRange = if (variable.constrained       ) solver.computeRange(variable,       0.0) else 0.0 ..POSITIVE_INFINITY
+
+            preferredSize(Size(widthRange.start, heightRange.start), Size(widthRange.endInclusive, heightRange.endInclusive)).height
+        })
+    }
+
     public infix fun Area.hint(value: Size): Result<List<Edit>> = runCatching {
         listOf(
             add(Edit(width.variable,  value.width,  Required - 1)),
             add(Edit(height.variable, value.height, Required - 1))
+        ).map { it.getOrThrow() }.toList()
+    }
+
+    public infix fun BoundsArea.hint(value: ideal): Result<List<IdealEdit>> = runCatching {
+        listOf(
+            width_  hint ideal,
+            height_ hint ideal
         ).map { it.getOrThrow() }.toList()
     }
 
@@ -894,6 +964,8 @@ public class ConstraintDslContext internal constructor() {
         override val center = Position(left = centerX, top = centerY)
         override val edges  = Edges   (top = t, left = l, right = right, bottom = bottom)
     }
+
+    public val Bounds.chosenWidth: Expression get() = Expression(VariableTerm(PreferredSizeVariable(solver, this) { 0.0 }))
 }
 
 public fun ConstraintDslContext.withSizeInsets(
@@ -1035,7 +1107,7 @@ public class Constrainer: Layout {
 
     private var parentSize      = Size.Empty
     private val solver          = Solver()
-    private val context         = ConstraintDslContext()
+    private val context         = ConstraintDslContext(solver)
 
     private class FakePositionable: Positionable() {
         var probe = null as Positionable?

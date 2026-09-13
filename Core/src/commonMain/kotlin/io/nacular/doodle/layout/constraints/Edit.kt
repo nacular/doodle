@@ -24,3 +24,28 @@ public class Edit internal constructor(internal val property: Variable, internal
         return result
     }
 }
+
+public class IdealEdit internal constructor(
+    internal val property: Variable,
+    internal var strength: Strength = Required,
+    internal val block: () -> Double
+) {
+    internal fun invoke() = block()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Edit) return false
+
+        if (property != other.property) return false
+        if (strength != other.strength) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = property.hashCode()
+        result = 31 * result + strength.hashCode()
+        return result
+    }
+
+}

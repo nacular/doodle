@@ -700,6 +700,23 @@ class ConstraintLayoutTests {
         expect(1200.0) { child.width }
     }
 
+    @Test fun `chosenWidth works`() {
+        val child = NamedView("child")
+
+        val layout = constrain(child) {
+//            it.width lessEq 50
+            it.width  hint ideal
+            it.height hint ideal
+            it.size   hint ideal
+        }
+
+        child.preferredSize = fixed(Size(100.0, 100.0))
+
+        layout.layout(sequenceOf(child.positionable), Empty, Empty, Infinite).also { child.positionable.finalize() }
+
+        expect(Size(100, 100)) { child.size }
+    }
+
     private inline fun <T> expect(first: T, second: T, vararg expected: T, block: () -> List<T>) {
         assertEquals(listOf(first, second) + expected.toList(), block())
     }
