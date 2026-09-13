@@ -8,9 +8,11 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
 import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.Size.Companion.Empty
 import io.nacular.doodle.geometry.aspectRatio
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.system.Cursor.Companion.EResize
 import io.nacular.doodle.system.Cursor.Companion.Grab
 import io.nacular.doodle.system.Cursor.Companion.Grabbing
@@ -81,6 +83,9 @@ public class Resizer(
      */
     public var suppressReleaseEvent: Boolean = true
 
+    /** Called whenever the Resizer's bounds suggestion for [view] changes. */
+    public val boundsSuggestionChanged: PropertyObservers<Resizer, Rectangle> field = PropertyObserversImpl(this)
+
     private var dragMode             = mutableSetOf<Direction>()
     private var oldCursor            = view.cursor
     private var initialSize          = Empty
@@ -130,6 +135,12 @@ public class Resizer(
 
             if (dragMode.isEmpty() && movable) {
                 view.suggestPosition(view.position + deltaInParent)
+
+                if (boundsSuggestionChanged.isNotEmpty()) {
+                    boundsSuggestionChanged.forEach {
+                        it(this, view.bounds, view.bounds.at(view.position + deltaInParent))
+                    }
+                }
 
                 event.consume()
                 consumedDrag = true
@@ -201,6 +212,12 @@ public class Resizer(
                 }
 
                 view.suggestBounds(x, y, width, height)
+
+                if (boundsSuggestionChanged.isNotEmpty()) {
+                    boundsSuggestionChanged.forEach {
+                        it(this, view.bounds, Rectangle(x, y, width, height))
+                    }
+                }
 
                 if (consume) {
                     event.consume()

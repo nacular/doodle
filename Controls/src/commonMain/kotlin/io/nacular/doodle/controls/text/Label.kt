@@ -97,6 +97,16 @@ public open class Label(
      */
     public var letterSpacing: Double = 0.0; set(new) { if (field == new) return; field = new; measureText(); rerender() }
 
+    /**
+     * Determines whether the Label's [width] is suggested to match its text's width.
+     */
+    public var autoSuggestWidth: Boolean = true
+
+    /**
+     * Determines whether the Label's [height] is suggested to match its text's height.
+     */
+    public var autoSuggestHeight: Boolean = true
+
     internal var textSize_ = Empty; private set(new) {
         field = new
 
@@ -114,11 +124,19 @@ public open class Label(
                         }
                     }
                 }
-                else                             -> new
+                else -> new
             }
         }
 
-        suggestSize(new)
+        suggestSizeInternal(new)
+    }
+
+    private fun suggestSizeInternal(size: Size) {
+        when {
+            autoSuggestWidth && autoSuggestHeight -> suggestSize  (size            )
+            autoSuggestWidth                      -> suggestWidth (textSize_.width )
+            autoSuggestHeight                     -> suggestHeight(textSize_.height)
+        }
     }
 
     public var behavior: LabelBehavior? by behavior { _,new ->
@@ -149,7 +167,7 @@ public open class Label(
         // force update
         actualStyledText = actualStyledText
 
-        suggestSize(textSize_)
+        suggestSizeInternal(textSize_)
     }
 
     override var focusable: Boolean = false
