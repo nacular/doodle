@@ -78,10 +78,19 @@ public interface AbstractTableBehavior<T: View>: Behavior<T> {
         public fun body  (table: T): View? = null
     }
 
-    public val headerPositioner    : MetaRowPositioner<T>
-    public val footerPositioner    : MetaRowPositioner<T>
-    public val headerCellGenerator : HeaderCellGenerator<T>
-    public val footerCellGenerator : FooterCellGenerator<T>
+    /** Used to position the header. */
+    public val headerPositioner: MetaRowPositioner<T>
+
+    /** Used to position the footer. */
+    public val footerPositioner: MetaRowPositioner<T>
+
+    /** Generator for cells within the header. */
+    public val headerCellGenerator: HeaderCellGenerator<T>
+
+    /** Generator for cells within the footer. */
+    public val footerCellGenerator: FooterCellGenerator<T>
+
+    /** Determines how overflow is handled for the final column. */
     public val overflowColumnConfig: OverflowColumnConfig<T>?
 
     /**
@@ -359,9 +368,13 @@ public abstract class TreeTableBehavior<T>: AbstractTableBehavior<TreeTable<T, *
         public abstract fun size(of: TreeTable<T, *>, below: Path<Int>): Size
     }
 
-    public abstract val treeCellGenerator: TreeCellGenerator<T>
     public abstract val cellGenerator    : CellGenerator<T>
     public abstract val rowPositioner    : RowPositioner<T>
+    public abstract val treeCellGenerator: TreeCellGenerator<T>
+
+    public abstract val headerTreeCellGenerator : HeaderCellGenerator<TreeTable<T, *>>
+    public abstract val footerTreeCellGenerator : FooterCellGenerator<TreeTable<T, *>>
+
 
     /**
      * Requests that the TreeTable repaint its body. This will result in a call to [renderBody].

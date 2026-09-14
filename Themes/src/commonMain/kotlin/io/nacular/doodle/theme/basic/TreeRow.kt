@@ -19,6 +19,7 @@ import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.geometry.ConvexPolygon
 import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.rounded
 import io.nacular.doodle.layout.Insets
@@ -57,6 +58,7 @@ public open class AnimatableTreeRowIcon(private val fill: Paint, private val sel
     }
 
     override var expanded: Boolean = false; set (new) {
+        field = new
         expansion = if (new) 1f else 0f
     }
 
@@ -135,7 +137,7 @@ public class TreeRow<T>(
         }
     }
 
-    private val iconWidth   = 20.0
+    private val iconWidth   = ICON_WIDTH
     private var pointerOver = false
 
     private val treeFocusChanged = { _:View, _:Boolean, new:Boolean ->
@@ -242,7 +244,7 @@ public class TreeRow<T>(
             icon = null
         } else  {
             icon = icon ?: iconFactory().apply {
-                suggestSize(io.nacular.doodle.geometry.Size(iconWidth))
+                suggestSize(Size(iconWidth))
 
                 children += this
 
@@ -313,5 +315,9 @@ public class TreeRow<T>(
         icon?.let {
             constraintLayout.constrain(it, iconConstraints)
         }
+    }
+
+    internal companion object {
+        const val ICON_WIDTH = 20.0
     }
 }

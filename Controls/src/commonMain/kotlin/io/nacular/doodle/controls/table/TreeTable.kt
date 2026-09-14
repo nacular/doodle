@@ -28,7 +28,8 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Path
@@ -307,22 +308,14 @@ public open class TreeTable<T, M: TreeModel<T>>(
                 scrollCache = scrollCache
             ).apply {
                 acceptsThemes = false
-
-//            expanded += { _,_ ->
-//                this@InternalTreeColumn.minWidth       = minimumSize.width
-//                this@InternalTreeColumn.preferredWidth = minimumSize.width
-//            }
-//
-//            collapsed += { _,_ ->
-//                this@InternalTreeColumn.minWidth       = minimumSize.width
-//                this@InternalTreeColumn.preferredWidth = minimumSize.width
-//            }
             }
         }
 
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: TreeBehavior<R> {
+                    override fun clipCanvasToBounds(view: Tree<R, *>) = false
+
                     override val generator get() = rowGenerator { _: Tree<R, *>, node: R, path: Path<Int>, index: Int, current: View? ->
                         it.treeCellGenerator(this@TreeTable, this@InternalTreeColumn, node, path, index, itemVisualizer { item: R, previous: View?, context: IndexedItem ->
                             this@InternalTreeColumn.cellGenerator.invoke(item, previous, object: CellInfo<T, R> {
@@ -346,7 +339,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     override fun render(view: Tree<R, *>, canvas: Canvas) {
                         if (this@InternalTreeColumn != internalColumns.last()) {
-                            it.renderColumnBody(this@TreeTable, this@InternalTreeColumn, canvas)
+                            val s = Size(view.width, this@TreeTable.panel.height)
+
+                            canvas.clip(Rectangle(s)) {
+                                it.renderColumnBody(this@TreeTable, this@InternalTreeColumn, object: Canvas by this {
+                                    override var size = s
+                                })
+                            }
                         }
                     }
                 }
@@ -444,6 +443,8 @@ public open class TreeTable<T, M: TreeModel<T>>(
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
+                    override fun clipCanvasToBounds(view: io.nacular.doodle.controls.list.List<R, *>) = false
+
                     override val generator get() = itemGenerator { _: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
                         it.cellGenerator(this@TreeTable, this@InternalListColumn, item, pathFromRow(index)!!, index, itemVisualizer { cell: R, previous: View?, context: IndexedItem ->
                             this@InternalListColumn.cellGenerator(cell, previous, object: CellInfo<T, R> {
@@ -463,7 +464,13 @@ public open class TreeTable<T, M: TreeModel<T>>(
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
                         if (this@InternalListColumn != internalColumns.last()) {
-                            it.renderColumnBody(this@TreeTable, this@InternalListColumn, canvas)
+                            val s = Size(view.width, this@TreeTable.panel.height)
+
+                            canvas.clip(Rectangle(s)) {
+                                it.renderColumnBody(this@TreeTable, this@InternalListColumn, object: Canvas by this {
+                                    override var size = s
+                                })
+                            }
                         }
                     }
                 }
@@ -521,10 +528,15 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     headerItemsToColumns.clear()
 
                     if (usableColumns.any { it.header != null }) {
-                        addAll(usableColumns.map { column ->
-                            if (column.header != null) { header.hasContent = true }
+                        addAll(usableColumns.mapIndexed { index, column ->
+                            if (column.header != null) {
+                                header.hasContent = true
+                            }
 
-                            behavior.headerCellGenerator(this@TreeTable, column).also {
+                            when (index) {
+                                0    -> behavior.headerTreeCellGenerator(this@TreeTable, column)
+                                else -> behavior.headerCellGenerator    (this@TreeTable, column)
+                            }.also {
                                 headerItemsToColumns[it] = column
                             }
                         })
@@ -546,10 +558,15 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     footerItemsToColumns.clear()
 
                     if (usableColumns.any { it.footer != null }) {
-                        addAll(usableColumns.map { column ->
-                            if (column.footer != null) { footer.hasContent = true }
+                        addAll(usableColumns.mapIndexed { index, column ->
+                            if (column.footer != null) {
+                                footer.hasContent = true
+                            }
 
-                            behavior.footerCellGenerator(this@TreeTable, column).also {
+                            when (index) {
+                                0    -> behavior.footerTreeCellGenerator(this@TreeTable, column)
+                                else -> behavior.footerCellGenerator    (this@TreeTable, column)
+                            }.also {
                                 footerItemsToColumns[it] = column
                             }
                         })
@@ -575,9 +592,6 @@ public open class TreeTable<T, M: TreeModel<T>>(
                     }
 
                     resizingCol = null
-
-                    val headerHeight = metaRowHeight(header, headerVisibility, behavior.headerPositioner(this@TreeTable).height)
-                    val footerHeight = metaRowHeight(footer, footerVisibility, behavior.footerPositioner(this@TreeTable).height)
 
                     delegate.layout(items, min, current, max).run {
                         val auditor = SizeAuditor { _,_,new,_,_ ->
@@ -647,11 +661,10 @@ public open class TreeTable<T, M: TreeModel<T>>(
             }
         }).apply {
             contentConstraints = {
-                it.width  greaterEq panel.idealSize.width
-                it.width  eq        parent.width - verticalScrollBarWidth strength Strong
+                val panelIdealSize = panel.idealSize
 
-                it.height greaterEq panel.idealSize.height
-                it.height eq        parent.height - horizontalScrollBarHeight strength Strong
+                it.width  eq max(panelIdealSize.width,  parent.width  - verticalScrollBarWidth   ) strength Required - 1
+                it.height eq max(panelIdealSize.height, parent.height - horizontalScrollBarHeight) strength Required - 1
             }
 
             scrollBarDimensionsChanged += {

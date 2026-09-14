@@ -166,6 +166,8 @@ public open class Table<T, M: ListModel<T>>(
         override fun behavior(behavior: TableLikeBehaviorWrapper?) {
             behavior?.delegate?.let {
                 view.behavior = object: ListBehavior<R> {
+                    override fun clipCanvasToBounds(view: io.nacular.doodle.controls.list.List<R, *>) = false
+
                     override val generator get() = itemGenerator { _: io.nacular.doodle.controls.list.List<R, *>, item: R, index: Int, current: View? ->
                         it.cellGenerator(this@Table, this@InternalListColumn, item, index, itemVisualizer { cell: R, previous: View?, context: IndexedItem ->
                             this@InternalListColumn.cellGenerator(cell, previous, object: CellInfo<T, R> {
@@ -185,7 +187,13 @@ public open class Table<T, M: ListModel<T>>(
 
                     override fun render(view: io.nacular.doodle.controls.list.List<R, *>, canvas: Canvas) {
                         if (this@InternalListColumn != internalColumns.last()) {
-                            it.renderColumnBody(this@Table, this@InternalListColumn, canvas)
+                            val s = Size(view.width, this@Table.panel.height)
+
+                            canvas.clip(Rectangle(s)) {
+                                it.renderColumnBody(this@Table, this@InternalListColumn, object: Canvas by this {
+                                    override var size = s
+                                })
+                            }
                         }
                     }
                 }

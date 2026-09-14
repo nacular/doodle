@@ -19,10 +19,10 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.drawing.width
 import io.nacular.doodle.event.KeyEvent
 import io.nacular.doodle.event.KeyListener
@@ -107,19 +107,47 @@ public open class BasicTreeTableBehavior<T>(
 
     @Suppress("UNCHECKED_CAST")
     override val treeCellGenerator: TreeCellGenerator<T> = object: TreeCellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
+        override fun <A> invoke(
+            table        : TreeTable<T, *>,
+            column       : Column<A>,
+            cell         : A,
+            path         : Path<Int>,
+            row          : Int,
+            itemGenerator: ItemVisualizer<A, IndexedItem>,
+            current      : View?
+        ): View = when (current) {
             is TreeRow<*> -> (current as TreeRow<A>).apply { update(table, cell, path, table.rowFromPath(path)!!) }
-            else          -> TreeRow(table, cell, path, table.rowFromPath(path)!!, selectionColor = null, itemVisualizer = object: ItemVisualizer<A, IndexedItem> {
-                override fun invoke(item: A, previous: View?, context: IndexedItem) = itemGenerator.invoke(item, previous, context)
-            }, iconFactory = iconFactory)
+            else          -> TreeRow(
+                tree           = table,
+                node           = cell,
+                path           = path,
+                index          = table.rowFromPath(path)!!,
+                selectionColor = null,
+                itemVisualizer = itemGenerator,
+                iconFactory    = iconFactory
+            )
         }
     }
 
     @Suppress("UNCHECKED_CAST")
     override val cellGenerator: CellGenerator<T> = object: CellGenerator<T> {
-        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>, cell: A, path: Path<Int>, row: Int, itemGenerator: ItemVisualizer<A, IndexedItem>, current: View?): View = when (current) {
+        override fun <A> invoke(
+            table        : TreeTable<T, *>,
+            column       : Column<A>,
+            cell         : A,
+            path         : Path<Int>,
+            row          : Int,
+            itemGenerator: ItemVisualizer<A, IndexedItem>,
+            current      : View?
+        ): View = when (current) {
             is ListItem<*> -> (current as ListItem<A>).apply { update(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row) }
-            else           -> ListItem(table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }), cell, row, itemGenerator, backgroundSelectionColor = null)
+            else           -> ListItem(
+                list                     = table.map({ table.pathFromRow(it)!! }, { table.rowFromPath(it)!! }),
+                item                     = cell,
+                index                    = row,
+                itemVisualizer           = itemGenerator,
+                backgroundSelectionColor = null
+            )
         }.apply { column.cellAlignment?.let { positioner = it } }
     }
 
@@ -145,6 +173,14 @@ public open class BasicTreeTableBehavior<T>(
 
     override val footerCellGenerator: FooterCellGenerator<TreeTable<T, *>> = object: FooterCellGenerator<TreeTable<T, *>> {
         override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableFooterCell(column, headerColor)
+    }
+
+    override val headerTreeCellGenerator : HeaderCellGenerator<TreeTable<T, *>> = object: HeaderCellGenerator<TreeTable<T, *>> {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableHeaderCell(column, headerColor, indent = TreeRow.ICON_WIDTH)
+    }
+
+    override val footerTreeCellGenerator : FooterCellGenerator<TreeTable<T, *>> = object: FooterCellGenerator<TreeTable<T, *>> {
+        override fun <A> invoke(table: TreeTable<T, *>, column: Column<A>) = TableFooterCell(column, headerColor, indent = TreeRow.ICON_WIDTH)
     }
 
     override val overflowColumnConfig: OverflowColumnConfig<TreeTable<T, *>> = object: OverflowColumnConfig<TreeTable<T, *>> {
@@ -196,11 +232,11 @@ public open class BasicTreeTableBehavior<T>(
     }
 
     override fun renderHeader(table: TreeTable<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), it.paint) }
     }
 
     override fun renderFooter(table: TreeTable<T, *>, canvas: Canvas) {
-        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), it.paint) }
     }
 
     override fun renderBody(table: TreeTable<T, *>, canvas: Canvas) {
@@ -212,7 +248,7 @@ public open class BasicTreeTableBehavior<T>(
             // FIXME: Performance can be bad for large lists
             table.selection.map { it to table[it] }.forEach { (path, row) ->
                 row.onSuccess {
-                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(top = 1.0).with(width = canvas.width), ColorPaint(color))
+                    canvas.rect(rowPositioner.rowBounds(table, path, it, table.rowFromPath(path)!!).inset(top = 1.0).with(width = canvas.width), color.paint)
                 }
             }
         }
@@ -220,7 +256,7 @@ public open class BasicTreeTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: TreeTable<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor.opacity(0.2f)))
+            canvas.rect(Rectangle(size = canvas.size), headerColor.paint opacity 0.2f)
         }
     }
 

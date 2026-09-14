@@ -26,7 +26,6 @@ import io.nacular.doodle.drawing.Color
 import io.nacular.doodle.drawing.Color.Companion.Blue
 import io.nacular.doodle.drawing.Color.Companion.Lightgray
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
 import io.nacular.doodle.drawing.horizontalStripedPaint
 import io.nacular.doodle.drawing.lighter
 import io.nacular.doodle.drawing.opacity
@@ -202,11 +201,11 @@ public open class BasicTableBehavior<T>(
     }
 
     override fun renderHeader(table: Table<T, *>, canvas: Canvas) {
-        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+        headerColor?.let { canvas.rect(Rectangle(size = canvas.size), it.paint) }
     }
 
     override fun renderFooter(table: Table<T, *>, canvas: Canvas) {
-        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), ColorPaint(it)) }
+        footerColor?.let { canvas.rect(Rectangle(size = canvas.size), it.paint) }
     }
 
     override fun renderBody(table: Table<T, *>, canvas: Canvas) {
@@ -226,7 +225,7 @@ public open class BasicTableBehavior<T>(
 
     override fun <A> renderColumnBody(table: Table<T, *>, column: Column<A>, canvas: Canvas) {
         if (column in movingColumns && headerColor != null) {
-            canvas.rect(Rectangle(size = canvas.size), ColorPaint(headerColor opacity 0.2f))
+            canvas.rect(Rectangle(size = canvas.size), headerColor.paint opacity 0.2f)
         }
     }
 
@@ -380,7 +379,7 @@ public open class TextEditOperation<T>(
         }
 
         override fun render(canvas: Canvas) {
-            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, ColorPaint(it)) }
+            this@TextEditOperation.backgroundColor?.let { canvas.rect(bounds.atOrigin, it.paint) }
         }
     }
 
