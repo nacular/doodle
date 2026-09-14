@@ -7,6 +7,7 @@ import io.nacular.doodle.drawing.CanvasFactory
 import io.nacular.doodle.drawing.LineHeightDetector
 import io.nacular.doodle.drawing.TextFactory
 import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.geometry.PathMetrics
 import io.nacular.doodle.utils.IdGenerator
 
 
@@ -20,7 +21,14 @@ internal class CanvasFactoryImpl(
     private val useShadowHack     : Boolean,
     private val lineHeightDetector: LineHeightDetector,
 ): CanvasFactory {
-    override operator fun invoke(region: HTMLElement) = CanvasImpl(region, htmlFactory, textFactory, textMetrics, useShadowHack, lineHeightDetector) {
+    override operator fun invoke(region: HTMLElement) = CanvasImpl(
+        region,
+        htmlFactory,
+        textFactory,
+        textMetrics,
+        useShadowHack,
+        lineHeightDetector
+    ) {
         VectorRendererSvg(it, svgFactory, htmlFactory, aligner, textMetrics, idGenerator, lineHeightDetector)
     }
 }

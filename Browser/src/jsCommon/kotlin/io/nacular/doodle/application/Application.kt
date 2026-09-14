@@ -55,6 +55,8 @@ import io.nacular.doodle.drawing.impl.TextVerticalAlignerImpl
 import io.nacular.doodle.focus.FocusManager
 import io.nacular.doodle.focus.NativeFocusManager
 import io.nacular.doodle.focus.impl.FocusManagerImpl
+import io.nacular.doodle.geometry.PathMetrics
+import io.nacular.doodle.geometry.impl.PathMetricsImpl
 import io.nacular.doodle.scheduler.AnimationScheduler
 import io.nacular.doodle.scheduler.Scheduler
 import io.nacular.doodle.scheduler.Strand
@@ -240,6 +242,7 @@ private open class ApplicationHolderImpl protected constructor(
         bind<HtmlFactory>                                () with singleton { HtmlFactoryImpl           (root, document                                                                              ) }
         bind<TextFactory>                                () with singleton { TextFactoryImpl           (instance()                                                                                  ) }
         bind<TextMetrics>                                () with singleton { TextMetricsImpl           (instance(), instance(), instance(), instance(), instance(), cacheLength = 1000, isSafari    ) }
+        bind<PathMetrics>                                () with singleton { PathMetricsImpl           (instance(), instance()                                                                      ) }
         bind<ElementRuler>                               () with singleton { ElementRulerImpl          (instance()                                                                                  ) }
         bind<SystemStyler>                               () with singleton { SystemStylerImpl          (instance(), instance(), document, isNested, allowDefaultDarkMode                            ) }
         bind<CanvasFactory>                              () with singleton { CanvasFactoryImpl         (instance(), instance(), instance(), instance(), instance(), instance(), isSafari, instance()) }

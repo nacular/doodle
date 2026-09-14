@@ -336,7 +336,8 @@ internal open class CanvasImpl(
     override fun clip(ellipse: Ellipse, block: Canvas.() -> Unit) = clip(ellipse.toPath(), block)
 
     override fun clip(path: Path, block: Canvas.() -> Unit) = subFrame(block) {
-        it.style.setClipPath(path)
+        it.style.setOverflow(Visible())
+        it.style.setClipPath(path     )
     }
 
     override fun shadow(shadow: Shadow, block: Canvas.() -> Unit) {
@@ -408,8 +409,9 @@ internal open class CanvasImpl(
             } ?: renderRegion.add(clipRect)
         }
 
-        clipRect.style.setSize        (size)
-        clipRect.style.setBorderRadius(null)
+        clipRect.style.setSize        (size     )
+//        clipRect.style.setOverflow    (Visible())
+        clipRect.style.setBorderRadius(null     )
         clipRect.style.background = ""
 
         configure(clipRect)
@@ -424,6 +426,10 @@ internal open class CanvasImpl(
 
         renderRegion   = renderRegion.parent as HTMLElement
         renderPosition = clipRect.nextSibling
+
+        if (!clipRect.hasChildNodes()) {
+            clipRect.remove()
+        }
     }
 
     private fun present(fill: Paint?, block: () -> HTMLElement?) {

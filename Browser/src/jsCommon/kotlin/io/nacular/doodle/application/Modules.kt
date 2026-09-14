@@ -3,9 +3,6 @@ package io.nacular.doodle.application
 import io.nacular.doodle.UrlView
 import io.nacular.doodle.accessibility.AccessibilityManager
 import io.nacular.doodle.accessibility.AccessibilityManagerImpl
-import io.nacular.doodle.application.Modules.Companion.FocusModule
-import io.nacular.doodle.application.Modules.Companion.PointerModule
-import io.nacular.doodle.application.Modules.Companion.PopupModule
 import io.nacular.doodle.controls.PopupManager
 import io.nacular.doodle.controls.PopupManagerImpl
 import io.nacular.doodle.controls.document.Document
