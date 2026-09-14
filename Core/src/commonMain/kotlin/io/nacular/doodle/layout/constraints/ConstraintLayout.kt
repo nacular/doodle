@@ -27,14 +27,19 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 
 
-public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges  eq parent.edges                              }
-public val center: (ConstraintDslContext.(Bounds) -> Unit) = { it.size hint it.size.value; it.center eq parent.center }
+public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges eq parent.edges }
+public val center: (ConstraintDslContext.(Bounds) -> Unit) = {
+    it.size hint it.size.value
+    it.top  eq   parent.centerY - readonly(it.height) / 2
+    it.left eq   parent.centerX - readonly(it.width ) / 2
+}
 
-public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges         ) strength strength }
-public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges  eq parent.edges + insets) strength strength }
+public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges eq parent.edges         ) strength strength }
+public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges eq parent.edges + insets) strength strength }
 public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = {
-    it.size   hint it.size.value strength strength
-    it.center eq   parent.center strength strength
+    it.size hint it.size.value                            strength (strength.takeIf { it != Required } ?: (Required - 1))
+    it.top  eq   parent.centerY - readonly(it.height) / 2 strength strength
+    it.left eq   parent.centerX - readonly(it.width ) / 2 strength strength
 }
 
 /**
