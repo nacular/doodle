@@ -85,7 +85,13 @@ internal class Solver {
     }
 
     private class Symbol(val type: Type = Invalid) {
+        private val id = nextId++
+
+        override fun hashCode() = id
+        override fun equals  (other: Any?) = this === other
         override fun toString() = "$type"
+
+        private companion object { var nextId = 0 }
     }
 
     private inner class Row {
@@ -243,8 +249,10 @@ internal class Solver {
 
     private val constraints             = fastMutableMapOf<Constraint, Tag>()
     private val rows                    = fastMutableMapOf<Symbol, Row>()
+    private val rowList                 = mutableListOf<Row>()
     private val vars                    = fastMutableMapOf<Variable, Symbol>()
     private val edits                   = fastMutableMapOf<Variable, EditInfo>()
+    private val editSymbols             = mutableSetOf<Symbol>()
     private val idealEdits              = fastMutableSetOf<IdealEdit>()
     private val infeasibleRows          = mutableListOf<Symbol>()
     private val referenceVars           = fastMutableSetOf<Variable>()
@@ -689,7 +697,7 @@ internal class Solver {
         var second: Row? = null
         var third : Row? = null
 
-        for ((symbol, row) in rows) {
+        for (row in rowList) {
             val coefficient = row.coefficientFor(marker)
 
             if (coefficient == 0.0) {
@@ -697,7 +705,7 @@ internal class Solver {
             }
 
             when {
-                symbol.type == External -> third = row
+                row.symbol?.type == External -> third = row
                 coefficient < 0.0       -> {
                     val ratio = -row.constant / coefficient
                     if (ratio < ratio1) {
@@ -806,10 +814,16 @@ internal class Solver {
 
     private fun registerRow(symbol: Symbol, row: Row) {
         rows[symbol] = row.also { it.symbol = symbol }
+        rowList += row
     }
 
     private fun unregisterRow(symbol: Symbol, cleanup: Boolean) {
-        rows.remove(symbol)?.let { if (cleanup) it.symbol = null }
+        rows.remove(symbol)?.let {
+            if (cleanup) {
+                it.symbol = null
+            }
+            rowList -= it
+        }
     }
 
     /**
@@ -968,14 +982,17 @@ internal class Solver {
     private fun getLeavingRow(entering: Symbol): Pair<Symbol, Row>? {
         var ratio = MAX_VALUE
         var result: Pair<Symbol, Row>? = null
-        for ((symbol, row) in rows) {
-            if (symbol.type != External) {
-                val temp = row.coefficientFor(entering)
-                if (temp < 0) {
-                    val tempRatio = -row.constant / temp
-                    if (tempRatio < ratio) {
-                        ratio  = tempRatio
-                        result = symbol to row
+
+        for (row in rowList) {
+            row.symbol?.let { symbol ->
+                if (symbol.type != External) {
+                    val temp = row.coefficientFor(entering)
+                    if (temp < 0) {
+                        val tempRatio = -row.constant / temp
+                        if (tempRatio < ratio) {
+                            ratio = tempRatio
+                            result = symbol to row
+                        }
                     }
                 }
             }

@@ -596,5 +596,5 @@ public open class MatrixImpl<T: Number> internal constructor(internal val values
         return true
     }
 
-    override fun hashCode(): Int = values.hashCode()
+    override fun hashCode(): Int = values.contentHashCode()
 }

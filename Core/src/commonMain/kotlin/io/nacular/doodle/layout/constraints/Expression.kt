@@ -68,11 +68,17 @@ public abstract class Expression internal constructor() {
     }""".trimIndent()
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Expression) return false
+        if (this     === other         ) return true
+        if (other    !is Expression    ) return false
+        if (constant !=  other.constant) return false
 
-        if (!terms.contentEquals(other.terms)) return false
-        if (constant != other.constant       ) return false
+        val mine   = terms
+        val theirs = other.terms
+        if (mine.size != theirs.size) return false
+
+        for (i in mine.indices) {
+            if (mine[i] != theirs[i]) return false
+        }
 
         return true
     }
@@ -83,24 +89,63 @@ public abstract class Expression internal constructor() {
         return result
     }
 
-    internal fun reduce(): Expression {
+    internal fun reduce(): Expression = when {
+        terms.size < REDUCE_THRESHOLD -> reduceLoop()
+        else                          -> reduceHash()
+    }
+
+    private fun reduceLoop(): Expression {
+        val variables    = arrayOfNulls<Variable>(terms.size)
+        val coefficients = DoubleArray(terms.size)
+        var count = 0
+
+        for ((variable, coefficient) in terms) {
+            var i = 0
+            while (i < count && variables[i] !== variable) i++
+
+            when {
+                i < count -> coefficients[i] += coefficient
+                else      -> { variables[count] = variable; coefficients[count] = coefficient; count++ }
+            }
+        }
+
+        val reducedTerms = arrayOfNulls<Term>(count)
+        for (i in 0 until count) reducedTerms[i] = VariableTerm(variables[i]!!, coefficients[i])
+
+        @Suppress("UNCHECKED_CAST")
+        return Expression(*(reducedTerms as Array<Term>), constant = constant)
+    }
+
+    private fun reduceHash(): Expression {
         val vars = fastMutableMapOf<Variable, Double>()
-        for (term in terms) {
-            vars[term.variable] = (vars[term.variable] ?: 0.0) + term.coefficient
+        for ((variable, coefficient) in terms) {
+            vars[variable] = (vars[variable] ?: 0.0) + coefficient
         }
         return Expression(vars.map { (variable, coefficient) -> VariableTerm(variable, coefficient) }, constant)
     }
 
-    internal fun differsByConstantOnly(other: Expression): Boolean = constant != other.constant && terms.contentEquals(other.terms)
-
     internal companion object {
-        operator fun invoke(vararg terms: Term, constant: Double = 0.0) = ExpressionImpl(terms.toList(), constant)
-        operator fun invoke(terms: List<Term>, constant: Double = 0.0) = ExpressionImpl(terms, constant)
+        private const val REDUCE_THRESHOLD = 12
+
+        operator fun invoke(vararg terms: Term,       constant: Double = 0.0) = ExpressionImpl(terms.toList(), constant)
+        operator fun invoke(       terms: List<Term>, constant: Double = 0.0) = ExpressionImpl(terms,          constant)
     }
 }
 
 internal class ExpressionImpl(terms: List<Term>, override val constant: Double = 0.0) : Expression() {
-    override val terms: Array<VariableTerm> = terms.filterIsInstance<VariableTerm>().toTypedArray()
+//    override val terms: Array<VariableTerm> = terms.filterIsInstance<VariableTerm>().toTypedArray()
+
+    override val terms: Array<VariableTerm> = run {
+        val buffer = arrayOfNulls<VariableTerm>(terms.size)   // upper bound: at most this many survive
+        var count = 0
+        for (term in terms) if (term is VariableTerm) buffer[count++] = term
+
+        @Suppress("UNCHECKED_CAST")
+        when (count) {
+            buffer.size -> buffer as Array<VariableTerm>   // nothing filtered — reuse buffer as-is
+            else        -> buffer.copyOf(count) as Array<VariableTerm>
+        }
+    }
 }
 
 /**

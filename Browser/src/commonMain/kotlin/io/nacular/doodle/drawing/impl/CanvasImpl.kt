@@ -554,7 +554,7 @@ internal open class CanvasImpl(
         textFactory.create(
             text        = text,
             font        = font,
-            lineSpacing = lineHeightDetector.lineHeight(font),
+            lineSpacing = null, //lineHeightDetector.lineHeight(font),
             textSpacing = textSpacing,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null
         ),
@@ -605,7 +605,17 @@ internal open class CanvasImpl(
         style.translate(at)
     }
 
-    private val AnnotatedString.maxFont: Font? get() = filter { it.first.isNotBlank() }.mapNotNull { it.second.font }.maxByOrNull { it.size }
+    private val AnnotatedString.maxFont: Font? get() {
+        var best: Font? = null
+
+        for ((first, second) in this) {
+            if (first.isBlank()) continue
+            val font = second.font ?: continue
+            if (best == null || font.size > best.size) best = font
+        }
+
+        return best
+    }
 
     private fun createWrappedStyleTextGlyph(text: AnnotatedString, at: Point, width: Double, indent: Double, alignment: TextAlignment, lineSpacing: Float, textSpacing: TextSpacing): HTMLElement {
         val firstWordWidth = if (indent > 0.0) textMetrics.width(text.firstWord(), textSpacing) else 0.0

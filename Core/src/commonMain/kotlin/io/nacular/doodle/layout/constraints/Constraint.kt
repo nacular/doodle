@@ -118,16 +118,12 @@ public class Constraint internal constructor(internal val expression: Expression
     override fun toString(): String = "$expression $operator ~ $strength"
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
+        if (this  === other     ) return true
+        if (other !is Constraint) return false
 
-        other as Constraint
-
-        if (operator   != other.operator  ) return false
-        if (expression != other.expression) return false
-        if (strength   != other.strength  ) return false
-
-        return true
+        return operator   == other.operator   &&
+               strength   == other.strength   &&
+               expression == other.expression
     }
 
     override fun hashCode(): Int = hashCode
