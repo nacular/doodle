@@ -48,6 +48,7 @@ import io.nacular.measured.units.Time
 import io.nacular.measured.units.Time.Companion.milliseconds
 import io.nacular.measured.units.times
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.expect
 
 /**
@@ -1323,7 +1324,7 @@ class RenderManagerImplTests {
         val parent   = spyk<Container> { suggestSize(Size(10)); children += listOf(child1, child2, child3) }
         val display  = display(parent)
 
-        var indexes       = mutableMapOf<GraphicsSurface, Int>()
+        val indexes       = mutableMapOf<GraphicsSurface, Int>()
         val capturedIndex = slot<Int>()
 
         val surface1 = mockk<GraphicsSurface> { every { index = capture(capturedIndex) } answers { indexes[this@mockk] = capturedIndex.captured }  }
@@ -1349,6 +1350,39 @@ class RenderManagerImplTests {
         scheduler.runJobs()
 
         expect(listOf(0,1,2)) { listOf(indexes[surface1], indexes[surface2], indexes[surface3]) }
+    }
+
+    @Test fun `always renders when bounds changes`() {
+        val renderSizes = mutableListOf<Size>()
+        val child       = spyk(view()) {
+            every { render(any()) } answers {
+                renderSizes += this@spyk.size
+            }
+        }
+
+        val display   = display()
+        val scheduler = ManualAnimationScheduler()
+
+        display += child
+
+        val renderManager = renderManager(display, scheduler = scheduler)
+
+        scheduler.runJobs()
+
+        verifyChildAddedProperly(renderManager, display, child)
+
+        child.boundsChanged += { _,_,_ ->
+            child.suggestSize(Size(200))
+        }
+
+        child.suggestSize(Size(100))
+
+        scheduler.runJobs()
+        scheduler.runJobs()
+
+        verify(exactly = 2) { child.render(any()) }
+
+        assertEquals(listOf(Size(10), Size(200)), renderSizes)
     }
 
     private fun verifyLayout(layout: Layout = layout(), count: Int = 2, block: (View) -> Unit) {

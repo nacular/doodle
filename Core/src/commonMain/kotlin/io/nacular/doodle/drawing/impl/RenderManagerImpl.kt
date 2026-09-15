@@ -45,13 +45,7 @@ public open class RenderManagerImpl(
         public fun isEmpty   (): Boolean = queue.isEmpty()
         public fun isNotEmpty(): Boolean = queue.isNotEmpty()
 
-        public fun firstOrNull(): T? {
-            if (isEmpty()) return null
-
-            val item = queue.removeFirst()
-            queued.remove(item)
-            return item
-        }
+        public fun firstOrNull(): T? = queue.firstOrNull()
 
         public fun none(predicate: (T) -> Boolean): Boolean = queue.none(predicate)
 
@@ -71,7 +65,13 @@ public open class RenderManagerImpl(
 
         public operator fun minusAssign(item: T) {
             if (queued.remove(item)) {
-                queue.remove(item)
+                queue.remove (item)
+            }
+        }
+
+        public fun removeAll(filter: (T) -> Boolean) {
+            if (queued.removeAll(filter)) {
+                queue.removeAll (filter)
             }
         }
     }
@@ -334,6 +334,19 @@ public open class RenderManagerImpl(
                 }
             } while (pendingLayout.isNotEmpty())
 
+            var numIterations = 0
+            val maxIterations = pendingBoundsChange.size
+
+            do {
+                pendingBoundsChange.firstOrNull()?.also { item ->
+                    if (item !in neverRendered) {
+                        pendingBoundsChange -= item
+
+                        updateGraphicsSurface(item, graphicsDevice[item])
+                    }
+                }
+            } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
+
             do {
                 pendingRender.firstOrNull()?.let { item ->
                     val renderResult = performRender(item)
@@ -348,22 +361,8 @@ public open class RenderManagerImpl(
 
             pendingRender += newRenders
 
-            var numIterations = 0
-            val maxIterations = pendingBoundsChange.size
-
-            do {
-                pendingBoundsChange.firstOrNull()?.also { item ->
-                    when {
-                        item !in neverRendered -> {
-                            pendingBoundsChange -= item
-
-                            updateGraphicsSurface(item, graphicsDevice[item])
-                        }
-                        // remove zero sized items that have never rendered since they won't be cleaned up otherwise
-                        item.size.empty || !recursivelyVisible(item) -> pendingBoundsChange -= item
-                    }
-                }
-            } while (pendingBoundsChange.isNotEmpty() && ++numIterations < maxIterations)
+            // remove zero sized items that have never rendered since they won't be cleaned up otherwise
+            pendingBoundsChange.removeAll { it.size.empty || !recursivelyVisible(it) }
 
             if (pendingLayout.isEmpty() && newRenders.none { it !in neverRendered } && pendingBoundsChange.none { it !in neverRendered }) {
                 break
@@ -711,6 +710,10 @@ public open class RenderManagerImpl(
     }
 
     override fun boundsChanged(view: View, old: Rectangle, new: Rectangle) {
+        pendingBoundsChange += view
+    }
+
+    override fun boundsSuggested(view: View, old: Rectangle, new: Rectangle) {
         val parent = view.parent
 
         // Early exit if this event was triggered by an item as it is being removed from the container tree.

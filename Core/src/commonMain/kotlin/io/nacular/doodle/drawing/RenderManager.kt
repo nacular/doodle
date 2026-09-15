@@ -50,6 +50,15 @@ public abstract class RenderManager {
     public abstract fun displayRect(of: View): Rectangle
 
     /**
+     * Notifies whenever a View's [bounds][View.bounds] is suggested to change
+     *
+     * @param view that is changing
+     * @param old bounds
+     * @param new bounds
+     */
+    internal abstract fun boundsSuggested(view: View, old: Rectangle, new: Rectangle)
+
+    /**
      * Notifies whenever a View's [bounds][View.bounds] changes
      *
      * @param view that is changing

@@ -49,8 +49,6 @@ import io.nacular.doodle.geometry.Vector3D
 import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.centered
 import io.nacular.doodle.geometry.coerceIn
-import io.nacular.doodle.geometry.div
-import io.nacular.doodle.geometry.times
 import io.nacular.doodle.geometry.toPath
 import io.nacular.doodle.geometry.with
 import io.nacular.doodle.layout.Insets
@@ -396,7 +394,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         positionable.size_   = field.size
 
         if (actualBounds != field) {
-            renderManager?.boundsChanged(this, actualBounds, field)
+            renderManager?.boundsSuggested(this, actualBounds, field)
         }
     }
 
@@ -407,6 +405,10 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         newBounds           = new // ensure newBounds updated to match actualBounds
 
         if (field.fastEqual(new)) return
+
+        if (!boundsSyncing) {
+            renderManager?.boundsChanged(this, field, new)
+        }
 
         if (needsMirrorTransform && field.x != new.x) {
             resolvedTransformDirty = true
@@ -1054,6 +1056,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         }
     }
 
+    private var boundsSyncing = false
+
     internal fun syncBounds() {
         if (newBounds != actualBounds) {
             val s = when {
@@ -1061,7 +1065,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                 else                                -> newBounds.size
             }
 
-            actualBounds = newBounds.with(s)
+            boundsSyncing = true
+            actualBounds  = newBounds.with(s)
+            boundsSyncing = false
         }
     }
 
