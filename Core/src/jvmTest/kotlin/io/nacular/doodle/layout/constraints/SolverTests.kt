@@ -8,29 +8,28 @@ import io.mockk.verify
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.Solver
-import io.nacular.doodle.utils.diff.Delete
-import io.nacular.doodle.utils.diff.Insert
-import io.nacular.doodle.utils.diff.compare
-import io.nacular.doodle.utils.ifNull
-import org.junit.jupiter.api.Test
 import kotlin.Double.Companion.NEGATIVE_INFINITY
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.expect
 
 /**
  * Created by Nicholas Eddy on 10/20/22.
  */
 class SolverTests {
+    internal typealias Constraints     = Solver.() -> ConstraintDslContext
+    internal typealias ConstraintBlock = Solver.() -> Pair<Pair<ConstraintDslContext, Number>, Pair<ConstraintDslContext, Number>>
+
     @Test fun `three properties sum`() {
-        val parentWidth  = property("parent.width")
-        val aLeft  = property("a.left" )
-        val aWidth = property("a.width", 400.0)
-        val bLeft  = property("b.left" )
-        val bWidth = property("b.width")
-        val cLeft  = property("c.left" )
-        val cWidth = property("c.width" )
+        val parentWidth = property("parent.width")
+        val aLeft       = property("a.left" )
+        val aWidth      = property("a.width", 400.0)
+        val bLeft       = property("b.left" )
+        val bWidth      = property("b.width")
+        val cLeft       = property("c.left" )
+        val cWidth      = property("c.width" )
 
         with(Solver()) {
             sync(constraints {
@@ -62,12 +61,12 @@ class SolverTests {
     }
 
     @Test fun `two properties sum`() {
-        val parentWidth  = property("parent.width_", 1200.0)
+        val parentWidth  = property("parent.width_",  1200.0)
         val parentHeight = property("parent.height_", 1200.0)
-        val aLeft  = property("child1.x_" )
-        val aWidth = property("child1.width_", 100.0)
-        val bLeft  = property("child2.x_" )
-        val bWidth = property("child2.width_")
+        val aLeft        = property("child1.x_"             )
+        val aWidth       = property("child1.width_",   100.0)
+        val bLeft        = property("child2.x_"             )
+        val bWidth       = property("child2.width_"         )
 
         with(Solver()) {
             sync(constraints {
@@ -92,8 +91,8 @@ class SolverTests {
 
             expect(parentWidth()) { listOf(aWidth, bWidth).sumOf { it() } }
 
-            expect( 100.0) { aWidth() }
-            expect(1100.0) { bWidth() }
+            assertEquals( 100.0, aWidth(), 0.00001)
+            assertEquals(1100.0, bWidth(), 0.00001)
 
             expect(true) { isUnderConstrained(aWidth) }
 
@@ -118,17 +117,19 @@ class SolverTests {
     @Test fun `update constraint`() {
         val property = property()
 
-        listOf(
-            (constraints { property eq 45                 } to 45) to (constraints { property eq 10                 } to 10),
+        listOf<ConstraintBlock>(
+            { (constraints { property eq 45                 } to 45) to (constraints { property eq 10                 } to 10) },
 //            (constraints { property eq 45 strength Weak   } to 45) to (constraints { property eq 10 strength Weak   } to 10),
 //            (constraints { property eq 45 strength Strong } to 45) to (constraints { property eq 10 strength Strong } to 10),
-        ).forEach { (old, new) ->
-            val oldConstraint = old.first.constraints.first()
-            val oldValue      = old.second.toDouble()
-            val newConstraint = new.first.constraints.first()
-            val newValue      = new.second.toDouble()
-
+        ).forEach { block ->
             Solver().apply {
+                val (old, new) = block()
+
+                val oldConstraint = old.first.constraints.first()
+                val oldValue      = old.second.toDouble()
+                val newConstraint = new.first.constraints.first()
+                val newValue      = new.second.toDouble()
+
                 addConstraint(oldConstraint)
 
                 updateVariables()
@@ -152,11 +153,11 @@ class SolverTests {
         val z = property("z")
 
         mapOf(
-            constraints {
+            Pair<Constraints, Boolean>({constraints {
                 x hint   100 strength Weak
                 x lessEq 400
-            } to true,
-            constraints {
+            }}, true),
+            Pair({constraints {
                 x(100.0)
                 val a = property("a")
                 val p = property("p", 1200.0)
@@ -168,37 +169,37 @@ class SolverTests {
                 x     lessEq   p / 3
                 z     eq       y + x
                 x + a eq       p
-            } to true,
-            constraints { x lessEq    45 } to true,
-            constraints {
+            }}, true),
+            Pair({constraints { x lessEq    45 }}, true),
+            Pair({constraints {
                 x lessEq    45
                 x greaterEq 10
                 x hint      10
-            } to true,
-            constraints { x lessEq    z  } to true,
-            constraints { x greaterEq 45 } to true,
-            constraints {
+            }}, true),
+            Pair({constraints { x lessEq    z  }}, true),
+            Pair({constraints { x greaterEq 45 }}, true),
+            Pair({constraints {
                 x lessEq    100
                 x greaterEq 45
-            } to true,
-            constraints {
+            }}, true),
+            Pair({constraints {
                 y lessEq 45
                 z eq 10
                 x eq y - z
-            } to true,
+            }}, true),
 
-            constraints {
+            Pair({constraints {
                 y eq 45 strength Strong
                 x eq y
-            } to false,
-            constraints { x eq 45 } to false,
-            constraints {
+            }}, false),
+            Pair({constraints { x eq 45 }}, false),
+            Pair({constraints {
                 y eq 45
                 z eq 10
                 x eq y - z
-            } to false,
+            }}, false),
 
-            constraints {
+            Pair({constraints {
                 x greaterEq 0
 
                 y eq        61 strength Strong
@@ -209,8 +210,8 @@ class SolverTests {
 
                 z + x eq y - 30
                 z + x eq z + x
-            } to false,
-            constraints {
+            }}, false),
+            Pair({constraints {
                 y eq 1728
                 y eq x strength Strong
 
@@ -219,10 +220,10 @@ class SolverTests {
                 x greaterEq 0
 
                 z eq 0.5 * (y - x)
-            } to false,
+            }}, false),
         ).forEach { (context, expected) ->
             Solver().apply {
-                sync(context)
+                sync(context())
 
                 expect(expected, "$x should ${ if (expected) "" else "not " }be under-constrained") { isUnderConstrained(x) }
             }
@@ -240,35 +241,35 @@ class SolverTests {
         val a = property()
         val b = property()
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10
                 b eq 100
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq -10
                 b eq -100
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b eq 2 * a
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b greaterEq a + 2
-            },
-            constraints {
+            }},
+            {constraints {
                 a greaterEq 2
                 a lessEq    10
                 b eq        11
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 2
                 b eq a
-            },
+            }},
         ).forEach { context ->
             Solver().apply {
-                (context.constraints + constraints { x eq min(a, b) }.constraints).forEach {
+                (context().constraints + constraints { x eq min(a, b) }.constraints).forEach {
                     addConstraint(it)
                 }
 
@@ -284,35 +285,35 @@ class SolverTests {
         val a = property()
         val b = property()
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10
                 b eq 100
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq -10
                 b eq -100
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b eq 2 * a
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b greaterEq a + 2
-            },
-            constraints {
+            }},
+            {constraints {
                 a greaterEq 2
                 a lessEq    10
                 b eq        11
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 2
                 b eq a
-            },
+            }},
         ).forEach { context ->
             Solver().apply {
-                (context.constraints + constraints { x eq max(a, b) }.constraints).forEach {
+                (context().constraints + constraints { x eq max(a, b) }.constraints).forEach {
                     addConstraint(it)
                 }
 
@@ -329,41 +330,41 @@ class SolverTests {
         val b = property()
         val c = property()
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10
                 b eq 100
                 c eq 200
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq -10
                 b eq -100
                 c eq -200
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b eq 2 * a
                 c eq 3 * a
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b greaterEq a + 2
                 c lessEq a + 3
-            },
-            constraints {
+            }},
+            {constraints {
                 a greaterEq 2
                 a lessEq    10
                 b eq        11
                 c eq 3
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 2
                 b eq a
                 c eq b
-            },
+            }},
         ).forEach { context ->
             Solver().apply {
-                (context.constraints + constraints { x eq min(a, b, c) }.constraints).forEach {
+                (context().constraints + constraints { x eq min(a, b, c) }.constraints).forEach {
                     addConstraint(it)
                 }
 
@@ -380,41 +381,41 @@ class SolverTests {
         val b = property()
         val c = property()
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10
                 b eq 100
                 c eq 200
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq -10
                 b eq -100
                 c eq -200
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b eq 2 * a
                 c eq 3 * a
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10
                 b greaterEq a + 2
                 c lessEq a + 3
-            },
-            constraints {
+            }},
+            {constraints {
                 a greaterEq 2
                 a lessEq    10
                 b eq        11
                 c eq 3
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 2
                 b eq a
                 c eq b
-            },
+            }},
         ).forEach { context ->
             Solver().apply {
-                (context.constraints + constraints { x eq max(a, b, c) }.constraints).forEach {
+                (context().constraints + constraints { x eq max(a, b, c) }.constraints).forEach {
                     addConstraint(it)
                 }
 
@@ -430,14 +431,12 @@ class SolverTests {
         val b = property("b")
         val c = property("c")
 
-        val constraints = constraints {
-            a eq 10
-            b eq 12
-            c eq readonly(a) + b
-        }
-
         Solver().apply {
-            sync(constraints)
+            sync(constraints {
+                a eq 10
+                b eq 12
+                c eq readonly(a) + b
+            })
 
             updateVariables()
 
@@ -449,13 +448,13 @@ class SolverTests {
         val a = property("a", 10.0)
         val b = property("b")
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 b eq readonly(a) + 10
-            },
+            }},
         ).forEach { constraints ->
             Solver().apply {
-                sync(constraints)
+                sync(constraints())
 
                 updateVariables()
 
@@ -470,22 +469,22 @@ class SolverTests {
         val b = property("b")
         val c = property("c")
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10 strength Weak
                 b eq 12 strength Weak
                 c eq readonly(a) + b
                 c eq 24
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10 strength Weak
                 b eq 12 strength Weak
                 c eq readonly(readonly(a)) + b
                 c eq 24
-            },
+            }},
         ).forEach { constraints ->
             Solver().apply {
-                sync(constraints)
+                sync(constraints())
 
                 updateVariables()
 
@@ -502,31 +501,31 @@ class SolverTests {
         val c = property("c")
         val d = property("d")
 
-        listOf(
-            constraints {
+        listOf<Constraints>(
+            {constraints {
                 a eq 10 strength Weak
                 b eq 12 strength Weak
                 c eq 14 strength Weak
                 d eq readonly(a + b) + c
                 d eq 44
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10 strength Weak
                 b eq 12 strength Weak
                 c eq 14 strength Weak
                 d eq readonly(a) + readonly(b) + c
                 d eq 44
-            },
-            constraints {
+            }},
+            {constraints {
                 a eq 10 strength Weak
                 b eq 12 strength Weak
                 c eq 14 strength Weak
                 d eq readonly(readonly(a) + readonly(b)) + c
                 d eq 44
-            },
+            }},
         ).forEach { constraints ->
             Solver().apply {
-                sync(constraints)
+                sync(constraints())
 
                 updateVariables()
 
@@ -546,30 +545,30 @@ class SolverTests {
         val e        = property("e")
         val constant = 1200.0
 
-        listOf(
-            constraints {
+        listOf<Pair<Constraints, ClosedFloatingPointRange<Double>>>(
+            Pair({constraints {
                 b     eq 1200
-            } to 1200.0 .. 1200.0,
-            constraints {
+            }}, 1200.0 .. 1200.0),
+            Pair({constraints {
                 b     lessEq 1005
-            } to NEGATIVE_INFINITY .. 1005.0,
-            constraints {
+            }}, NEGATIVE_INFINITY .. 1005.0),
+            Pair({constraints {
                 a     eq        0
                 b     greaterEq 0
                 b     lessEq    constant / 3
                 c     eq        a + b
                 b + d eq        constant
                 d     greaterEq 0
-            } to 0.0 .. constant / 3,
-            constraints {
+            }}, 0.0 .. constant / 3),
+            Pair({constraints {
                 a     eq        0
                 b     greaterEq 0
                 b     lessEq    constant / 3
                 b     greaterEq 10
                 c     eq        a + b
                 b + d eq        constant
-            } to 10.0 .. constant / 3,
-            constraints {
+            }}, 10.0 .. constant / 3),
+            Pair({constraints {
                 a     eq        0
                 b     greaterEq 0
                 b     lessEq    e / 3
@@ -578,10 +577,10 @@ class SolverTests {
                 b + d eq        e
                 e     eq        constant //strength Strong
                 e     greaterEq 0
-            } to 0.0 .. constant / 3,
+            }}, 0.0 .. constant / 3),
         ).forEach { (constraints, range) ->
             Solver().apply {
-                sync(constraints)
+                sync(constraints())
 
                 updateVariables()
 
@@ -594,12 +593,12 @@ class SolverTests {
         val property = property("a")
 
         listOf(
-            constraints {
+            Pair<Constraints, Double>({constraints {
                 property hint 1200
-            } to 1200.0
+            }}, 1200.0)
         ).forEach { (constraints, value) ->
             Solver().apply {
-                sync(constraints)
+                sync(constraints())
 
                 updateVariables()
 
@@ -649,95 +648,6 @@ class SolverTests {
     }
 }
 
-class ConstraintTests {
-    @Test fun `differs by constant`() {
-        val property = property()
-
-        val constraint1 = constraints {
-            property eq 45
-        }.constraints.first()
-
-        val constraint2 = constraints {
-            property eq -45
-        }.constraints.first()
-
-        expect(true) { constraint1.differsByConstantOnly(constraint2) }
-        expect(true) { constraint2.differsByConstantOnly(constraint1) }
-    }
-
-    @Test fun diffs() {
-        val property1 = property()
-        val property2 = property()
-        val property3 = property()
-        val property4 = property()
-        val property5 = property()
-
-        val old = constraints {
-            property1             eq  45
-            property2             eq 100
-            property3 + property4 eq  50
-            property5             eq  90
-        }
-
-        val new = constraints {
-            property1             eq - 45
-//            property2             eq -100
-            property3 + property4 eq - 50
-//            property5             eq   90
-
-//            property1             eq   45
-//            property2             eq -100
-//            property3 + property4 eq - 50
-//            property5             eq   90
-        }
-
-        val diffs = compare(old.constraints, new.constraints) { a, b -> a.hashCode() == b.hashCode() }
-
-        var previousDelete: Delete<Constraint>? = null
-
-        val handlePreviousDelete: () -> Unit = {
-            previousDelete = null
-        }
-
-        diffs.forEach { diff ->
-            when (diff) {
-                is Delete -> {
-                    handlePreviousDelete()
-                    previousDelete = diff
-                }
-                is Insert -> {
-                    diff.items.forEachIndexed { index, insertedConstraint ->
-                        // address previous delete
-                        previousDelete?.let {
-                            val deletedConstraint = it.items[index]
-
-                            if (index < it.items.size && insertedConstraint.differsByConstantOnly(deletedConstraint)) {
-                                // update constraint
-                                println("update: $deletedConstraint -> $insertedConstraint")
-                            } else {
-                                // handle delete
-                                println("delete: $deletedConstraint")
-                                // handle insert
-                                println("insert: $insertedConstraint")
-                            }
-                        }.ifNull {
-                            // handle insert
-                            println("handle insert: $insertedConstraint")
-                        }
-                    }
-
-                    previousDelete = null
-                }
-                else -> {
-                    handlePreviousDelete()
-                }
-            }
-        }
-
-//        println(diffs)
-    }
-}
-
 private fun Solver.sync(context: ConstraintDslContext) {
     context.constraints.forEach { addConstraint(it) }
     context.edits.forEach {
@@ -764,8 +674,8 @@ private fun property(name: String?, initial: Double = 0.0): MockVariable = mockk
     every { this@mockk.variable } returns this
 }
 
-private fun constraints(block: ConstraintDslContext.() -> Unit): ConstraintDslContext {
-    val context = ConstraintDslContext()
+private fun Solver.constraints(block: ConstraintDslContext.() -> Unit): ConstraintDslContext {
+    val context = ConstraintDslContext(this)
 
     context.apply(block)
 

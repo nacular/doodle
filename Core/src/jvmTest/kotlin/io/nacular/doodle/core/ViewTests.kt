@@ -702,8 +702,8 @@ class ViewTests {
         view.forceBounds(new.at(x = 67.0))
 
         verifyOrder {
-            renderManager.boundsChanged(view, old, new             )
-            renderManager.boundsChanged(view, new, new.at(x = 67.0))
+            renderManager.boundsSuggested(view, old, new             )
+            renderManager.boundsSuggested(view, new, new.at(x = 67.0))
         }
     }
 
