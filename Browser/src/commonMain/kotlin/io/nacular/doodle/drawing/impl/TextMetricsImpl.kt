@@ -7,7 +7,6 @@ import io.nacular.doodle.dom.HTMLCanvasElement
 import io.nacular.doodle.dom.HTMLElement
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.defaultFontSize
-import io.nacular.doodle.dom.insert
 import io.nacular.doodle.dom.letterSpacing
 import io.nacular.doodle.dom.parent
 import io.nacular.doodle.dom.setPosition
@@ -82,7 +81,7 @@ internal class TextMetricsImpl(
     private fun addElementToRoot(element: HTMLElement) {
         if (element.parent == null) {
             element.style.setPosition(Point(0, 10_000))
-            htmlFactory.root.insert(element, 0)
+            htmlFactory.root.appendChild(element)
         }
     }
 

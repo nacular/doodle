@@ -102,15 +102,15 @@ public open class RenderManagerImpl(
 
     protected open val views               : MutableSet<View>                   = fastMutableSetOf()
     protected open val dirtyViews          : MutableSet<View>                   = fastMutableSetOf()
-    protected open val displayTree         : MutableMap<View?, DisplayRectNode> = fastMutableMapOf()
+    protected open val displayTree         : MutableMap<View, DisplayRectNode>  = fastMutableMapOf()
     protected open val neverRendered       : MutableSet<View>                   = fastMutableSetOf()
     protected open val pendingLayout       : MutableSet<View>                   = MutableTreeSet(generationComparator)
     protected open val layoutOverflow      : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingRender       : WorkingSet<View> = WorkingSet()//MutableSet<View>                   = LinkedHashSet()
+    protected open val pendingRender       : WorkingSet<View>                   = WorkingSet()
     protected open val pendingCleanup      : MutableMap<View, MutableSet<View>> = fastMutableMapOf()
     protected open val addedInvisible      : MutableSet<View>                   = fastMutableSetOf()
     protected open val visibilityChanged   : MutableSet<View>                   = fastMutableSetOf()
-    protected open val pendingBoundsChange : WorkingSet<View> = WorkingSet()//MutableSet<View>                   = fastMutableSetOf()
+    protected open val pendingBoundsChange : WorkingSet<View>                   = WorkingSet()
     protected open val popups              : MutableSet<View>                   = fastMutableSetOf()
     protected open val livingViews         : MutableSet<View>                   = fastMutableSetOf()
     protected open var displayPendingLayout: Boolean                            = false
@@ -282,9 +282,9 @@ public open class RenderManagerImpl(
                 notifyDisplayRectChange(view, Empty, displayRect(view))
             }
 
-            if (displayTree.containsKey(view)) {
-                // TODO: IMPLEMENT
-            }
+            // TODO: IMPLEMENT
+//            if (displayTree.containsKey(view)) {
+//            }
 
             checkContentDirectionChange(view)
 

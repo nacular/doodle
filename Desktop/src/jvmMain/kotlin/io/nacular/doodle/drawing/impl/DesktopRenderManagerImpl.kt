@@ -25,14 +25,14 @@ internal class DesktopRenderManagerImpl(
 ) {
     override val views              : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
     override val dirtyViews         : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
-    override val displayTree        : MutableMap<View?, DisplayRectNode> = ConcurrentHashMap()
+    override val displayTree        : MutableMap<View, DisplayRectNode>  = ConcurrentHashMap()
     override val neverRendered      : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
     override val pendingLayout      : MutableSet<View>                   = ConcurrentSkipListSet(AncestorComparator)
-    override val pendingRender      : WorkingSet<View> = WorkingSet()//MutableSet<View>                   = ConcurrentHashMap.newKeySet() // FIXME: Sort by insertion order
+    override val pendingRender      : WorkingSet<View>                   = WorkingSet()
     override val pendingCleanup     : MutableMap<View, MutableSet<View>> = ConcurrentHashMap()
     override val addedInvisible     : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
     override val visibilityChanged  : MutableSet<View>                   = ConcurrentHashMap.newKeySet()
-    override val pendingBoundsChange: WorkingSet<View> = WorkingSet()//MutableSet<View>                   = ConcurrentHashMap.newKeySet()
+    override val pendingBoundsChange: WorkingSet<View>                   = WorkingSet()
 
     override fun addToCleanupList(parent: View, child: View) {
         pendingCleanup.getOrPut(parent) { ConcurrentHashMap.newKeySet() }.apply { add(child) }
