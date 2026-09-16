@@ -2408,17 +2408,17 @@ public fun <T> switchList(
     rest   = rest,
     config = config,
     layout = {
-        switch, label -> constrain(label, switch) { label_, switch_ ->
-            switch_.width   eq 30
-            switch_.height  eq 20
-            switch_.right   eq parent.right
-            switch_.centerY eq parent.centerY
+        switch, label -> constrain(label, switch) { label, switch ->
+            switch.width   eq 30
+            switch.height  eq 20
+            switch.right   eq parent.right
+            switch.centerY eq parent.centerY
 
-            label_.size     hint ideal
-            label_.left     eq   0
-            label_.centerY  eq   switch_.centerY
+            label.size     hint ideal
+            label.left     eq   0
+            label.top      eq   switch.centerY - readonly(label.height) / 2
 
-            parent.height eq max(readonly(label_.height), switch_.height)
+            parent.height eq max(readonly(label.height), switch.height)
         }
     }
 ) {

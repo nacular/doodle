@@ -42,7 +42,6 @@ import io.nacular.doodle.theme.basic.ColorMapper
 import io.nacular.doodle.utils.Anchor.Leading
 import io.nacular.doodle.utils.Pool
 import io.nacular.doodle.utils.SetPool
-import kotlin.math.max
 
 public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     private val textMetrics        : TextMetrics,
@@ -187,7 +186,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         view.preferredSize = { _,_ ->
             val centerSize = center.firstOrNull()?.idealSize ?: Size.Empty
 
-            Size(centerSize.width + buttonWidth + 2 * INSET, max(20.0, centerSize.height) + 2 * INSET)
+            Size(centerSize.width + buttonWidth + 2 * INSET, centerSize.height + 2 * INSET)
         }
 
         updateCenter(view)

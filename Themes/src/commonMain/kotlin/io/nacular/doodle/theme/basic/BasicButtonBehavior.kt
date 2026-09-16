@@ -126,7 +126,7 @@ public open class BasicButtonBehavior(
 
     private fun recalculateSize(button: Button) {
         val icon   = icon(button)
-        val size   = textMetrics.size(button.text, font(button))
+        val size   = button.text.takeIf { it.isNotBlank() }?.let { textMetrics.size(it, font(button)) } ?: Size.Empty
         var width  = size.width
         var height = size.height
 
