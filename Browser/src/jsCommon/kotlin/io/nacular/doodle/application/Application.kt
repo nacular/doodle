@@ -419,7 +419,7 @@ private open class ApplicationHolderImpl protected constructor(
 
         operator fun invoke(previousInjector: DirectDI, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
             return when (val body = document.body) {
-                // This is the case when the Javascript is loaded in the document header
+                // This is the case when the JavaScript is loaded in the document header
                 null -> AsyncAppWrapper(previousInjector,       allowDefaultDarkMode, modules)
                 else -> invoke         (previousInjector, body, allowDefaultDarkMode, modules)
             }
