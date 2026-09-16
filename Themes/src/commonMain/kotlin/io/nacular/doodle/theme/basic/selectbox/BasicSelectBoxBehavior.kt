@@ -334,7 +334,7 @@ public class BasicSelectBoxBehavior<T, M: ListModel<T>>(
             val cIdeal = center.first().idealSize
             val bIdeal = button.idealSize
 
-            Size(cIdeal.width + bIdeal.width + 2 * inset, max(cIdeal.height, bIdeal.height) + 2 * inset)
+            Size(cIdeal.width + bIdeal.width + 2 * inset, max(cIdeal.height, bIdeal.height) + 4 * inset)
         }
     }
 

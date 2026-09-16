@@ -533,6 +533,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             incrementA11yLabel : String? = null,
             decrementA11yLabel : String? = null,
+            inset              : Double? = null,
         ): Module = basicThemeModule(name = "BasicSpinButtonBehavior") {
             bindBehavior<SpinButton<Any, SpinButtonModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -546,6 +547,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         incrementA11yLabel  = incrementA11yLabel,
                         decrementA11yLabel  = decrementA11yLabel,
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                        inset               = inset               ?: 4.0,
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper
@@ -562,6 +564,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             buttonWidth        : Double? = null,
             incrementA11yLabel : String? = null,
             decrementA11yLabel : String? = null,
+            inset              : Double? = null,
         ): Module = basicThemeModule(name = "BasicMutableSpinButtonBehavior") {
             bindBehavior<MutableSpinButton<Any, MutableSpinButtonModel<Any>>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -575,6 +578,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         backgroundColor     = backgroundColor     ?: this.backgroundColor,
                         foregroundColor     = foregroundColor     ?: this.foregroundColor,
                         darkBackgroundColor = darkBackgroundColor ?: this.darkBackgroundColor,
+                        inset               = inset               ?: 4.0,
                     ).apply {
                         hoverColorMapper     = this@run.hoverColorMapper
                         disabledColorMapper  = this@run.disabledColorMapper

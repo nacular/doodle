@@ -23,10 +23,11 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
     darkBackgroundColor: Color,
     foregroundColor    : Color,
     cornerRadius       : Double,
-    buttonWidth        : Double,
+    buttonWidth        : Double        = 20.0,
     focusManager       : FocusManager? = null,
     incrementLabel     : String?       = null,
     decrementLabel     : String?       = null,
+    inset              : Double        = 8.0,
 ): MutableSpinButtonBehavior<T, M>(), PointerListener {
 
     private val delegate = BasicSpinButtonBehavior<T, M>(
@@ -39,6 +40,7 @@ public class BasicMutableSpinButtonBehavior<T, M: MutableSpinButtonModel<T>>(
         focusManager,
         incrementLabel,
         decrementLabel,
+        inset,
     ).apply {
         centerChanged += { spinButton, old, new ->
             (spinButton as? MutableSpinButton<T, M>)?.let {

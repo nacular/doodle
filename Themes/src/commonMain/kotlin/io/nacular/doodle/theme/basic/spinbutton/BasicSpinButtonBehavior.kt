@@ -53,6 +53,7 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
     private val focusManager       : FocusManager? = null,
     private val incrementA11yLabel : String?       = null,
     private val decrementA11yLabel : String?       = null,
+    private val inset              : Double        = 4.0,
 ): SpinButtonBehavior<T, M>(), KeyListener, PointerListener {
 
     public var hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
@@ -167,26 +168,26 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
         view.children += listOf(center, next, previous)
 
         view.layout = constrain(center, next, previous) { center_, next_, previous_ ->
-            center_.top      eq INSET
-            center_.left     eq INSET
-            center_.right    eq next_.left    - INSET strength Strong
-            center_.bottom   eq parent.bottom - INSET strength Strong
+            center_.top      eq inset
+            center_.left     eq inset
+            center_.right    eq next_.left    - inset strength Strong
+            center_.bottom   eq parent.bottom - inset strength Strong
 
-            next_.top        eq INSET                 strength Strong
-            next_.right      eq parent.right - INSET  strength Strong
+            next_.top        eq inset                 strength Strong
+            next_.right      eq parent.right - inset  strength Strong
             next_.bottom     eq parent.centerY
             next_.width      eq buttonWidth
 
             previous_.top    eq next_.bottom
             previous_.left   eq next_.left
             previous_.right  eq next_.right
-            previous_.bottom eq parent.bottom - INSET strength Strong
+            previous_.bottom eq parent.bottom - inset strength Strong
         }
 
         view.preferredSize = { _,_ ->
             val centerSize = center.firstOrNull()?.idealSize ?: Size.Empty
 
-            Size(centerSize.width + buttonWidth + 2 * INSET, centerSize.height + 2 * INSET)
+            Size(centerSize.width + buttonWidth + 2 * inset, centerSize.height + 4 * inset)
         }
 
         updateCenter(view)
@@ -256,8 +257,4 @@ public class BasicSpinButtonBehavior<T, M: SpinButtonModel<T>>(
 
     private  fun viewContainer  (spinButton: SpinButton<T, M>): Container? = spinButton.children.firstOrNull { it !is PushButton } as? Container
     internal fun visualizedValue(spinButton: SpinButton<T, M>): View?      = viewContainer(spinButton)?.firstOrNull()
-
-    public companion object {
-        private const val INSET = 4.0
-    }
 }
