@@ -627,13 +627,11 @@ internal open class VectorRendererSvg(
             setPosition(at)
 
             style.whiteSpace = "pre"
+
+            style.setFont       (font       )
+            style.setSelectable (false      )
             style.setTextSpacing(textSpacing)
 
-            font?.let {
-                style.setFont(it)
-            }
-
-            style.setSelectable(false)
             adjustTextAfterDisplay(this, aligner.verticalOffset(text, font))
 
             when (fill) {
