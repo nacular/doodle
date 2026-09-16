@@ -12,9 +12,9 @@ import io.nacular.doodle.core.Layout
 import io.nacular.doodle.core.View
 import io.nacular.doodle.core.container
 import io.nacular.doodle.core.fill
-import io.nacular.doodle.core.height
 import io.nacular.doodle.core.forceBounds
 import io.nacular.doodle.core.forcePosition
+import io.nacular.doodle.core.height
 import io.nacular.doodle.core.view
 import io.nacular.doodle.core.width
 import io.nacular.doodle.dom.CSSStyleDeclaration

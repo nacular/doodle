@@ -35,27 +35,9 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
     override fun create(text: String, font: Font?, url: String?, textSpacing: TextSpacing, possible: HTMLElement?): HTMLElement {
         val element = htmlFactory.createOrUse(TEXT_ELEMENT, possible)
 
-        val subElement = when (url) {
-            null -> element
-            else -> (htmlFactory.createOrUse(A_ELEMENT, possible?.firstChild as? HTMLElement) as HTMLAnchorElement).apply {
-                href = url
-                style.font     = "inherit"
-                style.position = "initial"
-
-                element.appendChild(this)
-            }
-        }
-
-        if (subElement.textContent != text) {
-            subElement.textContent = text
-        }
-
-        font?.let {
-            element.style.setFont(it)
-        }
-
-        element.style.setTextSpacing(textSpacing)
+        element.style.setFont       (font       )
         element.style.setSelectable (false      )
+        element.style.setTextSpacing(textSpacing)
 
         if (url != null) {
             element.style.pointerEvents = "auto"
@@ -66,6 +48,21 @@ internal class TextFactoryImpl(private val htmlFactory: HtmlFactory): TextFactor
             element.style.whiteSpace = ""
             element.style.textIndent = ""
             element.style.filter     = ""
+        }
+
+        val subElement = when (url) {
+            null -> element
+            else -> (htmlFactory.createOrUse(A_ELEMENT, possible?.firstChild as? HTMLElement) as HTMLAnchorElement).apply {
+                href           = url
+                style.font     = "inherit"
+                style.position = "initial"
+
+                element.appendChild(this)
+            }
+        }
+
+        if (subElement.textContent != text) {
+            subElement.textContent = text
         }
 
         return element

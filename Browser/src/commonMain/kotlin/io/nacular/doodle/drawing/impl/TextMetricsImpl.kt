@@ -137,8 +137,8 @@ internal class TextMetricsImpl(
                     alignment   = Start,
                     lineSpacing = null,
                     textSpacing = textSpacing,
-//                    possible    = wrappedElement,
-                )/*.also { wrappedElement = it }*/)
+                    possible    = wrappedElement,
+                ).also { wrappedElement = it })
 
                 box.style.setWidth(width)
 
@@ -158,12 +158,7 @@ internal class TextMetricsImpl(
         when {
             canvasNotSupported(default) -> {
                 // Special check for empty added to avoid font black-holing if first text checked is empty string
-                elementRuler.height(textFactory.create(
-                    text.takeUnless { it.isBlank() } ?: " ",
-                    font,
-                    textSpacing = default,
-                    possible    = element
-                ).also { element = it })
+                heightDom(text, font)
             }
             else -> textSize(text, POSITIVE_INFINITY, font, null, default).totalHeight
         }
@@ -319,7 +314,9 @@ internal class TextMetricsImpl(
     }
 
     private var currentFontSet = false
-    private var currentFont = null as Font?
+    private var currentFont    = null as Font?
+    private val whiteSpace     = """\S+|\s+""".toRegex()
+    private val wrapper        = "X"
 
     private fun textSize(
         text       : String,
@@ -332,14 +329,15 @@ internal class TextMetricsImpl(
 
         if (!currentFontSet || currentFont != font) {
             renderingContext.font = fontSerializer(font)
-            currentFont = font
-            currentFontSet = true
+            currentFont           = font
+            currentFontSet        = true
         }
 
         renderingContext.wordSpacing   = "${max(0.0, textSpacing.wordSpacing  )}px"
         renderingContext.letterSpacing = "${max(0.0, textSpacing.letterSpacing)}px"
 
-        val paragraphs = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
+        val wrapperWidth = renderingContext.measureText(wrapper).width * 2
+        val paragraphs   = text.splitMatches(lineBreakRegex).run { matches.map { it.match } + remaining }
 
         // Mutable trackers initialized from the incoming cursor state
         var runningX     = cursor.currentX
@@ -347,38 +345,37 @@ internal class TextMetricsImpl(
         var lineCount    = cursor.totalLines
         var maxLineWidth = cursor.maxLineWidthReached
 
-        val lineHeight   = (lineSpacing?.takeIf { it >= 0 } ?: lineHeight(font)) * (font?.size ?: defaultFontSize)
+        val lineHeight   = (lineSpacing?.takeIf { it >= 0 } ?: lineHeight(font)) * (font?.size ?: defaultFontSize) + 0.5
 
         paragraphs.forEachIndexed { index, paragraph ->
-            val words = paragraph.split(" ")
-            var currentLine = ""
-
             if (index > 0) {
                 runningX = 0.0
                 runningY += lineHeight
                 lineCount++
             }
 
-            for (i in words.indices) {
-                val word = words[i]
-                val testSegment = if (currentLine.isEmpty()) word else "$currentLine $word"
+            var currentLine = ""
+
+            for (match in whiteSpace.findAll(paragraph)) {
+                val word        = match.value
+                val testSegment = if (currentLine.isEmpty()) word else "$currentLine$word"
 
                 // Measure how long this specific segment variant is
-                val testSegmentWidth = renderingContext.measureText(testSegment).width
+                val testSegmentWidth = renderingContext.measureText("$wrapper$testSegment$wrapper").width - wrapperWidth
 
                 // Total boundary check: where does this line segment end from our starting point?
                 val absoluteEndPosition = runningX + testSegmentWidth
 
                 if (absoluteEndPosition > width && (currentLine.isNotEmpty() || runningX > 0.0)) {
                     // Current segment exceeds layout bounds. Commit the *previous* segment width.
-                    val finalSegmentWidth = renderingContext.measureText(currentLine).width
+                    val finalSegmentWidth = renderingContext.measureText("$wrapper$currentLine$wrapper").width - wrapperWidth
                     val lineEndCoordinate = runningX + finalSegmentWidth
                     if (lineEndCoordinate > maxLineWidth) maxLineWidth = lineEndCoordinate
 
                     // Wrap down to the beginning of the next line
-                    currentLine = word
-                    runningX = 0.0
-                    runningY += lineHeight
+                    currentLine  = word.ifBlank { "" }
+                    runningX     = 0.0
+                    runningY    += lineHeight
                     lineCount++
                 } else {
                     currentLine = testSegment
@@ -386,7 +383,7 @@ internal class TextMetricsImpl(
             }
 
             if (currentLine.isNotEmpty()) {
-                val finalSegmentWidth = renderingContext.measureText(currentLine).width
+                val finalSegmentWidth = renderingContext.measureText("$wrapper$currentLine$wrapper").width - wrapperWidth
                 runningX += finalSegmentWidth
                 if (runningX > maxLineWidth) maxLineWidth = runningX
             }
@@ -408,21 +405,20 @@ internal class TextMetricsImpl(
     }
 
     private val testText    = "Something"
-    private var skipCanvas  = false
+    private var skipCanvas  = true //false FIXME: Re-enable when there're work-arounds for Chrome/Firefox bugs
     private val lineHeights = LeastRecentlyUsedCache<Font?, Float>(10)
 
     internal fun lineHeight(font: Font?) = lineHeights.getOrPut(font) {
-        skipCanvas = true
-        val heightDefaultLineSpacing = height(testText, font).toFloat()
-        skipCanvas = false
-
-        heightDefaultLineSpacing / height(
-            testText,
-            font        = font,
-            width       = POSITIVE_INFINITY,
-            lineSpacing = 1f
-        ).toFloat()
+        ((heightDom(testText, font) / heightDom(testText, font, lineSpacing = 1f)).toFloat()).takeIf { it.isFinite() } ?: 1f
     }
+
+    private fun heightDom(text: String, font: Font?, lineSpacing: Float? = null) = elementRuler.height(textFactory.create(
+        text.takeUnless { it.isBlank() } ?: " ",
+        font,
+        textSpacing = default,
+        possible    = element,
+        lineSpacing = lineSpacing
+    ).also { element = it })
 
     private fun canvasNotSupported(textSpacing: TextSpacing) = skipCanvas
             || noFontSupport

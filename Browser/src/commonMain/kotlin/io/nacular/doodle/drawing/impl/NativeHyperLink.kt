@@ -50,8 +50,8 @@ internal class NativeHyperLinkFactoryImpl internal constructor(
 
 internal class NativeHyperLink internal constructor(
     private val textMetrics         : TextMetrics,
-    htmlFactory         : HtmlFactory,
-    handlerFactory      : NativeEventHandlerFactory,
+                htmlFactory         : HtmlFactory,
+                handlerFactory      : NativeEventHandlerFactory,
     private val focusManager        : FocusManager?,
     private val accessibilityManager: AccessibilityManagerImpl?,
     private val canvasFactory       : CanvasFactory,
