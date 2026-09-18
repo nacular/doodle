@@ -1584,7 +1584,7 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
                             views   = children.asSequence().map { it.positionable.also { it.reset() } },
                             min     = min,
                             max     = max,
-                            current = size.coerceIn(min, max),
+                            current = newBounds.size.coerceIn(min, max),
                             insets  = insets
                         ).coerceIn(min, max).also {
                             when {

@@ -71,8 +71,8 @@ class SchedulerImplTests {
     @Test fun `scheduler calls repeatedly`() {
         val window = window()
 
-        val timer = mockk<Timer>().apply {
-            every { this@apply.now } returnsMany listOf(10, 12, 13, 14).map { it * seconds }
+        val timer = mockk<Timer> {
+            every { now } returnsMany listOf(10, 12, 13, 14).map { it * seconds }
         }
 
         val callback = mockk<(Measure<Time>) -> Unit>()
@@ -92,8 +92,8 @@ class SchedulerImplTests {
     @Test fun `scheduler delays for time`() {
         val window = window()
 
-        val timer = mockk<Timer>().apply {
-            every { this@apply.now } returnsMany listOf(10, 12, 13).map { it * seconds }
+        val timer = mockk<Timer>() {
+            every { now } returnsMany listOf(10, 12, 13).map { it * seconds }
         }
 
         runBlocking {
@@ -108,16 +108,23 @@ class SchedulerImplTests {
     @Test fun `scheduler delays until`() {
         val window = window()
 
-        val timer = mockk<Timer>().apply {
-            every { this@apply.now } returnsMany listOf(10, 12, 13).map { it * seconds }
+        val timer = mockk<Timer> {
+            every { now } returnsMany listOf(10, 12, 13).map { it * seconds }
         }
 
-        val condition = mockk<(Measure<Time>) -> Boolean>().apply {
-            every { this@apply.invoke(any()) } returnsMany listOf(false, false, true)
+        val condition = mockk<(Measure<Time>) -> Boolean> {
+            every { this@mockk.invoke(any()) } returnsMany listOf(false, false, true)
+        }
+
+        val animationScheduler = mockk<AnimationScheduler> {
+            every { onNextFrame(captureLambda()) } answers {
+                lambda<(Measure<Time>) -> Unit>().captured(0 * milliseconds)
+                mockk()
+            }
         }
 
         runBlocking {
-            SchedulerImpl(window, timer, mockk()).delayUntil(condition)
+            SchedulerImpl(window, timer, animationScheduler).delayUntil(condition)
         }
 
         verifyOrder {
@@ -131,7 +138,7 @@ class SchedulerImplTests {
         SchedulerImpl(window(), mockk(), mockk()).shutdown()
     }
 
-    private fun window() = mockk<Window>().apply {
+    private fun window() = mockk<Window> {
         val timeOut = slot<Int>()
 
         every { setTimeout(captureLambda(), capture(timeOut)) } answers {
