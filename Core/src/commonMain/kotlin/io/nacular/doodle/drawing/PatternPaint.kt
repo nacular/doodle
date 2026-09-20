@@ -83,15 +83,23 @@ public class PatternPaint(
     public val opacity  : Float = 1f,
     public val paint    : PatternCanvas.() -> Unit
 ): Paint() {
-    public constructor(size: Size, transform: AffineTransform2D = Identity, opacity: Float = 1f, fill: PatternCanvas.() -> Unit): this(Rectangle(size = size), transform, opacity, fill)
+    public constructor(
+        size     : Size,
+        transform: AffineTransform2D = Identity,
+        opacity  : Float = 1f,
+        fill     : PatternCanvas.() -> Unit
+    ): this(Rectangle(size = size), transform, opacity, fill)
 
     public val size: Size get() = bounds.size
 
     override val visible: Boolean = !bounds.empty
 
     public companion object {
-        public operator fun invoke(bounds: Rectangle, transform: AffineTransform2D = Identity, fill: PatternCanvas.() -> Unit): PatternPaint =
-                PatternPaint(bounds, transform, paint = fill)
+        public operator fun invoke(
+            bounds   : Rectangle,
+            transform: AffineTransform2D = Identity,
+            fill     : PatternCanvas.() -> Unit,
+        ): PatternPaint = PatternPaint(bounds, transform, paint = fill)
     }
 }
 
@@ -102,12 +110,17 @@ public class PatternPaint(
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-public fun stripedPaint(stripeWidth : Double,
-        evenRowColor: Color? = null,
-        oddRowColor : Color? = null,
-        transform   : AffineTransform2D = Identity): PatternPaint = PatternPaint(Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth), transform) {
-    evenRowColor?.let { rect(Rectangle(                  stripeWidth, stripeWidth), ColorPaint(it)) }
-    oddRowColor?.let  { rect(Rectangle(0.0, stripeWidth, stripeWidth, stripeWidth), ColorPaint(it)) }
+public fun stripedPaint(
+    stripeWidth : Double,
+    evenRowColor: Color?            = null,
+    oddRowColor : Color?            = null,
+    transform   : AffineTransform2D = Identity
+): PatternPaint = PatternPaint(
+    Size(if (evenRowColor.visible || oddRowColor.visible) stripeWidth else 0.0, 2 * stripeWidth),
+    transform
+) {
+    evenRowColor?.let { rect(Rectangle(            width, width), it.paint) }
+    oddRowColor?.let  { rect(Rectangle(0.0, width, width, width), it.paint) }
 }
 
 /**
@@ -117,9 +130,11 @@ public fun stripedPaint(stripeWidth : Double,
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedPaint(
-        rowHeight, evenRowColor, oddRowColor
-)
+public fun horizontalStripedPaint(
+    rowHeight   : Double,
+    evenRowColor: Color? = null,
+    oddRowColor : Color? = null
+): PatternPaint = stripedPaint(rowHeight, evenRowColor, oddRowColor)
 
 /**
  * Creates a [PatternPaint] that draws an alternating vertical striped pattern.
@@ -128,9 +143,11 @@ public fun horizontalStripedPaint(rowHeight: Double, evenRowColor: Color? = null
  * @param evenRowColor used to fill the even numbered rows (i.e. 0, 2, 122)
  * @param oddRowColor used to fill the odd numbered rows (i.e. 1, 3, 121)
  */
-public fun verticalStripedPaint(colWidth: Double, evenRowColor: Color? = null, oddRowColor: Color? = null): PatternPaint = stripedPaint(
-        colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees)
-)
+public fun verticalStripedPaint(
+    colWidth    : Double,
+    evenRowColor: Color? = null,
+    oddRowColor : Color? = null
+): PatternPaint = stripedPaint(colWidth, evenRowColor, oddRowColor, Identity.rotate(270 * degrees))
 
 /**
  * Creates a [PatternPaint] that draws a checkered pattern.
@@ -139,11 +156,15 @@ public fun verticalStripedPaint(colWidth: Double, evenRowColor: Color? = null, o
  * @param firstColor of the first rectangle, left-to-right
  * @param secondColor of the second rectangle, left-to-right
  */
-public fun checkerPaint(checkerSize: Size, firstColor: Color? = null, secondColor: Color? = null): PatternPaint = PatternPaint(if (firstColor.visible || secondColor.visible) checkerSize * 2 else Empty) {
+public fun checkerPaint(
+    checkerSize: Size,
+    firstColor : Color? = null,
+    secondColor: Color? = null
+): PatternPaint = PatternPaint(if (firstColor.visible || secondColor.visible) checkerSize * 2 else Empty) {
     val w  = checkerSize.width
     val h  = checkerSize.height
-    val b1 = firstColor?.let  { ColorPaint(it) }
-    val b2 = secondColor?.let { ColorPaint(it) }
+    val b1 = firstColor?.paint
+    val b2 = secondColor?.paint
 
     b1?.let { rect(Rectangle(0.0, 0.0, w, h), it) }
     b2?.let { rect(Rectangle(0.0,   h, w, h), it) }

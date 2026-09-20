@@ -1,5 +1,6 @@
 package io.nacular.doodle.drawing
 
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
@@ -89,7 +90,9 @@ class PatternPaintTests {
             Attributes( 0.6, null,  Red, Identity                     ),
             Attributes( 0.0, Red, Green, Identity.rotate(30 * degrees))
         ).forEach { test ->
-            val canvas = mockk<PatternCanvas>()
+            val canvas = mockk<PatternCanvas> {
+                every { size } returns Size(test.stripWidth, test.stripWidth)
+            }
 
             stripedPaint(stripeWidth = test.stripWidth, evenRowColor = test.evenColor, oddRowColor = test.oddColor, transform = test.transform).apply {
                 expect(transform) { test.transform }
@@ -99,12 +102,12 @@ class PatternPaintTests {
 
             test.evenColor?.let {
                 verify(exactly = 1) {
-                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), ColorPaint(it))
+                    canvas.rect(Rectangle(width = test.stripWidth, height = test.stripWidth), it.paint)
                 }
             }
 
             test.oddColor?.let {
-                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), ColorPaint(it)) }
+                verify(exactly = 1) { canvas.rect(Rectangle(y = test.stripWidth, width = test.stripWidth, height = test.stripWidth), it.paint) }
             }
         }
     }

@@ -103,9 +103,10 @@ internal open class BoundsImpl(private val target: Positionable, private val con
     override val centerX = with(context) { left + width  / 2 }
     override val centerY = with(context) { top  + height / 2 }
 
-    override val size    = BoundsArea(width, height)
-    override val edges   = with(context) { Edges(top + 0, left + 0, right, bottom) }
-    override val center  = Position(centerX, centerY)
+    override val position = Position(top, left)
+    override val size     = BoundsArea(width, height)
+    override val edges    = with(context) { Edges(top + 0, left + 0, right, bottom) }
+    override val center   = Position(centerX, centerY)
 
     override val idealSize get() = target.idealSize
 

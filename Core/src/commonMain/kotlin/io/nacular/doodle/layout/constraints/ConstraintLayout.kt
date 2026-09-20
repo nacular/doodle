@@ -315,6 +315,9 @@ public interface Bounds {
     /** The rectangle's left edge */
     public val left: Property
 
+    /** The rectangle's top/left edge */
+    public val position: Position
+
     /** The rectangle's vertical extent */
     public val height: HeightProperty
 

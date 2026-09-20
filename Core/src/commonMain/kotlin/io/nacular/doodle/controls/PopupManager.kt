@@ -61,11 +61,11 @@ public interface PopupManager {
 
     /**
      * Shows [view] as though it is a pop-up, that means it is placed atop all other views in the app.
-     * The given constraints include details about the bounds of [relativeTo], which allows [view] to be positioned
-     * relative to it.
+     * The given constraints include details about a [Rectangle] within [relativeTo]'s coordinate space,
+     * which allows [view] to be positioned relative to it.
      *
      * ```
-     * show(view, other) { popup, anchor ->
+     * show(view, other, { someRectangle }) { popup, anchor ->
      *     popup.top     eq anchor.bottom + 2
      *     popup.centerX eq anchor.center.x
      *
