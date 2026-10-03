@@ -169,7 +169,7 @@ public class ColorPicker(color: Color): View() {
             val old = field
             field = new
 
-            handle.suggestX((width - handle.width) * field)
+            relayout()
 
             changed_.forEach { it(this@Strip, old, field) }
         }
@@ -181,7 +181,8 @@ public class ColorPicker(color: Color): View() {
             children += handle
 
             layout = constrain(handle) {
-                it.left    eq min(readonly(parent.right) - handle.width, max(0.0, readonly(parent.width) * this@Strip.ratio - handle.width / 2))
+                it.left    eq min(parent.width.value - it.width, max(0.0, parent.width.value * this@Strip.ratio - it.width / 2))
+                it.width   eq 12
                 it.height  eq parent.height
                 it.centerY eq parent.centerY
             }
@@ -388,7 +389,7 @@ public class ColorPicker(color: Color): View() {
         layout = constrain(colorRect, hueStrip, opacityStrip, colorSquare) { colorRect, hueStrip, opacityStrip, colorSquare ->
             colorRect.top        eq inset
             colorRect.left       eq inset
-            colorRect.right      eq max(inset, parent.right - inset) - inset strength Required - 1
+            colorRect.right      eq max(inset, parent.right - inset) strength Required - 1
             colorRect.bottom     eq max(inset, hueStrip.top - inset)
 
             hueStrip.left        eq inset
