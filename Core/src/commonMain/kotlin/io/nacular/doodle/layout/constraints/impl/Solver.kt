@@ -1052,17 +1052,4 @@ internal class Solver {
     private fun nearZero(value: Double): Boolean = abs(value) < 1.0e-8
 
     private fun Double.cleanUp() = if (nearZero(this)) 0.0 else this
-
-    fun printState(): String = "" /*(
-        constraints.keys.map { "$it" } +
-        variables.map { x ->
-            """
-                vars[$x] = ${vars[x]}
-                rows[vars[$x]] = ${rows[vars[x]]?.let { "${it.constant}, ${it.cells}" }}
-            """.trimIndent()
-        } +
-        rows.map { (sym, row) ->
-            "$sym -> constant: ${row.constant}, cells: ${row.cells}"
-        }
-    ).joinToString("\n")*/
 }
