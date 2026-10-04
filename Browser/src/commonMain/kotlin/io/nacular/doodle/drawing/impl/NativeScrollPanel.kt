@@ -8,6 +8,7 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.dom.Auto
 import io.nacular.doodle.dom.Event
 import io.nacular.doodle.dom.HTMLElement
+import io.nacular.doodle.dom.Hidden
 import io.nacular.doodle.dom.HtmlFactory
 import io.nacular.doodle.dom.ResizeObserver
 import io.nacular.doodle.dom.Scroll
@@ -121,6 +122,18 @@ internal class NativeScrollPanel internal constructor(
         }
     }
 
+    private val enabledChanged: (View, Boolean, Boolean) -> Unit = { _,_,new ->
+        when {
+            new  -> {
+                if (managedScrolling) {
+                    rootElement.style.setOverflow(Auto())
+                }
+                updateScroll()
+            }
+            else -> rootElement.style.setOverflow(Hidden())
+        }
+    }
+
     private val contentChanged: (ScrollPanel, View?, View?) -> Unit = { _,old,new ->
         old?.let { view ->
             contentGraphicsSurface?.let {
@@ -205,6 +218,7 @@ internal class NativeScrollPanel internal constructor(
             registerScrollListener()
         }
 
+        panel.enabledChanged += enabledChanged
         panel.contentChanged += contentChanged
 
         barChanged(Vertical,   barWidth )
@@ -215,6 +229,7 @@ internal class NativeScrollPanel internal constructor(
 
     fun discard() {
         panel.boundsChanged  -= boundsChanged
+        panel.enabledChanged -= enabledChanged
         panel.contentChanged -= contentChanged
 
         rootElement.apply {
@@ -264,7 +279,7 @@ internal class NativeScrollPanel internal constructor(
 
                 (spacerDiv.firstChild as? HTMLElement)?.style?.setSize(size)
             }
-            else             -> rootElement.style.setOverflow(Scroll())
+            panel.enabled    -> rootElement.style.setOverflow(Scroll())
         }
     }
 }
