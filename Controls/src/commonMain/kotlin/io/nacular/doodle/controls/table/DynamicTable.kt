@@ -103,7 +103,18 @@ public open class DynamicTable<T, M: DynamicListModel<T>>(
                 maxWidth       : Double? = null,
                 extractor      : Extractor<T, R>,
     private val firstColumn    : Boolean
-    ): Table<T, M>.InternalListColumn<R>(header, headerAlignment, footer, footerAlignment, cellGenerator, cellAlignment, preferredWidth, minWidth, maxWidth, extractor) {
+    ): Table<T, M>.InternalListColumn<R>(
+        header,
+        headerAlignment,
+        footer,
+        footerAlignment,
+        cellGenerator,
+        cellAlignment,
+        preferredWidth,
+        minWidth,
+        maxWidth,
+        extractor
+    ) {
 
         protected open inner class FieldModel<A>(private val model: M, private val extractor: Extractor<T, A>): DynamicListModel<A> {
             init {

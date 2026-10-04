@@ -16,10 +16,6 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 
 /**
  * Indicate when a meta row in a [Table] (i.e. header, footer, etc.) should be visible.
- *
- * @property Always Row is always visible
- * @property HasContents Only visible if it has contents
- * @property Never Row is never visible
  */
 public enum class MetaRowVisibility {
     /** Row is always visible */
@@ -147,7 +143,7 @@ internal fun <T: View> tableLayout(
         }
     }
 
-    panel_.bottom eq parent.bottom - (footer_.height + footerPadding)
+    panel_.bottom eq parent.bottom - (footer_.height + footerPadding) strength Required - 1
 }
 
 internal fun metaRowHeight(row: TableMetaRow, visibility: MetaRowVisibility, targetHeight: Double): Double = when {

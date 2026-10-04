@@ -28,7 +28,8 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Bounds
 import io.nacular.doodle.layout.constraints.ConstraintDslContext
-import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.utils.Completable
 import io.nacular.doodle.utils.Extractor
 import io.nacular.doodle.utils.Pool
@@ -369,11 +370,10 @@ public open class Table<T, M: ListModel<T>>(
             }
         }).apply {
             contentConstraints = {
-                it.width greaterEq panel.idealSize.width
-                it.width eq        parent.width - verticalScrollBarWidth strength Strong
+                val panelIdealSize = panel.idealSize
 
-                it.height greaterEq panel.idealSize.height
-                it.height eq        parent.height - horizontalScrollBarHeight strength Strong
+                it.width  eq max(panelIdealSize.width,  parent.width  - verticalScrollBarWidth   ) strength Required - 1
+                it.height eq max(panelIdealSize.height, parent.height - horizontalScrollBarHeight) strength Required - 1
             }
 
             scrollBarDimensionsChanged += {
