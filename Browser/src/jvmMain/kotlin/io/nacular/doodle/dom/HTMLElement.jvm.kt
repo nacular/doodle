@@ -206,14 +206,15 @@ internal actual class FocusOptions: JsAny {
 
 internal actual abstract class HTMLElement: Element(), ElementCSSInlineStyle {
     internal var role_             = "" as String?
-    actual var title       : String  = ""
-    actual var draggable   : Boolean = false
-    actual val offsetTop   : Int     = 0
-    actual val offsetLeft  : Int     = 0
-    actual val offsetWidth : Int     = 0
-    actual val offsetHeight: Int     = 0
-    actual var tabIndex    : Int     = 0
-    actual var spellcheck  : Boolean = false
+    actual var title       : String       = ""
+    actual var draggable   : Boolean      = false
+    actual val offsetTop   : Int          = 0
+    actual val offsetLeft  : Int          = 0
+    actual val offsetWidth : Int          = 0
+    actual val offsetHeight: Int          = 0
+    actual val offsetParent: HTMLElement? = null
+    actual var tabIndex    : Int          = 0
+    actual var spellcheck  : Boolean      = false
 
     actual var onwheel    : ((WheelEvent   ) -> Boolean)? = null
     actual var onkeyup    : ((KeyboardEvent) -> Boolean)? = null

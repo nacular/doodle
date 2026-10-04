@@ -126,6 +126,7 @@ public actual abstract external class HTMLElement: Element, ElementCSSInlineStyl
     internal actual val offsetLeft  : Int
     internal actual val offsetWidth : Int
     internal actual val offsetHeight: Int
+    internal actual val offsetParent: HTMLElement?
     internal actual var tabIndex    : Int
     internal actual var spellcheck  : Boolean
 

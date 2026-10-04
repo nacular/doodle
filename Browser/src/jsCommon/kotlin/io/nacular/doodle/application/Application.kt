@@ -384,8 +384,12 @@ private open class ApplicationHolderImpl protected constructor(
         isShutdown = true
     }
 
-    private class AsyncAppWrapper(previousInjector: DirectDI, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()):
-        Application {
+    private class AsyncAppWrapper(
+                    previousInjector    : DirectDI,
+        private val root                : () -> HTMLElement?,
+                    allowDefaultDarkMode: Boolean      = false,
+                    modules             : List<Module> = emptyList()
+    ): Application {
         private  var jobId : Int? by observable(null) {old,_ ->
             old?.let { window.clearTimeout(it) }
         }
@@ -397,12 +401,14 @@ private open class ApplicationHolderImpl protected constructor(
         }
 
         private fun start(previousInjector: DirectDI, allowDefaultDarkMode: Boolean, modules: List<Module>) {
+            val resolvedRoot = root()
+
             when {
-                document.body != null -> {
-                    holder = ApplicationHolderImpl(previousInjector, document.body!!, allowDefaultDarkMode, modules)
+                resolvedRoot?.displayed == true -> {
+                    holder = ApplicationHolderImpl(previousInjector, resolvedRoot, allowDefaultDarkMode, modules)
                     holder.run()
                 }
-                else                  -> jobId = window.setTimeout({ start(previousInjector, allowDefaultDarkMode, modules) }, 0)
+                else                    -> jobId = window.setTimeout({ start(previousInjector, allowDefaultDarkMode, modules) }, 0)
             }
         }
 
@@ -417,19 +423,25 @@ private open class ApplicationHolderImpl protected constructor(
     companion object {
         private const val DIR = "dir"
 
-        operator fun invoke(previousInjector: DirectDI, allowDefaultDarkMode: Boolean = false, modules: List<Module> = emptyList()): Application {
-            return when (val body = document.body) {
-                // This is the case when the JavaScript is loaded in the document header
-                null -> AsyncAppWrapper(previousInjector,       allowDefaultDarkMode, modules)
-                else -> invoke         (previousInjector, body, allowDefaultDarkMode, modules)
-            }
+        operator fun invoke(
+            previousInjector    : DirectDI,
+            allowDefaultDarkMode: Boolean = false,
+            modules             : List<Module> = emptyList()
+        ): Application = when (val body = document.body) {
+            // This is the case when the JavaScript is loaded in the document header
+            null -> AsyncAppWrapper(previousInjector, { document.body }, allowDefaultDarkMode, modules)
+            else -> invoke         (previousInjector, body,              allowDefaultDarkMode, modules)
         }
 
         operator fun invoke(previousInjector    : DirectDI,
                             root                : HTMLElement,
                             allowDefaultDarkMode: Boolean      = false,
-                            modules             : List<Module> = emptyList()): Application {
-            return ApplicationHolderImpl(previousInjector, root, allowDefaultDarkMode, modules).apply { run() }
+                            modules             : List<Module> = emptyList()
+        ): Application = when {
+            !root.displayed -> AsyncAppWrapper      (previousInjector, { root }, allowDefaultDarkMode, modules)
+            else            -> ApplicationHolderImpl(previousInjector,   root,   allowDefaultDarkMode, modules).apply { run() }
         }
+
+        private val HTMLElement.displayed: Boolean get() = this == document.body || offsetParent != null
     }
 }

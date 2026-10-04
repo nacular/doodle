@@ -183,6 +183,7 @@ internal expect abstract external class HTMLElement: Element, ElementCSSInlineSt
     internal val offsetLeft  : Int
     internal val offsetWidth : Int
     internal val offsetHeight: Int
+    internal val offsetParent: HTMLElement?
     internal var tabIndex    : Int
     internal var spellcheck  : Boolean
     internal var dir         : String
