@@ -557,6 +557,8 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
     /** Whether this View is visible. The default is `true`. */
     @Suppress("UNCHECKED_CAST")
     public var visible: Boolean = true; set(new) {
+        if (field == new) return
+
         val old = field
         field = new
 
@@ -1076,9 +1078,9 @@ public abstract class View protected constructor(accessibilityRole: Accessibilit
         if (!needsLayout) return
 
         layout?.let {
-            val layoutSize = doLayout(it, min = min, max = max, current = current)
+            doLayout(it, min = min, max = max, current = current)
 
-            if (min != max && preferredSize == defaultPreferredSize && !layoutSize.coerceIn(min, max).essentiallyEqual(size)) {
+            if (min != max && preferredSize == defaultPreferredSize && !preferredSize(min, max).coerceIn(min, max).essentiallyEqual(size)) {
                 parent?.relayout() ?: run { display?.relayout() }
             }
         }

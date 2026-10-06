@@ -638,8 +638,6 @@ class SolverTests {
 
             updateVariables()
 
-            println(printState())
-
             computeRange(aWidth, 0.0 )
             computeRange(aHeight, 0.0)
             computeRange(bWidth, 0.0 )

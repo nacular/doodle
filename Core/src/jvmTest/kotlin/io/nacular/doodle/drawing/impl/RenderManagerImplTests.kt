@@ -630,22 +630,25 @@ class RenderManagerImplTests {
     }
 
     @Test fun `re-renders on added becoming visible`() {
-        val parent  = container()
-        val view    = spyk<View> { suggestSize(Size(100)) }
-        val display = display(parent)
+        val parent     = container()
+        val child      = spyk<View> { suggestSize(Size(100)) }
+        val grandChild = spyk<View> { suggestSize(Size(100)) }
+        val display    = display(parent)
 
-        view.visible = false
+        child.visible = false
+        child.children_ += grandChild
 
         val renderManager = renderManager(display)
 
-        verify(exactly = 0) { view.addedToDisplay_(display, renderManager.first, any()) }
-        verify(exactly = 0) { view.render        (any()                              ) }
+        verify(exactly = 0) { child.addedToDisplay_(display, renderManager.first, any()) }
+        verify(exactly = 0) { child.render        (any()                              ) }
 
-        parent.children_ += view
+        parent.children_ += child
 
-        view.visible = true
+        child.visible = true
 
-        verifyChildAddedProperly(renderManager, display, view)
+        verifyChildAddedProperly(renderManager, display, child     )
+        verifyChildAddedProperly(renderManager, display, grandChild)
     }
 
     @Test fun `addedToDisplay called in correct order`() {
@@ -1403,7 +1406,7 @@ class RenderManagerImplTests {
 
     private fun verifyChildAddedProperly(renderManager: Pair<RenderManager, AccessibilityManager>, display: InternalDisplay, view: View, times: Int = 1) {
         verify(exactly = times) { view.addedToDisplay_(display, renderManager.first, renderManager.second) }
-        verify(exactly = times) { view.render        (any()                                             ) }
+        verify(exactly = times) { view.render         (any()                                             ) }
     }
 
     private fun verifyChildRemovedProperly(view: View, times: Int = 1) {

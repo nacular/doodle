@@ -941,6 +941,14 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         strength(Strength(strength))
     }
 
+    @JvmName("resultStrengthEdit3")
+    public infix fun Result<IdealEdit>.strength(strength: Strength) {
+        this.getOrNull()?.strength = strength
+    }
+
+    @JvmName("resultStrengthEdit4")
+    public infix fun Result<IdealEdit>.strength(strength: Int) { strength(Strength(strength)) }
+
     public fun Bounds.withOffset(top: Double = 0.0, left: Double = 0.0): Bounds = when {
         top == 0.0 && left == 0.0 -> this
         else                      -> withOffset(top = { top }, left = { left })
