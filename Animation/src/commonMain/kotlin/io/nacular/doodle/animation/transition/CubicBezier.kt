@@ -1,93 +1,61 @@
 package io.nacular.doodle.animation.transition
 
-import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.cbrt
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sqrt
 
 /*
  * Port based on https://github.com/gre/bezier-easing
  */
 
-/** Coefficients based on Homer's method */
-private fun coefficient1(a1: Float, a2: Float) = 1 - 3 * a2 + 3 * a1
-private fun coefficient2(a1: Float, a2: Float) =     3 * a2 - 6 * a1
-private fun coefficient3(a1: Float           ) =              3 * a1
+/**
+ * Solves x(t) = ((2a * t + 3b) * t + 3c) * t = x for t, with x in (0, 1):
+ * u = 1/t is the largest real root of x*u^3 - 3c*u^2 - 3b*u - 2a = 0
+ */
+private fun tForX(x: Double, a: Double, b: Double, c: Double): Double {
+    val j = 1 / max(c, sqrt(x))
+    val k = x * j
+    val l = k * j
+    val s = c * j
+    val q = b * l
+    val m = s * s + q
+    val h = -s * (s * s + 1.5 * q) - a * k * l
+    val d = h * h - m * m * m
 
-/** @return dv/t based on Homer's method*/
-private fun slope(t: Float, v1: Float, v2: Float) = 3f * coefficient1(v1, v2) * t * t + 2f * coefficient2(v1, v2) * t + coefficient3(v1)
-
-private fun binarySubdivide(x: Float, a: Float, b: Float, x1: Float, x2: Float): Float {
-    var currentAA = a
-    var currentAB = b
-    var currentX  : Float
-    var currentT  : Float
-    var i         = 0
-
-    do {
-        currentT = currentAA + (currentAB - currentAA) / 2f
-        currentX = calcBezier(currentT, x1, x2) - x
-        when {
-            currentX > 0.0 -> currentAB = currentT
-            else           -> currentAA = currentT
+    val v = when {
+        // one real root (Cardano)
+        m == 0.0 || d > 1e-12 * h * h -> {
+            val u = -cbrt(if (h < 0) h - sqrt(d) else h + sqrt(d))
+            (u + m / u).let { if (it.isNaN()) 0.0 else it } // triple root (m = h = 0) gives NaN
         }
-    } while (abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS)
-
-    return currentT
-}
-
-private fun newtonRaphsonIterate(x: Float, tGuess: Float, x1: Float, x2: Float): Float {
-    var result = tGuess
-
-    repeat(NEWTON_ITERATIONS) {
-        when (val slope = slope(result, x1, x2)) {
-            0f   -> return result
-            else -> result -= (calcBezier(result, x1, x2) - x) / slope
+        // three real roots, take the largest
+        else -> {
+            val r = sqrt(m)
+            2 * r * cos(acos((-h / (m * r)).coerceIn(-1.0, 1.0)) / 3)
         }
     }
 
-    return result
+    return min(1.0, k / (v + s))
 }
-
-private fun tForX(x1: Float, x2: Float, x: Float, sampleValues: FloatArray): Float {
-    var intervalStart = 0f
-    var currentSample = 1
-    val lastSample    = SPLINE_TABLE_SIZE - 1
-
-    while (currentSample != lastSample && sampleValues[currentSample] <= x) {
-        intervalStart += SAMPLE_STEP_SIZE
-        ++currentSample
-    }
-    --currentSample
-
-    // Interpolate to provide an initial guess for t
-    val dist   = (x - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample])
-    val tGuess = intervalStart + dist * SAMPLE_STEP_SIZE
-
-    val initialSlope = slope(tGuess, x1, x2)
-
-    return when {
-        initialSlope >= NEWTON_MIN_SLOPE -> newtonRaphsonIterate(x, tGuess, x1, x2)
-        initialSlope == 0f               -> tGuess
-        else                             -> binarySubdivide(x, intervalStart, intervalStart + SAMPLE_STEP_SIZE, x1, x2)
-    }
-}
-
-/** @return v(t) based on Homer's method*/
-private fun calcBezier(t: Float, v1: Float, v2: Float) = ((coefficient1(v1, v2) * t + coefficient2(v1, v2)) * t + coefficient3(v1)) * t
 
 internal fun getCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float): EasingFunction {
-    // Precompute samples table
-    val sampleValues = FloatArray(SPLINE_TABLE_SIZE) { calcBezier(it * SAMPLE_STEP_SIZE, x1, x2) }
+    // x(t) = ((2a * t + 3b) * t + 3c) * t, y(t) = ((ay * t + by) * t + cy) * t
+    val a  = (3.0 * x1 - 3.0 * x2 + 1) / 2
+    val b  = x2 - 2.0 * x1
+    val c  = x1.toDouble()
+    val ay = 3.0 * y1 - 3.0 * y2 + 1
+    val by = 3.0 * (y2 - 2.0 * y1)
+    val cy = 3.0 * y1
 
     return {
-        when (it) {
-            0f, 1f -> it // Because JavaScript number are imprecise, we should guarantee the extremes are right.
-            else   -> calcBezier(tForX(x1, x2, it, sampleValues), y1, y2)
+        when {
+            it <= 0f   -> 0f // values outside (0, 1) saturate to 0 / 1
+            it >= 1f   -> 1f
+            it.isNaN() -> it
+            else       -> tForX(it.toDouble(), a, b, c).let { t -> (((ay * t + by) * t + cy) * t).toFloat() }
         }
     }
 }
-
-internal const val NEWTON_MIN_SLOPE           = 0.001
-internal const val NEWTON_ITERATIONS          = 4
-internal const val SUBDIVISION_PRECISION      = 0.0000001
-internal const val SUBDIVISION_MAX_ITERATIONS = 10
-internal const val SPLINE_TABLE_SIZE          = 11
-internal const val SAMPLE_STEP_SIZE           = 1f / (SPLINE_TABLE_SIZE - 1)
