@@ -10,7 +10,6 @@ public class Edit internal constructor(internal val property: Variable, internal
         if (this === other) return true
         if (other !is Edit) return false
 
-        if (value != other.value) return false
         if (property != other.property) return false
         if (strength != other.strength) return false
 
@@ -18,8 +17,7 @@ public class Edit internal constructor(internal val property: Variable, internal
     }
 
     override fun hashCode(): Int {
-        var result = value.hashCode()
-        result = 31 * result + property.hashCode()
+        var result = property.hashCode()
         result = 31 * result + strength.hashCode()
         return result
     }

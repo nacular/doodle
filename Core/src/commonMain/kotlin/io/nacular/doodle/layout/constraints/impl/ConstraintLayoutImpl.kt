@@ -451,24 +451,31 @@ internal open class ConstraintLayoutImpl(
 
             for (edit in oldIdealEdits) {
                 if (edit !in context.idealEdits) {
-                    solver.removeIdealEdit(edit)
+                    doTrying({}) {
+                        solver.removeIdealEdit(edit)
+                    }
                 }
             }
 
             for (edit in context.edits) {
-                if (edit !in oldEdits) {
-                    doTrying(errorHandler) {
+                when (edit) {
+                    !in oldEdits -> doTrying(errorHandler) {
                         edit.property.edited = true
                         solver.addEditVariable(edit.property, edit.strength)
-                        solver.suggestValue   (edit.property, edit.value   )
+                        solver.suggestValue(edit.property, edit.value)
+                    }
+                    else -> doTrying(errorHandler) {
+                        solver.suggestValue(edit.property, edit.value)
                     }
                 }
             }
 
             for (edit in context.idealEdits) {
                 if (edit !in oldIdealEdits) {
-                    edit.property.edited = true
-                    solver.addIdealEdit(edit)
+                    doTrying(errorHandler) {
+                        edit.property.edited = true
+                        solver.addIdealEdit(edit)
+                    }
                 }
             }
         }
