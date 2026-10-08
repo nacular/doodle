@@ -1,61 +1,104 @@
 package io.nacular.doodle.animation.transition
 
-import kotlin.math.acos
-import kotlin.math.cbrt
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.abs
 
 /*
  * Port based on https://github.com/gre/bezier-easing
  */
 
-/**
- * Solves x(t) = ((2a * t + 3b) * t + 3c) * t = x for t, with x in (0, 1):
- * u = 1/t is the largest real root of x*u^3 - 3c*u^2 - 3b*u - 2a = 0
- */
-private fun tForX(x: Double, a: Double, b: Double, c: Double): Double {
-    val j = 1 / max(c, sqrt(x))
-    val k = x * j
-    val l = k * j
-    val s = c * j
-    val q = b * l
-    val m = s * s + q
-    val h = -s * (s * s + 1.5 * q) - a * k * l
-    val d = h * h - m * m * m
+/** Coefficients based on Homer's method */
+private fun coefficient1(a1: Double, a2: Double) = 1 - 3 * a2 + 3 * a1
+private fun coefficient2(a1: Double, a2: Double) =     3 * a2 - 6 * a1
+private fun coefficient3(a1: Double           ) =              3 * a1
 
-    val v = when {
-        // one real root (Cardano)
-        m == 0.0 || d > 1e-12 * h * h -> {
-            val u = -cbrt(if (h < 0) h - sqrt(d) else h + sqrt(d))
-            (u + m / u).let { if (it.isNaN()) 0.0 else it } // triple root (m = h = 0) gives NaN
+/** @return dv/t based on Homer's method*/
+private fun slope(t: Double, v1: Double, v2: Double) = 3.0 * coefficient1(v1, v2) * t * t + 2.0 * coefficient2(v1, v2) * t + coefficient3(v1)
+
+private fun binarySubdivide(x: Double, a: Double, b: Double, x1: Double, x2: Double): Double {
+    var currentAA = a
+    var currentAB = b
+    var currentX  : Double
+    var currentT  : Double
+    var i         = 0
+
+    do {
+        currentT = currentAA + (currentAB - currentAA) / 2.0
+        currentX = calcBezier(currentT, x1, x2) - x
+        when {
+            currentX > 0.0 -> currentAB = currentT
+            else           -> currentAA = currentT
         }
-        // three real roots, take the largest
-        else -> {
-            val r = sqrt(m)
-            2 * r * cos(acos((-h / (m * r)).coerceIn(-1.0, 1.0)) / 3)
+    } while (abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS)
+
+    return currentT
+}
+
+/** @return t, or -1 when Newton-Raphson has not converged (e.g. on steep curves such as (1, 0, 0, 1) around 0.5) */
+private fun newtonRaphsonIterate(x: Double, tGuess: Double, x1: Double, x2: Double): Double {
+    var result = tGuess
+    var step   = 0.0
+
+    repeat(NEWTON_ITERATIONS) {
+        when (val slope = slope(result, x1, x2)) {
+            0.0  -> return result
+            else -> { step = (calcBezier(result, x1, x2) - x) / slope; result -= step }
         }
     }
 
-    return min(1.0, k / (v + s))
+    return if (abs(step) <= NEWTON_CONVERGENCE) result else -1.0
 }
 
+private fun tForX(x1: Double, x2: Double, x: Double, sampleValues: DoubleArray): Double {
+    var intervalStart = 0.0
+    var currentSample = 1
+    val lastSample    = SPLINE_TABLE_SIZE - 1
+
+    while (currentSample != lastSample && sampleValues[currentSample] <= x) {
+        intervalStart += SAMPLE_STEP_SIZE
+        ++currentSample
+    }
+    --currentSample
+
+    // Interpolate to provide an initial guess for t
+    val dist   = (x - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample])
+    val tGuess = intervalStart + dist * SAMPLE_STEP_SIZE
+
+    val initialSlope = slope(tGuess, x1, x2)
+
+    return when {
+        initialSlope >= NEWTON_MIN_SLOPE -> newtonRaphsonIterate(x, tGuess, x1, x2).takeIf { it >= intervalStart && it <= intervalStart + SAMPLE_STEP_SIZE }
+                                            ?: binarySubdivide(x, intervalStart, intervalStart + SAMPLE_STEP_SIZE, x1, x2)
+        initialSlope == 0.0              -> tGuess
+        else                             -> binarySubdivide(x, intervalStart, intervalStart + SAMPLE_STEP_SIZE, x1, x2)
+    }
+}
+
+/** @return v(t) based on Homer's method*/
+private fun calcBezier(t: Double, v1: Double, v2: Double) = ((coefficient1(v1, v2) * t + coefficient2(v1, v2)) * t + coefficient3(v1)) * t
+
 internal fun getCubicBezier(x1: Float, y1: Float, x2: Float, y2: Float): EasingFunction {
-    // x(t) = ((2a * t + 3b) * t + 3c) * t, y(t) = ((ay * t + by) * t + cy) * t
-    val a  = (3.0 * x1 - 3.0 * x2 + 1) / 2
-    val b  = x2 - 2.0 * x1
-    val c  = x1.toDouble()
-    val ay = 3.0 * y1 - 3.0 * y2 + 1
-    val by = 3.0 * (y2 - 2.0 * y1)
-    val cy = 3.0 * y1
+    // Precompute samples table
+    // computed in Double: in Float, x(t) is too flat around vertical tangents to find t precisely
+    val dx1 = x1.toDouble()
+    val dy1 = y1.toDouble()
+    val dx2 = x2.toDouble()
+    val dy2 = y2.toDouble()
+    val sampleValues = DoubleArray(SPLINE_TABLE_SIZE) { calcBezier(it * SAMPLE_STEP_SIZE, dx1, dx2) }
 
     return {
         when {
             it <= 0f   -> 0f // values outside (0, 1) saturate to 0 / 1
             it >= 1f   -> 1f
             it.isNaN() -> it
-            else       -> tForX(it.toDouble(), a, b, c).let { t -> (((ay * t + by) * t + cy) * t).toFloat() }
+            else       -> calcBezier(tForX(dx1, dx2, it.toDouble(), sampleValues), dy1, dy2).toFloat()
         }
     }
 }
+
+internal const val NEWTON_MIN_SLOPE           = 0.001
+internal const val NEWTON_ITERATIONS          = 4
+internal const val SUBDIVISION_PRECISION      = 1e-14
+internal const val SUBDIVISION_MAX_ITERATIONS = 60
+internal const val NEWTON_CONVERGENCE         = 0.000001
+internal const val SPLINE_TABLE_SIZE          = 11
+internal const val SAMPLE_STEP_SIZE           = 1.0 / (SPLINE_TABLE_SIZE - 1)
