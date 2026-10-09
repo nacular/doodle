@@ -23,6 +23,7 @@ import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.
 import io.nacular.doodle.layout.constraints.impl.ParentBoundsImpl
 import io.nacular.doodle.layout.constraints.impl.Solver
 import io.nacular.doodle.utils.Pool
+import kotlin.DeprecationLevel.ERROR
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 
@@ -683,10 +684,22 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
     public fun min(a: Expression, b: Number                             ): Expression = min(a, Expression(constant = b.toDouble()))
     public fun min(a: Expression, b: Double                             ): Expression = min(a, Expression(constant = b))
     public fun min(a: Expression, b: Property                           ): Expression = min(a, 1 * b)
-    public fun min(a: Expression, b: Expression, vararg rest: Expression): Expression {
-        val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(object: LocalVariable("min($expressions)", expressions) {
-            override fun toString() = "min($expressions)"
+
+    /** @suppress */
+    @Deprecated("requires at least 2 arguments.", level = ERROR)
+    public fun min(): Expression {
+        throw UnsupportedOperationException("call with no arguments is not allowed")
+    }
+
+    /** @suppress */
+    @Deprecated("requires at least 2 arguments.", level = ERROR)
+    public fun min(a: Expression): Expression {
+        throw UnsupportedOperationException("call with one argument is not allowed")
+    }
+
+    public fun min(vararg expressions: Expression): Expression {
+        val x = VariableTerm(object: LocalVariable("min(${expressions.contentToString()})", expressions) {
+            override fun toString() = "min(${expressions.contentToString()})"
         })
 
         expressions.forEach {
@@ -701,10 +714,22 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
     public fun max(a: Expression, b: Number    ): Expression = max(a, Expression(constant = b.toDouble()))
     public fun max(a: Expression, b: Double    ): Expression = max(a, Expression(constant = b))
     public fun max(a: Expression, b: Property  ): Expression = max(a, 1 * b)
-    public fun max(a: Expression, b: Expression, vararg rest: Expression): Expression {
-        val expressions = listOf(a, b, *rest)
-        val x           = VariableTerm(object: LocalVariable("max($expressions)", expressions) {
-            override fun toString() = "max($expressions)"
+
+    /** @suppress */
+    @Deprecated("requires at least 2 arguments.", level = ERROR)
+    public fun max(): Expression {
+        throw UnsupportedOperationException("call with no arguments is not allowed")
+    }
+
+    /** @suppress */
+    @Deprecated("requires at least 2 arguments.", level = ERROR)
+    public fun max(a: Expression): Expression {
+        throw UnsupportedOperationException("call with one argument is not allowed")
+    }
+
+    public fun max(vararg expressions: Expression): Expression {
+        val x = VariableTerm(object: LocalVariable("max(${expressions.contentToString()})", expressions) {
+            override fun toString() = "max(${expressions.contentToString()})"
         })
 
         expressions.forEach {

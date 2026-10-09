@@ -81,6 +81,7 @@ import io.nacular.doodle.utils.interpolator
 import io.nacular.doodle.utils.observable
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Units
+import kotlin.DeprecationLevel.ERROR
 import kotlin.Double.Companion.POSITIVE_INFINITY
 import kotlin.jvm.JvmName
 
@@ -1585,6 +1586,23 @@ public class OptionListConfig<T> internal constructor() {
     public var render: Canvas.(container: View) -> Unit = {}
 }
 
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> radioList(
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> radioList(
+    item  : T,
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
 /**
  * Creates a list of [RadioButton]s within a [ButtonGroup] that is bound to a [Field].
  * This controls lets a user select an option from a list.
@@ -1593,18 +1611,15 @@ public class OptionListConfig<T> internal constructor() {
  * be provided at the form creation level if a default is desired.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items of the list
  * @param config used to control the resulting component
  */
 public fun <T> radioList(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<T> = field {
     buildRadioList(
-        first            = first,
-        rest             = rest,
+        items             = items,
         optionListConfig = OptionListConfig<T>().also(config),
         initialValue     = initial.fold({ it }, null)) { value, button ->
         if (button.selected) {
@@ -1619,24 +1634,29 @@ public fun <T> radioList(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T: Any> optionalRadioList(
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T?> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a list of [RadioButton]s within a [ButtonGroup] that is bound to a [Field].
  * This controls lets a user select an option from a list. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalRadioList(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<T?> = field {
     buildRadioList(
-            first            = first,
-            rest             = rest,
+            items            = items,
             allowDeselectAll = true,
             optionListConfig = OptionListConfig<T>().also(config),
             initialValue     = initial.fold({ it }, null)) { value, button ->
@@ -1697,32 +1717,26 @@ public fun <T, M: ListModel<T>> selectBox(
     }.also(config)
 }
 
-/**
- * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
- * select a single item within a list. It is similar to [radioList], except it
- * DOES set a default value and its field is therefore ALWAYS [Valid].
- *
- * This control is useful when a meaningful default exists for an option list.
- *
- * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
- * @param boxItemVisualizer used to render the drop-down's box item
- * @param listItemVisualizer used to render items in the drop-down's list
- * @param config used to control the resulting component
- */
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
 public fun <T> selectBox(
-           first             : T,
-    vararg rest              : T,
-           boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
-           listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
-           config            : (SelectBox<T, *>) -> Unit = {}
-): FieldVisualizer<T> = selectBox(
-    model              = SimpleListModel(listOf(first) + rest),
-    boxItemVisualizer  = boxItemVisualizer,
-    listItemVisualizer = listItemVisualizer,
-    config             = config
-)
+    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+    config            : (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    item              : T,
+    boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+    listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+    config            : (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -1732,17 +1746,83 @@ public fun <T> selectBox(
  * This control is useful when a meaningful default exists for an option list.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
+ * @param boxItemVisualizer used to render the drop-down's box item
+ * @param listItemVisualizer used to render items in the drop-down's list
+ * @param config used to control the resulting component
+ */
+public fun <T> selectBox(
+    vararg items             : T,
+           boxItemVisualizer : ItemVisualizer<T, IndexedItem>,
+           listItemVisualizer: ItemVisualizer<T, IndexedItem> = boxItemVisualizer,
+           config            : (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> = selectBox(
+    model              = SimpleListModel(items.toList()),
+    boxItemVisualizer  = boxItemVisualizer,
+    listItemVisualizer = listItemVisualizer,
+    config             = config
+)
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    label : (T) -> String = { "$it" },
+    config: (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    item  : T,
+    label : (T) -> String = { "$it" },
+    config: (SelectBox<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
+/**
+ * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
+ * select a single item within a list. It is similar to [radioList], except it
+ * DOES set a default value and its field is therefore ALWAYS [Valid].
+ *
+ * This control is useful when a meaningful default exists for an option list.
+ *
+ * @param T is the type of the bounded field
+ * @param items in the list
  * @param label used to render the drop-down's box and list items
  * @param config used to control the resulting component
  */
 public fun <T> selectBox(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            label : (T) -> String = { "$it" },
            config: (SelectBox<T, *>) -> Unit = {}
-): FieldVisualizer<T> = selectBox(first, *rest, boxItemVisualizer = StringVisualizer(label), config = config)
+): FieldVisualizer<T> = selectBox(*items, boxItemVisualizer = StringVisualizer(label), config = config)
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    item                        : T,
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
 
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
@@ -1751,8 +1831,7 @@ public fun <T> selectBox(
  * is bound to it. The control actually has an "unselected" state when it is invalid.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param boxItemVisualizer used to render the drop-down's box item
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
@@ -1760,15 +1839,14 @@ public fun <T> selectBox(
  * @param config used to control the resulting component
  */
 public fun <T: Any> selectBox(
-    first                       : T,
-    vararg rest                 : T,
-    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
-    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
-    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
-    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
-    config                      : (SelectBox<T?, *>) -> Unit = {}
+    vararg items                       : T,
+           boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+           listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+           unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+           unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+           config                      : (SelectBox<T?, *>) -> Unit = {}
 ): FieldVisualizer<T> = field {
-    val model = SimpleListModel(listOf(null, first) + rest)
+    val model = SimpleListModel(listOf(null) + items)
 
     buildSelectBox(
         model                        = model,
@@ -1803,6 +1881,27 @@ public fun <T: Any> selectBox(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    label          : (T) -> String = { "$it" },
+    unselectedLabel: String,
+    config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> selectBox(
+    item           : T,
+    label          : (T) -> String = { "$it" },
+    unselectedLabel: String,
+    config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], in that it
@@ -1810,21 +1909,18 @@ public fun <T: Any> selectBox(
  * is bound to it. The control actually has an "unselected" state when it is invalid.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param label used to render the drop-down's items
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
 public fun <T: Any> selectBox(
-           first          : T,
-    vararg rest           : T,
+    vararg items          : T,
            label          : (T) -> String = { "$it" },
            unselectedLabel: String,
            config         : (SelectBox<T?, *>) -> Unit = {}
 ): FieldVisualizer<T> = selectBox(
-    first,
-    *rest,
+    *items,
     boxItemVisualizer           = StringVisualizer(label),
     unselectedBoxItemVisualizer = StringVisualizer { unselectedLabel },
     config                      = config
@@ -1874,14 +1970,25 @@ public fun <T: Any, M: ListModel<T>> optionalSelectBox(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T> optionalSelectBox(
+    boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
+    listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
+    unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
+    unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
+    config                      : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param boxItemVisualizer used to render the drop-down's box item
  * @param listItemVisualizer used to render items in the drop-down's list
  * @param unselectedBoxItemVisualizer used to render the drop-down's box item when it is unselected
@@ -1889,15 +1996,14 @@ public fun <T: Any, M: ListModel<T>> optionalSelectBox(
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalSelectBox(
-           first                       : T,
-    vararg rest                        : T,
+    vararg items                       : T,
            boxItemVisualizer           : ItemVisualizer<T,    IndexedItem>,
            listItemVisualizer          : ItemVisualizer<T,    IndexedItem> = boxItemVisualizer,
            unselectedBoxItemVisualizer : ItemVisualizer<Unit, IndexedItem>,
            unselectedListItemVisualizer: ItemVisualizer<Unit, IndexedItem> = unselectedBoxItemVisualizer,
            config                      : (SelectBox<T?, *>) -> Unit = {}
 ): FieldVisualizer<T?> = field {
-    val model = SimpleListModel(listOf(null, first) + rest)
+    val model = SimpleListModel(listOf(null) + items)
 
     buildSelectBox(
         model                        = model,
@@ -1932,27 +2038,34 @@ public fun <T: Any> optionalSelectBox(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T> optionalSelectBox(
+    label          : (T) -> String = { "$it" },
+    unselectedLabel: String,
+    config         : (SelectBox<T?, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a [SelectBox] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [optionalRadioList]. This control lets a user
  * ignore selection entirely and therefore the resulting type is [T]?.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param label used to render the drop-down's items
  * @param unselectedLabel used to render the item that represents the "unselected" state
  * @param config used to control the resulting component
  */
 public fun <T: Any> optionalSelectBox(
-           first          : T,
-    vararg rest           : T,
+    vararg items          : T,
            label          : (T) -> String = { "$it" },
            unselectedLabel: String,
            config         : (SelectBox<T?, *>) -> Unit = {}
 ): FieldVisualizer<T?> = optionalSelectBox(
-    first,
-    *rest,
+    *items,
     boxItemVisualizer           = StringVisualizer(label),
     unselectedBoxItemVisualizer = StringVisualizer { unselectedLabel },
     config                      = config
@@ -2014,6 +2127,25 @@ public fun <T, M: SpinButtonModel<T>> spinButton(
     }.also(config)
 }
 
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> spinButton(
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+    config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> spinButton(
+    item          : T,
+    itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
+    config        : (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
@@ -2022,18 +2154,16 @@ public fun <T, M: SpinButtonModel<T>> spinButton(
  * This control is useful when a meaningful default exists for an option list.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param itemVisualizer used to render the spin-button's box item
  * @param config used to control the resulting component
  */
 public fun <T> spinButton(
-           first         : T,
-    vararg rest          : T,
+    vararg items         : T,
            itemVisualizer: ItemVisualizer<T, SpinButton<T, *>>,
            config        : (SpinButton<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = spinButton(
-    ListSpinButtonModel(listOf(first) + rest),
+    ListSpinButtonModel(items.toList()),
     itemVisualizer,
     config
 )
@@ -2060,6 +2190,25 @@ public fun <T> spinButton(
     config
 )
 
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> spinButton(
+    label : (T) -> String = { "$it" },
+    config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> spinButton(
+    item  : T,
+    label : (T) -> String = { "$it" },
+    config: (SpinButton<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call wit 1 item is not allowed")
+}
+
 /**
  * Creates a [SpinButton] control that is bound to a [Field]. This control lets a user
  * select a single item within a list. It is similar to [radioList], except it
@@ -2068,17 +2217,15 @@ public fun <T> spinButton(
  * This control is useful when a meaningful default exists for an option list.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param label used to render the spin-button's box and list items
  * @param config used to control the resulting component
  */
 public fun <T> spinButton(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            label : (T) -> String = { "$it" },
            config: (SpinButton<T, *>) -> Unit = {}
-): FieldVisualizer<T> = spinButton(first, *rest, itemVisualizer = StringVisualizer(label), config = config)
+): FieldVisualizer<T> = spinButton(*items, itemVisualizer = StringVisualizer(label), config = config)
 
 
 /**
@@ -2184,24 +2331,31 @@ public fun <T, M: ListModel<T>> optionalSingleChoiceList(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T> optionalSingleChoiceList(
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This control lets a user ignore selection entirely,
  * which would result in a `null` value. This behaves like [optionalRadioList].
  *
  * @param T is the type of the items in the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param itemVisualizer used to render items in the list
  * @param config used to control the resulting component
  */
 public fun <T> optionalSingleChoiceList(
-    first: T,
-    vararg rest : T,
-    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
-    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+    vararg items         : T,
+           itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+           config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
 ): FieldVisualizer<T?> = optionalSingleChoiceList(
-    SimpleListModel(listOf(first) + rest),
+    SimpleListModel(items.toList()),
     itemVisualizer,
     config
 )
@@ -2225,23 +2379,40 @@ public fun optionalSingleChoiceList(
     config
 )
 
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> singleChoiceList(
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> singleChoiceList(
+    item          : T,
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select a single option from a list. This behaves like [radioList].
  *
  * @param T is the type of the items in the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param itemVisualizer used to render items in the list
  * @param config used to control the resulting component
  */
 public fun <T, M: ListModel<T>> singleChoiceList(
-           first         : T,
-    vararg rest          : T,
+    vararg items         : T,
            itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
            config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
 ): FieldVisualizer<T> = singleChoiceList(
-    SimpleListModel(listOf(first) + rest),
+    SimpleListModel(items.toList()),
     itemVisualizer,
     config
 )
@@ -2365,20 +2536,35 @@ public fun <T> form(builder: FormControlBuildContext<T>.() -> FieldVisualizer<T>
 // endregion
 
 // region List<T>
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> checkList(
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
+/** @suppress */
+@Deprecated("requires at least 2 items.", level = ERROR)
+public fun <T> checkList(
+    item  : T,
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call with 1 item is not allowed")
+}
+
 /**
  * Creates a list of [CheckBox]s that is bound to a [Field]. This controls lets a user select multiple
  * options from a list. This control lets a user ignore selection entirely, which would result in an empty list.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param config used to control the resulting component
  */
 public fun <T> checkList(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            config: OptionListConfig<T>.() -> Unit = {}
-): FieldVisualizer<List<T>> = buildToggleList(first, rest = rest, config) {
+): FieldVisualizer<List<T>> = buildToggleList(items = items, config) {
     CheckBox().apply {
         focusChanged += { _,_,focused ->
             if (focused) {
@@ -2388,24 +2574,28 @@ public fun <T> checkList(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T> switchList(
+    config: OptionListConfig<T>.() -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a list of [Switch][io.nacular.doodle.controls.buttons.Switch]es that is bound to a [Field]. This controls
  * lets a user select multiple options from a list. This control lets a user ignore selection entirely, which would
  * result in an empty list.
  *
  * @param T is the type of the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param config used to control the resulting component
  */
-@Suppress("LocalVariableName")
 public fun <T> switchList(
-           first : T,
-    vararg rest  : T,
+    vararg items : T,
            config: OptionListConfig<T>.() -> Unit = {}
 ): FieldVisualizer<List<T>> = buildToggleList(
-    first  = first,
-    rest   = rest,
+    items  = items,
     config = config,
     layout = {
         switch, label -> constrain(label, switch) { label, switch ->
@@ -2485,24 +2675,31 @@ public fun <T, M: ListModel<T>> list(
     }
 }
 
+/** @suppress */
+@Deprecated("requires at least 1 item.", level = ERROR)
+public fun <T> list(
+    itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
+    config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
+): FieldVisualizer<T> {
+    throw UnsupportedOperationException("call without an item is not allowed")
+}
+
 /**
  * Creates a [List][io.nacular.doodle.controls.list.List] control that is bound to a [Field]. This controls
  * lets a user select multiple options from a list. This control lets a user ignore selection entirely,
  * which would result in an empty list. It is similar to a [checkList].
  *
  * @param T is the type of the items in the bounded field
- * @param first item in the list
- * @param rest of the items in the list
+ * @param items in the list
  * @param itemVisualizer used to render items in the list
  * @param config used to control the resulting component
  */
 public fun <T> list(
-           first         : T,
-    vararg rest          : T,
+    vararg items         : T,
            itemVisualizer: ItemVisualizer<T, IndexedItem> = StringVisualizer(),
            config        : (io.nacular.doodle.controls.list.List<T, *>) -> Unit = {}
 ): FieldVisualizer<List<T>> = list(
-    SimpleListModel(listOf(first) + rest),
+    SimpleListModel(items.toList()),
     itemVisualizer,
     config
 )
@@ -3052,8 +3249,7 @@ public fun verticalLayout(spacing: Double = 2.0, itemHeight: Double? = null): La
 
 // region Internals
 private fun <T> buildToggleList(
-           first        : T,
-    vararg rest         : T,
+    vararg items        : T,
            config       : OptionListConfig<T>.() -> Unit = {},
            layout       : (button: ToggleButton, label: View) -> Layout? = { _,_ ->null },
            toggleBuilder: () -> ToggleButton
@@ -3065,7 +3261,6 @@ private fun <T> buildToggleList(
         insets        = builder.insets
         render        = { builder.render(this, this@container) }
         focusable     = false
-        val items     = listOf(first) + rest
         var itemIndex = 0
 
         initial.fold({ it }, emptyList()).forEachIndexed { _, value ->
@@ -3113,8 +3308,7 @@ private fun <T> buildToggleList(
 }
 
 private fun <T> buildRadioList(
-           first           : T,
-    vararg rest            : T,
+    vararg items           : T,
            optionListConfig: OptionListConfig<T>,
            initialValue    : T? = null,
            allowDeselectAll: Boolean = false,
@@ -3122,7 +3316,7 @@ private fun <T> buildRadioList(
 ) = container {
     val group = ButtonGroup(allowDeselectAll = allowDeselectAll)
 
-    + (listOf(first) + rest).map { value ->
+    + items.map { value ->
         container {
             focusable = false
             val visualizedValue = optionListConfig.visualizer(value)
