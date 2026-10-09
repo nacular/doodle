@@ -26,6 +26,7 @@ import kotlin.math.min
  * @param knobFill             paint used to fill the slider's knob
  * @param rangeFill            paint used to fill the section between the slider's start and knob
  * @param grooveThicknessRatio size of the bar vs the knob diameter
+ * @param grooveInsetRatio     size of the bar inset vs the knob radius
  * @param showTicks            if and how ticks are shown on the slider
  * @param focusManager         used to request focus for the slider
  */
@@ -34,6 +35,7 @@ public class BasicSliderBehavior<T>(
     private val knobFill            :  (Slider<T>) -> Paint,
     private val rangeFill           : ((Slider<T>) -> Paint)? = null,
                 grooveThicknessRatio: Float                   = 0.6f,
+                grooveInsetRatio    : Float                   = 1f,
     private val showTicks           : TickPresentation?       = null,
                 focusManager        : FocusManager?           = null
 ): AbstractSliderBehavior<T>(focusManager) where T: Comparable<T> {
@@ -44,6 +46,7 @@ public class BasicSliderBehavior<T>(
      * @param knobFill             paint used to fill the slider's knob
      * @param rangeFill            paint used to fill the section between the slider's start and knob
      * @param grooveThicknessRatio size of the bar vs the knob diameter
+     * @param grooveInsetRatio     size of the bar inset vs the knob radius
      * @param showTicks            if and how ticks are shown on the slider
      * @param focusManager         used to request focus for the slider
      */
@@ -52,6 +55,7 @@ public class BasicSliderBehavior<T>(
         knobFill            : Paint             = Blue.paint,
         rangeFill           : Paint?            = null,
         grooveThicknessRatio: Float             = 0.6f,
+        grooveInsetRatio    : Float             = 1f,
         showTicks           : TickPresentation? = null,
         focusManager        : FocusManager?     = null
     ): this(
@@ -60,10 +64,12 @@ public class BasicSliderBehavior<T>(
         rangeFill            = rangeFill?.let { f -> { f } },
         showTicks            = showTicks,
         focusManager         = focusManager,
-        grooveThicknessRatio = grooveThicknessRatio
+        grooveInsetRatio     = grooveInsetRatio,
+        grooveThicknessRatio = grooveThicknessRatio,
     )
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
+    private val grooveInsetRatio     = max(0f, min(1f, grooveInsetRatio    ))
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
@@ -72,7 +78,7 @@ public class BasicSliderBehavior<T>(
         var rangeRect      : Rectangle? = null
         val handleRect     = handleBounds(view)
         val handleSize     = handleSize(view)
-        val offset         = handleSize / 2
+        val offset         = handleSize / 2 * grooveInsetRatio
         val handlePosition = handlePosition(view)
 
         val grooveInset = (1 - grooveThicknessRatio) * when (view.orientation) {
@@ -82,14 +88,14 @@ public class BasicSliderBehavior<T>(
 
         when (view.orientation) {
             Horizontal -> {
-                grooveRect = Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize), max(0.0, view.height - grooveInset))
+                grooveRect = Rectangle(offset, grooveInset / 2, max(0.0, view.width - 2 * offset), max(0.0, view.height - grooveInset))
 
                 if (rangeFill != null) {
                     rangeRect = grooveRect.run { Rectangle(x, y, handlePosition, height) }
                 }
             }
             else       -> {
-                grooveRect = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize))
+                grooveRect = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - 2 * offset))
 
                 if (rangeFill != null) {
                     rangeRect = grooveRect.run { Rectangle(x, handlePosition, width, view.height - handlePosition - handleSize / 2) }

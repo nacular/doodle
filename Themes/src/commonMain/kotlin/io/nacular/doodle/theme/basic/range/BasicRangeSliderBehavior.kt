@@ -18,24 +18,37 @@ import kotlin.math.max
 import kotlin.math.min
 
 public class BasicRangeSliderBehavior<T>(
-        private val barFill             : (RangeSlider<T>) -> Paint,
-        private val startKnobFill       : (RangeSlider<T>) -> Paint,
-        private val endKnobFill         : (RangeSlider<T>) -> Paint = startKnobFill,
-        private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
-                    grooveThicknessRatio: Float                     = 0.6f,
-        private val showTicks           : TickPresentation?         = null,
-                    focusManager        : FocusManager?             = null
+    private val barFill             : (RangeSlider<T>) -> Paint,
+    private val startKnobFill       : (RangeSlider<T>) -> Paint,
+    private val endKnobFill         : (RangeSlider<T>) -> Paint = startKnobFill,
+    private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
+                grooveThicknessRatio: Float                     = 0.6f,
+                grooveInsetRatio    : Float                     = 1f,
+    private val showTicks           : TickPresentation?         = null,
+                focusManager        : FocusManager?             = null
 ): AbstractRangeSliderBehavior<T>(focusManager) where T: Comparable<T> {
     public constructor(
-            barFill             : Paint             = Lightgray.paint,
-            startKnobFill       : Paint             = Blue.paint,
-            endKnobFill         : Paint             = startKnobFill,
-            rangeFill           : Paint             = endKnobFill,
-            grooveThicknessRatio: Float             = 0.6f,
-            showTicks           : TickPresentation? = null,
-            focusManager        : FocusManager?     = null): this(barFill = { barFill }, startKnobFill = { startKnobFill }, endKnobFill = { endKnobFill }, rangeFill = { rangeFill }, grooveThicknessRatio, showTicks, focusManager)
+        barFill             : Paint             = Lightgray.paint,
+        startKnobFill       : Paint             = Blue.paint,
+        endKnobFill         : Paint             = startKnobFill,
+        rangeFill           : Paint             = endKnobFill,
+        grooveThicknessRatio: Float             = 0.6f,
+        grooveInsetRatio    : Float             = 1f,
+        showTicks           : TickPresentation? = null,
+        focusManager        : FocusManager?     = null
+    ): this(
+        barFill              = { barFill       },
+        startKnobFill        = { startKnobFill },
+        endKnobFill          = { endKnobFill   },
+        rangeFill            = { rangeFill     },
+        grooveThicknessRatio = grooveThicknessRatio,
+        grooveInsetRatio     = grooveInsetRatio,
+        showTicks            = showTicks,
+        focusManager         = focusManager
+    )
 
     private val grooveThicknessRatio = max(0f, min(1f, grooveThicknessRatio))
+    private val grooveInsetRatio     = max(0f, min(1f, grooveInsetRatio    ))
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
 
@@ -46,7 +59,7 @@ public class BasicRangeSliderBehavior<T>(
         val secondKnobRect: Rectangle
 
         val handleSize          = handleSize(view)
-        val offset              = handleSize / 2
+        val offset              = handleSize / 2 * grooveInsetRatio
         val startHandlePosition = startHandlePosition(view)
         val endHandlePosition   = endHandlePosition  (view)
 
@@ -57,13 +70,13 @@ public class BasicRangeSliderBehavior<T>(
 
         when (view.orientation) {
             Horizontal -> {
-                grooveRect     = Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize), max(0.0, view.height - grooveInset))
+                grooveRect     = Rectangle(offset, grooveInset / 2, max(0.0, view.width - 2 * offset), max(0.0, view.height - grooveInset))
                 firstKnobRect  = Rectangle(startHandlePosition, 0.0, handleSize, handleSize)
                 secondKnobRect = Rectangle(endHandlePosition,   0.0, handleSize, handleSize)
                 rangeRect      = Rectangle(startHandlePosition + firstKnobRect.width / 2, grooveRect.y, max(0.0, endHandlePosition - startHandlePosition), grooveRect.height)
             }
             else       -> {
-                grooveRect     = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize))
+                grooveRect     = Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - 2 * offset))
                 firstKnobRect  = Rectangle(0.0, startHandlePosition, handleSize, handleSize)
                 secondKnobRect = Rectangle(0.0, endHandlePosition,   handleSize, handleSize)
                 rangeRect      = Rectangle(grooveRect.x, min(startHandlePosition, endHandlePosition) + firstKnobRect.height / 2, grooveRect.width, max(0.0, startHandlePosition - endHandlePosition))

@@ -468,6 +468,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             knobFill            : Paint?            = null,
             rangeFill           : Paint?            = null,
             grooveThicknessRatio: Float?            = null,
+            grooveInsetRatio    : Float?            = null,
             showTicks           : TickPresentation? = null
         ): Module = basicThemeModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider<Double>>(BTheme::class) {
@@ -477,6 +478,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         knobFill             = knobFill             ?: darkBackgroundColor.paint,
                         rangeFill            = rangeFill,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        grooveInsetRatio     = grooveInsetRatio     ?: 1.0f,
                         showTicks            = showTicks,
                         focusManager         = instanceOrNull()
                     ).apply {
@@ -492,6 +494,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             endKnobFill         : Paint?            = startKnobFill,
             rangeFill           : Paint?            = endKnobFill,
             grooveThicknessRatio: Float?            = null,
+            grooveInsetRatio    : Float?            = null,
             showTicks           : TickPresentation? = null
         ): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
             bindBehavior<RangeSlider<Double>>(BTheme::class) {
@@ -502,6 +505,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         endKnobFill          = endKnobFill          ?: startKnobFill ?: darkBackgroundColor.paint,
                         rangeFill            = rangeFill            ?: darkBackgroundColor.paint,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
+                        grooveInsetRatio     = grooveInsetRatio     ?: 1.0f,
                         showTicks            = showTicks,
                         focusManager         = instanceOrNull()
                     ).apply {
