@@ -85,8 +85,8 @@ import io.nacular.doodle.theme.basic.range.BasicCircularRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicCircularSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicRangeSliderBehavior
 import io.nacular.doodle.theme.basic.range.BasicSliderBehavior
-import io.nacular.doodle.theme.basic.range.CircularTickPresentation
-import io.nacular.doodle.theme.basic.range.TickPresentation
+import io.nacular.doodle.theme.basic.range.CircularMarkPresentation
+import io.nacular.doodle.theme.basic.range.MarkPresentation
 import io.nacular.doodle.theme.basic.selectbox.BasicMutableSelectBoxBehavior
 import io.nacular.doodle.theme.basic.selectbox.BasicSelectBoxBehavior
 import io.nacular.doodle.theme.basic.spinbutton.BasicMutableSpinButtonBehavior
@@ -469,7 +469,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             rangeFill           : Paint?            = null,
             grooveThicknessRatio: Float?            = null,
             grooveInsetRatio    : Float?            = null,
-            showTicks           : TickPresentation? = null
+            markPresentation           : MarkPresentation? = null
         ): Module = basicThemeModule(name = "BasicSliderBehavior") {
             bindBehavior<Slider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -479,7 +479,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         rangeFill            = rangeFill,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
                         grooveInsetRatio     = grooveInsetRatio     ?: 1.0f,
-                        showTicks            = showTicks,
+                        markPresentation     = markPresentation,
                         focusManager         = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
@@ -495,7 +495,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             rangeFill           : Paint?            = endKnobFill,
             grooveThicknessRatio: Float?            = null,
             grooveInsetRatio    : Float?            = null,
-            showTicks           : TickPresentation? = null
+            markPresentation    : MarkPresentation? = null
         ): Module = basicThemeModule(name = "BasicRangeSliderBehavior") {
             bindBehavior<RangeSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -506,7 +506,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         rangeFill            = rangeFill            ?: darkBackgroundColor.paint,
                         grooveThicknessRatio = grooveThicknessRatio ?: 0.5f,
                         grooveInsetRatio     = grooveInsetRatio     ?: 1.0f,
-                        showTicks            = showTicks,
+                        markPresentation     = markPresentation,
                         focusManager         = instanceOrNull()
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
@@ -520,13 +520,13 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
             knobFill            : Paint?            = null,
             rangeFill           : Paint?            = knobFill,
             grooveThicknessRatio: Float?            = null,
-            showTicks           : TickPresentation? = null
+            markPresentation    : MarkPresentation? = null
         ): Module = basicRangeSliderBehavior(
             barFill              = barFill,
             startKnobFill        = knobFill,
             rangeFill            = rangeFill,
             grooveThicknessRatio = grooveThicknessRatio,
-            showTicks            = showTicks
+            markPresentation     = markPresentation
         )
 
         public fun basicSpinButtonBehavior(
@@ -762,20 +762,20 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         /**
          * Creates a basic behavior for rendering [CircularSlider]s.
          *
-         * @param barFill    for the slider's background
-         * @param knobFill   for the knob at the start of the slider's range
-         * @param rangeFill  for the slider's range region
-         * @param thickness  of the slider
-         * @param showTicks  indicates if/how ticks should be drawn
+         * @param barFill for the slider's background
+         * @param knobFill for the knob at the start of the slider's range
+         * @param rangeFill for the slider's range region
+         * @param thickness of the slider
+         * @param markPresentation indicates if/how marks should be drawn
          * @param startAngle where the slider's 0 position should be
          */
         public fun basicCircularSliderBehavior(
-            barFill   : Paint?                    = null,
-            knobFill  : Paint?                    = null,
-            rangeFill : Paint?                    = null,
-            thickness : Double                    = 20.0,
-            showTicks : CircularTickPresentation? = null,
-            startAngle: Measure<Angle>            = 270 * degrees,
+            barFill         : Paint?                    = null,
+            knobFill        : Paint?                    = null,
+            rangeFill       : Paint?                    = null,
+            thickness       : Double                    = 20.0,
+            markPresentation: CircularMarkPresentation? = null,
+            startAngle      : Measure<Angle>            = 270 * degrees,
         ): Module = basicThemeModule(name = "BasicCircularSliderBehavior") {
             bindBehavior<CircularSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
@@ -784,7 +784,7 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
                         knobFill     = knobFill  ?: darkBackgroundColor.paint,
                         rangeFill    = rangeFill,
                         thickness    = thickness,
-                        showTicks    = showTicks,
+                        markPresentation    = markPresentation,
                         startAngle   = startAngle,
                         focusManager = instanceOrNull()
                     ).apply {
@@ -797,34 +797,34 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         /**
          * Creates a basic behavior for rendering [CircularRangeSlider]s.
          *
-         * @param barFill       for the slider's background
+         * @param barFill for the slider's background
          * @param startKnobFill for the knob at the start of the slider's range
-         * @param endKnobFill   for the knob at the end of the slider's range
-         * @param rangeFill     for the slider's range region
-         * @param thickness     of the slider
-         * @param showTicks     indicates if/how ticks should be drawn
-         * @param startAngle    where the slider's 0 position should be
+         * @param endKnobFill for the knob at the end of the slider's range
+         * @param rangeFill for the slider's range region
+         * @param thickness of the slider
+         * @param markPresentation indicates if/how marks should be drawn
+         * @param startAngle where the slider's 0 position should be
          */
         public fun basicCircularRangeSliderBehavior(
-            barFill      : Paint?                    = null,
-            startKnobFill: Paint?                    = null,
-            endKnobFill  : Paint?                    = startKnobFill,
-            rangeFill    : Paint?                    = endKnobFill,
-            thickness    : Double                    = 20.0,
-            showTicks    : CircularTickPresentation? = null,
-            startAngle   : Measure<Angle>            = 270 * degrees,
+            barFill         : Paint?                    = null,
+            startKnobFill   : Paint?                    = null,
+            endKnobFill     : Paint?                    = startKnobFill,
+            rangeFill       : Paint?                    = endKnobFill,
+            thickness       : Double                    = 20.0,
+            markPresentation: CircularMarkPresentation? = null,
+            startAngle      : Measure<Angle>            = 270 * degrees,
         ): Module = basicThemeModule(name = "BasicCircularRangeSliderBehavior") {
             bindBehavior<CircularRangeSlider<Double>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicCircularRangeSliderBehavior<Double>(
-                        barFill       = barFill       ?: defaultBackgroundColor.paint,
-                        rangeFill     = rangeFill     ?: darkBackgroundColor.paint,
-                        thickness     = thickness,
-                        showTicks     = showTicks,
-                        startAngle    = startAngle,
-                        endKnobFill   = endKnobFill   ?: startKnobFill ?: darkBackgroundColor.paint,
-                        focusManager  = instanceOrNull(),
-                        startKnobFill = startKnobFill ?: darkBackgroundColor.paint
+                        barFill          = barFill       ?: defaultBackgroundColor.paint,
+                        rangeFill        = rangeFill     ?: darkBackgroundColor.paint,
+                        thickness        = thickness,
+                        startAngle       = startAngle,
+                        endKnobFill      = endKnobFill   ?: startKnobFill ?: darkBackgroundColor.paint,
+                        focusManager     = instanceOrNull(),
+                        startKnobFill    = startKnobFill ?: darkBackgroundColor.paint,
+                        markPresentation = markPresentation
                     ).apply {
                         disabledPaintMapper = this@run.disabledPaintMapper
                     }
@@ -835,23 +835,23 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         /**
          * Creates a basic behavior for rendering [CircularRangeSlider]s.
          *
-         * @param barFill   for the slider's background
-         * @param knobFill  for the knob at the start of the slider's range
+         * @param barFill for the slider's background
+         * @param knobFill for the knob at the start of the slider's range
          * @param rangeFill for the slider's range region
          * @param thickness of the slider
-         * @param showTicks indicates if/how ticks should be drawn
+         * @param markPresentation indicates if/how marks should be drawn
          */
         public fun basicCircularRangeSliderBehavior(
-            barFill  : Paint?                    = null,
-            knobFill : Paint?                    = null,
-            rangeFill: Paint?                    = knobFill,
-            thickness: Double                    = 20.0,
-            showTicks: CircularTickPresentation? = null,
+            barFill         : Paint?                    = null,
+            knobFill        : Paint?                    = null,
+            rangeFill       : Paint?                    = knobFill,
+            thickness       : Double                    = 20.0,
+            markPresentation: CircularMarkPresentation? = null,
         ): Module = basicCircularRangeSliderBehavior(
             barFill       = barFill,
             rangeFill     = rangeFill,
             thickness     = thickness,
-            showTicks     = showTicks,
+            markPresentation     = markPresentation,
             startKnobFill = knobFill,
         )
 

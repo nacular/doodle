@@ -24,7 +24,7 @@ public class BasicRangeSliderBehavior<T>(
     private val rangeFill           : (RangeSlider<T>) -> Paint = endKnobFill,
                 grooveThicknessRatio: Float                     = 0.6f,
                 grooveInsetRatio    : Float                     = 1f,
-    private val showTicks           : TickPresentation?         = null,
+    private val markPresentation    : MarkPresentation?         = null,
                 focusManager        : FocusManager?             = null
 ): AbstractRangeSliderBehavior<T>(focusManager) where T: Comparable<T> {
     public constructor(
@@ -34,7 +34,7 @@ public class BasicRangeSliderBehavior<T>(
         rangeFill           : Paint             = endKnobFill,
         grooveThicknessRatio: Float             = 0.6f,
         grooveInsetRatio    : Float             = 1f,
-        showTicks           : TickPresentation? = null,
+        markPresentation    : MarkPresentation? = null,
         focusManager        : FocusManager?     = null
     ): this(
         barFill              = { barFill       },
@@ -43,7 +43,7 @@ public class BasicRangeSliderBehavior<T>(
         rangeFill            = { rangeFill     },
         grooveThicknessRatio = grooveThicknessRatio,
         grooveInsetRatio     = grooveInsetRatio,
-        showTicks            = showTicks,
+        markPresentation            = markPresentation,
         focusManager         = focusManager
     )
 
@@ -85,7 +85,7 @@ public class BasicRangeSliderBehavior<T>(
 
         val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
 
-        when (val clipInfo = showTicks?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }) {
+        when (val clipInfo = markPresentation?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }) {
             null -> {
                 canvas.rect(grooveRect, grooveRadius, adjust(view, barFill  (view)))
                 canvas.rect(rangeRect,                adjust(view, rangeFill(view)))

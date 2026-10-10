@@ -36,7 +36,7 @@ internal interface SliderValueAdapter<T> where T: Comparable<T> {
 }
 
 internal interface NativeSliderFactory {
-    operator fun <T> invoke(slider: Slider<T>, showTicks: Boolean, adapter: SliderValueAdapter<T>): NativeSlider<T> where T: Comparable<T>
+    operator fun <T> invoke(slider: Slider<T>, showMarks: Boolean, adapter: SliderValueAdapter<T>): NativeSlider<T> where T: Comparable<T>
 }
 
 internal class NativeSliderFactoryImpl internal constructor(
@@ -57,20 +57,20 @@ internal class NativeSliderFactoryImpl internal constructor(
         Size(it.width - defaultSize.width, it.height - defaultSize.height)
     }
 
-    override fun <T> invoke(slider: Slider<T>, showTicks: Boolean, adapter: SliderValueAdapter<T>) where T: Comparable<T> = NativeSlider(
+    override fun <T> invoke(slider: Slider<T>, showMarks: Boolean, adapter: SliderValueAdapter<T>) where T: Comparable<T> = NativeSlider(
         slider               = slider,
         adapter              = adapter,
-        showTicks            = showTicks,
+        showMarks            = showMarks,
         marginSize           = sizeDifference,
         htmlFactory          = htmlFactory,
         idGenerator          = idGenerator,
         defaultSize          = defaultSize,
         focusManager         = focusManager,
         handlerFactory       = nativeEventHandlerFactory,
-        defaultSizeWithTicks = defaultSizeWithTicks(showTicks),
+        defaultSizeWithTicks = defaultSizeWithTicks(showMarks),
     )
 
-    private fun defaultSizeWithTicks(showTicks: Boolean) = if (showTicks) elementRuler.size(createTickedSlider()) else Size.Empty
+    private fun defaultSizeWithTicks(showMarks: Boolean) = if (showMarks) elementRuler.size(createTickedSlider()) else Size.Empty
 
     private fun createTickedSlider(orientation: Orientation = Horizontal) = htmlFactory.create<HTMLElement>().apply {
         style.display  = "inline-block"
@@ -91,8 +91,8 @@ internal class NativeSliderFactoryImpl internal constructor(
 }
 
 internal class NativeSlider<T> internal constructor(
-                htmlFactory         : HtmlFactory,
-                handlerFactory      : NativeEventHandlerFactory,
+    htmlFactory         : HtmlFactory,
+    handlerFactory      : NativeEventHandlerFactory,
     private val focusManager        : FocusManager?,
     private val defaultSize         : Size,
     private val defaultSizeWithTicks: Size,
@@ -100,7 +100,7 @@ internal class NativeSlider<T> internal constructor(
     private val slider              : Slider<T>,
     private val adapter             : SliderValueAdapter<T>,
     private val idGenerator         : IdGenerator,
-    private val showTicks           : Boolean,
+    private val showMarks           : Boolean,
 ): NativeEventListener where T: Comparable<T> {
 
     private var oldSliderMarks  = emptyList<Float>()
@@ -113,7 +113,7 @@ internal class NativeSlider<T> internal constructor(
     }
 
     private val styleChanged: (View) -> Unit = {
-        if (showTicks && oldSliderMarks != slider.marks.toList()) {
+        if (showMarks && oldSliderMarks != slider.marks.toList()) {
             oldSliderMarks = slider.marks.toList()
             when {
                 oldSliderMarks.isNotEmpty() -> ticksElement = (ticksElement?.apply { clear() } ?: htmlFactory.createDataList()).apply {

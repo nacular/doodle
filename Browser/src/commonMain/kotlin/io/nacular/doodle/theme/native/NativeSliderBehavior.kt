@@ -16,9 +16,9 @@ import io.nacular.doodle.system.Cursor.Companion.Default
 internal class NativeSliderBehavior<T>(
     nativeSliderFactory: NativeSliderFactory,
     slider             : Slider<T>,
-    showTicks          : Boolean = false
+    showMarks          : Boolean = false
 ): SliderBehavior<T>, PointerListener, PointerMotionListener where T: Comparable<T> {
-    private val nativePeer = nativeSliderFactory(slider, showTicks, object: SliderValueAdapter<T> {
+    private val nativePeer = nativeSliderFactory(slider, showMarks, object: SliderValueAdapter<T> {
         override fun get(slider: Slider<T>) = slider.fraction
 
         override fun set(slider: Slider<T>, value: Float) {

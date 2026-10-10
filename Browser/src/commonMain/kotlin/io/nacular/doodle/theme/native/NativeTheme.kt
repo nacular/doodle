@@ -39,7 +39,6 @@ import io.nacular.doodle.theme.Modules
 import io.nacular.doodle.theme.Modules.BehaviorResolver
 import io.nacular.doodle.theme.Modules.Companion.bindBehavior
 import io.nacular.doodle.theme.adhoc.DynamicTheme
-import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
 import org.kodein.di.DI.Module
 import org.kodein.di.bind
 import org.kodein.di.bindSingleton
@@ -146,9 +145,9 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
          * Module that provides [Behavior]s for [Slider]s that are styled by the underlying platform to look as close to native as
          * possible.
          *
-         * @param showTicks determines if tick marks are shown on the slider when it has a [Slider.marker].
+         * @param showMarks determines if marks are shown on the slider when it has a [Slider.marker].
          */
-        public fun nativeSliderBehavior(showTicks: Boolean = false): Module = Module(name = "NativeSliderBehavior") {
+        public fun nativeSliderBehavior(showMarks: Boolean = false): Module = Module(name = "NativeSliderBehavior") {
             importOnce(CommonNativeModule, allowOverride = true)
 
             bindSingleton<NativeSliderFactory> {
@@ -161,7 +160,7 @@ public class NativeTheme(behaviors: List<BehaviorResolver>): DynamicTheme(behavi
                 )
             }
 
-            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it, showTicks) }
+            bindBehavior<Slider<Double>>(NTheme::class) { it.behavior = NativeSliderBehavior(instance(), it, showMarks) }
         }
 
         /**

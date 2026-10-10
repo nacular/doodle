@@ -164,7 +164,7 @@ public class AnimatorImpl(private val timer: Timer, private val animationSchedul
                     }
                 }
                 it.paused += {
-                    numPaused = max(animations.size, numPaused + 1)
+                    numPaused = max(animations.size - 1, numPaused + 1)
                 }
                 it.resumed += {
                     numPaused = max(0, numPaused - 1)

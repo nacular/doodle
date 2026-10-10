@@ -14,21 +14,21 @@ import io.nacular.doodle.geometry.Circle
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
-import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
+import io.nacular.doodle.theme.basic.range.MarkLocation.GrooveAndRange
 import io.nacular.doodle.utils.Orientation.Horizontal
 import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A simple [SliderBehavior] that renders a bar with a round knob and ticks if enabled.
+ * A simple [SliderBehavior] that renders a bar with a round knob and marks if enabled.
  *
- * @param barFill              paint used to fill the slider's bar
- * @param knobFill             paint used to fill the slider's knob
- * @param rangeFill            paint used to fill the section between the slider's start and knob
+ * @param barFill paint used to fill the slider's bar
+ * @param knobFill paint used to fill the slider's knob
+ * @param rangeFill paint used to fill the section between the slider's start and knob
  * @param grooveThicknessRatio size of the bar vs the knob diameter
- * @param grooveInsetRatio     size of the bar inset vs the knob radius
- * @param showTicks            if and how ticks are shown on the slider
- * @param focusManager         used to request focus for the slider
+ * @param grooveInsetRatio size of the bar inset vs the knob radius
+ * @param markPresentation if and how marks are shown on the slider
+ * @param focusManager used to request focus for the slider
  */
 public class BasicSliderBehavior<T>(
     private val barFill             :  (Slider<T>) -> Paint,
@@ -36,19 +36,19 @@ public class BasicSliderBehavior<T>(
     private val rangeFill           : ((Slider<T>) -> Paint)? = null,
                 grooveThicknessRatio: Float                   = 0.6f,
                 grooveInsetRatio    : Float                   = 1f,
-    private val showTicks           : TickPresentation?       = null,
+    private val markPresentation    : MarkPresentation?       = null,
                 focusManager        : FocusManager?           = null
 ): AbstractSliderBehavior<T>(focusManager) where T: Comparable<T> {
     /**
-     * A simple [SliderBehavior] that renders a bar with a round knob and ticks if enabled.
+     * A simple [SliderBehavior] that renders a bar with a round knob and marks if enabled.
      *
-     * @param barFill              paint used to fill the slider's bar
-     * @param knobFill             paint used to fill the slider's knob
-     * @param rangeFill            paint used to fill the section between the slider's start and knob
+     * @param barFill paint used to fill the slider's bar
+     * @param knobFill paint used to fill the slider's knob
+     * @param rangeFill paint used to fill the section between the slider's start and knob
      * @param grooveThicknessRatio size of the bar vs the knob diameter
-     * @param grooveInsetRatio     size of the bar inset vs the knob radius
-     * @param showTicks            if and how ticks are shown on the slider
-     * @param focusManager         used to request focus for the slider
+     * @param grooveInsetRatio size of the bar inset vs the knob radius
+     * @param markPresentation if and how marks are shown on the slider
+     * @param focusManager used to request focus for the slider
      */
     public constructor(
         barFill             : Paint             = Lightgray.paint,
@@ -56,13 +56,13 @@ public class BasicSliderBehavior<T>(
         rangeFill           : Paint?            = null,
         grooveThicknessRatio: Float             = 0.6f,
         grooveInsetRatio    : Float             = 1f,
-        showTicks           : TickPresentation? = null,
+        markPresentation    : MarkPresentation? = null,
         focusManager        : FocusManager?     = null
     ): this(
         barFill              = { barFill  },
         knobFill             = { knobFill },
         rangeFill            = rangeFill?.let { f -> { f } },
-        showTicks            = showTicks,
+        markPresentation     = markPresentation,
         focusManager         = focusManager,
         grooveInsetRatio     = grooveInsetRatio,
         grooveThicknessRatio = grooveThicknessRatio,
@@ -105,7 +105,7 @@ public class BasicSliderBehavior<T>(
 
         val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
 
-        val clipInfo = showTicks?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }
+        val clipInfo = markPresentation?.let { getSnapClip(view.marks, view.orientation, grooveRect, grooveRadius, it) }
 
         when (clipInfo) {
             null -> canvas.rect(grooveRect, grooveRadius, adjust(view, barFill(view)))
@@ -117,7 +117,7 @@ public class BasicSliderBehavior<T>(
         rangeRect?.let {
             when {
                 clipInfo == null                     -> canvas.rect(rangeRect, grooveRadius, adjust(view, rangeFill!!(view)))
-                showTicks.location == GrooveAndRange -> canvas.clip(clipInfo.first) {
+                markPresentation.location == GrooveAndRange -> canvas.clip(clipInfo.first) {
                     rect(rangeRect, grooveRadius, adjust(view, rangeFill!!((view))))
                 }
             }

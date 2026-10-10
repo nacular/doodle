@@ -7,8 +7,7 @@ import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.circle
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.toPath
-import io.nacular.doodle.theme.basic.range.TickLocation.Groove
-import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
+import io.nacular.doodle.theme.basic.range.MarkLocation.GrooveAndRange
 import io.nacular.doodle.utils.Orientation
 import io.nacular.doodle.utils.Orientation.Horizontal
 import io.nacular.doodle.utils.RotationDirection.Clockwise
@@ -21,47 +20,55 @@ import io.nacular.measured.units.Measure
 import io.nacular.measured.units.times
 
 /**
- * Determines where ticks are shown for a slider with them shown.
- * @property Groove only draws ticks on the slider's groove
- * @property GrooveAndRange draws ticks on the slider's groove and range
+ * Determines where marks are shown for a slider with them shown.
  */
-public enum class TickLocation { Groove, GrooveAndRange }
+public enum class MarkLocation {
+    /**
+     * Only draws marks on the slider's groove
+     */
+    Groove,
+
+    /**
+     * Draws marks on the slider's groove and range
+     */
+    GrooveAndRange
+}
 
 /**
- * Configures how ticks are drawn for sliders
+ * Configures how marks are drawn for sliders
  *
- * @property gap indicates the size of the tick on the bar
- * @property location indicates whether the ticks show up on the bar's groove only, or both the groove and range.
+ * @property gap indicates the size of the mark on the bar
+ * @property location indicates whether the marks show up on the bar's groove only, or both the groove and range.
  */
-public data class TickPresentation(val gap: Double = 1.0, val location: TickLocation = GrooveAndRange)
+public data class MarkPresentation(val gap: Double = 1.0, val location: MarkLocation = GrooveAndRange)
 
 /**
- * Configures how ticks are drawn for circular sliders
+ * Configures how marks are drawn for circular sliders
  *
- * @property radiusRatio indicates the size of the tick relative to the bar
- * @property location indicates whether the ticks show up on the bar's groove only, or both the groove and range.
+ * @property radiusRatio indicates the size of the mark relative to the bar
+ * @property location indicates whether the marks show up on the bar's groove only, or both the groove and range.
  */
-public data class CircularTickPresentation(val radiusRatio: Float = 0.1f, val location: TickLocation = GrooveAndRange)
+public data class CircularMarkPresentation(val radiusRatio: Float = 0.1f, val location: MarkLocation = GrooveAndRange)
 
 internal fun getSnapClip(
     marks           : Sequence<Float>,
     orientation     : Orientation,
     grooveRect      : Rectangle,
     grooveRadius    : Double,
-    tickPresentation: TickPresentation
-): Pair<Path, TickLocation>? {
-    val ticks     = marks.toMutableList()
+    markPresentation: MarkPresentation
+): Pair<Path, MarkLocation>? {
+    val marks     = marks.toMutableList()
     var offset    = 0.0
-    val tickInset = tickPresentation.gap / 2
+    val tickInset = markPresentation.gap / 2
 
     return when {
-        ticks.isEmpty() -> null
+        marks.isEmpty() -> null
         else            -> {
-            if (ticks.last() < 1f) ticks += 1f
+            if (marks.last() < 1f) marks += 1f
 
-            ticks.toList().map { tick ->
+            marks.toList().map { mark ->
                 when (orientation) {
-                    Horizontal -> (tick * grooveRect.width).let {
+                    Horizontal -> (mark * grooveRect.width).let {
                         Rectangle(
                             x      = grooveRect.x + offset,
                             y      = grooveRect.y,
@@ -69,7 +76,7 @@ internal fun getSnapClip(
                             height = grooveRect.height
                         ).also { offset = it.right - grooveRect.x }.inset(left = tickInset, right = tickInset).toPath(grooveRadius)
                     }
-                    else       -> (tick * grooveRect.height).let {
+                    else       -> (mark * grooveRect.height).let {
                         Rectangle(
                             x      = grooveRect.x,
                             y      = grooveRect.y + offset,
@@ -78,7 +85,7 @@ internal fun getSnapClip(
                         ).also { offset = it.bottom - grooveRect.y }.inset(top = tickInset, bottom = tickInset).toPath(grooveRadius)
                     }
                 }
-            }.foldRight(Empty.toPath()) { a, b -> a + b } to tickPresentation.location
+            }.foldRight(Empty.toPath()) { a, b -> a + b } to markPresentation.location
         }
     }
 }
@@ -89,17 +96,17 @@ internal fun getCircularSnapClip(
     outerRadius     : Double,
     innerRadius     : Double,
     startAngle      : Measure<Angle>,
-    tickPresentation: CircularTickPresentation
-): Pair<Path, TickLocation>? {
-    val ticks = marks.toList()
+    tickPresentation: CircularMarkPresentation
+): Pair<Path, MarkLocation>? {
+    val marks = marks.toList()
 
     return when {
-        ticks.isEmpty() -> null
+        marks.isEmpty() -> null
         else -> {
             val tickRadius = tickPresentation.radiusRatio * (outerRadius - innerRadius)
             val radiusToHandleCenter = innerRadius + (outerRadius - innerRadius) / 2
 
-            val list = ticks.map {
+            val list = marks.map {
                 val angle = startAngle + 360 * degrees * it
 
                 circle(

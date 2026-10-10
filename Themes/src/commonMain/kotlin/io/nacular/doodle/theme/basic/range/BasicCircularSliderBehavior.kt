@@ -15,7 +15,7 @@ import io.nacular.doodle.geometry.ring
 import io.nacular.doodle.geometry.ringSection
 import io.nacular.doodle.theme.PaintMapper
 import io.nacular.doodle.theme.basic.defaultDisabledPaintMapper
-import io.nacular.doodle.theme.basic.range.TickLocation.GrooveAndRange
+import io.nacular.doodle.theme.basic.range.MarkLocation.GrooveAndRange
 import io.nacular.measured.units.Angle
 import io.nacular.measured.units.Angle.Companion.cos
 import io.nacular.measured.units.Angle.Companion.degrees
@@ -31,18 +31,18 @@ import io.nacular.measured.units.times
  * @param knobFill for the knob
  * @param rangeFill for the slider's range region
  * @param thickness of the slider
- * @param showTicks indicates if/how ticks should be drawn
+ * @param markPresentation indicates if/how marks should be drawn
  * @param startAngle where the slider's 0 position should be
  * @param focusManager used to manage focus
  */
 public class BasicCircularSliderBehavior<T>(
-    private val barFill     :  (CircularSlider<T>) -> Paint,
-    private val knobFill    :  (CircularSlider<T>) -> Paint,
-    private val rangeFill   : ((CircularSlider<T>) -> Paint)? = null,
-    private val thickness   : Double                          = 20.0,
-    private val showTicks   : CircularTickPresentation?       = null,
-                startAngle  : Measure<Angle> = _270,
-                focusManager: FocusManager?                   = null
+    private val barFill         :  (CircularSlider<T>) -> Paint,
+    private val knobFill        :  (CircularSlider<T>) -> Paint,
+    private val rangeFill       : ((CircularSlider<T>) -> Paint)? = null,
+    private val thickness       : Double                          = 20.0,
+    private val markPresentation: CircularMarkPresentation?       = null,
+                startAngle      : Measure<Angle>                  = _270,
+                focusManager    : FocusManager?                   = null
 ): AbstractCircularSliderBehavior<T>(focusManager, startAngle) where T: Comparable<T> {
     /**
      * Creates a basic behavior for rendering [CircularSlider]s.
@@ -51,26 +51,26 @@ public class BasicCircularSliderBehavior<T>(
      * @param knobFill for the knob
      * @param rangeFill for the slider's range region
      * @param thickness of the slider
-     * @param showTicks indicates if/how ticks should be drawn
+     * @param markPresentation indicates if/how marks should be drawn
      * @param startAngle where the slider's 0 position should be
      * @param focusManager used to manage focus
      */
     public constructor(
-        barFill     : Paint                     = Lightgray.paint,
-        knobFill    : Paint                     = Blue.paint,
-        rangeFill   : Paint?                    = null,
-        thickness   : Double                    = 20.0,
-        focusManager: FocusManager?             = null,
-        showTicks   : CircularTickPresentation? = null,
-        startAngle  : Measure<Angle>            = _270
+        barFill         : Paint                     = Lightgray.paint,
+        knobFill        : Paint                     = Blue.paint,
+        rangeFill       : Paint?                    = null,
+        thickness       : Double                    = 20.0,
+        focusManager    : FocusManager?             = null,
+        markPresentation: CircularMarkPresentation? = null,
+        startAngle      : Measure<Angle>            = _270
     ): this(
-        barFill      = { barFill  },
-        knobFill     = { knobFill },
-        rangeFill    = rangeFill?.let { f -> { f } },
-        thickness    = thickness,
-        showTicks    = showTicks,
-        startAngle   = startAngle,
-        focusManager = focusManager
+        barFill          = { barFill  },
+        knobFill         = { knobFill },
+        rangeFill        = rangeFill?.let { f -> { f } },
+        thickness        = thickness,
+        startAngle       = startAngle,
+        focusManager     = focusManager,
+        markPresentation = markPresentation
     )
 
     public var disabledPaintMapper: PaintMapper = defaultDisabledPaintMapper
@@ -81,7 +81,7 @@ public class BasicCircularSliderBehavior<T>(
         val innerRadius = maxOf(0.0, outerRadius - thickness)
         val handleAngle = handleAngle(view)
 
-        val clipInfo = showTicks?.let { getCircularSnapClip(view.marks, center, outerRadius, innerRadius, startAngle, it) }
+        val clipInfo = markPresentation?.let { getCircularSnapClip(view.marks, center, outerRadius, innerRadius, startAngle, it) }
 
         when (clipInfo) {
             null -> canvas.path(ring(center, innerRadius, outerRadius), adjust(view, barFill(view)))
@@ -106,7 +106,7 @@ public class BasicCircularSliderBehavior<T>(
 
             when {
                 clipInfo == null                     ->                               drawPath()
-                showTicks.location == GrooveAndRange -> canvas.clip(clipInfo.first) { drawPath() }
+                markPresentation.location == GrooveAndRange -> canvas.clip(clipInfo.first) { drawPath() }
             }
         }
 
