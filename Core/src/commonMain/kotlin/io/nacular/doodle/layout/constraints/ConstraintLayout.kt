@@ -13,9 +13,9 @@ import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
+import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
-import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
@@ -703,9 +703,10 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         })
 
         expressions.forEach {
-            x lessEq    it
-            x greaterEq it strength Weak
+            x lessEq it
         }
+
+        x greaterEq expressions.first() strength Medium
 
         return x + 0
     }
@@ -734,8 +735,9 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
 
         expressions.forEach {
             x greaterEq it
-            x lessEq    it strength Weak
         }
+
+        x lessEq expressions.first() strength Medium
 
         return x + 0
     }

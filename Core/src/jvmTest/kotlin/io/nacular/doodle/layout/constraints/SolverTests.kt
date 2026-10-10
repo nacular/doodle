@@ -91,8 +91,8 @@ class SolverTests {
 
             expect(parentWidth()) { listOf(aWidth, bWidth).sumOf { it() } }
 
-            assertEquals( 100.0, aWidth(), 0.00001)
-            assertEquals(1100.0, bWidth(), 0.00001)
+            assertEquals( 100.0, aWidth(), absoluteTolerance = 0.00001)
+            assertEquals(1100.0, bWidth(), absoluteTolerance = 0.00001)
 
             expect(true) { isUnderConstrained(aWidth) }
 
@@ -119,8 +119,8 @@ class SolverTests {
 
         listOf<ConstraintBlock>(
             { (constraints { property eq 45                 } to 45) to (constraints { property eq 10                 } to 10) },
-//            (constraints { property eq 45 strength Weak   } to 45) to (constraints { property eq 10 strength Weak   } to 10),
-//            (constraints { property eq 45 strength Strong } to 45) to (constraints { property eq 10 strength Strong } to 10),
+            { (constraints { property eq 45 strength Strong } to 45) to (constraints { property eq 10 strength Strong } to 10) },
+            { (constraints { property eq 45 strength Weak   } to 45) to (constraints { property eq 10 strength Weak   } to 10) },
         ).forEach { block ->
             Solver().apply {
                 val (old, new) = block()
@@ -668,7 +668,7 @@ private fun property(name: String?, initial: Double = 0.0): MockVariable = mockk
 
     every { toTerm() } returns VariableTerm(this)
     every { this@mockk.terms } returns arrayOf(VariableTerm(this))
-    every { this@mockk.constant } returns 0.0 //invoke()
+    every { this@mockk.constant } returns 0.0
     every { this@mockk.variable } returns this
 }
 

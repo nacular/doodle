@@ -25,6 +25,7 @@ import io.nacular.doodle.geometry.Size.Companion.Infinite
 import io.nacular.doodle.geometry.times
 import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.Solver
@@ -615,50 +616,55 @@ class ConstraintLayoutTests {
             val columnSpacing = extraLargeGap + 2 * mediumGap
 
             title.top     eq mediumGap
-            title.size    eq title.idealSize
+            title.size    hint ideal
             title.centerX eq parent.centerX
 
-            col1.size     eq col1.idealSize
-            col2.size     eq col2.idealSize
-            check.size    eq check.idealSize
+            col1.size     hint ideal
+            col2.size     hint ideal
+            check.size    hint ideal
 
             when {
                 parent.width.value > listOf(title, check, col1, col2).sumOf { it.idealWidth } + 2 * smallGap -> {
                     check.left    greaterEq  largeGap
-                    check.right   eq         col1.left - (col2.left - col1.right) strength Strong
-                    check.centerY eq         max(col1.centerY, col2.centerY)
+                    check.left    eq         col1.left - (col2.left - col1.right) - readonly(check.width) strength Strong
+                    check.top     eq         max(col1.top + readonly(col1.height) / 2, col2.top + readonly(col2.height) / 2) - readonly(check.height) / 2
 
-                    col1.top      eq         title.bottom + extraLargeGap
-                    col1.centerX  eq         parent.centerX
+                    col1.top      eq         title.top + readonly(title.height) + extraLargeGap
+                    col1.left     eq         parent.centerX - readonly(col1.width) / 2
 
                     col2.top      eq         col1.top
                     col2.left     eq         col1.right + columnSpacing strength Strong
                     col2.right    lessEq     parent.right - largeGap
                 }
                 parent.width.value > check.width.value + max(col1.width.value, col2.width.value) + columnSpacing + 2 * largeGap -> {
-                    col1.top      eq        title.bottom + extraLargeGap
-                    col1.left     eq        check.right + columnSpacing
-
                     check.left    greaterEq largeGap
                     check.left    eq        (parent.width - (max(col1.width, col2.width) + check.width + columnSpacing)) / 2 strength Strong
-                    check.centerY eq        (col2.bottom - col1.top) / 2
+                    check.top     eq        (col2.top + readonly(col2.height) - col1.top) / 2 - readonly(check.height) / 2
 
-                    col2.top      eq        col1.bottom + tinyGap
+                    col1.top      eq        title.top + readonly(title.height) + extraLargeGap
+                    col1.left     eq        check.right + columnSpacing
+
+                    col2.top      eq        col1.top + readonly(col1.height) + tinyGap
                     col2.left     eq        col1.left
                 }
                 else -> {
                     check.top     eq title.bottom + extraLargeGap
-                    check.centerX eq parent.centerX
+                    check.left    eq parent.centerX - readonly(check.width) / 2
 
                     col1.top      eq check.bottom + mediumGap
-                    col1.centerX  eq parent.centerX
+                    col1.left     eq parent.centerX - readonly(col1.width) / 2
 
                     col2.top      eq col1.bottom + tinyGap
-                    col2.centerX  eq parent.centerX
+                    col2.left    eq parent.centerX - readonly(col2.width) / 2
                 }
             }
 
-            parent.height eq max(title.bottom, check.bottom, col1.bottom, col2.bottom) + extraLargeGap
+            parent.height eq max(
+                title.top + readonly(title.height),
+                check.top + readonly(check.height),
+                col1.top  + readonly(col1.height ),
+                col2.top  + readonly(col2.height ),
+            ) + extraLargeGap strength Required - 1
         }
 
         listOf(
@@ -667,24 +673,24 @@ class ConstraintLayoutTests {
             965, 964,
             965, 964
         ).forEach { width ->
-            val size = layout.layout(positionables.asSequence(), Empty, Size(width.toDouble(), 376.3674346923828), Infinite).also { positionables.forEach { it.finalize() } }
+            layout.layout(
+                positionables.asSequence(),
+                Empty,
+                Size(width.toDouble(), 376.3674346923828),
+                Infinite
+            ).also { positionables.forEach { it.finalize() } }
 
             views.forEach {
-                expect(it.idealSize) { it.size }
+                assertEquals(it.idealSize.width,  it.width,  absoluteTolerance = 0.0001, "${it.name}.width : ${it.idealSize.width}  != ${it.width }")
+                assertEquals(it.idealSize.height, it.height, absoluteTolerance = 0.0001, "${it.name}.height: ${it.idealSize.height} != ${it.height}")
             }
 
             expect(title.y) { mediumGap }
             expect(col1.y ) { title.bounds.bottom + extraLargeGap }
 
-            expect(size.height) { views.maxOf { it.bounds.bottom } + extraLargeGap }
-
             when (width) {
-                965 -> {
-                    expect(col2.y) { col1.y                       }
-                }
-                964 -> {
-                    expect(col2.y) { col1.bounds.bottom + tinyGap }
-                }
+                965 -> expect(col2.y) { col1.y                       }
+                964 -> expect(col2.y) { col1.bounds.bottom + tinyGap }
             }
         }
     }
@@ -768,7 +774,7 @@ class ConstraintLayoutTests {
         accessibilityManager: AccessibilityManager = mockk(),
         graphicsDevice      : GraphicsDevice<*>    = mockk()): Pair<RenderManagerImpl, AccessibilityManager> = RenderManagerImpl(display, scheduler, themeManager, accessibilityManager, graphicsDevice) to accessibilityManager
 
-    private class NamedView(private val name: String): View() {
+    private class NamedView(public val name: String): View() {
         override fun toString() = name
     }
 

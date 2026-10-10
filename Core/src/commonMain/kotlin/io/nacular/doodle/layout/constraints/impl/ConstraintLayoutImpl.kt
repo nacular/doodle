@@ -421,6 +421,8 @@ internal open class ConstraintLayoutImpl(
                 context.pendingAdd = null
             }
 
+            // TODO: use updateConstant for constraints that only changed by a constant factor
+
             for (constraint in oldConstraints) {
                 if (constraint !in context.constraints) {
                     handleDelete(solver, constraint)

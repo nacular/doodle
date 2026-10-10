@@ -74,8 +74,9 @@ internal class RequiredFailureException: Exception()
 
 internal class Solver {
     private class Tag {
-        var marker = Symbol()
-        var other  = Symbol()
+        var marker            = Symbol()
+        var other             = Symbol()
+        var markerCoefficient = 1.0 // dummy default
     }
 
     private class EditInfo(var constraint: Constraint, var tag: Tag, var constant: Double)
@@ -347,7 +348,7 @@ internal class Solver {
 
     fun updateConstant(old: Constraint, new: Constraint) {
         val tag   = constraints.remove(old) ?: return
-        val delta = new.expression.constant - old.expression.constant
+        val delta = (new.expression.constant - old.expression.constant) * tag.markerCoefficient
         constraints[new] = tag
 
         if (delta != 0.0) {
@@ -399,17 +400,20 @@ internal class Solver {
 
         referenceVars.forEach { variable ->
             val lastValue = referentLastValues[variable] ?: return@forEach
-            val delta = variable() - lastValue
+            val current   = variable()
+            val delta     = current - lastValue
 
             if (delta != 0.0) {
                 furtherResolutionRequired = true
-                referentLastValues[variable] = variable()
+                referentLastValues[variable] = current
                 referenceConstraintDeps[variable]?.forEach { constraint ->
                     val tag = constraints[constraint] ?: return@forEach
-                    updateRow(rows[tag.marker], tag, delta)
+                    shiftRow(rows[tag.marker], tag, delta)
                 }
             }
         }
+
+        if (furtherResolutionRequired) dualOptimize()   // one repair, after all deltas are in
 
         return furtherResolutionRequired
     }
@@ -637,30 +641,20 @@ internal class Solver {
         optimize(objective)
     }
 
-    private fun updateRow(row: Row?, tag: Tag, delta: Double) {
-        @Suppress("NAME_SHADOWING") var row = row
-
+    // same logic as updateRow, minus the dualOptimize() calls
+    private fun shiftRow(row: Row?, tag: Tag, delta: Double) {
         if (row != null) {
-            if (row.add(-delta) < 0.0) {
-                infeasibleRows.add(tag.marker)
-            }
-            dualOptimize()
+            if (row.add(-delta) < 0.0) infeasibleRows.add(tag.marker)
             return
         }
-        row = rows[tag.other]
-
-        if (row != null) {
-            if (row.add(delta) < 0.0) {
-                infeasibleRows.add(tag.other)
-            }
-            dualOptimize()
+        val other = rows[tag.other]
+        if (other != null) {
+            if (other.add(delta) < 0.0) infeasibleRows.add(tag.other)
             return
         }
-
         rowsWithSymbol[tag.marker]?.iterator()?.let {
             while (it.hasNext()) {
                 val currentRow = it.next()
-
                 when {
                     currentRow.symbol != null -> {
                         val coefficient = currentRow.coefficientFor(tag.marker)
@@ -668,11 +662,14 @@ internal class Solver {
                             infeasibleRows.add(currentRow.symbol!!)
                         }
                     }
-                    else                      -> it.remove()
+                    else -> it.remove()
                 }
             }
         }
+    }
 
+    private fun updateRow(row: Row?, tag: Tag, delta: Double) {
+        shiftRow(row, tag, delta)
         dualOptimize()
     }
 
@@ -774,6 +771,7 @@ internal class Solver {
                 val coefficient = if (constraint.operator === LE) 1.0 else -1.0
                 val slack  = Symbol(Slack)
                 tag.marker = slack
+                tag.markerCoefficient = coefficient
                 row.insert(slack, coefficient)
 
                 if (constraint.strength < Required) {
@@ -790,8 +788,9 @@ internal class Solver {
                         val errorMinus = Symbol(Error)
                         tag.marker = errorPlus
                         tag.other  = errorMinus
-                        row.insert(errorPlus, -1.0) // v = errorPlus - errorMinus
-                        row.insert(errorMinus, 1.0) // v - errorPlus + errorMinus = 0
+                        tag.markerCoefficient = -1.0 // matches row.insert(errorPlus, -1.0)
+                        row.insert(errorPlus, -1.0)  // v = errorPlus - errorMinus
+                        row.insert(errorMinus, 1.0)  // v - errorPlus + errorMinus = 0
                         objective.insert(errorPlus,  constraint.strength.value.toDouble())
                         objective.insert(errorMinus, constraint.strength.value.toDouble())
                     }
