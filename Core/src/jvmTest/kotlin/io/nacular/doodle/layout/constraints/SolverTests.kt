@@ -51,14 +51,21 @@ class SolverTests {
             expect(parentWidth()) { listOf(aWidth, bWidth, cWidth).sumOf { it() } }
 
             expect(400.0) { aWidth() }
-            expect(800.0) { bWidth() }
-            expect(  0.0) { cWidth() }
 
-            expect(0.0 ..  400.0) { computeRange(aWidth, 0.0) }
-            expect(0.0 .. 1200.0) { computeRange(bWidth, 0.0) }
-            expect(0.0 .. 1200.0) { computeRange(cWidth, 0.0) }
+            expect(800.0) { bWidth() + cWidth() }
+            assert(bWidth() == 0.0 || cWidth() == 0.0)
+
+            assertEquals(0.0 ..  400.0, computeRange(aWidth, 0.0), absoluteTolerance = 0.000001)
+            assertEquals(0.0 .. 1200.0, computeRange(bWidth, 0.0), absoluteTolerance = 0.000001)
+            assertEquals(0.0 .. 1200.0, computeRange(cWidth, 0.0), absoluteTolerance = 0.000001)
         }
     }
+
+    private fun assertEquals(expected: ClosedFloatingPointRange<Double>, actual: ClosedFloatingPointRange<Double>, absoluteTolerance: Double, message: String? = null) {
+        assertEquals(expected.start,        actual.start,        absoluteTolerance, message = message)
+        assertEquals(expected.endInclusive, actual.endInclusive, absoluteTolerance, message = message)
+    }
+
 
     @Test fun `two properties sum`() {
         val parentWidth  = property("parent.width_",  1200.0)

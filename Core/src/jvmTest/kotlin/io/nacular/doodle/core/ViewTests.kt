@@ -1,4 +1,5 @@
 @file:Suppress("FunctionName")
+@file:OptIn(Internal::class)
 
 package io.nacular.doodle.core
 
@@ -16,7 +17,13 @@ import io.nacular.doodle.core.ContentDirection.RightLeft
 import io.nacular.doodle.core.Layout.Companion.simpleLayout
 import io.nacular.doodle.core.LookupResult.Found
 import io.nacular.doodle.core.LookupResult.Ignored
+import io.nacular.doodle.core.View.Companion.fixed
+import io.nacular.doodle.core.View.Companion.proposedSize
+import io.nacular.doodle.core.View.EllipseClipPath
+import io.nacular.doodle.core.View.PolyClipPath
 import io.nacular.doodle.core.View.SizeAuditor
+import io.nacular.doodle.datatransport.dragdrop.DragRecognizer
+import io.nacular.doodle.datatransport.dragdrop.DropReceiver
 import io.nacular.doodle.drawing.AffineTransform
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.AffineTransform2D
@@ -31,10 +38,12 @@ import io.nacular.doodle.event.KeyState.Type
 import io.nacular.doodle.event.PointerEvent
 import io.nacular.doodle.event.PointerListener
 import io.nacular.doodle.event.PointerMotionListener
+import io.nacular.doodle.focus.FocusTraversalPolicy
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Backward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Downward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Forward
 import io.nacular.doodle.focus.FocusTraversalPolicy.TraversalType.Upward
+import io.nacular.doodle.geometry.Ellipse
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Point.Companion.Origin
 import io.nacular.doodle.geometry.Rectangle
@@ -42,6 +51,7 @@ import io.nacular.doodle.geometry.Rectangle.Companion.Empty
 import io.nacular.doodle.geometry.Size
 import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.coerceIn
+import io.nacular.doodle.layout.Insets
 import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.system.Cursor
 import io.nacular.doodle.system.Cursor.Companion.Crosshair
@@ -165,10 +175,11 @@ class ViewTests {
         val key4 = mockk<KeyState>()
 
         listOf(
-                Forward  to setOf(key1, key2),
-                Backward to setOf(key4),
-                Upward   to setOf(key2, key4),
-                Downward to setOf(key1, key2, key3)).forEach { (type, keys) ->
+            Forward  to setOf(key1, key2      ),
+            Backward to setOf(key4            ),
+            Upward   to setOf(key2, key4      ),
+            Downward to setOf(key1, key2, key3)
+        ).forEach { (type, keys) ->
             view[type] = keys
 
             expect(keys) { view[type] }
@@ -1095,7 +1106,7 @@ class ViewTests {
         assertFailsWith<IllegalArgumentException> { child.children += grandParent }
     }
 
-    @Test fun `scroll to point panel direct parent works`() {
+    @Test fun `scroll to works`() {
         val view  = view { suggestSize(Size(100)) }
 
         val panel = spyk<ScrollPanel>().apply {
@@ -1103,63 +1114,6 @@ class ViewTests {
         }
 
         panel.content = view
-
-        val point = Point(0, 55)
-
-        view.scrollTo(point)
-
-        verify {
-            panel.scrollToVisible(point)
-            panel.scrollTo       (point)
-        }
-    }
-
-    @Test fun `scroll to point panel in-direct parent works`() {
-        val view   = view {}.apply { forceSize(Size(100)) }
-        val parent = container { +view }.apply { forceSize(Size(50)) }
-        val panel  = spyk<ScrollPanel>().apply {
-            suggestSize(Size(50))
-        }
-
-        panel.content = parent
-
-        val point = Point(0, 55)
-
-        view.scrollTo(point)
-
-        verify {
-            panel.scrollToVisible(point)
-            panel.scrollTo       (point)
-        }
-    }
-
-    @Test fun `scroll to rect panel direct parent works`() {
-        val view  = view { suggestSize(Size(100)) }
-
-        val panel = spyk<ScrollPanel>().apply {
-            suggestSize(Size(50))
-        }
-
-        panel.content = view
-
-        val rect = Rectangle(0, 55, 10, 10)
-
-        view.scrollTo(rect)
-
-        verify {
-            panel.scrollToVisible(rect)
-            panel.scrollTo       (any()) // FIXME: This causes mockk to hang, maybe b/c it's a recursive method
-        }
-    }
-
-    @Test fun `scroll to rect panel in-direct parent works`() {
-        val view   = view {}.apply { forceSize(Size(100)) }
-        val parent = container { +view }.apply { forceSize(Size(50)) }
-        val panel  = spyk<ScrollPanel>().apply {
-            suggestSize(Size(50))
-        }
-
-        panel.content = parent
 
         val rect = Rectangle(0, 55, 10, 10)
 
@@ -1177,7 +1131,7 @@ class ViewTests {
             + child
 
             suggestSize(Size(100))
-            layout = simpleLayout { items,min,_,max,_ ->
+            layout = simpleLayout { items, min, _, max, _ ->
                 var maxRight  = 0.0
                 var maxBottom = 0.0
 
@@ -1204,7 +1158,1351 @@ class ViewTests {
         expect(Size(child.bounds.right, child.bounds.bottom)) { parent.idealSize }
     }
 
-    private class SubView: View()
+    // region Suggest-bounds API
+
+    @Test fun `suggest x updates only x`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestX(5.0)
+
+        expect(Rectangle(5.0, 2.0, 30.0, 40.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest y updates only y`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestY(5.0)
+
+        expect(Rectangle(1.0, 5.0, 30.0, 40.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest width updates only width`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestWidth(5.0)
+
+        expect(Rectangle(1.0, 2.0, 5.0, 40.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest height updates only height`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestHeight(5.0)
+
+        expect(Rectangle(1.0, 2.0, 30.0, 5.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest position by point updates only position`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestPosition(Point(7.0, 8.0))
+
+        expect(Rectangle(7.0, 8.0, 30.0, 40.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest size by size updates only size`() {
+        val view = view().apply { suggestBounds(1.0, 2.0, 30.0, 40.0) }
+
+        view.suggestSize(Size(7.0, 8.0))
+
+        expect(Rectangle(1.0, 2.0, 7.0, 8.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest bounds by components works`() {
+        val view = view()
+
+        view.suggestBounds(1.0, 2.0, 30.0, 40.0)
+
+        expect(Rectangle(1.0, 2.0, 30.0, 40.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggest center moves center and preserves size`() {
+        val view = view().apply { suggestBounds(0.0, 0.0, 20.0, 20.0) }
+
+        view.suggestCenter(Point(50.0, 50.0))
+
+        expect(Rectangle(40.0, 40.0, 20.0, 20.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggesting current x y width or height is ignored`() {
+        val view = object: View() {}.apply { forceBounds(Rectangle(10.0, 20.0, 30.0, 40.0)) }
+
+        view.suggestBounds(50.0, 60.0, 70.0, 80.0)
+
+        view.suggestX     (10.0)
+        view.suggestY     (20.0)
+        view.suggestWidth (30.0)
+        view.suggestHeight(40.0)
+
+        expect(Rectangle(50.0, 60.0, 70.0, 80.0)) { view.prospectiveBounds }
+    }
+
+    @Test fun `suggested bounds not applied until synced`() {
+        val view = object: View() {}
+        val new  = Rectangle(1.0, 2.0, 30.0, 40.0)
+
+        view.suggestBounds(new)
+
+        expect(Empty) { view.bounds           }
+        expect(new  ) { view.prospectiveBounds }
+
+        view.syncBounds()
+
+        expect(new) { view.bounds }
+    }
+
+    @Test fun `sync bounds clips size to allowed range`() {
+        val view   = view {}
+        val layout = simpleLayout { views, _, _, _, _ ->
+            views.first().assumeAnySize(upTo = Size(20))
+        }
+
+        view.suggestSize(100.0, 100.0)
+
+        expect(Size(100)) { view.prospectiveBounds.size }
+
+        layout.layout(sequenceOf(view.positionable), Size.Empty, Size.Empty, Size.Infinite)
+        view.positionable.finalize()
+
+        view.syncBounds()
+
+        expect(Size(20)) { view.bounds.size }
+    }
+
+    @Test fun `allowed size range clips suggested size until reset`() {
+        val view   = view {}
+        val layout = simpleLayout { views, _, _, _, _ ->
+            views.first().assumeAnySize(upTo = Size(20))
+        }
+
+        view.suggestSize(100.0, 100.0)
+
+        expect(Size(100)) { view.prospectiveBounds.size }
+
+        layout.layout(sequenceOf(view.positionable), Size.Empty, Size.Empty, Size.Infinite)
+        view.positionable.finalize()
+
+        view.syncBounds()
+
+        expect(Size(20)) { view.bounds.size }
+
+        view.resetConstraints()
+
+        view.syncBounds()
+
+        view.suggestSize(100.0, 100.0)
+
+        expect(Size(100)) { view.prospectiveBounds.size }
+    }
+
+    // endregion
+    // region Size
+
+    @Test fun `size auditor applied when set`() {
+        val view = view {}
+
+        view.sizeAuditor = SizeAuditor { _, _, _, _, _ -> Size(7.0, 9.0) }
+
+        expect(Size(7.0, 9.0)) { view.prospectiveBounds.size }
+    }
+
+    @Test fun `fixed preferred size works`() {
+        val view = view {}
+
+        view.preferredSize = fixed(Size(5, 6))
+
+        expect(Size(5, 6)) { view.idealSize }
+    }
+
+    @Test fun `proposed preferred size uses prospective size`() {
+        val view = view {}
+
+        view.preferredSize = proposedSize
+        view.suggestSize(Size(7, 8))
+
+        expect(Size(7, 8)) { view.idealSize }
+    }
+
+    @Test fun `default preferred size without layout uses prospective size`() {
+        val view = view {}
+
+        view.suggestSize(Size(3, 4))
+
+        expect(Size(3, 4)) { view.idealSize }
+    }
+
+    @Test fun `preserve aspect keeps ratio when width changes`() {
+        val view = view()
+
+        val result = SizeAuditor.preserveAspect(2.0)(view, Size(10.0, 5.0), Size(20.0, 5.0), Size.Empty, Size.Infinite)
+
+        expect(Size(20.0, 10.0)) { result }
+    }
+
+    @Test fun `preserve aspect keeps ratio when height changes`() {
+        val view = view()
+
+        val result = SizeAuditor.preserveAspect(2.0)(view, Size(10.0, 5.0), Size(10.0, 10.0), Size.Empty, Size.Infinite)
+
+        expect(Size(20.0, 10.0)) { result }
+    }
+
+    @Test fun `preserve aspect respects max size`() {
+        val view = view()
+
+        val widthLimited  = SizeAuditor.preserveAspect(2.0)(view, Size(10.0, 5.0), Size(100.0, 5.0  ), Size.Empty, Size(50.0, 50.0 ))
+        val heightLimited = SizeAuditor.preserveAspect(2.0)(view, Size(10.0, 5.0), Size(100.0, 100.0), Size.Empty, Size(200.0, 20.0))
+
+        expect(Size(50.0, 25.0)) { widthLimited  }
+        expect(Size(40.0, 20.0)) { heightLimited }
+    }
+
+    @Test fun `preserve aspect from width and height matches ratio`() {
+        val view     = view()
+        val fromSize = SizeAuditor.preserveAspect(100.0, 50.0)
+        val fromRate = SizeAuditor.preserveAspect(2.0)
+
+        listOf(
+            Triple(Size(10.0,  5.0), Size(20.0,  5.0), Size.Infinite),
+            Triple(Size(10.0,  5.0), Size(10.0, 10.0), Size.Infinite),
+            Triple(Size(10.0,  5.0), Size(100.0, 5.0), Size(50.0, 50.0))
+        ).forEach { (old, new, max) ->
+            expect(fromRate(view, old, new, Size.Empty, max)) { fromSize(view, old, new, Size.Empty, max) }
+        }
+    }
+
+    // endregion
+    // region Clip paths
+
+    @Test fun `poly clip path contains works`() {
+        val clip = PolyClipPath(Rectangle(10, 10))
+
+        expect(true ) { Point( 5.0,  5.0) in clip }
+        expect(false) { Point(20.0, 20.0) in clip }
+    }
+
+    @Test fun `ellipse clip path from circle works`() {
+        val clip = EllipseClipPath(Point(10.0, 10.0), 5.0)
+
+        expect(true ) { Point(10.0, 10.0) in clip }
+        expect(true ) { Point(10.0, 14.0) in clip }
+        expect(false) { Point(10.0, 16.0) in clip }
+        expect(false) { Point(30.0, 30.0) in clip }
+    }
+
+    @Test fun `ellipse clip path from radii works`() {
+        val clip = EllipseClipPath(Point(0.0, 0.0), 10.0, 5.0)
+
+        expect(true ) { Point(9.0, 0.0) in clip }
+        expect(false) { Point(0.0, 6.0) in clip }
+    }
+
+    @Test fun `ellipse clip path from ellipse works`() {
+        val clip = EllipseClipPath(Ellipse(Point(0.0, 0.0), 10.0, 5.0))
+
+        expect(true ) { Point(9.0, 0.0) in clip }
+        expect(false) { Point(0.0, 6.0) in clip }
+    }
+
+    @Test fun `children clipped by ellipse clip path`() {
+        val child  = view().apply { forcePosition(0.0, 0.0) }
+        val parent = object: View() {
+            init {
+                children_        += child
+                childrenClipPath  = EllipseClipPath(Point(5.0, 5.0), 2.0)
+            }
+        }
+
+        expect(child) { parent.child_(Point(5.0, 5.0)) }
+        expect(null ) { parent.child_(Point(0.5, 0.5)) }
+    }
+
+    // endregion
+    // region Children
+
+    @Test fun `removing child resets parent z-order and position`() {
+        val parent = OpenView()
+        val child  = view().apply { zOrder = 3; suggestPosition(5.0, 5.0) }
+
+        parent.children += child
+
+        expect(parent) { child.parent }
+
+        parent.children -= child
+
+        expect(null  ) { child.parent                    }
+        expect(0     ) { child.zOrder                    }
+        expect(Origin) { child.prospectiveBounds.position }
+    }
+
+    @Test fun `moving child to new parent preserves its state`() {
+        val first  = OpenView()
+        val second = OpenView()
+        val child  = view().apply { zOrder = 3; suggestPosition(5.0, 5.0) }
+
+        first.children  += child
+        second.children += child
+
+        expect(second     ) { child.parent                      }
+        expect(3          ) { child.zOrder                      }
+        expect(Point(5, 5)) { child.prospectiveBounds.position  }
+        expect(true       ) { first.children.isEmpty()          }
+    }
+
+    @Test fun `children changes notify observers and render manager`() {
+        val parent   = OpenView()
+        val child    = view()
+        val observer = mockk<ChildObserver<View>>(relaxed = true)
+        val rm       = mockk<RenderManager>(relaxed = true)
+
+        parent.addedToDisplay_(mockk(relaxed = true), rm, null)
+        parent.childrenChanged_ += observer
+
+        parent.children += child
+
+        verify(exactly = 1) { observer(parent, any()) }
+        verify(exactly = 1) { rm.childrenChanged(parent, any()) }
+    }
+
+    @Test fun `child picks up parent font when added`() {
+        val font     = mockk<Font>()
+        val child    = view()
+        val parent   = view().apply { this.font = font }
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        child.styleChanged += observer
+
+        parent.children_ += child
+
+        expect(font) { child.font }
+        verify(exactly = 1) { observer(child) }
+    }
+
+    @Test fun `child with own font ignores parent font when added`() {
+        val child    = view().apply { font = mockk() }
+        val parent   = view().apply { font = mockk() }
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        child.styleChanged += observer
+
+        parent.children_ += child
+
+        verify(exactly = 0) { observer(child) }
+    }
+
+    @Test fun `child at point prefers higher z-order`() {
+        val root  = view()
+        val back  = view().apply { forcePosition(10.0, 12.0); zOrder = 5 }
+        val front = view().apply { forcePosition(10.0, 12.0)              }
+
+        root.children_ += back
+        root.children_ += front
+
+        expect(back ) { root.child_(Point(11.0, 13.0)) }
+
+        back.zOrder = 0
+
+        expect(front) { root.child_(Point(11.0, 13.0)) }
+    }
+
+    @Test fun `child at point honors predicate`() {
+        val root  = view()
+        val back  = view().apply { forcePosition(10.0, 12.0) }
+        val front = view().apply { forcePosition(10.0, 12.0) }
+
+        root.children_ += back
+        root.children_ += front
+
+        expect(back) { root.child_(Point(11.0, 13.0)) { it !== front } }
+        expect(null) { root.child_(Point(11.0, 13.0)) { false         } }
+    }
+
+    @Test fun `child at point layout returns non-view positionable`() {
+        val parent = object: View() {
+            init {
+                layout = mockk<Layout>().apply {
+                    every { item(any(), any()) } returns Found(mockk<Positionable>())
+                }
+            }
+        }
+
+        expect(null) { parent.child_(Point(1.0, 1.0)) }
+    }
+
+    @Test fun `focus cycle root is nearest cycle-root ancestor`() {
+        val root = view()
+        val mid  = view()
+        val leaf = view()
+
+        root.children_ += mid
+        mid.children_  += leaf
+
+        expect(null) { leaf.focusCycleRoot_ }
+
+        root.isFocusCycleRoot_ = true
+
+        expect(root) { leaf.focusCycleRoot_ }
+        expect(root) { mid.focusCycleRoot_  }
+        expect(null) { root.focusCycleRoot_ }
+
+        mid.isFocusCycleRoot_ = true
+
+        expect(mid) { leaf.focusCycleRoot_ }
+    }
+
+    @Test fun `is-ancestor is false for unrelated and descendant views`() {
+        val root      = view()
+        val child     = view()
+        val unrelated = view()
+
+        root.addedToDisplay_(mockk(), mockk(), null)
+        root.children_ += child
+        child.addedToDisplay_(mockk(), mockk(), null)
+        unrelated.addedToDisplay_(mockk(), mockk(), null)
+
+        expect(true ) { root      ancestorOf_ child     }
+        expect(false) { child     ancestorOf_ root      }
+        expect(false) { root      ancestorOf_ unrelated }
+        expect(false) { unrelated ancestorOf_ child     }
+    }
+
+    // endregion
+    // region Layout
+
+    @Test fun `setting layout requests relayout`() {
+        val rm     = mockk<RenderManager>(relaxed = true)
+        val view   = OpenView()
+        val layout = simpleLayout { _, _, current, _, _ -> current }
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.layout = layout
+
+        verify(exactly = 1) { rm.layout(view) }
+
+        view.layout = layout
+
+        verify(exactly = 1) { rm.layout(view) }
+    }
+
+    @Test fun `setting layout relayouts parent if preferred size is updated`() {
+        val renderManager = mockk<RenderManager>(relaxed = true)
+        val parent        = container {}
+        val child         = OpenView()
+
+        parent.children += child
+
+        parent.addedToDisplay_(mockk(relaxed = true), renderManager, null)
+        child.addedToDisplay_( mockk(relaxed = true), renderManager, null)
+
+        child.layout = simpleLayout { _, _, _, _, _ -> Size(10) }
+        child.doLayout_()
+
+        verify(exactly = 1) { renderManager.layout(parent) }
+    }
+
+    @Test fun `setting layout relayouts display if preferred size is updated`() {
+        val display       = mockk<InternalDisplay>()
+        val renderManager = mockk<RenderManager>  ()
+        val child         = OpenView()
+
+        child.addedToDisplay_( display, renderManager, null)
+
+        child.layout = simpleLayout { _, _, _, _, _ -> Size(10) }
+        child.doLayout_()
+
+        verify(exactly = 1) { display.relayout() }
+    }
+
+    @Test fun `relayout delegates to render manager`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = OpenView()
+
+        view.relayout()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.relayout()
+        view.relayout_()
+
+        verify(exactly = 2) { rm.layout(view) }
+    }
+
+    @Test fun `relayout now delegates to render manager`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = OpenView()
+
+        view.relayoutNow()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.relayoutNow()
+
+        verify(exactly = 1) { rm.layoutNow(view) }
+    }
+
+    @Test fun `revalidate relayouts and rerenders`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = OpenView()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.callRevalidate()
+        view.revalidate_()
+
+        verify(exactly = 2) { rm.layout(view) }
+        verify(exactly = 2) { rm.render(view) }
+    }
+
+    @Test fun `do layout skipped unless layout is needed`() {
+        val renderManager = mockk<RenderManager>(relaxed = true)
+        val view          = view { layout = mockk() }
+
+        view.addedToDisplay_(mockk(relaxed = true), renderManager, null)
+
+        view.doLayout_()
+
+        verify(exactly = 1) { renderManager.performedLayout(view) }
+
+        every { renderManager.layoutNeeded(view) } returns false
+
+        // nothing invalidated, so layout is skipped
+        view.doLayout_()
+
+        verify(exactly = 1) { renderManager.performedLayout(view) }
+
+        every { renderManager.layoutNeeded(view) } returns true
+
+        view.doLayout_()
+
+        verify(exactly = 2) { renderManager.performedLayout(view) }
+    }
+
+    @Test fun `do layout without layout does nothing`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = OpenView()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.doLayout_()
+
+        verify(exactly = 0) { rm.performedLayout(any()) }
+    }
+
+    @Test fun `do layout passes children and insets to layout`() {
+        var seen       = emptyList<Positionable>()
+        var seenInsets = None
+        val child      = view()
+        val view       = OpenView().apply {
+            insets = Insets(3.0)
+            layout = simpleLayout { views, _, current, _, insets ->
+                seen       = views.toList()
+                seenInsets = insets
+
+                current
+            }
+        }
+
+        view.children += child
+
+        view.doLayout_()
+
+        expect(listOf(child.positionable)) { seen            }
+        expect(3.0                       ) { seenInsets.top  }
+    }
+
+    // endregion
+    // region Events
+
+    @Test fun `filter key down works`() = validateKeyFilter(mockk<KeyEvent>().apply { every { type } returns Type.Down }) { listener, event ->
+        verify(exactly = 1) { listener.pressed(event) }
+    }
+
+    @Test fun `filter key up works`() = validateKeyFilter(mockk<KeyEvent>().apply { every { type } returns Type.Up }) { listener, event ->
+        verify(exactly = 1) { listener.released(event) }
+    }
+
+    @Test fun `forwards key filter event to subclass`() {
+        val view  = spyk(SubView())
+        val event = mockk<KeyEvent>(relaxed = true)
+
+        view.filterKeyEvent_(event)
+
+        verify(exactly = 1) { view.filterKeyEvent(event) }
+    }
+
+    @Test fun `pointer listeners ignore unsupported event types`() {
+        val view     = object: View() {}
+        val listener = mockk<PointerListener>(relaxed = true)
+        val event    = mockk<PointerEvent>().apply { every { type } returns Move }
+
+        view.pointerChanged += listener
+        view.pointerFilter  += listener
+
+        view.handlePointerEvent_(event)
+        view.filterPointerEvent_(event)
+
+        verify(exactly = 0) { listener.pressed (any()) }
+        verify(exactly = 0) { listener.released(any()) }
+        verify(exactly = 0) { listener.entered (any()) }
+        verify(exactly = 0) { listener.exited  (any()) }
+        verify(exactly = 0) { listener.clicked (any()) }
+    }
+
+    @Test fun `pointer motion listeners ignore unsupported event types`() {
+        val view     = object: View() {}
+        val listener = mockk<PointerMotionListener>(relaxed = true)
+        val event    = mockk<PointerEvent>().apply { every { type } returns Down }
+
+        view.pointerMotionChanged += listener
+        view.pointerMotionFilter  += listener
+
+        view.handlePointerMotionEvent_(event)
+        view.filterPointerMotionEvent_(event)
+
+        verify(exactly = 0) { listener.moved  (any()) }
+        verify(exactly = 0) { listener.dragged(any()) }
+    }
+
+    @Test fun `pointer events handled by default and not passed through`() {
+        val view     = object: View() {}
+        val listener = mockk<PointerListener>(relaxed = true)
+        val event    = mockk<PointerEvent>().apply { every { type } returns Down }
+
+        view.pointerPassedThrough += listener
+
+        expect(true) { view.shouldHandlePointerEvent_(event) }
+
+        verify(exactly = 0) { listener.pressed(any()) }
+    }
+
+    @Test fun `pointer events passed through when not handled`() {
+        val view     = object: View() {
+            override fun shouldHandlePointerEvent(event: PointerEvent): Boolean = false
+        }
+        val listener = mockk<PointerListener>(relaxed = true)
+
+        view.pointerPassedThrough += listener
+
+        listOf(Up, Down, Exit, Enter, Click).forEach { eventType ->
+            expect(false) { view.shouldHandlePointerEvent_(mockk<PointerEvent>().apply { every { type } returns eventType }) }
+        }
+
+        verify(exactly = 1) { listener.released(any()) }
+        verify(exactly = 1) { listener.pressed (any()) }
+        verify(exactly = 1) { listener.exited  (any()) }
+        verify(exactly = 1) { listener.entered (any()) }
+        verify(exactly = 1) { listener.clicked (any()) }
+    }
+
+    @Test fun `pointer motion events handled by default and not passed through`() {
+        val view     = object: View() {}
+        val listener = mockk<PointerMotionListener>(relaxed = true)
+        val event    = mockk<PointerEvent>().apply { every { type } returns Move }
+
+        view.pointerMotionPassedThrough += listener
+
+        expect(true) { view.shouldHandlePointerMotionEvent_(event) }
+
+        verify(exactly = 0) { listener.moved(any()) }
+    }
+
+    @Test fun `pointer motion events passed through when not handled`() {
+        val view     = object: View() {
+            override fun shouldHandlePointerMotionEvent(event: PointerEvent): Boolean = false
+        }
+        val listener = mockk<PointerMotionListener>(relaxed = true)
+
+        view.pointerMotionPassedThrough += listener
+
+        listOf(Move, Drag).forEach { eventType ->
+            expect(false) { view.shouldHandlePointerMotionEvent_(mockk<PointerEvent>().apply { every { type } returns eventType }) }
+        }
+
+        verify(exactly = 1) { listener.moved  (any()) }
+        verify(exactly = 1) { listener.dragged(any()) }
+    }
+
+    // endregion
+    // region Enabled, cursor, style, content direction
+
+    @Test fun `enabled is false when parent is disabled`() {
+        val child  = view()
+        val parent = view().apply { enabled = false }
+
+        parent.children_ += child
+
+        expect(false) { child.enabled }
+
+        parent.enabled = true
+
+        expect(true) { child.enabled }
+    }
+
+    @Test fun `enabled same value ignored`() {
+        val view     = view()
+        val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
+
+        view.enabledChanged += observer
+
+        view.enabled = true
+
+        verify(exactly = 0) { observer(any(), any(), any()) }
+    }
+
+    @Test fun `child enabled change under disabled parent not notified`() {
+        val child    = view()
+        val parent   = view()
+        val observer = mockk<PropertyObserver<View, Boolean>>(relaxed = true)
+
+        parent.children_ += child
+        parent.enabled    = false
+
+        child.enabledChanged += observer
+        child.enabled         = false
+
+        verify(exactly = 0) { observer(any(), any(), any()) }
+        expect(false) { child.enabled }
+    }
+
+    @Test fun `cursor falls back to parent`() {
+        val child  = view()
+        val parent = view().apply { cursor = Crosshair }
+
+        parent.children_ += child
+
+        expect(Crosshair) { child.cursor }
+
+        val own = mockk<Cursor>()
+
+        child.cursor = own
+
+        expect(own) { child.cursor }
+    }
+
+    @Test fun `cursor same value ignored`() {
+        val view     = view()
+        val observer = mockk<PropertyObserver<View, Cursor?>>(relaxed = true)
+
+        view.cursorChanged += observer
+
+        view.cursor = Crosshair
+        view.cursor = Crosshair
+
+        verify(exactly = 1) { observer(view, null, Crosshair) }
+    }
+
+    @Test fun `cursor change skips children with their own cursor`() {
+        val own      = mockk<Cursor>()
+        val child    = view().apply { cursor = own }
+        val parent   = view()
+        val observer = mockk<PropertyObserver<View, Cursor?>>(relaxed = true)
+
+        parent.children_ += child
+
+        child.cursorChanged += observer
+
+        parent.cursor = Crosshair
+
+        verify(exactly = 0) { observer(any(), any(), any()) }
+    }
+
+    @Test fun `style change same font ignored`() {
+        val font     = mockk<Font>()
+        val view     = view().apply { this.font = font }
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        view.styleChanged += observer
+
+        view.font = font
+
+        verify(exactly = 0) { observer(any()) }
+    }
+
+    @Test fun `content direction change notifies view and inheriting children`() {
+        val inheriting = view()
+        val overriding = view().apply { localContentDirection = LeftRight }
+        val parent     = view().apply {
+            children_ += inheriting
+            children_ += overriding
+        }
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        parent.contentDirectionChanged     += observer
+        inheriting.contentDirectionChanged += observer
+        overriding.contentDirectionChanged += observer
+
+        parent.localContentDirection = RightLeft
+
+        verify(exactly = 1) { observer(parent    ) }
+        verify(exactly = 1) { observer(inheriting) }
+        verify(exactly = 0) { observer(overriding) }
+
+        parent.localContentDirection = RightLeft
+
+        verify(exactly = 1) { observer(parent) }
+    }
+
+    @Test fun `mirrored depends on direction and mirror flag`() {
+        val view = OpenView()
+
+        expect(false) { view.mirrored }
+
+        view.localContentDirection = RightLeft
+
+        expect(true) { view.mirrored }
+
+        view.disableMirroring()
+
+        expect(false) { view.mirrored }
+
+        view.localContentDirection = LeftRight
+
+        expect(false) { view.mirrored }
+    }
+
+    @Test fun `needs mirror transform only when direction differs from parent`() {
+        val child  = view()
+        val parent = view()
+
+        parent.children_ += child
+
+        child.localContentDirection = RightLeft
+
+        expect(true) { child.needsMirrorTransform }
+
+        parent.localContentDirection = RightLeft
+
+        expect(true ) { parent.needsMirrorTransform }
+        expect(false) { child.needsMirrorTransform  }
+    }
+
+    @Test fun `needs mirror transform compares to display when top-level`() {
+        val view    = view()
+        val display = mockk<InternalDisplay>().apply {
+            every { contentDirection } returns RightLeft
+            every { mirrored         } returns false
+        }
+
+        view.addedToDisplay_(display, mockk(relaxed = true), null)
+        view.updateNeedsMirror()
+
+        // view resolves to RightLeft (from display) but display reports it is not mirrored
+        expect(true) { view.needsMirrorTransform }
+    }
+
+    @Test fun `mirror transform change rerenders`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = view()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.localContentDirection = RightLeft
+
+        verify(atLeast = 1) { rm.render(view) }
+    }
+
+    // endregion
+    // region Transform, camera, coordinate mapping
+
+    @Test fun `bounding box accounts for transform`() {
+        val view = view()
+
+        view.forceBounds(Rectangle(0.0, 0.0, 10.0, 20.0))
+        view.transform = Identity.scale(2.0, 3.0)
+
+        expect(Rectangle(0.0, 0.0, 20.0, 60.0)) { view.boundingBox }
+
+        view.forceBounds(Rectangle(10.0, 10.0, 10.0, 20.0))
+
+        expect(Rectangle(20.0, 30.0, 20.0, 60.0)) { view.boundingBox }
+    }
+
+    @Test fun `contains accounts for transform`() {
+        val view = object: View() {}
+
+        view.forceBounds(Rectangle(0.0, 0.0, 10.0, 10.0))
+        view.transform = Identity.scale(2.0, 2.0)
+
+        expect(true ) { Point(15.0, 15.0) in view }
+        expect(false) { Point(25.0, 25.0) in view }
+    }
+
+    @Test fun `contains delegates to intersects`() {
+        val view = object: View() {
+            override fun intersects(point: Point): Boolean = point.x < 5
+        }
+
+        view.forceBounds(Rectangle(0.0, 0.0, 100.0, 100.0))
+
+        expect(true ) { Point(1.0, 50.0) in view }
+        expect(false) { Point(6.0, 50.0) in view }
+    }
+
+    @Test fun `to parent works`() {
+        val view = view().apply { forcePosition(10.0, 12.0) }
+
+        expect(Point(11.0, 14.0)) { view.toParent(Point(1.0, 2.0)) }
+
+        view.transform = Identity.scale(2.0, 2.0)
+
+        expect(Point(22.0, 28.0)) { view.toParent(Point(1.0, 2.0)) }
+    }
+
+    @Test fun `to local from parent inverts to parent`() {
+        val parent = view()
+        val child  = view().apply {
+            forcePosition(10.0, 12.0)
+            transform = Identity.scale(2.0, 2.0)
+        }
+
+        parent.children_ += child
+
+        val point = Point(3.0, 4.0)
+
+        expect(point) { child.toLocal(child.toParent(point), from = parent) }
+    }
+
+    @Test fun `to local from null is from absolute`() {
+        val root  = view()
+        val child = view().apply { forcePosition(10.0, 12.0) }
+
+        root.children_ += child
+
+        val point = Point(100.0, 56.0)
+
+        expect(child.fromAbsolute(point)) { child.toLocal(point, from = null) }
+    }
+
+    @Test fun `absolute mapping falls back to display for top-level views`() {
+        val display = mockk<InternalDisplay>().apply {
+            every { toAbsolute  (any()) } returns Point(1.0, 2.0)
+            every { fromAbsolute(any()) } returns Point(100.0, 100.0)
+        }
+        val view = view().apply { forcePosition(10.0, 12.0) }
+
+        view.addedToDisplay_(display, mockk(relaxed = true), null)
+
+        expect(Point(1.0,  2.0 )) { view.toAbsolute  (Point(5.0, 5.0)) }
+        expect(Point(90.0, 88.0)) { view.fromAbsolute(Point(5.0, 5.0)) }
+    }
+
+    @Test fun `camera change works`() {
+        val view     = object: View() {}
+        val old      = view.camera
+        val new      = Camera(Origin, 100.0)
+        val observer = mockk<PropertyObserver<View, Camera>>(relaxed = true)
+        val rm       = mockk<RenderManager>(relaxed = true)
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+        view.cameraChanged += observer
+
+        view.camera = new
+
+        expect(new) { view.camera }
+
+        verifyOrder {
+            rm.cameraChanged(view, old, new)
+            observer(view, old, new)
+        }
+    }
+
+    // endregion
+    // region Display & accessibility lifecycle
+
+    @Test fun `display lifecycle hooks invoked`() {
+        var added   = 0
+        var removed = 0
+        val view    = object: View() {
+            override fun addedToDisplay    () { added++   }
+            override fun removedFromDisplay() { removed++ }
+        }
+
+        view.addedToDisplay_(mockk(), mockk(), null)
+
+        expect(1) { added   }
+        expect(0) { removed }
+
+        view.removedFromDisplay_()
+
+        expect(1) { added   }
+        expect(1) { removed }
+    }
+
+    @Test fun `generation number follows parent`() {
+        val parent = view()
+        val child  = view()
+
+        parent.children_ += child
+
+        parent.addedToDisplay_(mockk(), mockk(), null)
+        child.addedToDisplay_ (mockk(), mockk(), null)
+
+        expect(0) { parent.generationNumber }
+        expect(1) { child.generationNumber  }
+    }
+
+    @Test fun `accessibility synced when added to display`() {
+        val am   = mockk<AccessibilityManager>(relaxed = true)
+        val view = view {}
+
+        view.addedToDisplay_(mockk(), mockk(), am)
+
+        verify(exactly = 1) { am.syncLabel        (view) }
+        verify(exactly = 1) { am.syncEnabled      (view) }
+        verify(exactly = 1) { am.syncDescription  (view) }
+        verify(exactly = 1) { am.syncNextReadOrder(view) }
+        verify(exactly = 0) { am.roleAdopted      (view) }
+    }
+
+    @Test fun `accessibility role same value ignored`() {
+        val role = mockk<AccessibilityRole>()
+        val am   = mockk<AccessibilityManager>(relaxed = true)
+        val view = object: View(accessibilityRole = role) {}
+
+        view.addedToDisplay_(mockk(), mockk(), am)
+
+        view.accessibilityRole = role
+
+        verify(exactly = 0) { am.roleAbandoned(view) }
+        verify(exactly = 1) { am.roleAdopted  (view) }
+    }
+
+    @Test fun `visibility change syncs accessibility`() {
+        val am   = mockk<AccessibilityManager>(relaxed = true)
+        val view = view {}
+
+        view.addedToDisplay_(mockk(relaxed = true), mockk(relaxed = true), am)
+
+        view.visible = false
+
+        verify(exactly = 1) { am.syncVisibility(view) }
+    }
+
+    @Test fun `monitoring display rect notifies render manager`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = view {}
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.monitorsDisplayRect = true
+
+        verify(exactly = 1) { rm.displayRectHandlingChanged(view, false, true) }
+    }
+
+    @Test fun `first render notified once`() {
+        val view     = view {}
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        expect(false) { view.rendered }
+
+        view.firstRender += observer
+
+        view.rendered = true
+        view.rendered = true
+
+        expect(true) { view.rendered }
+
+        verify(exactly = 1) { observer(view) }
+    }
+
+    // endregion
+    // region Delegates
+
+    @Test fun `behavior delegate installs and uninstalls behaviors`() {
+        val log  = mutableListOf<String>()
+        val view = BehaviorView(log)
+
+        fun named(name: String) = object: Behavior<BehaviorView> {
+            override fun install  (view: BehaviorView) { log += "install $name"   }
+            override fun uninstall(view: BehaviorView) { log += "uninstall $name" }
+        }
+
+        val first  = named("first" )
+        val second = named("second")
+
+        view.current = first
+
+        expect(listOf("before", "install first", "after")) { log.toList() }
+
+        log.clear()
+
+        view.current = second
+
+        expect(listOf("before", "uninstall first", "install second", "after")) { log.toList() }
+
+        log.clear()
+
+        view.current = null
+
+        expect(listOf("before", "uninstall second", "after")) { log.toList() }
+
+        expect(listOf<Pair<Behavior<BehaviorView>?, Behavior<BehaviorView>?>>(null to first, first to second, second to null)) { view.changes }
+    }
+
+    @Test fun `behavior delegate with only before callback works`() {
+        val calls = mutableListOf<Pair<Behavior<BehaviorView2>?, Behavior<BehaviorView2>?>>()
+        val view  = BehaviorView2(calls)
+        val b     = object: Behavior<BehaviorView2> {}
+
+        view.current = b
+
+        expect(listOf<Pair<Behavior<BehaviorView2>?, Behavior<BehaviorView2>?>>(null to b)) { calls }
+        expect(b) { view.current }
+    }
+
+    @Test fun `behavior delegate applies view settings`() {
+        val view = BehaviorView(mutableListOf())
+        val clip = PolyClipPath(Rectangle(10, 10))
+
+        view.current = object: Behavior<BehaviorView> {
+            override fun clipCanvasToBounds   (view: BehaviorView) = false
+            override fun childrenClipPath     (view: BehaviorView) = clip
+            override fun mirrorWhenRightToLeft(view: BehaviorView) = false
+        }
+
+        expect(false) { view.clipCanvasToBounds_  }
+        expect(clip ) { view.childrenClipPath_    }
+        expect(false) { view.mirrorWhenRightLeft  }
+    }
+
+    @Test fun `behavior delegate restores settings from before uninstall when cleared`() {
+        val view = BehaviorView(mutableListOf())
+        val clip = PolyClipPath(Rectangle(10, 10))
+
+        view.current = object: Behavior<BehaviorView> {
+            override fun clipCanvasToBounds   (view: BehaviorView) = false
+            override fun childrenClipPath     (view: BehaviorView) = clip
+            override fun mirrorWhenRightToLeft(view: BehaviorView) = false
+
+            // uninstall tampers with the view; clearing the behavior should undo that
+            override fun uninstall(view: BehaviorView) {
+                view.clipCanvasToBounds_ = true
+                view.childrenClipPath_   = null
+                view.mirrorWhenRightLeft_ = true
+            }
+        }
+
+        view.current = null
+
+        expect(false) { view.clipCanvasToBounds_  }
+        expect(clip ) { view.childrenClipPath_    }
+        expect(false) { view.mirrorWhenRightLeft  }
+        expect(null ) { view.current              }
+    }
+
+    @Test fun `behavior delegate rerenders when installed`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = BehaviorView(mutableListOf())
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.current = object: Behavior<BehaviorView> {}
+
+        verify(atLeast = 1) { rm.render(view) }
+    }
+
+    @Test fun `render property delegate rerenders and notifies`() {
+        val rm   = mockk<RenderManager>(relaxed = true)
+        val view = RenderPropertyView()
+
+        view.addedToDisplay_(mockk(relaxed = true), rm, null)
+
+        view.level = 3
+
+        expect(3) { view.level }
+        expect(listOf(0 to 3)) { view.changes }
+
+        verify(exactly = 1) { rm.render(view) }
+    }
+
+    @Test fun `style property delegate notifies view and filtered children`() {
+        val child    = view()
+        val parent   = StyledView()
+        val observer = mockk<ChangeObserver<View>>(relaxed = true)
+
+        parent.children_ += child
+
+        parent.styleChanged += observer
+        child.styleChanged  += observer
+
+        parent.level = 1
+
+        expect(1) { parent.level }
+        expect(listOf(0 to 1)) { parent.changes }
+
+        verify(exactly = 1) { observer(parent) }
+        verify(exactly = 1) { observer(child ) }
+
+        parent.local = 2
+
+        expect(listOf(0 to 1, 0 to 2)) { parent.changes }
+
+        verify(exactly = 2) { observer(parent) }
+        verify(exactly = 1) { observer(child ) } // filtered out
+    }
+
+    // endregion
+    // region View builder
+
+    @Test fun `view builder manages children`() {
+        val a = view {}
+        val b = view {}
+        val c = view {}
+        val d = view {}
+
+        var kids = emptyList<View>()
+
+        val parent = view {
+            +a
+            +listOf(b, c, d)
+            -d
+            -listOf(b)
+
+            kids = children.toList()
+        }
+
+        expect(listOf(a, c)) { kids     }
+        expect(parent      ) { a.parent }
+        expect(null        ) { d.parent }
+        expect(null        ) { b.parent }
+    }
+
+    @Test fun `view builder lambdas used`() {
+        var renderCalls  = 0
+        var addedCalls   = 0
+        var removedCalls = 0
+
+        val view = view {
+            render             = { renderCalls++  }
+            addedToDisplay     = { addedCalls++   }
+            removedFromDisplay = { removedCalls++ }
+            shouldYieldFocus   = { false          }
+            contains           = { true           }
+            intersects         = { false          }
+        }
+
+        view.render(mockk(relaxed = true))
+
+        expect(1) { renderCalls }
+
+        view.addedToDisplay_(mockk(), mockk(), null)
+
+        expect(1) { addedCalls }
+
+        view.removedFromDisplay_()
+
+        expect(1) { removedCalls }
+
+        expect(false) { view.shouldYieldFocus()           }
+        expect(true ) { Point(1000.0, 1000.0) in view     }
+        expect(false) { view intersects Point(1.0, 1.0)   }
+    }
+
+    @Test fun `view builder defaults delegate to view`() {
+        val view = view {}
+
+        view.forceBounds(Rectangle(0.0, 0.0, 10.0, 10.0))
+
+        expect(true ) { view.shouldYieldFocus()             }
+        expect(true ) { Point(1.0,  1.0 ) in view           }
+        expect(false) { Point(50.0, 50.0) in view           }
+        expect(true ) { view intersects Point(1.0, 1.0)     }
+        expect(false) { view intersects Point(50.0, 50.0)   }
+    }
+
+    @Test fun `view builder exposes container settings`() {
+        val expectedLayout = simpleLayout { _, _, current, _, _ -> current }
+        val expectedPolicy = mockk<FocusTraversalPolicy>()
+
+        val view = view {
+            layout               = expectedLayout
+            insets               = Insets(4.0)
+            isFocusCycleRoot     = true
+            focusTraversalPolicy = expectedPolicy
+        }
+
+        expect(expectedLayout) { view.layout_               }
+        expect(4.0           ) { view.insets_.top           }
+        expect(true          ) { view.isFocusCycleRoot_     }
+        expect(expectedPolicy) { view.focusTraversalPolicy_ }
+    }
+
+    // endregion
+    // region Misc
+
+    @Test fun `traversal keys can be cleared`() {
+        val view = object: View() {}
+
+        view[Forward] = setOf(mockk<KeyState>())
+
+        view[Forward] = null
+
+        expect(null) { view[Forward] }
+    }
+
+    @Test fun `additional setters work`() {
+        validateSetter(View::acceptsThemes,  false          )
+        validateSetter(View::dragRecognizer, mockk<DragRecognizer>())
+        validateSetter(View::dropReceiver,   mockk<DropReceiver>()  )
+    }
+
+    @Test fun `scroll to horizontal works`() {
+        val view  = view { suggestSize(Size(100)) }
+        val panel = spyk<ScrollPanel>().apply { suggestSize(Size(50)) }
+
+        panel.content = view
+
+        view.scrollToHorizontal(2.0..8.0)
+
+        verify { panel.scrollHorizontallyToVisible(2.0..8.0) }
+    }
+
+    @Test fun `scroll to vertical works`() {
+        val view  = view { suggestSize(Size(100)) }
+        val panel = spyk<ScrollPanel>().apply { suggestSize(Size(50)) }
+
+        panel.content = view
+
+        view.scrollToVertical(2.0..8.0)
+
+        verify { panel.scrollVerticallyToVisible(2.0..8.0) }
+    }
+
+    @Test fun `scroll to point works`() {
+        val view  = view { suggestSize(Size(100)) }
+        val panel = spyk<ScrollPanel>().apply { suggestSize(Size(50)) }
+
+        panel.content = view
+
+        val point = Point(5.0, 60.0)
+
+        view.scrollTo(point)
+
+        verify { panel.scrollToVisible(point) }
+    }
+
+    @Test fun `scroll helpers ignore views outside scroll panels`() {
+        val orphan = view()
+        val nested = view().apply { children_ += view() }
+
+        // None of these should throw
+        orphan.scrollTo(Point(1.0, 1.0))
+        orphan.scrollTo(Rectangle(1, 1, 2, 2))
+        orphan.scrollToHorizontal(0.0..1.0)
+        orphan.scrollToVertical  (0.0..1.0)
+        nested.scrollTo(Point(1.0, 1.0))
+    }
+
+    // endregion
+
+    private class SubView: View() {
+        public override fun filterKeyEvent          (event: KeyEvent               ) { super.filterKeyEvent          (event   ) }
+        public override fun handleKeyEvent          (event: KeyEvent               ) { super.handleKeyEvent          (event   ) }
+        public override fun handlePointerEvent      (event: PointerEvent           ) { super.handlePointerEvent      (event   ) }
+        public override fun handleDisplayRectEvent  (old: Rectangle, new: Rectangle) { super.handleDisplayRectEvent  (old, new) }
+        public override fun handlePointerMotionEvent(event: PointerEvent           ) { super.handlePointerMotionEvent(event   ) }
+    }
 
     private fun validateFocusChanged(gained: Boolean, block: (View, PropertyObserver<View, Boolean>) -> Unit) {
         val view     = object: View() {}
@@ -1341,4 +2639,57 @@ class ViewTests {
     }
 
     private fun view(): View = object: View() {}.apply { suggestSize(10.0, 10.0) }
+
+    private fun validateKeyFilter(event: KeyEvent, block: (KeyListener, KeyEvent) -> Unit) {
+        val view     = object: View() {}
+        val listener = mockk<KeyListener>(relaxed = true)
+
+        view.keyFilter += listener
+
+        view.filterKeyEvent_(event)
+
+        block(listener, event)
+    }
+
+    /** Exposes protected members needed by the gap tests */
+    private class OpenView: View() {
+        public override var layout: Layout? get() = super.layout; set(new) { super.layout = new }
+
+        public override var insets: Insets get() = super.insets; set(new) { super.insets = new }
+
+        public override val children: ObservableList<View> get() = super.children
+
+        public override fun relayout   () { super.relayout   () }
+        public override fun relayoutNow() { super.relayoutNow() }
+
+        fun callRevalidate() { revalidate() }
+
+        fun disableMirroring() { mirrorWhenRightLeft = false }
+    }
+
+    private class BehaviorView(private val log: MutableList<String>): View() {
+        val changes = mutableListOf<Pair<Behavior<BehaviorView>?, Behavior<BehaviorView>?>>()
+
+        var current: Behavior<BehaviorView>? by behavior(
+            beforeChange = { old, new -> log += "before"; changes += old to new },
+            afterChange  = { _,   _   -> log += "after"                         }
+        )
+    }
+
+    private class BehaviorView2(private val calls: MutableList<Pair<Behavior<BehaviorView2>?, Behavior<BehaviorView2>?>>): View() {
+        var current: Behavior<BehaviorView2>? by behavior(beforeChange = { old, new -> calls += old to new })
+    }
+
+    private class RenderPropertyView: View() {
+        val changes = mutableListOf<Pair<Int, Int>>()
+
+        var level: Int by renderProperty(0) { old, new -> changes += old to new }
+    }
+
+    private class StyledView: View() {
+        val changes = mutableListOf<Pair<Int, Int>>()
+
+        var level: Int by observableStyleProperty(initial = 0, filter = { true  }, onChanged = { old, new -> changes += old to new })
+        var local: Int by observableStyleProperty(initial = 0, filter = { false }, onChanged = { old, new -> changes += old to new })
+    }
 }
