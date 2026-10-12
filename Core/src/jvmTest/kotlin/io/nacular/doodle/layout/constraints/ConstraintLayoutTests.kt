@@ -772,9 +772,16 @@ class ConstraintLayoutTests {
         themeManager        : InternalThemeManager = mockk(),
         scheduler           : AnimationScheduler   = mockk(),
         accessibilityManager: AccessibilityManager = mockk(),
-        graphicsDevice      : GraphicsDevice<*>    = mockk()): Pair<RenderManagerImpl, AccessibilityManager> = RenderManagerImpl(display, scheduler, themeManager, accessibilityManager, graphicsDevice) to accessibilityManager
+        graphicsDevice      : GraphicsDevice<*>    = mockk()
+    ): Pair<RenderManagerImpl, AccessibilityManager> = RenderManagerImpl(
+        display,
+        scheduler,
+        themeManager,
+        accessibilityManager,
+        graphicsDevice
+    ) to accessibilityManager
 
-    private class NamedView(public val name: String): View() {
+    private class NamedView(val name: String): View() {
         override fun toString() = name
     }
 
