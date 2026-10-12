@@ -13,9 +13,9 @@ import io.nacular.doodle.layout.Insets.Companion.None
 import io.nacular.doodle.layout.constraints.Operator.EQ
 import io.nacular.doodle.layout.constraints.Operator.GE
 import io.nacular.doodle.layout.constraints.Operator.LE
-import io.nacular.doodle.layout.constraints.Strength.Companion.Medium
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
@@ -712,7 +712,7 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
             x lessEq it
         }
 
-        x greaterEq expressions.first() strength Medium
+        x greaterEq expressions.first() strength Weak
 
         return x + 0
     }
@@ -743,7 +743,7 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
             x greaterEq it
         }
 
-        x lessEq expressions.first() strength Medium
+        x lessEq expressions.first() strength Weak
 
         return x + 0
     }
@@ -779,7 +779,9 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         return readOnly + 0
     }
 
-    public fun lerp(first: Expression, second: Expression, fraction: Float): Expression = first + (second - first) * fraction
+    public fun lerp(value     : Number,     expression: Expression, fraction: Float): Expression = value + (expression - value) * fraction
+    public fun lerp(expression: Expression, value     : Number,     fraction: Float): Expression = lerp(value, expression, fraction)
+    public fun lerp(first     : Expression, second    : Expression, fraction: Float): Expression = first + (second - first) * fraction
 
     public operator fun Number.plus(term      : Term      ): Expression = term       + this.toDouble()
     public operator fun Number.plus(property  : Property  ): Expression = property   + this.toDouble()
