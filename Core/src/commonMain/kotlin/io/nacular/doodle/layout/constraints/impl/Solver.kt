@@ -248,12 +248,12 @@ internal class Solver {
         }
     }
 
+    private val maxPasses               = 3
     private val constraints             = fastMutableMapOf<Constraint, Tag>()
     private val rows                    = fastMutableMapOf<Symbol, Row>()
     private val rowList                 = mutableListOf<Row>()
     private val vars                    = fastMutableMapOf<Variable, Symbol>()
     private val edits                   = fastMutableMapOf<Variable, EditInfo>()
-    private val editSymbols             = mutableSetOf<Symbol>()
     private val idealEdits              = fastMutableSetOf<IdealEdit>()
     private val infeasibleRows          = mutableListOf<Symbol>()
     private val referenceVars           = fastMutableSetOf<Variable>()
@@ -335,15 +335,7 @@ internal class Solver {
     }
 
     fun suggestValue(variable: Variable, value: Double) {
-        val info  = edits[variable] ?: return
-        val delta = value - info.constant
-
-        if (delta != 0.0) {
-            info.constant = value
-            updateRow(rows[info.tag.marker], info.tag, delta)
-        }
-
-        updateReadOnlyVariables()
+        if (shiftEdit(variable, value)) dualOptimize()
     }
 
     fun updateConstant(old: Constraint, new: Constraint) {
@@ -360,29 +352,44 @@ internal class Solver {
      * Update the values of the external solver variables.
      */
     fun updateVariables() {
-        // FIXME: Need to make sure this can be done exhaustively
         finalizeVariables(skipReadOnly = true)
 
-        var furtherResolutionRequired = updateReadOnlyVariables()
+        repeat(maxPasses) { // keep the last result if it doesn't converge
+            var changed = false
+            if (updateReadOnlyVariables()) { finalizeVariables(); changed = true }
+            if (applyIdealEdits        ()) { finalizeVariables(); changed = true }
+            if (!changed                 ) return // stable: nothing moved this pass
+        }
+    }
 
-        if (furtherResolutionRequired) {
-            finalizeVariables()
+    private fun applyIdealEdits(): Boolean {
+        var changed = false
+
+        // structure first: adding an edit variable is a structural change and settles the tableau
+        for (edit in idealEdits) {
+            if (edit.property !in edits) { addEditVariable(edit.property, edit.strength); changed = true }
         }
 
-        idealEdits.forEach {
-            try {
-                addEditVariable(it.property, it.strength)
-            } catch (_: DuplicateEditVariableException) {}
-            suggestValue(it.property, it.invoke())
-            furtherResolutionRequired = true
+        // then values: shift all rows, repair once
+        for (edit in idealEdits) {
+            if (shiftEdit(edit.property, edit.invoke())) changed = true
         }
 
-        if (furtherResolutionRequired) {
-            finalizeVariables()
-            if (updateReadOnlyVariables()) {
-                finalizeVariables()
-            }
-        }
+        if (changed) dualOptimize()
+
+        return changed
+    }
+
+    private fun shiftEdit(variable: Variable, value: Double): Boolean {
+        val info  = edits[variable] ?: return false
+        val delta = value - info.constant
+
+        if (nearZero(delta)) return false // tolerance, so float noise can't keep it dirty
+
+        info.constant = value
+        shiftRow(rows[info.tag.marker], info.tag, delta)
+
+        return true
     }
 
     fun finalizeVariables(skipReadOnly: Boolean = false) {
