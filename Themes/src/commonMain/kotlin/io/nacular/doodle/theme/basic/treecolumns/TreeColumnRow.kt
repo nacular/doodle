@@ -63,7 +63,7 @@ public class TreeColumnRow<T>(
 
     public var insetTop: Double = 1.0
 
-    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY; it.height hint it.height.value }
+    public var positioner: ConstraintDslContext.(Bounds) -> Unit = { it.centerY eq parent.centerY; it.height prefers it.height.value }
         set(new) {
             if (field == new) {
                 return

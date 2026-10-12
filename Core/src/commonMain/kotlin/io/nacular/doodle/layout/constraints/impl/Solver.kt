@@ -533,10 +533,7 @@ internal class Solver {
                 finalizeVariables()
 
                 if (addedEdit) {
-                    try { removeEditVariable(variable) } catch (e: Exception) {
-                        println("Failed to remove variable $variable")
-                        e.printStackTrace()
-                    }
+                    try { removeEditVariable(variable) } catch (_: Exception) {}
                 }
 
                 result
@@ -597,9 +594,6 @@ internal class Solver {
 
             optimize(objective)
         } catch (e: ConstraintException) {
-            println("Constraint failed")
-            e.printStackTrace()
-
             removeConstraint(constraint, tag)
             throw e
         }

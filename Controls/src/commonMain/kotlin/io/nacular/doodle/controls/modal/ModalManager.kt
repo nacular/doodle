@@ -107,7 +107,7 @@ public interface ModalManager {
     public class RelativeModal(
         view: View,
         internal val relativeTo: View,
-        internal val layout: ConstraintDslContext.(Bounds, Rectangle) -> Unit = { modal, _ -> modal.size hint modal.size.value; modal.center eq parent.center }
+        internal val layout: ConstraintDslContext.(Bounds, Rectangle) -> Unit = { modal, _ -> modal.size prefers modal.size.value; modal.center eq parent.center }
     ): ModalType(view)
 
     /**

@@ -2599,14 +2599,14 @@ public fun <T> switchList(
     config = config,
     layout = {
         switch, label -> constrain(label, switch) { label, switch ->
-            switch.width   eq 30
-            switch.height  eq 20
-            switch.right   eq parent.right
-            switch.centerY eq parent.centerY
+            switch.width   eq      30
+            switch.height  eq      20
+            switch.right   eq      parent.right
+            switch.centerY eq      parent.centerY
 
-            label.size     hint ideal
-            label.left     eq   0
-            label.top      eq   switch.centerY - readonly(label.height) / 2
+            label.size     prefers ideal
+            label.left     eq      0
+            label.top      eq      switch.centerY - readonly(label.height) / 2
 
             parent.height eq max(readonly(label.height), switch.height)
         }
@@ -3414,8 +3414,8 @@ private fun buttonItemLayout(button: View, label: View, labelOffset: Double = 26
     button_.top   eq 0
     button_.size  eq parent.size
 
-    label_.left   eq   labelOffset
-    label_.size   hint ideal
+    label_.left   eq      labelOffset
+    label_.size   prefers ideal
 
     parent.width  eq labelOffset + readonly(label_.width ) strength Required - 1
     parent.height eq               readonly(label_.height) strength Required - 1

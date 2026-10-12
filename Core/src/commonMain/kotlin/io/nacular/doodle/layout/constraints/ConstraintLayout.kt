@@ -30,17 +30,17 @@ import kotlin.jvm.JvmName
 
 public val fill  : (ConstraintDslContext.(Bounds) -> Unit) = { it.edges eq parent.edges }
 public val center: (ConstraintDslContext.(Bounds) -> Unit) = {
-    it.size hint it.size.value
-    it.top  eq   parent.centerY - readonly(it.height) / 2
-    it.left eq   parent.centerX - readonly(it.width ) / 2
+    it.size prefers it.size.value
+    it.top  eq      parent.centerY - readonly(it.height) / 2
+    it.left eq      parent.centerX - readonly(it.width ) / 2
 }
 
 public fun fill  (                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges eq parent.edges         ) strength strength }
 public fun fill  (insets: Insets, strength: Strength = Required): (ConstraintDslContext.(Bounds) -> Unit) = { (it.edges eq parent.edges + insets) strength strength }
 public fun center(                strength: Strength           ): (ConstraintDslContext.(Bounds) -> Unit) = {
-    it.size hint it.size.value                            strength (strength.takeIf { it != Required } ?: (Required - 1))
-    it.top  eq   parent.centerY - readonly(it.height) / 2 strength strength
-    it.left eq   parent.centerX - readonly(it.width ) / 2 strength strength
+    it.size prefers it.size.value                            strength (strength.takeIf { it != Required } ?: (Required - 1))
+    it.top  eq      parent.centerY - readonly(it.height) / 2 strength strength
+    it.left eq      parent.centerX - readonly(it.width ) / 2 strength strength
 }
 
 /**
@@ -232,6 +232,12 @@ public abstract class Property internal constructor(): Expression() {
     internal abstract fun toTerm(): Term
 }
 
+/**
+ * Used with `prefers` to indicate a property prefers its ideal value:
+ *
+ * `view.width prefers ideal`
+ */
+@Suppress("ClassName")
 public object ideal
 
 public abstract class WidthProperty internal constructor(): Property() {
@@ -565,10 +571,10 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
      */
     public infix fun Property.preserve(strength: Strength) { this eq this.value strength strength }
 
-    public infix fun Property.hint(value: Number): Result<Edit> = this hint value.toDouble()
-    public infix fun Property.hint(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
+    public infix fun Property.prefers(value: Number): Result<Edit> = this prefers value.toDouble()
+    public infix fun Property.prefers(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
 
-    public infix fun WidthProperty.hint(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
+    public infix fun WidthProperty.prefers(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
         add(IdealEdit(variable, Required - 1) {
             val widthRange  = if (variable.constrained       ) solver.computeRange(variable,        0.0) else 0.0 ..POSITIVE_INFINITY
             val heightRange = if (height.variable.constrained) solver.computeRange(height.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
@@ -577,7 +583,7 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         })
     }
 
-    public infix fun HeightProperty.hint(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
+    public infix fun HeightProperty.prefers(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
         add(IdealEdit(variable, Required - 1) {
             val widthRange  = if (width.variable.constrained ) solver.computeRange(width.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
             val heightRange = if (variable.constrained       ) solver.computeRange(variable,       0.0) else 0.0 ..POSITIVE_INFINITY
@@ -586,17 +592,17 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         })
     }
 
-    public infix fun Area.hint(value: Size): Result<List<Edit>> = runCatching {
+    public infix fun Area.prefers(value: Size): Result<List<Edit>> = runCatching {
         listOf(
             add(Edit(width.variable,  value.width,  Required - 1)),
             add(Edit(height.variable, value.height, Required - 1))
         ).map { it.getOrThrow() }.toList()
     }
 
-    public infix fun BoundsArea.hint(value: ideal): Result<List<IdealEdit>> = runCatching {
+    public infix fun BoundsArea.prefers(value: ideal): Result<List<IdealEdit>> = runCatching {
         listOf(
-            width_  hint ideal,
-            height_ hint ideal
+            width_  prefers value,
+            height_ prefers value
         ).map { it.getOrThrow() }.toList()
     }
 

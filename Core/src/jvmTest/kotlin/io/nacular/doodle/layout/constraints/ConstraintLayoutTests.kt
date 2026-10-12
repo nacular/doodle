@@ -108,7 +108,7 @@ class ConstraintLayoutTests {
             layout = constrain(child1, child2) { a, b ->
                 a.top     eq      0
                 a.left    eq      0
-                a.width   hint    a.width.value strength Weak
+                a.width   prefers a.width.value strength Weak
                 a.width   lessEq  parent.width / 3
                 a.height  eq      parent.height
 
@@ -144,19 +144,19 @@ class ConstraintLayoutTests {
             val positionables = views.map { it.positionable }
 
             val layout = constrain(child1, child2, child3) { a, b, c ->
-                a.top    eq     0
-                a.left   eq     0
-                a.width  hint   a.width.value strength Weak
-                a.width  lessEq parent.width / 3
-                a.height eq     parent.height
+                a.top    eq      0
+                a.left   eq      0
+                a.width  prefers a.width.value strength Weak
+                a.width  lessEq  parent.width / 3
+                a.height eq      parent.height
 
-                b.top    eq     a.top
-                b.left   eq     a.right
-                b.height eq     a.height
+                b.top    eq      a.top
+                b.left   eq      a.right
+                b.height eq      a.height
 
-                c.top    eq     a.top
-                c.left   eq     b.right
-                c.height eq     a.height
+                c.top    eq      a.top
+                c.left   eq      b.right
+                c.height eq      a.height
 
                 a.width + b.width + c.width eq parent.width
             }
@@ -615,13 +615,13 @@ class ConstraintLayoutTests {
         val layout = constrain(title, check, col1, col2) { title, check, col1, col2 ->
             val columnSpacing = extraLargeGap + 2 * mediumGap
 
-            title.top     eq mediumGap
-            title.size    hint ideal
-            title.centerX eq parent.centerX
+            title.top     eq      mediumGap
+            title.size    prefers ideal
+            title.centerX eq      parent.centerX
 
-            col1.size     hint ideal
-            col2.size     hint ideal
-            check.size    hint ideal
+            col1.size     prefers ideal
+            col2.size     prefers ideal
+            check.size    prefers ideal
 
             when {
                 parent.width.value > listOf(title, check, col1, col2).sumOf { it.idealWidth } + 2 * smallGap -> {
@@ -695,11 +695,11 @@ class ConstraintLayoutTests {
         }
     }
 
-    @Test fun `hint alone works`() {
+    @Test fun `prefers alone works`() {
         val child = NamedView("child")
 
         val layout = constrain(child) {
-            it.width hint 1200
+            it.width prefers 1200
         }
 
         layout.layout(sequenceOf(child.positionable), Empty, Empty, Infinite).also { child.positionable.finalize() }
@@ -711,10 +711,9 @@ class ConstraintLayoutTests {
         val child = NamedView("child")
 
         val layout = constrain(child) {
-//            it.width lessEq 50
-            it.width  hint ideal
-            it.height hint ideal
-            it.size   hint ideal
+            it.width  prefers ideal
+            it.height prefers ideal
+            it.size   prefers ideal
         }
 
         child.preferredSize = fixed(Size(100.0, 100.0))

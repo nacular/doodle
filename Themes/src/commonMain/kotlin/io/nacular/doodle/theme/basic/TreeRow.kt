@@ -118,9 +118,9 @@ public class TreeRow<T>(
 
     // FIXME: Shouldn't need the explicit left setting here
     public var positioner: ConstraintDslContext.(Bounds) -> Unit by observable({
-        it.left    eq   0
-        it.size    hint ideal
-        it.centerY eq   parent.centerY
+        it.left    eq      0
+        it.size    prefers ideal
+        it.centerY eq      parent.centerY
     }) { _,_ ->
        updateLayout() //relayout()
     }

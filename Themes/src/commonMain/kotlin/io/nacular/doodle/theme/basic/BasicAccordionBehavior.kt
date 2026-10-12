@@ -116,10 +116,10 @@ public open class BasicSection<T>(
     }
 
     public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = {
-        it.left       eq   0
-        it.size       hint ideal
-        it.centerY    eq   parent.centerY
-        parent.height eq   it.height + 4 strength Required - 1
+        it.left       eq      0
+        it.size       prefers ideal
+        it.centerY    eq      parent.centerY
+        parent.height eq      it.height + 4 strength Required - 1
     }
 
     init {
@@ -129,15 +129,15 @@ public open class BasicSection<T>(
     }
 
     private fun constrainLayout(header: View, body: View) = constrain(header, body) { h, b ->
-        h.top    eq   0
-        h.left   eq   0
-        h.width  eq   parent.width
-        h.height hint ideal
+        h.top    eq      0
+        h.left   eq      0
+        h.width  eq      parent.width
+        h.height prefers ideal
 
-        b.top    eq   h.top + readonly(h.height)
-        b.left   eq   h.left
-        b.width  eq   h.width
-        b.height hint lerp(0.0, b.idealHeight, expansionProgress)
+        b.top    eq      h.top + readonly(h.height)
+        b.left   eq      h.left
+        b.width  eq      h.width
+        b.height prefers lerp(0.0, b.idealHeight, expansionProgress)
 
         parent.height eq b.top + readonly(b.height) strength Required - 1
     }

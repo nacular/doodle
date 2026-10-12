@@ -37,11 +37,11 @@ class SolverTests {
 
                 listOf(parentWidth, aWidth, bWidth, cWidth).forEach { it greaterEq 0 }
 
-                aLeft   eq     0
-                aWidth  hint   aWidth.value strength Weak
-                aWidth  lessEq parentWidth / 3
-                bLeft   eq     aLeft + aWidth
-                cLeft   eq     bLeft + bWidth
+                aLeft   eq      0
+                aWidth  prefers aWidth.value strength Weak
+                aWidth  lessEq  parentWidth / 3
+                bLeft   eq      aLeft + aWidth
+                cLeft   eq      bLeft + bWidth
 
                 aWidth + bWidth + cWidth eq parentWidth
             })
@@ -85,7 +85,7 @@ class SolverTests {
 
                 aLeft   eq        0
                 aWidth  greaterEq 0
-                aWidth  hint      aWidth.value strength Weak
+                aWidth  prefers   aWidth.value strength Weak
                 aWidth  lessEq    parentWidth / 3
 
                 bLeft   eq        aLeft + aWidth
@@ -161,8 +161,8 @@ class SolverTests {
 
         mapOf(
             Pair<Constraints, Boolean>({constraints {
-                x hint   100 strength Weak
-                x lessEq 400
+                x prefers 100 strength Weak
+                x lessEq  400
             }}, true),
             Pair({constraints {
                 x(100.0)
@@ -171,17 +171,17 @@ class SolverTests {
 
                 listOf(p, x, a).forEach { it greaterEq 0 }
 
-                y     eq       0
-                x     hint     100 strength Weak
-                x     lessEq   p / 3
-                z     eq       y + x
-                x + a eq       p
+                y     eq      0
+                x     prefers 100 strength Weak
+                x     lessEq  p / 3
+                z     eq      y + x
+                x + a eq      p
             }}, true),
             Pair({constraints { x lessEq    45 }}, true),
             Pair({constraints {
                 x lessEq    45
                 x greaterEq 10
-                x hint      10
+                x prefers   10
             }}, true),
             Pair({constraints { x lessEq    z  }}, true),
             Pair({constraints { x greaterEq 45 }}, true),
@@ -191,8 +191,8 @@ class SolverTests {
             }}, true),
             Pair({constraints {
                 y lessEq 45
-                z eq 10
-                x eq y - z
+                z eq     10
+                x eq     y - z
             }}, true),
 
             Pair({constraints {
@@ -596,12 +596,12 @@ class SolverTests {
         }
     }
 
-    @Test fun `hint alone works`() {
+    @Test fun `prefers alone works`() {
         val property = property("a")
 
         listOf(
             Pair<Constraints, Double>({constraints {
-                property hint 1200
+                property prefers 1200
             }}, 1200.0)
         ).forEach { (constraints, value) ->
             Solver().apply {

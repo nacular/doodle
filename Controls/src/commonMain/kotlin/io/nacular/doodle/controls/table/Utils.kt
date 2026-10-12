@@ -138,8 +138,8 @@ internal fun <T: View> tableLayout(
 
     when {
         (isHeaderSticky || isFooterSticky) && table.monitorsDisplayRect -> {
-            panel_.height hint ideal
-            panel_.height eq parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Required - 1
+            panel_.height prefers ideal
+            panel_.height eq      parent.height - (header_.height + footer_.height + headerPadding + footerPadding) strength Required - 1
         }
     }
 
