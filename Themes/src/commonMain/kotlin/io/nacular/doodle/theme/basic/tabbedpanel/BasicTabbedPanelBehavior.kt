@@ -13,11 +13,9 @@ import io.nacular.doodle.core.View
 import io.nacular.doodle.drawing.AffineTransform.Companion.Identity
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.drawing.Color
-import io.nacular.doodle.drawing.Color.Companion.Gray
+import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.Transparent
 import io.nacular.doodle.drawing.Color.Companion.White
-import io.nacular.doodle.drawing.ColorPaint
-import io.nacular.doodle.drawing.Stroke
-import io.nacular.doodle.drawing.darker
 import io.nacular.doodle.drawing.opacity
 import io.nacular.doodle.drawing.paint
 import io.nacular.doodle.event.PointerListener.Companion.on
@@ -26,6 +24,7 @@ import io.nacular.doodle.geometry.Path
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.geometry.Rectangle
 import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
 import io.nacular.doodle.geometry.inset
 import io.nacular.doodle.geometry.path
 import io.nacular.doodle.layout.Insets
@@ -60,21 +59,17 @@ public open class BasicTab<T>(
     override var index              : Int,
                  visualizer         : ItemVisualizer<T, Any>,
     private  val radius             : Double,
-    private  val tabColor           : Color,
+    private  val selectedColor      : Color,
+    private  val unselectedColor    : Color,
     private  val move               : (panel: TabbedPanel<T>, tab: Int, by: Double) -> Unit,
     private  val cancelMove         : (panel: TabbedPanel<T>, tab: Int) -> Unit,
-    private  var selectedColorMapper: ColorMapper,
     private  var hoverColorMapper   : ColorMapper
 ): Tab<T>() {
 
     private var pointerOver = false
         set(new) {
             field = new
-            backgroundColor = when {
-                selected  -> selectedColorMapper(tabColor)
-                new       -> hoverColorMapper   (tabColor)
-                else      -> tabColor
-            }
+            updateColor()
         }
 
     private var pointerDown     = false
@@ -82,30 +77,44 @@ public open class BasicTab<T>(
 
     private val selected get() = panel.selection == index
 
+    private val trueRadius get() = min(radius, height / 2)
     private var path: Path
 
-    private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
+    private val visualInset = 2.0
+    private var leftRect     = Rectangle()
+    private var rightRect    = Rectangle()
+
+    private fun updateColor() {
         backgroundColor = when {
-            old == index -> if (pointerOver) hoverColorMapper(tabColor) else null
-            new == index -> selectedColorMapper(tabColor)
-            else         -> null
+            selected -> selectedColor
+            else     -> unselectedColor
+        }.let {
+            if (pointerOver && !selected) hoverColorMapper(it) else it
         }
+    }
+
+    private val selectionChanged = { _: TabbedPanel<T>, old: Int?, new: Int? ->
+        updateColor()
 
         role.selected = new == index
     }
 
-    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = { it.centerY eq parent.centerY; it.height.preserve }
+    public var cellAlignment: (ConstraintDslContext.(Bounds) -> Unit) = {
+        it.left    eq 0
+        it.centerY eq parent.centerY
+        it.height.preserve
+    }
 
     private fun constrainLayout(view: View) = constrain(view) { content ->
-        withSizeInsets(width = 4 * radius) {
-            cellAlignment(content.withOffset(left = 2 * radius))
+        withSizeInsets(width = 2 * (trueRadius + visualInset), height = 2 * visualInset) {
+            cellAlignment(content.withOffset(left = trueRadius + visualInset))
         }
     }
 
     init {
-        children += visualizer(panel[index]!!).also {
-            it.suggestX(2 * radius)
-        }
+        clipCanvasToBounds = false
+
+        children += visualizer(panel[index]!!)
 
         layout = constrainLayout(children[0])
 
@@ -151,8 +160,9 @@ public open class BasicTab<T>(
 
         styleChanged += { rerender() }
 
+        updateColor()
+
         if (selected) {
-            backgroundColor = selectedColorMapper(tabColor)
             role.selected   = true
         }
 
@@ -172,39 +182,52 @@ public open class BasicTab<T>(
     }
 
     override fun render(canvas: Canvas) {
-        val selection = panel.selection
+        val inset = visualInset
 
         backgroundColor?.let {
-            canvas.path(path, ColorPaint(it))
-        } ?: when {
-            selection != null && (index > selection || index < selection - 1) -> {
-                canvas.line(Point(width - radius, radius), Point(width - radius, height - radius), Stroke(Gray))
+            when {
+                selected -> canvas.path(path,                                                                                                    it.paint)
+                else     -> canvas.rect(bounds.atOrigin.inset(left = inset, bottom = 2 * inset, right = inset), radius = trueRadius - 2 * inset, it.paint)
             }
-            else                                                              -> {}
         }
     }
 
-    override fun contains(point: Point): Boolean = super.contains(point) && when (val localPoint = toLocal(point, parent)) {
-        in Rectangle(radius, 0.0, width - 2 * radius, height) -> when (localPoint) {
-            in Rectangle(            radius, 0.0, radius, radius)     -> sqrt((Point(        2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
-            in Rectangle(width - 2 * radius, 0.0, radius, radius)     -> sqrt((Point(width - 2 * radius, radius) - localPoint).run { x * x + y * y }) <= radius
-            else                                                      -> true
+    override fun intersects(point: Point): Boolean = when {
+        selected -> when (val localPoint = toLocal(point, parent)) {
+            in Rectangle(leftRect.center.x, leftRect.y, rightRect.center.x - leftRect.center.x, leftRect.height) -> when (localPoint) {
+                in Rectangle(leftRect.center.x, leftRect.y,  trueRadius, trueRadius) -> sqrt((Point(leftRect.right, leftRect.y  + trueRadius) - localPoint).run { x * x + y * y }) <= trueRadius
+                in Rectangle(rightRect.x,       rightRect.y, trueRadius, trueRadius) -> sqrt((Point(rightRect.x,    rightRect.y + trueRadius) - localPoint).run { x * x + y * y }) <= trueRadius
+                else -> true
+            }
+            in Rectangle(leftRect.x,         leftRect.bottom  - trueRadius, trueRadius, trueRadius) -> sqrt((Point(leftRect.x, leftRect.bottom - trueRadius) - localPoint).run { x * x + y * y }) > trueRadius
+            in Rectangle(rightRect.center.x, rightRect.bottom - trueRadius, trueRadius, trueRadius) -> sqrt((Point(rightRect.right, rightRect.bottom - trueRadius) - localPoint).run { x * x + y * y }) > trueRadius
+            else -> false
         }
-        in Rectangle(           0.0, height - radius, radius, radius) -> sqrt((Point(  0.0, height - radius) - localPoint).run { x * x + y * y }) >  radius
-        in Rectangle(width - radius, height - radius, radius, radius) -> sqrt((Point(width, height - radius) - localPoint).run { x * x + y * y }) >  radius
-        else                                                          -> false
+        else -> super.intersects(point)
     }
 
-    private fun updatePath() = path(Point(0.0, height)).
-            quadraticTo(Point(radius,             height - radius), Point(radius,         height)).
-            lineTo     (Point(radius,             radius                                        )).
-            quadraticTo(Point(2 * radius,         0.0            ), Point(radius,         0.0   )).
-            lineTo     (Point(width - 2 * radius, 0.0                                           )).
-            quadraticTo(Point(width - radius,     radius         ), Point(width - radius, 0.0   )).
-            lineTo     (Point(width - radius,     height - radius                               )).
-            quadraticTo(Point(width,              height         ), Point(width - radius, height)).
-            close      ().also {
-        childrenClipPath = PolyClipPath(Rectangle(Point(2 * radius, 0.0), Size(max(0.0, width - 4 * radius), height)))
+    private fun updatePath(): Path {
+        val offset = visualInset
+
+        leftRect  = Rectangle(offset - trueRadius, 0.0, 2 * trueRadius, height)
+        rightRect = leftRect.at(x = width - leftRect.width / 2 - offset)
+
+        return path(Point(leftRect.x, leftRect.bottom))
+            .quadraticTo(Point(leftRect.center.x, leftRect.bottom - trueRadius), Point(leftRect.center.x, leftRect.bottom))
+            .lineTo     (Point(leftRect.center.x, leftRect.y + trueRadius))
+            .quadraticTo(Point(leftRect.right, leftRect.y), Point(leftRect.center.x, leftRect.y))
+            .lineTo     (rightRect.position)
+            .quadraticTo(Point(rightRect.center.x, trueRadius), Point(rightRect.center.x, rightRect.y))
+            .lineTo     (Point(rightRect.center.x, rightRect.bottom - trueRadius))
+            .quadraticTo(Point(rightRect.right, rightRect.bottom), Point(rightRect.center.x, rightRect.bottom))
+            .close      ().also {
+                childrenClipPath = PolyClipPath(Rectangle(
+                    x      = leftRect.right,
+                    y      = leftRect.y + offset,
+                    width  = rightRect.x - leftRect.right,
+                    height = rightRect.height - 2 * offset
+                ))
+            }
     }
 }
 
@@ -216,24 +239,26 @@ public interface TabProducer<T> {
 }
 
 public open class BasicTabProducer<T>(
-    override  val tabHeight          : Double      = 40.0,
-    protected val tabRadius          : Double      = 10.0,
-    protected val tabColor           : Color       = Color(0xdee1e6u),
-    protected val selectedColorMapper: ColorMapper = { White           },
-    protected val hoverColorMapper   : ColorMapper = { it.darker(0.1f) }
+    override  val tabHeight       : Double      = 40.0,
+    public    val tabRadius       : Double      = 12.0,
+    protected val selectedColor   : Color       = White,
+    protected val unselectedColor : Color       = Transparent,
+    protected val hoverColorMapper: ColorMapper? = null,
 ): TabProducer<T> {
-    override val spacing: Double = -2 * tabRadius
+    override val spacing: Double = 0.0
 
     override fun invoke(panel: TabbedPanel<T>, item: T, index: Int): BasicTab<T> = BasicTab(
-            panel,
-            index,
-            panel.tabVisualizer,
-            tabRadius,
-            tabColor,
-            move,
-            cancelMove,
-            selectedColorMapper,
-            hoverColorMapper
+        move             = move,
+        panel            = panel,
+        index            = index,
+        radius           = tabRadius,
+        visualizer       = panel.tabVisualizer,
+        cancelMove       = cancelMove,
+        selectedColor    = selectedColor,
+        unselectedColor  = unselectedColor,
+        hoverColorMapper = hoverColorMapper ?: {
+            panel.parent?.backgroundColor ?: Lightgray
+        },
     ).apply { suggestSize(Size(100.0, tabHeight)) } // FIXME: use dynamic width
 
     protected open val move: (TabbedPanel<T>, Int, Double) -> Unit = { _,_,_ -> }
@@ -253,7 +278,7 @@ private class TabLayout(private val minWidth: Double = 40.0, private val default
             child.x      = x
             child.y      = insets.top
             child.width  = width
-            child.height = current.height - insets.top
+            child.height = current.height - insets.top - insets.bottom
 
             x += width + spacing
         }
@@ -287,14 +312,21 @@ public abstract class TabContainer<T>(protected val role: TabListRole = TabListR
     public abstract fun registerTab(panel: TabbedPanel<T>, index: Int, tabPanel: View)
 }
 
-public open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabProducer: TabProducer<T>): TabContainer<T>() {
+public open class SimpleTabContainer<T>(
+                panel      : TabbedPanel<T>,
+    private val tabProducer: TabProducer<T>,
+                insets     : Insets = (tabProducer as? BasicTabProducer).let {
+                    val horizontal = it?.tabRadius ?: 4.0
+                    Insets(left = horizontal, top = 10.0, right = horizontal)
+                },
+): TabContainer<T>() {
     init {
         children.addAll(panel.mapIndexed { index, item ->
             tabProducer(panel, item, index)
         })
 
-        insets = Insets(top = 10.0) // TODO: Make this configurable
-        layout = TabLayout(spacing = tabProducer.spacing)
+        this.insets = insets
+        layout      = TabLayout(spacing = tabProducer.spacing)
     }
 
     override fun selectionChanged(panel: TabbedPanel<T>, newIndex: Int?, oldIndex: Int?) {
@@ -335,13 +367,18 @@ public open class SimpleTabContainer<T>(panel: TabbedPanel<T>, private val tabPr
             role[tab] = tabPanel
         }
     }
+
+    override fun render(canvas: Canvas) {
+        backgroundColor?.let { canvas.rect(bounds.atOrigin, it.paint) }
+    }
 }
 
 public open class AnimatingTabContainer<T>(
     private val panel         : TabbedPanel<T>,
     private val tabProducer   : TabProducer<T>,
     private val animateOpacity: (start: Float, end: Float, block: (progress: Float) -> Unit) -> Completable = { _,end,block -> NoOpCompletable.also { block(end) } },
-    private val animateTab    : (distance: Double, block: (progress: Float) -> Unit) -> Completable = { _,block -> NoOpCompletable.also { block(1f) } }): SimpleTabContainer<T>(panel, tabProducer) {
+    private val animateTab    : (distance: Double, block: (progress: Float) -> Unit) -> Completable = { _,block ->NoOpCompletable.also { block(1f) } }
+): SimpleTabContainer<T>(panel, tabProducer) {
 
     private val hoverColors     = mutableMapOf<View, Color?>()
     private val moveAnimations  = mutableMapOf<View, Completable>()
@@ -591,7 +628,7 @@ public open class BasicTabbedPanelBehavior<T>(
                 items.forEachIndexed { index, view ->
                     when (index) {
                         0    -> view.bounds = Rectangle(current.width, tabProducer.tabHeight + 10)
-                        else -> view.bounds = Rectangle(size = current).inset(top = tabProducer.tabHeight + 10)
+                        else -> view.bounds = Rectangle(size = current).inset(top = tabProducer.tabHeight + 10 + 4)
                     }
                 }
 

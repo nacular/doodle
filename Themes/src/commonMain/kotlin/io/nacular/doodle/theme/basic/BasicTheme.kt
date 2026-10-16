@@ -856,24 +856,24 @@ public open class BasicTheme(private val configProvider: ConfigProvider, behavio
         )
 
         public fun basicTabbedPanelBehavior(
-                tabProducer    : TabProducer<Any>?         = null,
-                backgroundColor: Color?                    = null,
-                tabContainer   : TabContainerFactory<Any>? = null
+            tabProducer    : TabProducer<Any>?         = null,
+            backgroundColor: Color?                    = null,
+            tabContainer   : TabContainerFactory<Any>? = null
         ): Module = basicThemeModule(name = "BasicTabbedPanelBehavior") {
             bindBehavior<TabbedPanel<Any>>(BTheme::class) {
                 it.behavior = instance<BasicThemeConfig>().run {
                     BasicTabbedPanelBehavior(
                         tabProducer ?: BasicTabProducer(
-                            tabColor            = backgroundColor ?: this.backgroundColor,
-                            hoverColorMapper    = this@run.hoverColorMapper,
-                            selectedColorMapper = { foregroundColor.inverted }
+                            selectedColor = backgroundColor ?: this.backgroundColor,
                         ),
                         backgroundColor ?: this.backgroundColor,
                         tabContainer?.let {
                             { panel: TabbedPanel<Any>, tabProducer: TabProducer<Any> ->
                                 it(this@bindBehavior, panel, tabProducer)
                             }
-                        } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer) }
+                        } ?: { panel, tabProducer -> SimpleTabContainer(panel, tabProducer).apply {
+                            this.backgroundColor = darkBackgroundColor
+                        } }
                     )
                 }
             }
