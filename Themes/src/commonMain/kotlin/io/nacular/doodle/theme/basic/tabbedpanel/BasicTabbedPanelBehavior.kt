@@ -67,8 +67,10 @@ public open class BasicTab<T>(
 ): Tab<T>() {
 
     private var pointerOver = false; set(new) {
-        field = new
-        updateColor()
+        if (field != new) {
+            field = new
+            updateColor()
+        }
     }
 
     private var pointerDown     = false
@@ -383,7 +385,8 @@ public open class AnimatingTabContainer<T>(
     private val moveAnimations  = mutableMapOf<View, Completable>()
     private val colorAnimations = mutableMapOf<View, Completable>()
     private var movingFromIndex = null as Int?
-    private var movingToIndex = 0
+    private var movingToIndex   = 0
+    private var resetTransforms = false
 
     init {
         childrenChanged += { _,diffs ->
@@ -399,6 +402,15 @@ public open class AnimatingTabContainer<T>(
         }
 
         children.filterIsInstance<Tab<T>>().forEach { tagTab(panel, it) }
+    }
+
+    override fun doLayout(min: Size, current: Size, max: Size) {
+        if (resetTransforms) {
+            resetTransforms = false
+            children.forEach { it.transform = Identity }
+        }
+
+        super.doLayout(min, current, max)
     }
 
     private fun tagTab(panel: TabbedPanel<T>, tab: Tab<T>) = tab.apply {
@@ -564,6 +576,8 @@ public open class AnimatingTabContainer<T>(
                 stopMoveNow(panel, this)
             }
         }
+
+        resetTransforms = true
     }
 
     private fun stopMoveNow(panel: TabbedPanel<T>, tab: Tab<*>) {
@@ -576,7 +590,6 @@ public open class AnimatingTabContainer<T>(
 
             children.forEach {
                 moveAnimations.remove(it)?.cancel()
-                it.transform = Identity
             }
 
             movingFromIndex = null
