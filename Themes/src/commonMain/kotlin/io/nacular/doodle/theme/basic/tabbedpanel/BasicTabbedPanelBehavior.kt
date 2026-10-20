@@ -66,11 +66,10 @@ public open class BasicTab<T>(
     private  var hoverColorMapper   : ColorMapper
 ): Tab<T>() {
 
-    private var pointerOver = false
-        set(new) {
-            field = new
-            updateColor()
-        }
+    private var pointerOver = false; set(new) {
+        field = new
+        updateColor()
+    }
 
     private var pointerDown     = false
     private var initialPosition = null as Point?

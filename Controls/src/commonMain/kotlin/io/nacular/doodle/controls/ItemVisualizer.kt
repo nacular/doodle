@@ -39,13 +39,13 @@ public inline fun <T, C> itemVisualizer(crossinline block: (item: T, previous: V
  * Visualizes Strings using [Label]s.
  */
 public object StringVisualizer: ItemVisualizer<String, Any> {
-    override fun invoke(item: String, previous: View?, context: Any): Label = StyledTextVisualizer.invoke(AnnotatedString(item), previous, context)
+    override fun invoke(item: String, previous: View?, context: Any): Label = AnnotatedStringVisualizer(AnnotatedString(item), previous, context)
 }
 
 /**
  * Visualizes [AnnotatedString] using [Label]s.
  */
-public object StyledTextVisualizer: ItemVisualizer<AnnotatedString, Any> {
+public object AnnotatedStringVisualizer: ItemVisualizer<AnnotatedString, Any> {
     override fun invoke(item: AnnotatedString, previous: View?, context: Any): Label = when (previous) {
         is Label -> previous.apply { annotatedText = item }
         else     -> Label(item)

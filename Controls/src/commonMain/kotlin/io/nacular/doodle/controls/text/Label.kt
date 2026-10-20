@@ -23,7 +23,7 @@ public interface LabelBehavior: Behavior<Label> {
 }
 
 public open class Label(
-    annotatedText         : AnnotatedString        = AnnotatedString(""),
+    annotatedText      : AnnotatedString   = AnnotatedString(""),
     verticalAlignment  : VerticalAlignment = Middle,
     horizontalAlignment: TextAlignment     = Center
 ): View() {

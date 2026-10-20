@@ -49,7 +49,7 @@ public abstract class CommonSplitPanelBehavior(
     override fun divider(panel: SplitPanel): View = divider
 
     override fun install(view: SplitPanel) {
-        splitPanel  = view
+        splitPanel = view
 
         orientationChanged(view)
 
