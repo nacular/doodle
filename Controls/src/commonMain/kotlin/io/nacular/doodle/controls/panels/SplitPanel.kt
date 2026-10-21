@@ -6,8 +6,10 @@ import io.nacular.doodle.core.behavior
 import io.nacular.doodle.drawing.Canvas
 import io.nacular.doodle.geometry.Point
 import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.constrain
 import io.nacular.doodle.layout.constraints.fill
+import io.nacular.doodle.layout.constraints.minus
 import io.nacular.doodle.utils.ChangeObservers
 import io.nacular.doodle.utils.ChangeObserversImpl
 import io.nacular.doodle.utils.Orientation
@@ -73,7 +75,11 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
     /**
      * The fraction of space given to [firstItem], if it is present.
      */
-    public var ratio: Float = ratio; set(new) { if (new != field) { field = new; relayout(); changed_() } }
+    public var ratio: Float = ratio; set(new) {
+        if (new != field.coerceIn(0f, 1f)) {
+            field = new; relayout(); changed_()
+        }
+    }
 
     private var divider: View? by observable(null) { old, new ->
         old?.let { children -= it }
@@ -130,22 +136,22 @@ public class SplitPanel(orientation: Orientation = Vertical, ratio: Float = 0.5f
                         Vertical -> {
                             first.top    eq insets.top
                             first.left   eq insets.left
-                            first.right  eq first.left + (parent.width - (panelSpacing + insets.right)) * ratio
-                            first.bottom eq parent.bottom - insets.bottom
+                            first.right  eq lerp(first.left, parent.right - (panelSpacing + insets.right), ratio) strength Required - 1
+                            first.bottom eq parent.bottom - insets.bottom strength Required - 1
                             last.top     eq first.top
                             last.left    eq first.right + panelSpacing
-                            last.right   eq parent.right - insets.right
+                            last.right   eq parent.right - insets.right strength Required - 1
                             last.bottom  eq first.bottom
                         }
                         else -> {
                             first.top    eq insets.top
                             first.left   eq insets.left
-                            first.right  eq parent.right - insets.right
-                            first.bottom eq first.top + (parent.height - (panelSpacing + insets.bottom)) * ratio
+                            first.right  eq parent.right - insets.right strength Required - 1
+                            first.bottom eq lerp(first.top, parent.bottom - (panelSpacing + insets.bottom), ratio) strength Required - 1
                             last.top     eq first.bottom + panelSpacing
                             last.left    eq first.left
                             last.right   eq first.right
-                            last.bottom  eq parent.bottom - insets.bottom
+                            last.bottom  eq parent.bottom - insets.bottom strength Required - 1
                         }
                     }
                 }

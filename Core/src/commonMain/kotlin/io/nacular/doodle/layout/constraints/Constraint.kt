@@ -2,8 +2,6 @@ package io.nacular.doodle.layout.constraints
 
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import kotlin.jvm.JvmInline
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Classes are derived works from [https://github.com/alexbirkett/kiwi-java/tree/master/src/main/java/no/birkett/kiwi],
@@ -83,7 +81,7 @@ public value class Strength private constructor(public val value: Int): Comparab
          *
          * @param value for the Strength
          */
-        public operator fun invoke(value: Int): Strength = Strength(max(0, min(Required.value, value)))
+        public operator fun invoke(value: Int): Strength = Strength(value.coerceIn(0, Required.value))
     }
 }
 

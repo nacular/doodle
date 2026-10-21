@@ -511,10 +511,13 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         override fun toString() = "idealSize($bounds)"
     }
 
-    internal var pendingAdd  = null as Constraint?
-    internal var constraints = hashSetOf<Constraint>()
-    internal var edits       = hashSetOf<Edit>()
-    internal var idealEdits  = hashSetOf<IdealEdit>()
+    internal var edits             = hashSetOf<Edit>()
+    internal var idealEdits        = hashSetOf<IdealEdit>()
+    internal var pendingAdd        = null as Pair<Constraint, Boolean>?
+    internal var constraints       = hashSetOf<Constraint>()
+    internal var parentConstraints = hashSetOf<Constraint>()
+
+    internal var saveToParentConstraints = false
 
     public var parent: ParentBounds = ParentBoundsImpl(this)
         internal set
@@ -524,17 +527,24 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
     }
 
     public fun reset() {
-        pendingAdd  = null
-        constraints = hashSetOf()
-        edits       = hashSetOf()
-        idealEdits  = hashSetOf()
+        edits                   = hashSetOf()
+        idealEdits              = hashSetOf()
+        pendingAdd              = null
+        constraints             = hashSetOf()
+        parentConstraints       = hashSetOf()
+        saveToParentConstraints = false
     }
 
     private fun add(constraint: Constraint) = when {
         constraint.expression.isConstant -> Result.failure(UnsatisfiableConstraintException(constraint, constraints))
         else                             -> Result.success(constraint).also {
-            pendingAdd?.let { constraints.add(it) }
-            pendingAdd = constraint
+            pendingAdd?.let { (constrained, forParent) ->
+                when {
+                    forParent -> parentConstraints += constrained
+                    else      -> constraints       += constrained
+                }
+            }
+            pendingAdd = constraint to saveToParentConstraints
         }
     }
 

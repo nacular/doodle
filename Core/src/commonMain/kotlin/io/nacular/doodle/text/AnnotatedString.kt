@@ -370,6 +370,27 @@ public operator fun TextDecoration?.invoke(text: () -> AnnotatedString): Annotat
     }
 }
 
+/**
+ * @return a new [AnnotatedString] with the contents of [text] and decorated with this [Line][TextDecoration.Line].
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("invokeString")
+public operator fun TextDecoration.Line?.invoke(text: () -> String): AnnotatedString = AnnotatedString(text = text(), decoration = this?.let { TextDecoration(lines = setOf(it)) })
+
+/**
+ * @return a new [AnnotatedString] with the contents of [text] and decorated with this [Line][TextDecoration.Line].
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public operator fun TextDecoration.Line?.invoke(text: () -> AnnotatedString): AnnotatedString = text().apply {
+    data.forEach { (_, annotation) ->
+        if (annotation.decoration == null) {
+            annotation.decoration = this@invoke?.let { TextDecoration(lines = setOf(it)) }
+        }
+    }
+}
+
 // endregion
 
 // region Stroke

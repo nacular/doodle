@@ -546,8 +546,10 @@ internal class Solver {
                     addEditVariable(variable, Strong)
                     suggestValue(variable, nominal)
                     finalizeVariables()
+                } catch (_: Exception) {
+                } finally {
                     removeEditVariable(variable)
-                } catch (_: Exception) {}
+                }
 
                 nominal
             }
@@ -570,7 +572,6 @@ internal class Solver {
             val row     = createRow(constraint, tag)
             var subject = chooseSubject(row, tag)
 
-
             if (subject.type == Invalid && row.cells.keys.all { it.type == Dummy }) {
                 subject = when {
                     !nearZero(row.constant) -> throw UnsatisfiableConstraintException(constraint, constraints.keys)
@@ -582,7 +583,6 @@ internal class Solver {
                 Invalid -> if (!addWithArtificialVariable(row)) {
                     throw UnsatisfiableConstraintException(constraint, constraints.keys)
                 }
-
                 else -> {
                     registerRow(subject, row)
                     row.solveFor(subject)

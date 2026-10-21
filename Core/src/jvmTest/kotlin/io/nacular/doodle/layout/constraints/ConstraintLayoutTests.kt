@@ -98,7 +98,7 @@ class ConstraintLayoutTests {
         expect(Size(200 - 10)) { child1.size }
     }
 
-    @Test fun `with updates`() {
+    @Test fun `width updates`() {
         container {
             val child1 = NamedView("child1").apply { suggestWidth(100.0) }
             val child2 = NamedView("child2")
@@ -412,7 +412,7 @@ class ConstraintLayoutTests {
                 main_.height   eq        minHeight + targetHeight strength Medium
 
                 footer_.top    eq        main_.bottom + 65
-                footer_.bottom lessEq    readonly(parent.bottom)  strength Strong
+                footer_.bottom lessEq    parent.bottom strength Strong
                 footer_.height.preserve
             }
 
@@ -439,6 +439,58 @@ class ConstraintLayoutTests {
         container.doLayout_()
 
         expect(minHeight) { main.height }
+    }
+
+    @Test fun `required const updates`() {
+        val headerStartHeight = 117.0
+        val footerStartHeight =  56.0
+
+        val header       = NamedView("header").apply { forceHeight(117.0) }
+        val main         = NamedView("main"  ).apply { forceHeight(186.0) }
+        val footer       = NamedView("footer").apply { forceHeight( 56.0) }
+        val minHeight    = 106.0
+        var targetHeight = 174
+
+        val container = container {
+            + listOf(header, main, footer)
+
+            @Suppress("LocalVariableName")
+            layout = constrain(header, main, footer) { header_, main_, footer_ ->
+                listOf(header_, main_, footer_).forEach { it.centerX eq parent.centerX }
+                header_.top    eq       9
+                header_.height.preserve
+
+                main_.top      eq        header_.bottom + 5
+                main_.height   eq        minHeight + targetHeight
+
+                footer_.top    eq        main_.bottom + 65
+                footer_.bottom lessEq    parent.bottom strength Strong
+                footer_.height.preserve
+            }
+
+            forceHeight(9 + headerStartHeight + 5 + minHeight + targetHeight + 65 + footerStartHeight)
+        }
+
+        container.doLayout_()
+
+        expect(minHeight + targetHeight) { main.height }
+
+        targetHeight = 0
+
+        container.doLayout_()
+
+        expect(minHeight) { main.height }
+
+        targetHeight = 174
+        container.forceHeight(container.height - 1)
+        container.doLayout_()
+
+        expect(minHeight + targetHeight) { main.height }
+
+        container.forceHeight(100.0)
+        container.doLayout_()
+
+        expect(minHeight + targetHeight) { main.height }
     }
 
     @Test fun `center works`() {

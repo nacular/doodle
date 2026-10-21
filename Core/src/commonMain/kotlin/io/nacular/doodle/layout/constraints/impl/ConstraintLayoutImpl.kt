@@ -302,8 +302,8 @@ internal open class ConstraintLayoutImpl(
         current                  = current,
         max                      = max,
         insets                   = insets,
-        parentWidthPreservation  = Required,
-        parentHeightPreservation = Required
+        parentWidthPreservation  = setOf(Required, parentWidthPreservation ),
+        parentHeightPreservation = setOf(Required, parentHeightPreservation)
     )
 
     override fun preferredSize(views: Sequence<Positionable>, min: Size, current: Size, max: Size, insets: Insets) = layoutInternal(
@@ -312,18 +312,20 @@ internal open class ConstraintLayoutImpl(
         current                  = current,
         max                      = max,
         insets                   = insets,
-        parentWidthPreservation  = parentWidthPreservation,
-        parentHeightPreservation = parentHeightPreservation
+        parentWidthPreservation  = setOf(parentWidthPreservation ),
+        parentHeightPreservation = setOf(parentHeightPreservation),
+        doCommit                 = false
     )
 
     private fun layoutInternal(
-        @Suppress("unused") views  : Sequence<Positionable>,
-                            min    : Size,
-                            current: Size,
-                            max    : Size,
-                            insets : Insets,
-                            parentWidthPreservation : Strength,
-                            parentHeightPreservation: Strength
+        @Suppress("unused") views                   : Sequence<Positionable>,
+                            min                     : Size,
+                            current                 : Size,
+                            max                     : Size,
+                            insets                  : Insets,
+                            parentWidthPreservation : Set<Strength>,
+                            parentHeightPreservation: Set<Strength>,
+                            doCommit                : Boolean = true
     ): Size {
         layingOut = true
 
@@ -332,7 +334,7 @@ internal open class ConstraintLayoutImpl(
         viewBounds.values.forEach { it.reset() }
 
         setupSolver(solver, context, blockTracker.values, parentWidthPreservation, parentHeightPreservation, ::notifyOfErrors)
-        solve      (solver, blockTracker.values.asSequence().flatMap { it.constraints })
+        solve      (solver, if (doCommit) blockTracker.values.asSequence().flatMap { it.constraints } else emptySequence())
 
         layingOut = false
 
@@ -396,13 +398,14 @@ internal open class ConstraintLayoutImpl(
             solver                  : Solver,
             context                 : ConstraintDslContext,
             blocks                  : Collection<BlockInfo>,
-            parentWidthPreservation : Strength = Strong,
-            parentHeightPreservation: Strength = Strong,
+            parentWidthPreservation : Set<Strength> = setOf(Strong),
+            parentHeightPreservation: Set<Strength> = setOf(Strong),
             errorHandler            : (ConstraintException) -> Unit
         ) {
-            val oldConstraints = context.constraints
-            val oldEdits       = context.edits
-            val oldIdealEdits  = context.idealEdits
+            val oldEdits             = context.edits
+            val oldIdealEdits        = context.idealEdits
+            val oldConstraints       = context.constraints
+            val oldParentConstraints = context.parentConstraints
 
             context.reset()
 
@@ -416,20 +419,45 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
-            context.pendingAdd?.let {
-                context.constraints.add(it)
-                context.pendingAdd = null
+            context.pendingAdd?.let {(constrained, forParent) ->
+                when {
+                    forParent -> context.parentConstraints += constrained
+                    else      -> context.constraints       += constrained
+                }
+            }
+
+            val failedInserts = mutableListOf<Constraint>()
+
+            val addedParentConstraints   = context.parentConstraints.subtract(oldParentConstraints)
+            val removedParentConstraints = oldParentConstraints.subtract(context.parentConstraints)
+
+            addedParentConstraints.filter { it.strength != Required }.forEach { constraint ->
+                if (!handleInsert(solver, constraint, errorHandler)) {
+                    failedInserts += constraint
+                }
+            }
+
+            removedParentConstraints.filter { it.strength == Required }.forEach { constraint ->
+                handleDelete(solver, constraint, errorHandler)
+            }
+
+            addedParentConstraints.filter { it.strength == Required }.forEach { constraint ->
+                if (!handleInsert(solver, constraint, errorHandler)) {
+                    failedInserts += constraint
+                }
+            }
+
+            removedParentConstraints.filter { it.strength != Required }.forEach { constraint ->
+                handleDelete(solver, constraint, errorHandler)
             }
 
             // TODO: use updateConstant for constraints that only changed by a constant factor
 
             for (constraint in oldConstraints) {
                 if (constraint !in context.constraints) {
-                    handleDelete(solver, constraint)
+                    handleDelete(solver, constraint, errorHandler)
                 }
             }
-
-            val failedInserts = mutableListOf<Constraint>()
 
             for (constraint in context.constraints) {
                 if (constraint !in oldConstraints) {
@@ -516,9 +544,11 @@ internal open class ConstraintLayoutImpl(
             return true
         }
 
-        private fun handleDelete(solver: Solver, constraint: Constraint) {
+        private fun handleDelete(solver: Solver, constraint: Constraint, errorHandler: (ConstraintException) -> Unit = {}) {
             try {
                 solver.removeConstraint(constraint)
+            } catch (exception: ConstraintException) {
+                errorHandler(exception)
             } catch (_: Exception) {}
 
             cleanupSynthetics(solver, constraint)
@@ -539,29 +569,33 @@ internal open class ConstraintLayoutImpl(
         }
 
         private fun ConstraintDslContext.constrainParent(
-            width         : Expression,
-            widthStrength : Strength,
-            height        : Expression,
-            heightStrength: Strength,
-            min           : Size,
-            max           : Size
+            width          : Expression,
+            widthStrengths : Set<Strength>,
+            height         : Expression,
+            heightStrengths: Set<Strength>,
+            min            : Size,
+            max            : Size
         ) {
-            constrainSide(width,  min.width,  max.width,  widthStrength )
-            constrainSide(height, min.height, max.height, heightStrength)
+            saveToParentConstraints = true
+            constrainSide(width,  min.width,  max.width,  widthStrengths )
+            constrainSide(height, min.height, max.height, heightStrengths)
+            saveToParentConstraints = false
         }
 
         private fun ConstraintDslContext.constrainSide(
             property : Expression,
             minExtent: Double,
             maxExtent: Double,
-            strength : Strength,
+            strengths: Set<Strength>,
         ) {
             when (minExtent) {
                 maxExtent -> property eq maxExtent
                 else      -> {
-                    property preserve strength
+                    strengths.forEach {
+                        property preserve it
+                    }
 
-                    if (strength != Required) {
+                    if (Required !in strengths) {
                         if (minExtent > 0.0              ) { property greaterEq minExtent }
                         if (maxExtent < POSITIVE_INFINITY) { property lessEq    maxExtent }
                     }
