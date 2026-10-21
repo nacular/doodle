@@ -113,9 +113,9 @@ public open class Label(
         var cachedSize  = Empty
         var cachedWidth = 0.0
 
-        preferredSize = { min, max ->
+        preferredSize = { _, max ->
             when {
-                wrapsWords && width !in min.width .. max.width -> {
+                wrapsWords -> {
                     when (max.width) {
                         cachedWidth -> cachedSize
                         else        -> {
