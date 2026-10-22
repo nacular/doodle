@@ -60,9 +60,9 @@ class LabelTests {
         val wrappedSize = Size(10.0, 1000.0)
 
         Label().let {
-            it.behavior   = createBehavior(wrappedSize)
+            it.behavior      = createBehavior(wrappedSize)
             it.annotatedText = annotatedString()
-            it.wrapsWords = true
+            it.wrapsWords    = true
 
             assertEquals(wrappedSize, it.idealSize)
         }
@@ -157,6 +157,7 @@ class LabelTests {
     }
 
     private fun createBehavior(size: Size = Empty) = mockk<LabelBehavior>(relaxed = true).apply {
-        every { measureText(any()) } returns size
+        every { measureText(any()       ) } returns size
+        every { measureText(any(), any()) } returns size
     }
 }

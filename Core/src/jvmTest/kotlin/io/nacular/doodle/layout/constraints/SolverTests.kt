@@ -685,7 +685,7 @@ private fun Solver.constraints(block: ConstraintDslContext.() -> Unit): Constrai
     context.apply(block)
 
     context.pendingAdd?.let {
-        context.constraints.add(it)
+        context.constraints.add(it.first)
         context.pendingAdd = null
     }
 

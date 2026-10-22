@@ -24,6 +24,7 @@ import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.UnsatisfiableConstraintException
 import io.nacular.doodle.layout.constraints.Variable
+import io.nacular.doodle.layout.constraints.Variable.EditType
 import io.nacular.doodle.layout.constraints.VariableTerm
 import io.nacular.doodle.layout.constraints.WidthProperty
 import io.nacular.doodle.layout.constraints.impl.ReflectionVariable.Companion.HEIGHT_ID
@@ -112,7 +113,7 @@ internal open class BoundsImpl(private val target: Positionable, private val con
 
     override fun preferredSize(min: Size, max: Size) = target.preferredSize(min, max)
 
-    private val ReflectionVariable.targeted get() = constrained || edited
+    private val ReflectionVariable.targeted get() = constrained || edited != null
 
     fun commit() {
         if (top.targeted ) target.y = y_
@@ -127,7 +128,7 @@ internal open class BoundsImpl(private val target: Positionable, private val con
                     target.maxSize = Size(it.endInclusive, target.maxSize.height)
                 }
             }
-            width.variable.edited -> {
+            width.variable.edited != null -> {
                 val oldMin = target.minSize
                 val oldMax = target.maxSize
 
@@ -147,7 +148,7 @@ internal open class BoundsImpl(private val target: Positionable, private val con
                     target.maxSize = Size(target.maxSize.width, it.endInclusive)
                 }
             }
-            height.variable.edited -> {
+            height.variable.edited != null -> {
                 val oldMin = target.minSize
                 val oldMax = target.maxSize
 
@@ -193,7 +194,7 @@ internal open class ReflectionVariable(
     override val variable get() = this
     override var isReference    = false
     override var constrained    = false
-    override var edited         = false
+    override var edited         = null as EditType?
 
     override fun invoke() = delegate()
 
@@ -419,6 +420,8 @@ internal open class ConstraintLayoutImpl(
                 it.block(context, it.constraints)
             }
 
+            val blockNotEmpty = context.constraints.isNotEmpty() || context.edits.isNotEmpty() || context.idealEdits.isNotEmpty()
+
             context.pendingAdd?.let {(constrained, forParent) ->
                 when {
                     forParent -> context.parentConstraints += constrained
@@ -431,7 +434,7 @@ internal open class ConstraintLayoutImpl(
             val addedParentConstraints   = context.parentConstraints.subtract(oldParentConstraints)
             val removedParentConstraints = oldParentConstraints.subtract(context.parentConstraints)
 
-            if (context.constraints.isNotEmpty()) {
+            if (blockNotEmpty) {
                 addedParentConstraints.filter { it.strength != Required }.forEach { constraint ->
                     if (!handleInsert(solver, constraint, errorHandler)) {
                         failedInserts += constraint
@@ -443,7 +446,7 @@ internal open class ConstraintLayoutImpl(
                 handleDelete(solver, constraint, errorHandler)
             }
 
-            if (context.constraints.isNotEmpty()) {
+            if (blockNotEmpty) {
                 addedParentConstraints.filter { it.strength == Required }.forEach { constraint ->
                     if (!handleInsert(solver, constraint, errorHandler)) {
                         failedInserts += constraint
@@ -494,7 +497,7 @@ internal open class ConstraintLayoutImpl(
             for (edit in context.edits) {
                 when (edit) {
                     !in oldEdits -> doTrying(errorHandler) {
-                        edit.property.edited = true
+                        edit.property.edited = EditType.Constant
                         solver.addEditVariable(edit.property, edit.strength)
                         solver.suggestValue(edit.property, edit.value)
                     }
@@ -507,7 +510,7 @@ internal open class ConstraintLayoutImpl(
             for (edit in context.idealEdits) {
                 if (edit !in oldIdealEdits) {
                     doTrying(errorHandler) {
-                        edit.property.edited = true
+                        edit.property.edited = EditType.Ideal
                         solver.addIdealEdit(edit)
                     }
                 }

@@ -165,8 +165,10 @@ internal data class VariableTerm(val variable: Variable, override val coefficien
 }
 
 internal interface Variable {
+    enum class EditType { Constant, Ideal }
+
     val name          : String
-    var edited        : Boolean
+    var edited        : EditType?
     var isReference   : Boolean
     var constrained   : Boolean
     val needsSynthetic: Boolean

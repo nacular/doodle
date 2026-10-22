@@ -16,6 +16,8 @@ import io.nacular.doodle.layout.constraints.Operator.LE
 import io.nacular.doodle.layout.constraints.Strength.Companion.Required
 import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
 import io.nacular.doodle.layout.constraints.Strength.Companion.Weak
+import io.nacular.doodle.layout.constraints.Variable.EditType
+import io.nacular.doodle.layout.constraints.Variable.EditType.Constant
 import io.nacular.doodle.layout.constraints.impl.BoundsImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl
 import io.nacular.doodle.layout.constraints.impl.ConstraintLayoutImpl.Companion.setupSolver
@@ -437,10 +439,10 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
 
     private open class LocalVariable(override val name: String, private val referent: Any?): Variable {
         private var  value          = 0.0
-        override var edited         = false
+        override var edited         = null as EditType?
         override var constrained    = false
         override val needsSynthetic = false
-        override var isReference     = false
+        override var isReference    = false
 
         override fun invoke() = value
 
@@ -489,7 +491,7 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
         private val block : (Size) -> Double
     ): ReferenceVariable {
         override val name get()     = "idealSize"
-        override var edited         = false
+        override var edited         = null as EditType?
         override var constrained    = true
         override val needsSynthetic = false
 
@@ -586,9 +588,9 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
 
     private fun Variable.range(): ClosedFloatingPointRange<Double> {
         return when {
-            constrained -> solver.computeRange(this, 0.0)
-            edited      -> this().let { it .. it }
-            else        -> 0.0..POSITIVE_INFINITY
+            constrained        -> solver.computeRange(this, 0.0)
+            edited == Constant -> this().let { it .. it }
+            else               -> 0.0..POSITIVE_INFINITY
         }
     }
 
