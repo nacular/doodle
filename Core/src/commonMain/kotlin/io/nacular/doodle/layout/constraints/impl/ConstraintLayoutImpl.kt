@@ -334,7 +334,7 @@ internal open class ConstraintLayoutImpl(
         viewBounds.values.forEach { it.reset() }
 
         setupSolver(solver, context, blockTracker.values, parentWidthPreservation, parentHeightPreservation, ::notifyOfErrors)
-        solve      (solver, if (doCommit) blockTracker.values.asSequence().flatMap { it.constraints } else emptySequence())
+        solve      (solver, if (doCommit) blockTracker.values.asSequence().flatMap { it.constraints } else emptySequence(), ::notifyOfErrors)
 
         layingOut = false
 
@@ -431,9 +431,11 @@ internal open class ConstraintLayoutImpl(
             val addedParentConstraints   = context.parentConstraints.subtract(oldParentConstraints)
             val removedParentConstraints = oldParentConstraints.subtract(context.parentConstraints)
 
-            addedParentConstraints.filter { it.strength != Required }.forEach { constraint ->
-                if (!handleInsert(solver, constraint, errorHandler)) {
-                    failedInserts += constraint
+            if (context.constraints.isNotEmpty()) {
+                addedParentConstraints.filter { it.strength != Required }.forEach { constraint ->
+                    if (!handleInsert(solver, constraint, errorHandler)) {
+                        failedInserts += constraint
+                    }
                 }
             }
 
@@ -441,9 +443,11 @@ internal open class ConstraintLayoutImpl(
                 handleDelete(solver, constraint, errorHandler)
             }
 
-            addedParentConstraints.filter { it.strength == Required }.forEach { constraint ->
-                if (!handleInsert(solver, constraint, errorHandler)) {
-                    failedInserts += constraint
+            if (context.constraints.isNotEmpty()) {
+                addedParentConstraints.filter { it.strength == Required }.forEach { constraint ->
+                    if (!handleInsert(solver, constraint, errorHandler)) {
+                        failedInserts += constraint
+                    }
                 }
             }
 
@@ -510,8 +514,10 @@ internal open class ConstraintLayoutImpl(
             }
         }
 
-        fun solve(solver: Solver, bounds: Sequence<BoundsImpl>) {
-            solver.updateVariables()
+        fun solve(solver: Solver, bounds: Sequence<BoundsImpl>, errorHandler: (ConstraintException) -> Unit) {
+            doTrying(errorHandler) {
+                solver.updateVariables()
+            }
 
             bounds.forEach { it.commit() }
         }
@@ -538,7 +544,6 @@ internal open class ConstraintLayoutImpl(
                 return false
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
-                cleanupSynthetics(solver, insertedConstraint)
             }
 
             return true
@@ -547,11 +552,10 @@ internal open class ConstraintLayoutImpl(
         private fun handleDelete(solver: Solver, constraint: Constraint, errorHandler: (ConstraintException) -> Unit = {}) {
             try {
                 solver.removeConstraint(constraint)
+                cleanupSynthetics(solver, constraint)
             } catch (exception: ConstraintException) {
                 errorHandler(exception)
             } catch (_: Exception) {}
-
-            cleanupSynthetics(solver, constraint)
         }
 
         private fun cleanupSynthetics(solver: Solver, constraint: Constraint) {

@@ -584,10 +584,18 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
     public infix fun Property.prefers(value: Number): Result<Edit> = this prefers value.toDouble()
     public infix fun Property.prefers(value: Double): Result<Edit> = add(Edit(this.variable, value, Required - 1))
 
+    private fun Variable.range(): ClosedFloatingPointRange<Double> {
+        return when {
+            constrained -> solver.computeRange(this, 0.0)
+            edited      -> this().let { it .. it }
+            else        -> 0.0..POSITIVE_INFINITY
+        }
+    }
+
     public infix fun WidthProperty.prefers(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
         add(IdealEdit(variable, Required - 1) {
-            val widthRange  = if (variable.constrained       ) solver.computeRange(variable,        0.0) else 0.0 ..POSITIVE_INFINITY
-            val heightRange = if (height.variable.constrained) solver.computeRange(height.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
+            val widthRange  = variable.range()
+            val heightRange = height.variable.range()
 
             preferredSize(Size(widthRange.start, heightRange.start), Size(widthRange.endInclusive, heightRange.endInclusive)).width
         })
@@ -595,8 +603,8 @@ public class ConstraintDslContext internal constructor(private val solver: Solve
 
     public infix fun HeightProperty.prefers(@Suppress("unused") value: ideal): Result<IdealEdit> = with(bounds) {
         add(IdealEdit(variable, Required - 1) {
-            val widthRange  = if (width.variable.constrained ) solver.computeRange(width.variable, 0.0) else 0.0 ..POSITIVE_INFINITY
-            val heightRange = if (variable.constrained       ) solver.computeRange(variable,       0.0) else 0.0 ..POSITIVE_INFINITY
+            val widthRange  = width.variable.range()
+            val heightRange = variable.range()
 
             preferredSize(Size(widthRange.start, heightRange.start), Size(widthRange.endInclusive, heightRange.endInclusive)).height
         })
@@ -1250,7 +1258,7 @@ public class Constrainer: Layout {
         solve(
             solver = solver,
             bounds = sequenceOf(fakeBounds),
-        )
+        ) { /*ignore*/ }
 
         return fakePositionable.bounds.at(fakePositionable.position + within.position)
     }

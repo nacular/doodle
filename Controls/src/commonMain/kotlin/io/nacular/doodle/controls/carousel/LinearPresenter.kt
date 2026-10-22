@@ -29,14 +29,14 @@ public class LinearPresenter<T>(
 
     private fun PresentedItem.center(carouselSize: Size) = boundsFromConstraint(this, carouselSize, forceSetup = true)
 
-    private fun PresentedItem.leftOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
+    private fun leftOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
         when (orientation) {
             Horizontal -> it.at(x = rectangle.x - it.width  - spacing(carouselSize))
             else       -> it.at(y = rectangle.y - it.height - spacing(carouselSize))
         }
     }
 
-    private fun PresentedItem.rightOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
+    private fun rightOf(bounds: Rectangle, rectangle: Rectangle, carouselSize: Size) = bounds.let {
         when (orientation) {
             Horizontal -> it.at(x = rectangle.right  + spacing(carouselSize))
             else       -> it.at(y = rectangle.bottom + spacing(carouselSize))
@@ -74,7 +74,7 @@ public class LinearPresenter<T>(
 
             selected.bounds = when (nextItem) {
                 null -> centerBounds
-                else -> lerp(centerBounds, selected.leftOf(centerBounds, nextCenter!!, carousel.size), progressToNext)
+                else -> lerp(centerBounds, leftOf(centerBounds, nextCenter!!, carousel.size), progressToNext)
             }
 
             selectedBounds = selected.bounds

@@ -68,7 +68,7 @@ import kotlin.math.min
  */
 internal class InternalSolverError(message: String): ConstraintException(message)
 
-internal class DuplicateEditVariableException: Exception()
+internal class DuplicateEditVariableException(message: String): ConstraintException(message)
 
 internal class RequiredFailureException: Exception()
 
@@ -302,7 +302,7 @@ internal class Solver {
 
     fun addEditVariable(variable: Variable, strength: Strength) {
         if (edits.containsKey(variable)) {
-            throw DuplicateEditVariableException()
+            throw DuplicateEditVariableException("$variable")
         }
 
         if (strength == Required) {
