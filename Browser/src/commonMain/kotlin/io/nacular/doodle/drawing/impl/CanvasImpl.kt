@@ -410,7 +410,6 @@ internal open class CanvasImpl(
         }
 
         clipRect.style.setSize        (size     )
-//        clipRect.style.setOverflow    (Visible())
         clipRect.style.setBorderRadius(null     )
         clipRect.style.background = ""
 
@@ -587,14 +586,12 @@ internal open class CanvasImpl(
             indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
-            lineSpacing = lineSpacing(lineSpacing, font),
+            lineSpacing = lineSpacing.takeIf { it >= 0f },
             textSpacing = textSpacing
         )
 
         return configure(element, fill, stroke, at)
     }
-
-    private fun lineSpacing(lineSpacing: Float, font: Font?) = lineSpacing.takeIf { it >= 0f } ?: lineHeightDetector.lineHeight(font)
 
     private fun createStyledTextGlyph(text: AnnotatedString, at: Point, textSpacing: TextSpacing) = textFactory.create(
         text        = text,
@@ -626,7 +623,7 @@ internal open class CanvasImpl(
             indent      = if (width > firstWordWidth + indent) indent else 0.0,
             possible    = if (renderPosition is HTMLElement) renderPosition as HTMLElement else null,
             alignment   = alignment,
-            lineSpacing = lineSpacing(lineSpacing, text.maxFont),
+            lineSpacing = lineSpacing.takeIf { it >= 0f },
             textSpacing = textSpacing,
         )
 
