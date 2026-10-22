@@ -111,22 +111,31 @@ internal class AnimationSchedulerImpl(private val window: Window): AnimationSche
     private var last           = 0.0
     private var animationFrame = null as Int?
 
-    private val pendingTasks = mutableListOf<AnimationTask>()
+    private var pendingTasks = mutableListOf<AnimationTask>()
+    private var runningTasks = mutableListOf<AnimationTask>()
 
     override fun onNextFrame(job: (Measure<Time>) -> Unit): Task = AnimationTask(job).also {
         pendingTasks.add(it)
 
         if (animationFrame == null) {
             animationFrame = window.requestAnimationFrame { now ->
-                val runningTasks = pendingTasks.subList(0, pendingTasks.size)
-
                 animationFrame = null
+
+                // Swap: pending becomes the batch to run, and the (empty) spare
+                // list collects anything scheduled while we're running.
+                val batch = pendingTasks
+                pendingTasks = runningTasks
+                runningTasks = batch
 
                 val elapsed = (now - last) * milliseconds
                 last = now
 
-                while (runningTasks.isNotEmpty()) {
-                    runningTasks.removeAt(0).run(elapsed)
+                try {
+                    for (i in batch.indices) {
+                        batch[i].run(elapsed)
+                    }
+                } finally {
+                    batch.clear() // leave it empty so it's ready to be swapped back in
                 }
             }
         }

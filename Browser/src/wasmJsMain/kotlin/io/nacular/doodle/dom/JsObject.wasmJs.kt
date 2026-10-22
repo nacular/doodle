@@ -11,7 +11,7 @@ internal inline fun <T : JsAny> jsObject(init: T.() -> Unit): T = (jsObject().un
 internal actual operator fun JsAny.set(key: String, value: JsAny): Unit   = objectSet(this, key, value)
 internal actual operator fun JsAny.get(key: String              ): JsAny? = objectGet(this, key       )
 
-internal actual fun JsAny.setString(key: String, value: String): Unit   = objectSet(this, key, value as JsAny)
+internal actual fun JsAny.setString(key: String, value: String): Unit   = objectSet(this, key, value.toJsString())
 internal actual fun JsAny.getString(key: String               ): String = objectGet(this, key) as? String ?: ""
 
 @JsFun("(obj, key, value) => ( obj[key] = value )")
