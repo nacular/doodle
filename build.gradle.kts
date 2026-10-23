@@ -1,6 +1,7 @@
 plugins {
-    id("org.jetbrains.dokka")
-    id("org.jetbrains.kotlinx.kover")
+    id("org.jetbrains.dokka"          )
+    id("org.jetbrains.kotlinx.kover"  )
+    id("com.gradleup.nmcp.aggregation")
 }
 
 repositories {
@@ -22,11 +23,20 @@ dokka {
     }
 }
 
+nmcpAggregation {
+    centralPortal {
+        username       = findProperty("mavenCentralUsername")?.toString()
+        password       = findProperty("mavenCentralPassword")?.toString()
+        publishingType = "USER_MANAGED"
+    }
+}
+
 dependencies {
     subprojects.forEach { project ->
         project(":${project.name}").let {
-            kover(it)
-            dokka(it)
+            kover          (it)
+            dokka          (it)
+            nmcpAggregation(it)
         }
     }
 }
