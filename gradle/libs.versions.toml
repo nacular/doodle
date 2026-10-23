@@ -13,7 +13,7 @@ mockkVersion      = { strictly = "1.13.13" }
 skikoVersion      = { strictly = "0.9.38"  }
 slf4jVersion      = { strictly = "2.0.9"   }
 kxBrowserVersion  = { strictly = "0.3"     }
-nmcpVersion       = { strictly = "1.0.2"   }
+nmcpVersion       = { strictly = "1.6.2"   }
 
 [libraries]
 
