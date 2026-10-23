@@ -1,0 +1,224 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-canvas" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>The Canvas | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/canvas /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="The Canvas | Doodle"/><meta data-rh=true name=description content="Every View draws itself inside a render method, using a Canvas your View is given. This page covers the coordinate system you draw into and how Doodle avoids redundant redraw work."/><meta data-rh=true property=og:description content="Every View draws itself inside a render method, using a Canvas your View is given. This page covers the coordinate system you draw into and how Doodle avoids redundant redraw work."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/canvas /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/canvas hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/canvas hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/canvas><span class=linkLabel_WmDU>The Canvas</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/paint><span class=linkLabel_WmDU>Paint & Strokes</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/shapes><span class=linkLabel_WmDU>Shapes & Paths</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/text><span class=linkLabel_WmDU>Text</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/images><span class=linkLabel_WmDU>Images</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>The Canvas</h1></header>
+<p>Back on <a class="" href=/doodle/docs/views>Views</a>, you saw that <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/render target=_blank rel="noopener noreferrer">render</a></code> is where a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code>'s drawing happens, and that Doodle calls it for you automatically. Now it's time to open up that <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-canvas target=_blank rel="noopener noreferrer">Canvas</a></code> and see what it's actually capable of — it's the first of five pages that make up the <strong>Rendering</strong> section:</p>
+<ul>
+<li class=""><strong>The Canvas</strong> <em>(this page)</em> — the coordinate system you're drawing into, and how Doodle redraws efficiently</li>
+<li class=""><strong><a class="" href=/doodle/docs/paint>Paint & Stroke</a></strong> — filling and outlining shapes with color, gradients, and patterns</li>
+<li class=""><strong><a class="" href=/doodle/docs/shapes>Shapes & Paths</a></strong> — rectangles, circles, polygons, and arbitrary outlines</li>
+<li class=""><strong><a class="" href=/doodle/docs/text>Text</a></strong> — drawing, wrapping, styling, and measuring text</li>
+<li class=""><strong><a class="" href=/doodle/docs/images>Images</a></strong> — loading and drawing images</li>
+</ul>
+<p>Start here, then follow the "Next" link at the bottom of each page — or skip straight to whichever one answers your immediate question.</p>
+<p>Let's ease in with the simplest possible example: a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> that fills itself with blue.</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Blue
+import io.nacular.doodle.drawing.paint
+
+//sampleStart
+class RectView: View() {
+    override fun render(canvas: Canvas) {
+        canvas.rect(bounds.atOrigin, Blue.paint)
+    }
+}
+//sampleEnd</code>
+<p>The <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-canvas target=_blank rel="noopener noreferrer">Canvas</a></code> you're handed in <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/render target=_blank rel="noopener noreferrer">render</a></code> plays by one important rule: <strong><code>0,0</code> is always the View's own top-left corner</strong>, no matter where that View actually sits on screen. You never have to think about your View's position while drawing — only its own little pocket of coordinate space.</p>
+<p>The canvas technically stretches beyond your View's bounds in every direction, but anything you draw out there gets quietly clipped away by default.</p>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Need to draw outside your own bounds on purpose? Set <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/clip-canvas-to-bounds target=_blank rel="noopener noreferrer">clipCanvasToBounds</a></code> = <code>false</code> in your subclass.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=transformations>Transformations<a href=#transformations class=hash-link aria-label="Direct link to Transformations" title="Direct link to Transformations" translate=no>​</a></h2>
+<p>You can transform the canvas itself using an <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-affine-transform/ target=_blank rel="noopener noreferrer">AffineTransform</a></code> — translation, scaling, and rotation, all folded into one matrix. This <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> flips the canvas horizontally around its midpoint before drawing text:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package rendering
+
+import io.nacular.doodle.core.View
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.text
+
+//sampleStart
+class MyView: View() {
+    override fun render(canvas: Canvas) {
+        canvas.flipHorizontally(around = width / 2) {
+            text("hello", color = Black)
+        }
+    }
+}
+//sampleEnd</code>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=going-further-3d>Going further: 3D<a href=#going-further-3d class=hash-link aria-label="Direct link to Going further: 3D" title="Direct link to Going further: 3D" translate=no>​</a></h2>
+<p><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-canvas target=_blank rel="noopener noreferrer">Canvas</a></code> also stretches into basic 3D, pairing <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-affine-transform/ target=_blank rel="noopener noreferrer">AffineTransform</a></code>s with a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-camera target=_blank rel="noopener noreferrer">Camera</a></code> so several Views can share a common 3D space (a folding cube is the classic demo). Most apps never need to go there, so we won't linger on it here — see <a class="" href=/doodle/docs/transforms>Transforms</a> in Advanced Topics when you're ready for the full picture, perspective and shared cameras included.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Cube.kt</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:500px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.utils
+
+import io.nacular.doodle.core.Camera
+import io.nacular.doodle.core.View
+import io.nacular.doodle.core.renderProperty
+import io.nacular.doodle.drawing.AffineTransform
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.stroke
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
+import io.nacular.doodle.utils.ChangeObservers
+import io.nacular.doodle.utils.ChangeObserversImpl
+import io.nacular.measured.units.Angle
+import io.nacular.measured.units.times
+
+//sampleStart
+class Cube: View() {
+    private val side   = 100.0
+    private val rect   = Rectangle(size = Size(side))
+    private val stroke = Black.stroke(thickness = 2.0)
+
+    var foldAngle       by renderProperty(-90 * Angle.degrees) { _,_ -> (changed as ChangeObserversImpl).invoke() }
+    var canvasCamera    by renderProperty(Camera(Point.Origin, 1000.0)) { _,_ -> (changed as ChangeObserversImpl).invoke() }
+    var canvasTransform by renderProperty(AffineTransform.Identity.translate(z = -side / 2)) { _,_ -> (changed as ChangeObserversImpl).invoke() }
+
+    val changed: ChangeObservers&lt;Cube> = ChangeObserversImpl(this)
+
+    override fun render(canvas: Canvas) {
+        var transform    = canvasTransform
+        var faceLocation = Point((width - side) / 2, (height - side) / 2)
+
+        drawFace(canvas, faceLocation, transform) // Back
+
+        faceLocation += Point(x = side)
+        transform    *= AffineTransform.Identity.rotateY(around = faceLocation, foldAngle)
+
+        drawFace(canvas, faceLocation, transform) // Right
+
+        faceLocation -= Point(y = side)
+
+        drawFace(canvas, faceLocation, transform.rotateX(around = faceLocation + Point(y = side), foldAngle)) // Top
+
+        faceLocation += Point(y = 2 * side)
+        transform    *= AffineTransform.Identity.rotateX(around = faceLocation, -foldAngle)
+
+        drawFace(canvas, faceLocation, transform) // Bottom
+
+        faceLocation += Point(y = side)
+        transform    *= AffineTransform.Identity.rotateX(around = faceLocation, -foldAngle)
+
+        drawFace(canvas, faceLocation, transform) // Left
+
+        faceLocation += Point(x = side)
+        transform    *= AffineTransform.Identity.rotateY(around = faceLocation, foldAngle)
+
+        drawFace(canvas, faceLocation, transform) // Front
+    }
+
+    private fun drawFace(canvas: Canvas, location: Point, transform: AffineTransform) {
+        canvas.transform(transform, canvasCamera) { rect(rect.at(location), stroke) }
+    }
+}
+//sampleEnd</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=efficient-rendering>Efficient rendering<a href=#efficient-rendering class=hash-link aria-label="Direct link to Efficient rendering" title="Direct link to Efficient rendering" translate=no>​</a></h2>
+<p>Doodle doesn't blindly redraw everything on every <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/render target=_blank rel="noopener noreferrer">render</a></code> call — it only touches the parts that actually changed (for Web apps, that means updating only the DOM nodes that changed, not the whole tree). The <code>Timer</code> app below calls <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/rerender target=_blank rel="noopener noreferrer">rerender</a></code> every millisecond to keep a clock running, yet only the text itself ever gets touched in the DOM — the surrounding rectangles are left alone:</p>
+<div class=doodle_u3ra><div style=position:relative;height:280px></div></div>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">View DSL<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Render Property</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><code theme=darcula mode=kotlin data-highlight-only=true>package timerdsl
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.view
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Green
+import io.nacular.doodle.drawing.Color.Companion.Red
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.drawing.rect
+import io.nacular.doodle.drawing.stroke
+import io.nacular.doodle.drawing.text
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
+import io.nacular.doodle.geometry.inset
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.time.Clock
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
+
+//sampleStart
+class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
+    init {
+        display += view {
+            suggestSize(Size(200))
+
+            scheduler.every(1 * milliseconds) {
+                rerender()
+            }
+
+            render = {
+                rect(bounds.at(x = 0.0, y = 20.0), color = Green)
+                rect(bounds.atOrigin.inset(0.5), Red.stroke)
+                text("${clock.epoch}", color = Black)
+            }
+        }
+
+        display.layout = constrain(display.first(), center)
+        display.fill(White.paint)
+    }
+
+    override fun shutdown() {}
+}
+//sampleEnd</code></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package timerrenderprop
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.View
+import io.nacular.doodle.core.renderProperty
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Green
+import io.nacular.doodle.drawing.Color.Companion.Red
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.drawing.rect
+import io.nacular.doodle.drawing.stroke
+import io.nacular.doodle.drawing.text
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.at
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.scheduler.Scheduler
+import io.nacular.doodle.time.Clock
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.times
+
+//sampleStart
+class Timer(display: Display, clock: Clock, scheduler: Scheduler): Application {
+    init {
+        display += object: View() {
+            var time by renderProperty(clock.epoch)
+
+            init {
+                suggestSize(Size(200))
+
+                scheduler.every(1 * milliseconds) {
+                    time = clock.epoch
+                }
+            }
+
+            override fun render(canvas: Canvas) {
+                canvas.rect(bounds.at(x = 0.0, y = 20.0), color = Green)
+                canvas.rect(bounds.atOrigin, Red.stroke)
+                canvas.text("$time", color = Black)
+            }
+        }
+
+        display.layout = constrain(display.first(), center)
+        display.fill(White.paint)
+    }
+
+    override fun shutdown() {}
+}
+//sampleEnd</code></div></div></div>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p>Doodle uses <a href=https://nacular.github.io/measured/ target=_blank rel="noopener noreferrer" class="">Measured</a> for typed units like time and angles — that's what <code>1 * milliseconds</code> is.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/render target=_blank rel="noopener noreferrer">render</a></code> is where a View draws itself, with <code>0, 0</code> always at the View's own top-left corner.</li>
+<li class="">The canvas clips to the View's bounds by default; opt out with <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/clip-canvas-to-bounds target=_blank rel="noopener noreferrer">clipCanvasToBounds</a></code>.</li>
+<li class="">Doodle only touches what actually changed on a redraw, so calling <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/rerender target=_blank rel="noopener noreferrer">rerender</a></code> often — once a millisecond, even — is perfectly fine.</li>
+</ul>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/paint>Paint & Stroke</a></strong> to see what you can actually fill and outline shapes with.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/views><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Views</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/paint><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Paint & Strokes</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#transformations class="table-of-contents__link toc-highlight">Transformations</a><li><a href=#going-further-3d class="table-of-contents__link toc-highlight">Going further: 3D</a><li><a href=#efficient-rendering class="table-of-contents__link toc-highlight">Efficient rendering</a><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>

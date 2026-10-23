@@ -1,0 +1,489 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-ui_components/sliders" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Sliders & Value Pickers | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/ui_components/sliders /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Sliders & Value Pickers | Doodle"/><meta data-rh=true name=description content="Slider, CircularSlider, RangeSlider, CircularRangeSlider, ProgressBar, StarRater, and SpinButton — seven ways to represent or let someone pick a value within a range."/><meta data-rh=true property=og:description content="Slider, CircularSlider, RangeSlider, CircularRangeSlider, ProgressBar, StarRater, and SpinButton — seven ways to represent or let someone pick a value within a range."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/ui_components/sliders /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/sliders hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/sliders hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/theming><span class=linkLabel_WmDU>Theming</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/wheresmyview><span class=linkLabel_WmDU>Where's My View?</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/overview><span class=linkLabel_WmDU>Catalog</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/buttons><span class=linkLabel_WmDU>Buttons</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/ui_components/sliders><span class=linkLabel_WmDU>Sliders & Value Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/selection><span class=linkLabel_WmDU>Selection & Text</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/datadisplay><span class=linkLabel_WmDU>Data Display</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/panels><span class=linkLabel_WmDU>Panels & Layout</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/media><span class=linkLabel_WmDU>Media & Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form><span class=linkLabel_WmDU>Forms</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form_controls><span class=linkLabel_WmDU>Form Controls</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Sliders & Value Pickers</h1></header>
+<p>Coming from <a class="" href=/doodle/docs/ui_components/buttons>Buttons</a>, let's move from "pick one of a few options" to "pick — or show — a value somewhere along a range."</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p>Most controls here are built on <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-confined-value-model target=_blank rel="noopener noreferrer">ConfinedValueModel</a></code>, which keeps a value clamped within a range. That's the same model a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> styles, so <span><code>NativeTheme</code> (<a href=https://nacular.github.io/doodle-api/browser/io.nacular.doodle.theme.native/-native-theme/-companion target=_blank rel="noopener noreferrer">Web</a>, <a href=https://nacular.github.io/doodle-api/desktop/io.nacular.doodle.theme.native/-native-theme/-companion target=_blank rel="noopener noreferrer">Desktop</a>)</span>/<code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion target=_blank rel="noopener noreferrer">BasicTheme</a></code> cover all of them.<p>You can further restrict values using a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-marker target=_blank rel="noopener noreferrer">Marker</a></code> and <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-snapping-policy target=_blank rel="noopener noreferrer">SnappingPolicy</a></code>.</div></div>
+<p><strong>Which one do you actually want?</strong></p>
+<table><thead><tr><th>If you need to...<th>Reach for<tbody><tr><td>Pick one value along a range<td><a href=#slider class=""><code>Slider</code></a> (bar) or <a href=#circularslider class=""><code>CircularSlider</code></a> (dial)<tr><td>Pick a range — two bounding values<td><a href=#rangeslider class=""><code>RangeSlider</code></a> or <a href=#circularrangeslider class=""><code>CircularRangeSlider</code></a><tr><td><em>Show</em> a value, with no user interaction<td><a href=#progressbar class=""><code>ProgressBar</code></a><tr><td>Pick a value as a star rating<td><a href=#starrater class=""><code>StarRater</code></a><tr><td>Step through a fixed, discrete set of values<td><a href=#spinbutton class=""><code>SpinButton</code></a></table>
+<p>Straight vs. circular is purely presentation — pick whichever reads more naturally for what the value represents (a volume level suits a bar; a compass heading suits a dial).</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=slider><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code><a href=#slider class=hash-link aria-label="Direct link to slider" title="Direct link to slider" translate=no>​</a></h2>
+<p>Holds a strongly typed value within a specified range, and lets the user drag to change it — the straight-line version everyone already knows.</p>
+<p>Holds a strongly typed value within a specified range, and lets the user drag to change it — the straight-line version everyone already knows. Give it a range by passing a <code>ClosedRange</code> or a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-confined-value-model target=_blank rel="noopener noreferrer">ConfinedValueModel</a></code> in the constructor, and it'll notify you whenever the value or the range itself changes.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Horizontal<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Vertical<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+//import io.nacular.doodle.controls.range.snap
+import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.range.alwaysSnap
+import io.nacular.doodle.controls.range.evenMarker
+import io.nacular.doodle.controls.range.mark
+import io.nacular.doodle.controls.range.snapWithin
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Orientation.Vertical
+import io.nacular.measured.units.Time.Companion.minutes
+import io.nacular.measured.units.Time.Companion.seconds
+import io.nacular.measured.units.times
+
+//sampleStart
+val horizontalSlider = Slider(0 * seconds .. 2 * minutes).apply {
+    suggestSize(Size(200, 15))
+
+    mark(15 * seconds, 1.5 * minutes)
+
+    snappingPolicy = snapWithin(5 * seconds)
+
+//    snappingPolicy = snap { to, from ->
+//        when {
+//            // ...
+//            else -> false
+//        }
+//    }
+}
+
+val verticalSlider = Slider(0 .. 100, orientation = Vertical).apply {
+    suggestSize(Size(15, 200))
+
+    marker = evenMarker(intermediateMarks = 8)
+
+    snappingPolicy = alwaysSnap()
+}
+//sampleEnd</code></div></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>Strongly typed, so integers snap for free</div><div class=admonitionContent_BuS1><p>Every <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code> variant on this page is strongly typed — build an <code>Int</code> slider, and it snaps to whole numbers automatically, with no extra setup. Want something more specific than "every integer" — a slider that only lands on 5, 10, or 25, say? Supply a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-marker target=_blank rel="noopener noreferrer">Marker</a></code> (the set of values to snap to) and a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-snapping-policy target=_blank rel="noopener noreferrer">SnappingPolicy</a></code> (how the handle attaches to them) to restrict the range further.</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id=non-linearity>Non-linearity<a href=#non-linearity class=hash-link aria-label="Direct link to Non-linearity" title="Direct link to Non-linearity" translate=no>​</a></h4>
+<p>A <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code>'s value doesn't have to map to its handle position in a straight line — supply a custom <code>InvertibleFunction</code> to bias the range however your data calls for (logarithmic, say).</p>
+<div class=doodle_u3ra><div style=position:relative;height:350px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.range.InvertibleFunction
+import io.nacular.doodle.controls.range.Slider
+import kotlin.math.log
+import kotlin.math.pow
+
+//sampleStart
+/**
+ * Logarithmic function and inverse https://www.desmos.com/calculator/qq59ey0bub
+ */
+private object LogFunction: InvertibleFunction {
+    override fun invoke (value: Float) = log((10f - 1) * value + 1, 10f)
+    override fun inverse(value: Float) = (10f.pow(value) - 1)/(10 - 1)
+}
+
+val logarithmicSlider = Slider(0.0 .. 1.0, function = LogFunction)
+//sampleEnd</code>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=animation>Animation<a href=#animation class=hash-link aria-label="Direct link to Animation" title="Direct link to Animation" translate=no>​</a></h3>
+<p>Want the handle to glide to a new value instead of jumping there? <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.theme.range/-abstract-slider-behavior target=_blank rel="noopener noreferrer">AbstractSliderBehavior</a></code> and <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.theme.range/-abstract-range-slider-behavior target=_blank rel="noopener noreferrer">AbstractRangeSliderBehavior</a></code> support handle-movement animations through the <code>animateHandleMove</code> parameter that decides how a handle travels to its new value. They also have hooks that report when the pointer has pressed or released in a way that moves the handles, which provide a clean moment to react visually to a click.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Music Player<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">PlayerSliderBehavior</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div><div style=font-size:10px;text-align:right;color:gray>Inspired by <a style=color:gray href=https://mui.com/material-ui/react-slider/#music-player title="MUI Music Player">MUI Music Player</a></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.after
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.cubicBezier
+import io.nacular.doodle.animation.transition.easeInOutCubic
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.controls.theme.range.AbstractSliderBehavior
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.Paint
+import io.nacular.doodle.drawing.opacity
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.geometry.Circle
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.inset
+import io.nacular.doodle.system.Cursor.Companion.Pointer
+import io.nacular.doodle.utils.Cancelable
+import io.nacular.doodle.utils.Completable
+import io.nacular.doodle.utils.NoOpCompletable
+import io.nacular.doodle.utils.Orientation.Horizontal
+import io.nacular.doodle.utils.autoCanceling
+import io.nacular.doodle.utils.lerp
+import io.nacular.measured.units.Time.Companion.milliseconds
+import io.nacular.measured.units.Time.Companion.minutes
+import io.nacular.measured.units.Time.Companion.seconds
+import io.nacular.measured.units.times
+import kotlin.math.max
+import kotlin.math.min
+
+//sampleStart
+fun usage(animate: Animator, focusManager: FocusManager) {
+    val seekEase   = tweenFloat(cubicBezier(0.47f, 1.64f, 0.41f, 0.8f), 300 * milliseconds)
+    val volumeEase = tweenFloat(easeInOutCubic,                         150 * milliseconds)
+
+    val seek = Slider(0 * seconds .. 3 * minutes + 20 * seconds, value = 32 * seconds).apply {
+        behavior = PlayerSliderBehavior(
+            focusManager         = focusManager,
+            containsPoint        = { slider, point -> point in slider.bounds.inset(-15.0)      },
+            animateKnobMove      = { animate(0f to 1f,                          seekEase,  it) }, // expand hit detection by 15px
+            animateKnobSize      = { animate(0f to 1f, after(24 * milliseconds, seekEase), it) }, // delay size animation
+            grooveThicknessRatio = 0.5f,
+        )
+    }
+
+    val volume = Slider(0f..1f, 0.3f).apply {
+        behavior = PlayerSliderBehavior(
+            focusManager         = focusManager,
+            animateKnobMove      = { animate(0f to 1f, volumeEase, it) },
+            grooveThicknessRatio = 1f / 6
+        )
+    }
+}
+
+/**
+ * Custom Behavior used for simple music player demo.
+ *
+ * @property barFill used to render the slider's entire bar
+ * @property knobFill used to render the slider's handle
+ * @property rangeFill used to render the section from `0` to `value` on the slider's bar
+ * @param    focusManager allows focus management
+ * @property containsPoint allows control of hit detection
+ * @param    animateKnobMove controls how the knob animates as it moves
+ * @property animateKnobSize controls how the knob animates as it changes size
+ * @param    grooveThicknessRatio how thick the bar is relative to the slider's size
+ */
+class PlayerSliderBehavior&lt;T>(
+    private val barFill             : Paint                                             = White.paint opacity 0.38f,
+    private val knobFill            : Paint                                             = White.paint,
+    private val rangeFill           : Paint?                                            = knobFill,
+    private val focusManager        : FocusManager?                                     = null,
+    private val containsPoint       : (Slider&lt;T>, Point) -> Boolean                     = { slider, point -> point in slider.bounds },
+    private val animateKnobMove     : (block: (progress: Float) -> Unit) -> Completable = { NoOpCompletable.also { it(1f) } },
+    private val animateKnobSize     : (block: (progress: Float) -> Unit) -> Completable = { NoOpCompletable.also { it(0f) } },
+                grooveThicknessRatio: Float                                             = 0.6f,
+): AbstractSliderBehavior&lt;T>(focusManager, animateKnobMove) where T: Comparable&lt;T> {
+    /**
+     * Tracks animation for a given Slider, since this behavior
+     * could be used with multiple sliders at once.
+     */
+    private class AnimationInfo(var progress: Float) {
+        var started = false
+        var animation: Cancelable? by autoCanceling(null)
+    }
+
+    private val grooveThicknessRatio = grooveThicknessRatio.coerceIn(0f..1f)
+
+    /** Tracks ongoing handle size animations for Sliders */
+    private val handleSizeAnimations = mutableMapOf&lt;Slider&lt;T>, AnimationInfo>()
+
+    /** Allows overriding of hit detection */
+    override fun contains(view: Slider&lt;T>, point: Point) = containsPoint(view, point)
+
+    /** Enables shadows to show beyond bounds */
+    override fun clipCanvasToBounds(view: Slider&lt;T>) = false
+
+    /** Initiates custom animation for knob size if applicable */
+    override fun handlePressed(slider: Slider&lt;T>) {
+        handleSizeAnimations.getOrPut(slider) { AnimationInfo(0f) }.apply {
+            animation = animateKnobSize {
+                started  = true
+                progress = it
+                slider.rerender()
+            }.apply { canceled += {
+                started = false
+            } }
+        }
+    }
+
+    /** Reverses custom animation for knob size if applicable */
+    override fun handleReleased(slider: Slider&lt;T>) {
+        handleSizeAnimations[slider]?.apply {
+            when {
+                started -> animation = animateKnobSize {
+                    progress = 1 - it
+                    slider.rerender()
+                }.apply {
+                    completed += { handleSizeAnimations.remove(slider) }
+                }
+                else -> {
+                    animation?.cancel()
+                    handleSizeAnimations.remove(slider)
+                }
+            }
+        }
+    }
+
+    override fun install(view: Slider&lt;T>) {
+        super.install(view)
+        view.cursor = Pointer
+    }
+
+    /** Renders a Slider, with support for both horizontal and vertical orientation for completeness. */
+    override fun render(view: Slider&lt;T>, canvas: Canvas) {
+        val orientation = view.orientation
+        val handleSize  = handleSize(view)
+        val offset      = handleSize / 2
+
+        val grooveInset = (1 - grooveThicknessRatio) * when (orientation) {
+            Horizontal -> view.height
+            else       -> view.width
+        }
+
+        val grooveRect = when (orientation) {
+            Horizontal -> Rectangle(offset, grooveInset / 2, max(0.0, view.width - handleSize ), max(0.0, view.height - grooveInset))
+            else       -> Rectangle(grooveInset / 2, offset, max(0.0, view.width - grooveInset), max(0.0, view.height - handleSize ))
+        }
+
+        val rangeRect = rangeFill?.let {
+            val handlePosition = handlePosition(view)
+
+            when (orientation) {
+                Horizontal -> grooveRect.run { Rectangle(x, y, handlePosition, height                                           ) }
+                else       -> grooveRect.run { Rectangle(x, handlePosition, width, view.height - handlePosition - handleSize / 2) }
+            }
+        }
+
+        val grooveRadius = min(grooveRect.width, grooveRect.height) / 2
+
+        canvas.rect(grooveRect, grooveRadius, barFill)
+
+        rangeRect?.let { canvas.rect(rangeRect, grooveRadius, rangeFill) }
+
+        canvas.outerShadow(vertical = 4.0, blurRadius = 8.0, color = Black opacity 0.4f) {
+            val handleRect = handleBounds(view)
+            val radius     = min(handleRect.width, handleRect.height) / 2
+
+            canvas.circle(
+                Circle(handleRect.center, radius * lerp(1f, 3f, handleSizeAnimations[view]?.progress ?: 0f)),
+                knobFill
+            )
+        }
+    }
+}
+//sampleEnd</code></div></div></div>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p>One thing worth knowing up front: only the handle's <em>travel</em> is animated. The slider's value itself still updates instantly.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=circularslider><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-circular-slider target=_blank rel="noopener noreferrer">CircularSlider</a></code><a href=#circularslider class=hash-link aria-label="Direct link to circularslider" title="Direct link to circularslider" translate=no>​</a></h2>
+<p>The same idea as <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code>, wrapped around a circle instead of a line — a natural fit whenever a dial reads more clearly than a bar.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.range.CircularSlider
+import io.nacular.doodle.geometry.Size
+
+//sampleStart
+val circularSlider = CircularSlider(1 .. 100).apply {
+    suggestSize(Size(100, 100))
+
+//    marker         = evenMarker(10)
+//    snappingPolicy = snapWithin( 3)
+}
+//sampleEnd</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=rangeslider><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-range-slider target=_blank rel="noopener noreferrer">RangeSlider</a></code><a href=#rangeslider class=hash-link aria-label="Direct link to rangeslider" title="Direct link to rangeslider" translate=no>​</a></h2>
+<p>Holds a strongly typed inner range within a specified outer range, and lets the user drag either end to change it — think "select a price range" rather than "pick one number." Same constructor pattern as <a href=#slider class=""><code>Slider</code></a>: pass <code>ClosedRange</code>s or a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-confined-range-model target=_blank rel="noopener noreferrer">ConfinedRangeModel</a></code>, and the same <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-marker target=_blank rel="noopener noreferrer">Marker</a></code>/<code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-snapping-policy target=_blank rel="noopener noreferrer">SnappingPolicy</a></code> combination works here too, for confining either end to a predefined set of values.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Vertical<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.range.RangeSlider
+import io.nacular.doodle.controls.range.mark
+import io.nacular.doodle.controls.range.snapWithin
+import io.nacular.doodle.geometry.Size
+
+//sampleStart
+val rangeSlider = RangeSlider(value = 10 .. 30, limits = 1 .. 100).apply {
+    suggestSize(Size(100))
+
+    mark(15, 25)
+
+    snappingPolicy = snapWithin(5)
+}
+//sampleEnd</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=circularrangeslider><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-circular-range-slider target=_blank rel="noopener noreferrer">CircularRangeSlider</a></code><a href=#circularrangeslider class=hash-link aria-label="Direct link to circularrangeslider" title="Direct link to circularrangeslider" translate=no>​</a></h2>
+<p><a href=#rangeslider class=""><code>RangeSlider</code></a>, bent into a circle — the range-picking counterpart to <a href=#circularslider class=""><code>CircularSlider</code></a>.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.range.CircularRangeSlider
+import io.nacular.doodle.controls.range.mark
+import io.nacular.doodle.controls.range.snapWithin
+import io.nacular.doodle.geometry.Size
+
+//sampleStart
+val circularRangeSlider = CircularRangeSlider(value = 10 .. 30, limits = 1 .. 100).apply {
+    suggestSize(Size(100, 100))
+
+    mark(15, 25)
+
+    snappingPolicy = snapWithin(5)
+}
+//sampleEnd</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=progressbar><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code><a href=#progressbar class=hash-link aria-label="Direct link to progressbar" title="Direct link to progressbar" translate=no>​</a></h2>
+<p>The read-only sibling in this family — shows a value within a range, but nothing the user can drag. Reach for this whenever you're <em>reporting</em> progress rather than asking for input. Same constructor pattern as the rest of the family: a <code>ClosedRange</code> or <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-confined-value-model target=_blank rel="noopener noreferrer">ConfinedValueModel</a></code>, with change notifications built in.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Horizontal<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Vertical<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.ProgressBar
+import io.nacular.doodle.utils.Orientation.Vertical
+
+//sampleStart
+// creates bars with ranges form 0 - 100
+
+val horizontal = ProgressBar(                      )
+val vertical   = ProgressBar(orientation = Vertical)
+//sampleEnd</code></div></div></div>
+<p><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code> is actually a specialization of the more general <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-indicator target=_blank rel="noopener noreferrer">ProgressIndicator</a></code> — reach for that one directly if a straight bar isn't the shape you want. A circular presentation is available via <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion/basic-circular-progress-indicator-behavior target=_blank rel="noopener noreferrer">basicCircularProgressIndicatorBehavior</a></code>.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.application.application
+import io.nacular.doodle.controls.ProgressIndicator
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.docs.apps.CircularProgressApp
+import io.nacular.doodle.docs.utils.BlueColor
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.theme.Theme
+import io.nacular.doodle.theme.ThemeManager
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicCircularProgressIndicatorBehavior
+import org.kodein.di.instance
+
+//sampleStart
+fun main() {
+    // include basicCircularProgressIndicatorBehavior
+    application(modules = listOf(
+        basicCircularProgressIndicatorBehavior(foreground = BlueColor.paint, thickness = 5.0)
+    )) {
+        CircularProgressApp(display = instance(), themeManager = instance(), theme = instance())
+    }
+}
+
+class CircularProgressApp(display: Display, themeManager: ThemeManager, theme: Theme): Application {
+    init {
+        // Theme with basicCircularProgressIndicatorBehavior
+        themeManager.selected = theme
+
+        val circularProgressIndicator = object: ProgressIndicator() {
+            init {
+                suggestSize(Size(100))
+                progress           = 0.25
+                accessibilityLabel = "circular progress widget"
+            }
+        }
+
+        // ...
+    }
+
+    override fun shutdown() {}
+}
+//sampleEnd</code></div></div></div>
+<p><code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme/-path-progress-indicator-behavior target=_blank rel="noopener noreferrer">PathProgressIndicatorBehavior</a></code> draws progress along an arbitrary <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.geometry/-path target=_blank rel="noopener noreferrer">Path</a></code> instead — handy if progress should trace something other than a bar or a ring.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.ProgressIndicator
+import io.nacular.doodle.docs.utils.BlueColor
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.LinearGradientPaint
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.geometry.PathMetrics
+import io.nacular.doodle.geometry.Point
+import io.nacular.doodle.geometry.Point.Companion.Origin
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.path
+import io.nacular.doodle.theme.PathProgressIndicatorBehavior
+
+fun usage(pathMetrics: PathMetrics) {
+//sampleStart
+    val pathProgress = object: ProgressIndicator() {
+        init {
+            suggestSize(Size(200, 100))
+            progress = 0.25
+            behavior = PathProgressIndicatorBehavior(
+                pathMetrics,          // injected
+                path                = path("M10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80")!!,
+                foreground          = LinearGradientPaint(Black, BlueColor, Origin, Point(width, 0.0)),
+                foregroundThickness = 5.0,
+                background          = Lightgray.paint,
+                backgroundThickness = 5.0
+            )
+        }
+    }
+//sampleEnd
+}</code></div></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Updating a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code>'s value by hand jumps abruptly. Drive it through <code>by animate(...)</code> from <a class="" href=/doodle/docs/animations#animatable-properties>Animation</a> instead, and each update glides to the new value rather than snapping.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=starrater><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-star-rater target=_blank rel="noopener noreferrer">StarRater</a></code><a href=#starrater class=hash-link aria-label="Direct link to starrater" title="Direct link to starrater" translate=no>​</a></h2>
+<p>A value picker dressed as star ratings — a highly customizable way to display and collect a value somewhere in <code>[0, n]</code>, just with a presentation everyone already recognizes from a hundred other apps.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:220px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.StarRater
+import io.nacular.doodle.geometry.Rectangle
+
+//sampleStart
+val stars = StarRater(displayRounded = 0f, max = 5, /*pathMetrics = pathMetrics*/).apply {
+    suggestBounds(Rectangle(200, 50))
+
+    minSpacing        = 15.0
+    innerRadiusRatio  = 0.6f
+    starPointRounding = 0.25f
+}
+//sampleEnd</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=spinbutton><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.spinbutton/-spin-button target=_blank rel="noopener noreferrer">SpinButton</a></code><a href=#spinbutton class=hash-link aria-label="Direct link to spinbutton" title="Direct link to spinbutton" translate=no>​</a></h2>
+<p>Steps through a set of values one at a time — think a "±" number stepper, or cycling through a list of named options. It works well when the options are few, or when the input is naturally incremental, like a quantity to purchase. The set isn't necessarily fixed, either: <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.spinbutton/-spin-button target=_blank rel="noopener noreferrer">SpinButton</a></code> takes a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.spinbutton/-spin-button-model target=_blank rel="noopener noreferrer">SpinButtonModel</a></code> that behaves like an <code>Iterator</code>, so it can represent an open-ended list of values that don't all need to be loaded up front.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.spinbutton.SpinButton
+
+//sampleStart
+val spinButton1 = SpinButton(1..9 step 2)
+val spinButton2 = SpinButton(listOf("Monday", "Tuesday", "Wednesday"))
+//sampleEnd</code></div></div></div>
+<p><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.spinbutton/-mutable-spin-button target=_blank rel="noopener noreferrer">MutableSpinButton</a></code> lets you change its values directly, or by updating its underlying model — click into it and hit enter to commit an edit, or click away to cancel it.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:200px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.ItemVisualizer
+import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.spinbutton.MutableListSpinButtonModel
+import io.nacular.doodle.controls.spinbutton.MutableSpinButton
+import io.nacular.doodle.controls.spinbutton.SpinButton
+import io.nacular.doodle.controls.spinbutton.spinButtonEditor
+import io.nacular.doodle.controls.text.Label
+import io.nacular.doodle.drawing.Color.Companion.Transparent
+import io.nacular.doodle.event.PointerListener.Companion.pressed
+import io.nacular.doodle.focus.FocusManager
+import io.nacular.doodle.layout.constraints.fill
+import io.nacular.doodle.system.Cursor.Companion.Text
+import io.nacular.doodle.theme.basic.spinbutton.SpinButtonTextEditOperation
+import io.nacular.doodle.utils.ToStringIntEncoder
+
+fun mutableSpinButton(focusManager: FocusManager) {
+    // custom visualizer to initiate edit on pointer press
+    val itemVisualizer: ItemVisualizer&lt;Int, SpinButton&lt;Int, *>> = itemVisualizer { item, previous, button ->
+        when (previous) {
+            is Label -> previous.also { it.text = "$item" }
+            else     -> Label("$item").apply {
+                this.font       = previous?.font
+                cursor          = Text
+                foregroundColor = previous?.foregroundColor
+                backgroundColor = previous?.backgroundColor ?: Transparent
+
+                // Begin edit on pointer press
+                pointerFilter += pressed { event ->
+                    (button as MutableSpinButton).startEditing()
+                    event.consume()
+                }
+            }
+        }
+    }
+
+    //sampleStart
+    MutableSpinButton(
+        MutableListSpinButtonModel((1 .. 9).toMutableList()),
+        itemVisualizer
+    ).apply {
+        cellAlignment = fill
+        editor        = spinButtonEditor { spinButton, value, current ->
+            SpinButtonTextEditOperation(
+                focusManager,
+                ToStringIntEncoder,
+                spinButton,
+                value,
+                current
+            )
+        }
+    }
+//sampleEnd
+ }</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code>/<code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-circular-slider target=_blank rel="noopener noreferrer">CircularSlider</a></code> pick one value; <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-range-slider target=_blank rel="noopener noreferrer">RangeSlider</a></code>/<code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-circular-range-slider target=_blank rel="noopener noreferrer">CircularRangeSlider</a></code> pick two, bounding a range.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code> is the read-only member of the family — use it for reporting a value, not collecting one.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-star-rater target=_blank rel="noopener noreferrer">StarRater</a></code> and <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.spinbutton/-spin-button target=_blank rel="noopener noreferrer">SpinButton</a></code> are both value pickers wearing a more specific presentation — a rating, or a step-through list.</li>
+<li class="">Reach for a circular variant when a dial genuinely reads more naturally than a bar; otherwise, the straight-line versions are the simpler default.</li>
+</ul>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/ui_components/selection>Selection & Text</a></strong> for labels, text input, and picking from a list.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/ui_components/buttons><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Buttons</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/ui_components/selection><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Selection & Text</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#slider class="table-of-contents__link toc-highlight"><api.slider>Slider</api.slider></a><ul><li><a href=#non-linearity class="table-of-contents__link toc-highlight">Non-linearity</a><li><a href=#animation class="table-of-contents__link toc-highlight">Animation</a></ul><li><a href=#circularslider class="table-of-contents__link toc-highlight"><api.circularslider>CircularSlider</api.circularslider></a><li><a href=#rangeslider class="table-of-contents__link toc-highlight"><api.rangeslider>RangeSlider</api.rangeslider></a><li><a href=#circularrangeslider class="table-of-contents__link toc-highlight"><api.circularrangeslider>CircularRangeSlider</api.circularrangeslider></a><li><a href=#progressbar class="table-of-contents__link toc-highlight"><api.progressbar>ProgressBar</api.progressbar></a><li><a href=#starrater class="table-of-contents__link toc-highlight"><api.starrater>StarRater</api.starrater></a><li><a href=#spinbutton class="table-of-contents__link toc-highlight"><api.spinbutton>SpinButton</api.spinbutton></a><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>

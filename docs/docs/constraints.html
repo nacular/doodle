@@ -1,0 +1,370 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-constraints" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Constraints | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/constraints /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Constraints | Doodle"/><meta data-rh=true name=description content="Doodle's most-used Layout is constraint-based — write equations describing how Views relate to each other, and Doodle solves them. This page covers the equation forms, live constraints, removal, strength, and readonly attributes."/><meta data-rh=true property=og:description content="Doodle's most-used Layout is constraint-based — write equations describing how Views relate to each other, and Doodle solves them. This page covers the equation forms, live constraints, removal, strength, and readonly attributes."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/constraints /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/constraints hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/constraints hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/positioning><span class=linkLabel_WmDU>Positioning Views</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/constraints><span class=linkLabel_WmDU>Constraints</span></a></ul><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Constraints</h1></header>
+<p>Back on <a class="" href=/doodle/docs/positioning>Positioning Views</a>, you got acquainted with the general <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-layout target=_blank rel="noopener noreferrer">Layout</a></code> interface. Now let's meet Doodle's favorite implementation of it: a constraint-based Layout, where instead of computing positions yourself, you write equations describing how Views should relate to each other, and hand the arithmetic off to Doodle.</p>
+<p>Every equation takes one of these three forms (<code>attribute</code> is a position, <code>width</code>, or <code>height</code>):</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.View
+import io.nacular.doodle.layout.constraints.constrain
+
+fun basicConstraints(constant1: Double, constant2: Double, v1: View, v2: View) {
+    constrain(v1, v2) { view1, view2 ->
+//sampleStart
+        view1.left  eq        constant1 * view2.left   + constant2
+        view1.top   lessEq    constant1 * view2.height + constant2
+        view1.width greaterEq constant1 * view2.bottom + constant2
+//sampleEnd
+    }
+}</code>
+<p>Let's put that to work: two panels, laid out entirely with constraints, the first claiming the left third of its parent and the second filling the rest.</p>
+<div class=doodle_u3ra><div style=position:relative;height:300px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.docs.utils.Panel
+import io.nacular.doodle.drawing.Color.Companion.Gray
+import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.layout.constraints.constrain
+
+class ConstraintCreationApp(display: Display, textMetrics: TextMetrics): Application {
+    init {
+        val panel1 = Panel(textMetrics, "Panel 1").apply { backgroundColor = Lightgray }
+        val panel2 = Panel(textMetrics, "Panel 2").apply { backgroundColor = Gray      }
+
+        display += listOf(panel1, panel2)
+
+        // use Layout that follows constraints to position items
+//sampleStart
+        display.layout = constrain(panel1, panel2) { panel1, panel2 ->
+            panel1.top    eq 0
+            panel1.left   eq 0
+            panel1.right  eq parent.width / 3
+            panel1.bottom eq parent.bottom
+
+            panel2.top    eq panel1.top
+            panel2.left   eq panel1.right
+            panel2.right  eq parent.right
+            panel2.bottom eq parent.bottom
+        }
+//sampleEnd
+    }
+
+    override fun shutdown() {}
+}</code>
+<p><code>constrain(...)</code> takes the Views you want to position and a lambda defining the equations — that's really the whole shape of it. A couple of tricks make these equations more flexible than they first appear:</p>
+<ul>
+<li class=""><strong>More than one View can share an equation:</strong> <code>view1.width + 2 * view2.width eq parent.width - 10</code>.</li>
+<li class=""><strong>Either side can be rearranged</strong>, so long as you flip signs correctly — <code>a + b eq c</code> and <code>a eq c - b</code> are the same constraint as far as Doodle's solver is concerned.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=constraints-are-live>Constraints are live<a href=#constraints-are-live class=hash-link aria-label="Direct link to Constraints are live" title="Direct link to Constraints are live" translate=no>​</a></h2>
+<p>Here's a neat detail: the equations you write get re-evaluated on every layout pass, not just once. That means conditionals and captured outside variables work perfectly well inside them:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.Container
+import io.nacular.doodle.core.View
+import io.nacular.doodle.layout.constraints.constrain
+
+fun basicConstraints(container: Container, view: View) {
+//sampleStart
+    val threshold = 100
+
+    container.layout = constrain(view) {
+        // container.width crossing the threshold changes which constraint applies, live
+        when {
+            container.width &lt; threshold -> it.width eq parent.width / 2
+            else                        -> it.width eq parent.width
+        }
+    }
+//sampleEnd
+}</code>
+<p>Being live is exactly what makes this convenient — just keep in mind that a constraint block re-runs on every layout, so leave expensive work out of it.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=removing-constraints>Removing constraints<a href=#removing-constraints class=hash-link aria-label="Direct link to Removing constraints" title="Direct link to Removing constraints" translate=no>​</a></h2>
+<p>Since a constraint block behaves like a live handler rather than a one-off action, removing one works the same way removing any handler does: hand back the exact same Views and block you registered with.</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.Container
+import io.nacular.doodle.layout.constraints.Bounds
+import io.nacular.doodle.layout.constraints.ConstraintDslContext
+import io.nacular.doodle.layout.constraints.ConstraintLayout
+import io.nacular.doodle.layout.constraints.constrain
+import viewcreation.view1
+import viewcreation.view2
+
+fun removal(container: Container) {
+//sampleStart
+    val constraints: ConstraintDslContext.(Bounds, Bounds) -> Unit = { v1, v2 ->
+        // ...
+    }
+
+    val layout: ConstraintLayout = constrain(view1, view2, constraints)
+
+    // remove constraints applied to these views
+    layout.unconstrain(view1, view2, constraints)
+//sampleEnd
+}</code>
+<div class="theme-admonition theme-admonition-caution admonition_xJq3 alert alert--warning"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>caution</div><div class=admonitionContent_BuS1><p>The Views passed to <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-layout/unconstrain target=_blank rel="noopener noreferrer">unconstrain</a></code> must match <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-layout/constrain target=_blank rel="noopener noreferrer">constrain</a></code>'s in order and count, and the block itself must be the <em>same reference</em> — not just an equivalent-looking lambda. Store it in a variable, like <code>constraints</code> above, rather than writing it inline twice.</p><code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.Container
+import io.nacular.doodle.layout.constraints.constrain
+import viewcreation.view1
+
+fun badRemoval(container: Container) {
+//sampleStart
+    val layout = constrain(view1) { it.center eq parent.center }
+
+    // DO NOT DO THIS
+    layout.unconstrain(view1) { it.center eq parent.center }
+//sampleEnd
+}</code></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=constraint-strength>Constraint strength<a href=#constraint-strength class=hash-link aria-label="Direct link to Constraint strength" title="Direct link to Constraint strength" translate=no>​</a></h2>
+<p>Conflicting constraints are a real possibility, and by default a conflict is treated as an error — fair enough, since there's no single correct answer to fall back on. <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-strength target=_blank rel="noopener noreferrer">Strength</a></code> gives you a way out: every constraint is <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-strength/-companion/-required target=_blank rel="noopener noreferrer">Required</a></code> (the strictest setting) unless you say otherwise, and the solver is free to bend a lower-strength constraint in favor of a higher one.</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.container
+import io.nacular.doodle.core.width
+import io.nacular.doodle.docs.utils.Panel
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Gray
+import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.drawing.stroke
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.layout.constraints.Strength.Companion.Strong
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.utils.Resizer
+import kotlin.math.min
+
+class ConstraintStrengthApp(display: Display, textMetrics: TextMetrics): Application {
+    init {
+        val panel = object: Panel(textMetrics, "Panel") {
+            init {
+                backgroundColor = Lightgray
+            }
+
+            override fun render(canvas: Canvas) {
+                super.render(canvas)
+                canvas.rect(bounds.atOrigin, Black.stroke(2.0))
+            }
+        }
+
+        display += container {
+            this += panel
+
+            suggestSize(Size(min(400.0, display.width - 20), min(300.0, display.width - 20)))
+
+//sampleStart
+            layout = constrain(panel) {
+                it.left   eq     0
+                it.width  lessEq 200
+                it.right  eq     parent.right strength Strong // yields to the width constraint above when they conflict
+                it.height eq     parent.height
+            }
+//sampleEnd
+
+            render = { rect(bounds.atOrigin, fill = Gray.paint) }
+
+            // drag to see the panel cap out at 200 wide
+            Resizer(this, movable = false)
+        }
+
+        // use Layout that follows constraints to position items
+        display.layout = constrain(display.first(), center)
+
+        display.fill(White.paint)
+    }
+
+    override fun shutdown() {}
+}</code>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<p>Here, <code>right eq parent.right</code> would ordinarily stretch the panel to fill its container — but it's marked <code>Strong</code>, one notch below the default <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-strength/-companion/-required target=_blank rel="noopener noreferrer">Required</a></code>, so it steps aside whenever the container narrows past 200px and the <code>width lessEq 200</code> constraint would otherwise be broken.</p>
+<p>Let's make it a little more realistic: three panels, where the middle one moves and resizes, while the others yield gracefully when space gets tight.</p>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.container
+import io.nacular.doodle.core.height
+import io.nacular.doodle.core.width
+import io.nacular.doodle.docs.utils.BlueColor
+import io.nacular.doodle.docs.utils.Panel
+import io.nacular.doodle.drawing.Color.Companion.Gray
+import io.nacular.doodle.drawing.Color.Companion.Lightgray
+import io.nacular.doodle.drawing.Color.Companion.Pink
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.layout.constraints.Strength.Companion.Required
+import io.nacular.doodle.layout.constraints.center
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.minus
+import io.nacular.doodle.utils.Direction.East
+import io.nacular.doodle.utils.Direction.West
+import io.nacular.doodle.utils.Resizer
+import kotlin.math.min
+
+class ComplexConstraintsApp(display: Display, textMetrics: TextMetrics): Application {
+    init {
+        val inset = 5
+
+        val panel1 = Panel(textMetrics, "1").apply { backgroundColor = Pink      }
+        val panel2 = Panel(textMetrics, "2").apply { backgroundColor = Gray      }
+        val panel3 = Panel(textMetrics, "3").apply { backgroundColor = Lightgray }
+
+        with (panel2) {
+            suggestX    (inset + 130.0)
+            suggestWidth( 50.0)
+            Resizer(this).apply { directions = setOf(East, West) }
+        }
+
+        display += container {
+            this += listOf(panel1, panel2, panel3)
+
+            suggestSize(width = min(400.0, display.width - 20), height = min(300.0, display.height - 20))
+
+//sampleStart
+            layout = constrain(panel1, panel2, panel3) { p1, p2, p3 ->
+                p1.top    eq      inset
+                p1.left   eq      inset
+                p1.bottom eq      parent.bottom - inset strength Required - 1
+
+                p2.top    eq      p1.top
+                p2.width  prefers min(p2.width.value, parent.width.value - (p1.width.value + 2 * inset))
+                p2.left   prefers p2.left.value
+                p2.left   eq      p1.right
+                p2.height eq      p1.height
+
+                p3.top    eq      p2.top
+                p3.left   eq      p2.right
+                p3.height eq      p2.height
+
+                p1.width + readonly(p2.width) + p3.width eq parent.width - 2 * inset strength Required - 1
+            }
+//sampleEnd
+
+            render = { rect(bounds.atOrigin, fill = BlueColor.paint) }
+
+            // helper to resize container
+            Resizer(this, movable = false)
+        }
+
+        // use Layout that follows constraints to position items
+        display.layout = constrain(display.first(), center)
+
+        display.fill(White.paint)
+    }
+
+    override fun shutdown() {}
+}</code>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=ranges-and-preferences>Ranges and preferences<a href=#ranges-and-preferences class=hash-link aria-label="Direct link to Ranges and preferences" title="Direct link to Ranges and preferences" translate=no>​</a></h2>
+<p>Here's a something in how constraint Layouts work that's worth understanding properly, because it brings them in line with every other Layout. Back on <a class="" href=/doodle/docs/positioning#a-negotiation-not-a-command>Positioning Views</a>, you saw that a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code>'s size comes out of a negotiation: the parent proposes a minimum and maximum, and the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> picks a size somewhere in between. A constraint Layout takes part in that negotiation the same way. Your constraints define the <em>range</em> of sizes each <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> is allowed to have — and the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> stays free to choose within it, instead of being pinned to a single value.</p>
+<p>:::note Coming from an earlier version?
+Constraint Layouts used to pin each View's size range to a single value, which left a View with no say in its own size. If you're upgrading, that behavior has changed.
+:::</p>
+<p>Two tools let you shape that negotiation without taking the choice away from the View: the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code> keyword, and the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/ideal target=_blank rel="noopener noreferrer">ideal</a></code> constant.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=prefers-a-suggestion-not-a-constraint><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code>: a suggestion, not a constraint<a href=#prefers-a-suggestion-not-a-constraint class=hash-link aria-label="Direct link to prefers-a-suggestion-not-a-constraint" title="Direct link to prefers-a-suggestion-not-a-constraint" translate=no>​</a></h3>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.container
+import io.nacular.doodle.core.view
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+
+fun prefersIdeal() {
+    container {
+        + view {  }
+
+        layout = constrain(children.first()) { view ->
+//sampleStart
+            view.width prefers ideal
+//sampleEnd
+        }
+    }
+}</code>
+<p><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code> hands the solver a <em>suggested</em> value for an attribute. The idea comes straight from Cassowary, the algorithm that powers this Layout, where a suggestion is a hint about where a value should settle rather than an equation the solver is obliged to satisfy. That distinction is the whole point: because a suggestion isn't a constraint, it doesn't narrow the range of sizes a View can take. It only nudges where in that range the View lands. And if a suggestion can't be honored alongside your constraints, the constraints win.</p>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>How is this different from <code>strength Weak</code>?</div><div class=admonitionContent_BuS1><p>A weak constraint is still an explicit constraint — just one the solver is willing to break when it has to. <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code> isn't a constraint at all. Reach for <code>strength</code> when you want to rank competing requirements against each other; reach for <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code> when you want to say how you'd <em>like</em> something to turn out without ruling anything out.</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=ideal-the-size-a-view-would-pick-for-itself><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/ideal target=_blank rel="noopener noreferrer">ideal</a></code>: the size a View would pick for itself<a href=#ideal-the-size-a-view-would-pick-for-itself class=hash-link aria-label="Direct link to ideal-the-size-a-view-would-pick-for-itself" title="Direct link to ideal-the-size-a-view-would-pick-for-itself" translate=no>​</a></h3>
+<p><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/ideal target=_blank rel="noopener noreferrer">ideal</a></code> is a new constant that stands for the size a View would ideally choose for itself in the dimension you use it — the same notion of a preferred size that you met on <a class="" href=/doodle/docs/positioning#how-a-view-picks-its-own-size>Positioning Views</a>. So <code>view.width prefers ideal</code> reads just the way it sounds: "make this View as wide as it would like to be, if there's room."</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=putting-them-together>Putting them together<a href=#putting-them-together class=hash-link aria-label="Direct link to Putting them together" title="Direct link to Putting them together" translate=no>​</a></h3>
+<p>Combine the two with an ordinary constraint, and you get a View with a firm height and a flexible width:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.container
+import io.nacular.doodle.core.view
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+
+fun sizeRange() {
+    container {
+        + view {  }
+
+        layout = constrain(children.first()) { view ->
+//sampleStart
+            view.height eq      100   // Constraint	Pins height: min and max are both 100
+            view.width  prefers ideal // Suggestion	Leaves width's range open, and nudges where in it the View lands
+                                      // nothing else on width: it can be anything from 0 up to unbounded
+//sampleEnd
+        }
+    }
+}</code>
+<p>Here's what each statement contributes to the range the View is allowed to pick from:</p>
+<p>Together, they let the View select a size between a minimum of <code>Size(0, 100)</code> and a maximum of <code>Size(Infinity, 100)</code> — free to choose its own width, with its height held at exactly 100.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=referring-to-a-value-without-changing-it>Referring to a value without changing it<a href=#referring-to-a-value-without-changing-it class=hash-link aria-label="Direct link to Referring to a value without changing it" title="Direct link to Referring to a value without changing it" translate=no>​</a></h2>
+<p>Some constraints are secretly shorthand for several others. <code>center</code> is the clearest example — reach for <code>center</code>, <code>centerX</code>, or <code>centerY</code>, and you're not just constraining a position, you're quietly pulling <code>width</code> and <code>height</code> into the equation too:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.View
+import io.nacular.doodle.layout.constraints.constrain
+
+fun centerExpansions(v: View) {
+    constrain(v) { view ->
+//sampleStart
+        // this one constraint...
+        view.center eq parent.center
+
+        // ...is shorthand for these two...
+        view.centerX eq parent.centerX
+        view.centerY eq parent.centerY
+
+        // ...which are themselves shorthand for these, involving width and height:
+        view.top  + view.height / 2 eq parent.height / 2 // what centerX really means
+        view.left + view.width  / 2 eq parent.width  / 2 // what centerY really means
+//sampleEnd
+    }
+}</code>
+<p>So a single <code>view.center eq parent.center</code> quietly leaves <code>width</code>, <code>height</code>, <code>top</code>, and <code>left</code> all up for grabs by the solver. If you'd rather just <em>refer</em> to one of those values without letting the solver touch it, mark it <code>readonly</code>:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package constraints
+
+import io.nacular.doodle.core.View
+import io.nacular.doodle.layout.constraints.constrain
+
+fun readOnly(v: View) {
+    constrain(v) { view ->
+//sampleStart
+        view.top  + readonly(view.height) / 2 eq parent.centerY
+        view.left + readonly(view.width ) / 2 eq parent.centerX
+//sampleEnd
+    }
+}</code>
+<p>This defines only 2 constraints instead of 4 — <code>height</code> and <code>width</code> are read as constants at the moment the constraints run, rather than becoming variables the solver can change.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class="">Constraint equations relate one or more Views' bounds to each other, using equalities and inequalities.</li>
+<li class="">They're re-evaluated on every layout pass, so conditionals and captured variables work naturally — just avoid expensive work inside one.</li>
+<li class="">Remove constraints with <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-layout/unconstrain target=_blank rel="noopener noreferrer">unconstrain</a></code>, passing the exact same Views and block reference used to create them.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-constraint-dsl-context/prefers target=_blank rel="noopener noreferrer">prefers</a></code> suggests a value to the solver without constraining anything, so it never narrows that range. <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/ideal target=_blank rel="noopener noreferrer">ideal</a></code> is the constant that stands for the size a View would pick for itself.</li>
+<li class="">Give a constraint a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-strength target=_blank rel="noopener noreferrer">Strength</a></code> (<code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.layout.constraints/-strength/-companion/-required target=_blank rel="noopener noreferrer">Required</a></code> by default) to let the solver break it gracefully instead of erroring when constraints conflict.</li>
+<li class=""><code>center</code>/<code>centerX</code>/<code>centerY</code> expand into constraints on <code>width</code>/<code>height</code> too.</li>
+<li class="">Mark an attribute <code>readonly</code> to reference its value without letting the solver adjust it.</li>
+</ul>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/userinput>User Input</a></strong> to make your Views actually respond to the pointer and keyboard.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/positioning><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Positioning Views</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/userinput><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>User Input</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#constraints-are-live class="table-of-contents__link toc-highlight">Constraints are live</a><li><a href=#removing-constraints class="table-of-contents__link toc-highlight">Removing constraints</a><li><a href=#constraint-strength class="table-of-contents__link toc-highlight">Constraint strength</a><li><a href=#ranges-and-preferences class="table-of-contents__link toc-highlight">Ranges and preferences</a><ul><li><a href=#prefers-a-suggestion-not-a-constraint class="table-of-contents__link toc-highlight"><api.prefers>prefers</api.prefers>: a suggestion, not a constraint</a><li><a href=#ideal-the-size-a-view-would-pick-for-itself class="table-of-contents__link toc-highlight"><api.ideal>ideal</api.ideal>: the size a View would pick for itself</a><li><a href=#putting-them-together class="table-of-contents__link toc-highlight">Putting them together</a></ul><li><a href=#referring-to-a-value-without-changing-it class="table-of-contents__link toc-highlight">Referring to a value without changing it</a><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>

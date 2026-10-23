@@ -1,0 +1,235 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-ui_components/panels" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Panels & Layout | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/ui_components/panels /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Panels & Layout | Doodle"/><meta data-rh=true name=description content="GridPanel, SplitPanel, TabbedPanel, and Accordion — controls whose whole job is arranging other Views, rather than displaying a value of their own."/><meta data-rh=true property=og:description content="GridPanel, SplitPanel, TabbedPanel, and Accordion — controls whose whole job is arranging other Views, rather than displaying a value of their own."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/ui_components/panels /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/panels hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/panels hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/theming><span class=linkLabel_WmDU>Theming</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/wheresmyview><span class=linkLabel_WmDU>Where's My View?</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/overview><span class=linkLabel_WmDU>Catalog</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/buttons><span class=linkLabel_WmDU>Buttons</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/sliders><span class=linkLabel_WmDU>Sliders & Value Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/selection><span class=linkLabel_WmDU>Selection & Text</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/datadisplay><span class=linkLabel_WmDU>Data Display</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/ui_components/panels><span class=linkLabel_WmDU>Panels & Layout</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/media><span class=linkLabel_WmDU>Media & Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form><span class=linkLabel_WmDU>Forms</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form_controls><span class=linkLabel_WmDU>Form Controls</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Panels & Layout</h1></header>
+<p>Coming from <a class="" href=/doodle/docs/ui_components/datadisplay>Data Display</a>, this page is a little different from the rest — every control here exists to arrange <em>other</em> Views, rather than show a value of its own.</p>
+<p><strong>Which one do you actually want?</strong></p>
+<table><thead><tr><th>If you need...<th>Reach for<tbody><tr><td>A View too big for its space, scrollable rather than resized<td><a href=#scrollpanel class=""><code>ScrollPanel</code></a><tr><td>A grid of rows and columns<td><a href=#gridpanel class=""><code>GridPanel</code></a><tr><td>Two resizable areas, side by side<td><a href=#splitpanel class=""><code>SplitPanel</code></a><tr><td>One of several Views visible at a time, tab-style<td><a href=#tabbedpanel class=""><code>TabbedPanel</code></a><tr><td>One of several sections visible at a time, vertically stacked<td><a href=#accordion class=""><code>Accordion</code></a></table>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>All five of these are really just pre-built <a class="" href=/doodle/docs/constraints>Layouts</a> for common arrangements. If your layout doesn't fit any of them — an irregular arrangement, say — writing constraints by hand is still completely reasonable. These controls exist to save you the trouble for the shapes that come up constantly, not to be the only way to arrange Views.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=scrollpanel><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.controls.panels/-scroll-panel target=_blank rel="noopener noreferrer">ScrollPanel</a></code><a href=#scrollpanel class=hash-link aria-label="Direct link to scrollpanel" title="Direct link to scrollpanel" translate=no>​</a></h2>
+<p>The simplest of the bunch: wraps a single <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.controls.panels/-scroll-panel/content target=_blank rel="noopener noreferrer">content</a></code> View, clips it to the panel's bounds, and scrolls it when it's too big to fit — rather than squeezing or resizing it the way <a href=#gridpanel class=""><code>GridPanel</code></a> or <a href=#splitpanel class=""><code>SplitPanel</code></a> might. Set <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.controls.panels/-scroll-panel/content target=_blank rel="noopener noreferrer">content</a></code> any time, and <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.controls.panels/-scroll-panel/content-changed target=_blank rel="noopener noreferrer">contentChanged</a></code> notifies you when it does.</p>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.core.View
+import io.nacular.doodle.layout.constraints.ideal
+
+fun scrollPanel(bigView: View) {
+//sampleStart
+    val panel = ScrollPanel(content = bigView).apply {
+        contentConstraints = {
+            it.width  eq   parent.width - verticalScrollBarWidth
+            it.height hint ideal
+        }
+    }
+//sampleEnd
+}</code>
+<p>A property worth knowing about control how the content behaves as the panel itself resizes: <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.controls.panels/-scroll-panel/content-constraints target=_blank rel="noopener noreferrer">contentConstraints</a></code> — it is a small function returning a <a class="" href=/doodle/docs/constraints>constraint</a>, so you can pin the content to the panel's exact width while letting its height scroll freely, say.</p>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>This is exactly what powers the <a class="" href=/doodle/docs/ui_components/form_controls#scrolling><code>scrolling</code></a> form control from Form Controls, and it's what <a href=#tabbedpanel class=""><code>TabbedPanel's</code></a> <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-scroll-panel-visualizer target=_blank rel="noopener noreferrer">ScrollPanelVisualizer</a></code> (just below) wraps tab content in.</div></div>
+<span><code>nativeScrollPanelBehavior</code> (<a href=https://nacular.github.io/doodle-api/browser/io.nacular.doodle.theme.native/-native-theme/-companion/native-scroll-panel-behavior target=_blank rel="noopener noreferrer">Web</a>, <a href=https://nacular.github.io/doodle-api/desktop/io.nacular.doodle.theme.native/-native-theme/-companion/native-scroll-panel-behavior target=_blank rel="noopener noreferrer">Desktop</a>)</span>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=gridpanel><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-grid-panel target=_blank rel="noopener noreferrer">GridPanel</a></code><a href=#gridpanel class=hash-link aria-label="Direct link to gridpanel" title="Direct link to gridpanel" translate=no>​</a></h2>
+<p>Arranges children into a grid of rows and columns — the control version of the constraint-based grids you'd otherwise build by hand on the <a class="" href=/doodle/docs/constraints>Constraints</a> page, packaged up for the common case. Each item you add declares the row and column it sits at, plus how many rows and columns it spans — a 2×1 item to span two columns, say. Those spans, together with the panel's <code>rowSizingPolicy</code> and <code>columnSizingPolicy</code>, are what ultimately decide how everything gets sized.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.panels.GridPanel
+import io.nacular.doodle.controls.panels.GridPanel.Companion.FitPanel
+import io.nacular.doodle.core.View
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Resizer
+
+fun gridPanel(
+    view1: View,
+    view2: View,
+    view3: View,
+    view4: View,
+    view5: View,
+    view6: View,
+    view7: View
+) {
+//sampleStart
+    val panel = GridPanel().apply {
+        rowSpacing         = { 10.0 }
+        columnSpacing      = { 10.0 }
+        rowSizingPolicy    = FitPanel // FitContent, or custom policy
+        columnSizingPolicy = FitPanel // FitContent, or custom policy
+
+        add(view1, columnSpan = 2     ) // defaults to row = 0, col = 0
+        add(view2, row = 1, column = 0)
+        add(view3, row = 1, column = 1)
+        add(view4, row = 2, column = 2)
+        add(view5, row = 0, column = 2, rowSpan = 2)
+        add(view6, row = 2, column = 0)
+        add(view7, row = 2, column = 1)
+
+        suggestSize(Size(200))
+
+        Resizer(this, movable = false)
+    }
+//sampleEnd
+}</code></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=splitpanel><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-split-panel target=_blank rel="noopener noreferrer">SplitPanel</a></code><a href=#splitpanel class=hash-link aria-label="Direct link to splitpanel" title="Direct link to splitpanel" translate=no>​</a></h2>
+<p>Divides a region into two areas, each holding one <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code>, with a draggable divider letting the user resize the split between them. Nest one inside another to build more complex arrangements — a horizontal split whose second half is itself a vertical split, for instance.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Horizontal<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><div class=doodle_u3ra><div style=position:relative;height:400px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.Photo
+import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.controls.panels.SplitPanel
+import io.nacular.doodle.docs.utils.CircularView
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.image.Image
+import io.nacular.doodle.layout.Insets
+import io.nacular.doodle.utils.Orientation.Vertical
+
+fun splitPanel(image: Image) {
+//sampleStart
+    val panel = SplitPanel(orientation = Vertical /*| Horizontal*/).apply {
+        suggestSize(Size(500, 300))
+        firstItem = ScrollPanel(CircularView(250.0))
+        lastItem  = Photo(image)
+        ratio     = 1f / 3
+        insets    = Insets(2.0)
+    }
+//sampleEnd
+}</code></div></div></div>
+<p>This shows how you might nest horizontal and vertical SplitPanels.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package controls
+
+import io.nacular.doodle.controls.SingleItemSelectionModel
+import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.invoke
+import io.nacular.doodle.controls.list.List
+import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.controls.panels.SplitPanel
+import io.nacular.doodle.docs.utils.panel
+import io.nacular.doodle.drawing.TextMetrics
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Orientation.Horizontal
+import io.nacular.doodle.utils.Resizer
+
+fun nestedSplitPanel(textMetrics: TextMetrics) {
+//sampleStart
+    val list = List(1..10, StringVisualizer(), SingleItemSelectionModel()).apply {
+        cellAlignment = { it.left eq 10 }
+    }
+    val main = panel(textMetrics, "1",    shadow = null, cornerRadius = 0.0)
+    val info = panel(textMetrics, "info", shadow = null, cornerRadius = 0.0)
+
+    val panel = SplitPanel(orientation = Horizontal).apply {
+        suggestSize(Size(500, 300))
+        firstItem = SplitPanel().apply {
+            firstItem = ScrollPanel(list).apply {
+                contentConstraints  = { it.width eq parent.width; it.height eq it.idealWidth }
+            }
+            lastItem  = main
+            ratio     = 1f / 3
+        }
+
+        ratio    = 2f / 3
+        lastItem = info
+
+        Resizer(this, movable = false)
+    }
+
+/**
+ * Launched App using
+ * -------------------------------------------
+ * basicListBehavior(),
+ * basicLabelBehavior(),
+ * basicSplitPanelBehavior(showDivider = true),
+ * nativeScrollPanelBehavior()
+ */
+//sampleEnd
+}</code></div></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Requires a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.theme/-split-panel-behavior target=_blank rel="noopener noreferrer">SplitPanelBehavior</a></code> for rendering. <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion target=_blank rel="noopener noreferrer">BasicTheme</a></code> provides one.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=tabbedpanel><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-tabbed-panel target=_blank rel="noopener noreferrer">TabbedPanel</a></code><a href=#tabbedpanel class=hash-link aria-label="Direct link to tabbedpanel" title="Direct link to tabbedpanel" translate=no>​</a></h2>
+<p>Shows one of several items at a time, switched between with tabs. It takes two <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-item-visualizer target=_blank rel="noopener noreferrer">ItemVisualizer</a></code>s — one turns each item into the little tab you click, the other turns it into the main content shown underneath. With <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion/basic-tabbed-panel-behavior target=_blank rel="noopener noreferrer">basicTabbedPanelBehavior</a></code>, that main content gets scaled to fit the panel; wrap it in a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-scroll-panel-visualizer target=_blank rel="noopener noreferrer">ScrollPanelVisualizer</a></code> instead if your tabs are meant to hold arbitrary Views that shouldn't be squeezed to fit.</p>
+<p>This is also the control used as the running example on the <a class="" href=/doodle/docs/ui_components/theming#behaviors>Theming</a> page for just how much a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> can take on — worth a look if you're customizing one heavily.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package tabbedpanel
+
+import io.nacular.doodle.controls.ScrollPanelVisualizer
+import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.invoke
+import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.core.view
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Resizer
+
+fun example() {
+//sampleStart
+    val object1 = view {}
+    val object2 = view {}
+    val object3 = view {}
+    val object4 = view {}
+
+    val mapping = mapOf(
+        object1 to "Circle",
+        object2 to "Second Tab",
+        object3 to "Cool Photo",
+        object4 to "Tab 4"
+    )
+
+    val panel = TabbedPanel(
+        visualizer    = ScrollPanelVisualizer(),                                                    // Each object is displayed within a ScrollPanel
+        tabVisualizer = itemVisualizer { item,_,_ -> StringVisualizer(mapping[item] ?: "Unknown") },  // Each tab shows a hardcoded string from mapping
+        object1,
+        object2,
+        object3,
+        object4
+    ).apply {
+        suggestSize(Size(500, 300))
+
+        Resizer(this, movable = false)
+    }
+//sampleEnd
+}</code></div></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>This control requires a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-tabbed-panel-behavior target=_blank rel="noopener noreferrer">TabbedPanelBehavior</a></code> for rendering. This demo uses the <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion/basic-tabbed-panel-behavior target=_blank rel="noopener noreferrer">basicTabbedPanelBehavior</a></code> module which installs <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic.tabbedpanel/-basic-tabbed-panel-behavior target=_blank rel="noopener noreferrer">BasicTabbedPanelBehavior</a></code></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=accordion><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-accordion target=_blank rel="noopener noreferrer">Accordion</a></code><a href=#accordion class=hash-link aria-label="Direct link to accordion" title="Direct link to accordion" translate=no>​</a></h2>
+<p>Like <a href=#tabbedpanel class=""><code>TabbedPanel</code></a> in spirit — several sections, one focus at a time, and the same two-visualizer split (one for the section header, one for its content) — but stacked vertically with expand/collapse instead of side-by-side tabs. Reach for this over <a href=#tabbedpanel class=""><code>TabbedPanel</code></a> when your sections read naturally as a list rather than parallel pages.</p>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">Demo<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Usage</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><div class=doodle_u3ra><div style=position:relative;height:400px></div></div><div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Switching between tabs or expanding a section feels abrupt with no transition. If you're writing a custom <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> for either control, <a class="" href=/doodle/docs/animations#tweens>Animation</a> — tweening a size or position as the switch happens — is what makes it glide instead of snap.</div></div></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package accordion
+
+import io.nacular.doodle.controls.Accordion
+import io.nacular.doodle.controls.MultiExpansionModel
+import io.nacular.doodle.controls.StringVisualizer
+import io.nacular.doodle.controls.ViewVisualizer
+import io.nacular.doodle.controls.invoke
+import io.nacular.doodle.core.View.Companion.fixed
+import io.nacular.doodle.core.view
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.drawing.Color.Companion.Green
+import io.nacular.doodle.drawing.Color.Companion.Orange
+import io.nacular.doodle.drawing.Color.Companion.Red
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.utils.Resizer
+
+fun example() {
+//sampleStart
+    val sections = listOf(
+        view { preferredSize = fixed(Size(20, 200)); render = { rect(bounds.atOrigin, Black.paint ) } },
+        view { preferredSize = fixed(Size(20, 100)); render = { rect(bounds.atOrigin, Red.paint   ) } },
+        view { preferredSize = fixed(Size(20, 175)); render = { rect(bounds.atOrigin, Green.paint ) } },
+        view { preferredSize = fixed(Size(20,  90)); render = { rect(bounds.atOrigin, Orange.paint) } },
+    )
+
+    val accordion = Accordion(
+        visualizer        = ViewVisualizer,                                             // Each object is displayed directly
+        sectionVisualizer = StringVisualizer { "Section ${sections.indexOf(it) + 1}" }, // Each section shows a hardcoded string with index
+        MultiExpansionModel(),
+        sections[0],
+        *sections.drop(1).toTypedArray()
+    ).apply {
+        suggestSize(Size(500, 300))
+
+        Resizer(this, movable = false)
+    }
+//sampleEnd
+}</code><div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>This control requires a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-accordion-behavior target=_blank rel="noopener noreferrer">AccordionBehavior</a></code> for rendering. This demo uses the <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion/basic-accordion-behavior target=_blank rel="noopener noreferrer">basicAccordionBehavior</a></code> module which installs <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-accordion-behavior target=_blank rel="noopener noreferrer">BasicAccordionBehavior</a></code></div></div></div></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class=""><a href=#gridpanel class=""><code>GridPanel</code></a> and <a href=#splitpanel class=""><code>SplitPanel</code></a> arrange Views by position — a grid, or a resizable two-way split.</li>
+<li class=""><a href=#tabbedpanel class=""><code>TabbedPanel</code></a> and <a href=#accordion class=""><code>Accordion</code></a> both show one section at a time from a set — pick <a href=#tabbedpanel class=""><code>TabbedPanel</code></a> for parallel pages, <a href=#accordion class=""><code>Accordion</code></a> for a vertically stacked list of sections.</li>
+<li class="">Nest <a href=#splitpanel class=""><code>SplitPanels</code></a> inside each other for arrangements more complex than a single divide.</li>
+</ul>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/ui_components/media>Media & Pickers</a></strong> for images, files, and specialized selection controls.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/ui_components/datadisplay><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Data Display</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/ui_components/media><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Media & Pickers</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#scrollpanel class="table-of-contents__link toc-highlight"><api.scrollpanel>ScrollPanel</api.scrollpanel></a><li><a href=#gridpanel class="table-of-contents__link toc-highlight"><api.gridpanel>GridPanel</api.gridpanel></a><li><a href=#splitpanel class="table-of-contents__link toc-highlight"><api.splitpanel>SplitPanel</api.splitpanel></a><li><a href=#tabbedpanel class="table-of-contents__link toc-highlight"><api.tabbedpanel>TabbedPanel</api.tabbedpanel></a><li><a href=#accordion class="table-of-contents__link toc-highlight"><api.accordion>Accordion</api.accordion></a><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>

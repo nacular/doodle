@@ -1,37 +1,21 @@
-<!doctype html>
-<html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-animations" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.2">
-<title data-rh="true">Animation | Doodle</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://nacular.github.io/doodle/img/doodle.png"><meta data-rh="true" name="twitter:image" content="https://nacular.github.io/doodle/img/doodle.png"><meta data-rh="true" property="og:url" content="https://nacular.github.io/doodle/docs/animations"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="og:image:width" content="380"><meta data-rh="true" name="og:image:height" content="78"><meta data-rh="true" name="keywords" content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Animation | Doodle"><meta data-rh="true" name="description" content="Animations are key to making an app feel modern and interactive. Doodle helps you achieve this with a powerful yet simple set of APIs that let you animate a wide range of things into your app. Everything you need to build sophisticated animations is available via the  interface and its related components."><meta data-rh="true" property="og:description" content="Animations are key to making an app feel modern and interactive. Doodle helps you achieve this with a powerful yet simple set of APIs that let you animate a wide range of things into your app. Everything you need to build sophisticated animations is available via the  interface and its related components."><link data-rh="true" rel="icon" href="/doodle/img/favicon.png"><link data-rh="true" rel="canonical" href="https://nacular.github.io/doodle/docs/animations"><link data-rh="true" rel="alternate" href="https://nacular.github.io/doodle/docs/animations" hreflang="en"><link data-rh="true" rel="alternate" href="https://nacular.github.io/doodle/docs/animations" hreflang="x-default"><link rel="preconnect" href="https://www.google-analytics.com">
-<link rel="preconnect" href="https://www.googletagmanager.com">
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script>
-<script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script>
-
-
-
-
-<script src="https://unpkg.com/kotlin-playground@1"></script><link rel="stylesheet" href="/doodle/assets/css/styles.7a691113.css">
-<script src="/doodle/assets/js/runtime~main.07f7b9c9.js" defer="defer"></script>
-<script src="/doodle/assets/js/main.1b4f6ac1.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-animations" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Animation | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/animations /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Animation | Doodle"/><meta data-rh=true name=description content="Animate any value over time with an Animator — tweens, key frames, repetition, and delays — plus animatable properties and animation lifecycle management."/><meta data-rh=true property=og:description content="Animate any value over time with an Animator — tweens, key frames, repetition, and delays — plus animatable properties and animation lifecycle management."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/animations /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/animations hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/animations hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/doodle/"><div class="navbar__logo"><img src="/doodle/img/doodle.svg" alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="/doodle/img/doodle.svg" alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/nacular/doodle" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href="https://kotlinlang.slack.com/messages/doodle" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class="sidebarViewport_aRkj"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/doodle/docs/introduction"><span title="Hello Doodle" class="linkLabel_WmDU">Hello Doodle</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/doodle/docs/whatsnew"><span title="Whats New ✨" class="linkLabel_WmDU">Whats New ✨</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/doodle/docs/migrating/0.10.x_0.11.0"><span title="Migrating to 0.11.0" class="linkLabel_WmDU">Migrating to 0.11.0</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/doodle/docs/installation"><span title="Installation" class="linkLabel_WmDU">Installation</span></a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="true" href="/doodle/docs/applications"><span title="Fundamentals" class="categoryLinkLabel_W154">Fundamentals</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/applications"><span title="Applications" class="linkLabel_WmDU">Applications</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/display"><span title="Displays" class="linkLabel_WmDU">Displays</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/views"><span title="Views" class="linkLabel_WmDU">Views</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/rendering"><span title="Rendering" class="linkLabel_WmDU">Rendering</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/layout"><span title="Layout" class="linkLabel_WmDU">Layout</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/userinput"><span title="User Input" class="linkLabel_WmDU">User Input</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role="button" aria-expanded="true" href="/doodle/docs/transforms"><span title="Advanced Topics" class="categoryLinkLabel_W154">Advanced Topics</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/transforms"><span title="Transforms" class="linkLabel_WmDU">Transforms</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/doodle/docs/animations"><span title="Animation" class="linkLabel_WmDU">Animation</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/dragdrop"><span title="Drag • Drop" class="linkLabel_WmDU">Drag • Drop</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/modals"><span title="Popups • Modals" class="linkLabel_WmDU">Popups • Modals</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/theming"><span title="Theming" class="linkLabel_WmDU">Theming</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/accessibility"><span title="Accessibility" class="linkLabel_WmDU">Accessibility</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="true" href="/doodle/docs/ui_components/overview"><span title="Component Library" class="categoryLinkLabel_W154">Component Library</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/ui_components/overview"><span title="Catalog" class="linkLabel_WmDU">Catalog</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/ui_components/form"><span title="Forms" class="linkLabel_WmDU">Forms</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/doodle/docs/ui_components/form_controls"><span title="Form Controls" class="linkLabel_WmDU">Form Controls</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/doodle/docs/troubleshooting/gotchas"><span title="Troubleshoot" class="categoryLinkLabel_W154">Troubleshoot</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/doodle/docs/platform_specific/desktop"><span title="Platform Specific" class="categoryLinkLabel_W154">Platform Specific</span></a></div></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href="https://nacular.github.io/doodle-tutorials" target="_blank" rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span title="Tutorials" class="linkLabel_WmDU">Tutorials</span><svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href="https://nacular.github.io/doodle-api/" target="_blank" rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span title="API Docs" class="linkLabel_WmDU">API Docs</span><svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></nav></div></div></aside><main class="docMainContainer_TBSr"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Animations</h1></header>
-<p>Animations are key to making an app feel modern and interactive. Doodle helps you achieve this with a powerful yet simple set of APIs that let you animate a wide range of things into your app. Everything you need to build sophisticated animations is available via the <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator" target="_blank" rel="noopener noreferrer">Animator</a></code> interface and its related components.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>Library Required</div><div class="admonitionContent_BuS1"><p>You will need to add the <code><a href="https://nacular.github.io/doodle-api//animation" target="_blank" rel="noopener noreferrer">Animation</a></code> library to your app&#x27;s dependencies.</p><div class="theme-tabs-container tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Kotlin</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Groovy</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><p><strong>build.gradle.kts</strong></p><code theme="darcula" mode="kotlin" data-highlight-only="true">dependencies {
-    implementation (&quot;io.nacular.doodle:animation:$doodleVersion&quot;)
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><p><strong>build.gradle</strong></p><code theme="darcula" mode="kotlin" data-highlight-only="true">//sampleStart
-dependencies {
-    implementation &quot;io.nacular.doodle:animation:$doodle_version&quot;
-}
-//sampleEnd</code></div></div></div></div></div>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="requirements">Requirements<a href="#requirements" class="hash-link" aria-label="Direct link to Requirements" title="Direct link to Requirements" translate="no">​</a></h2>
-<p>Then you will need to include the <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator" target="_blank" rel="noopener noreferrer">Animator</a></code> in the list of Kodein modules your app launches with. You can do this by defining a new Module, or by including a binding for it in an existing Module you are already installing.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/transforms><span class=linkLabel_WmDU>Transforms</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/animations><span class=linkLabel_WmDU>Animation</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/dragdrop><span class=linkLabel_WmDU>Drag • Drop</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/modals><span class=linkLabel_WmDU>Popups • Modals</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/accessibility><span class=linkLabel_WmDU>Accessibility</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Animation</h1></header>
+<p>Back on <a class="" href=/doodle/docs/transforms>Transforms</a>, you learned that a View's <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view/transform target=_blank rel="noopener noreferrer">transform</a></code>> is cheap enough to change every frame. Here's where that fact pays off: changing values smoothly over time.</p>
+<p>Animation in Doodle really comes down to two questions, and it's worth keeping them separate from the very start:</p>
+<ul>
+<li class=""><strong>What should the value do over time?</strong> That's an <strong>animation plan</strong> — a tween, key frames, a repeat, a delay.</li>
+<li class=""><strong>How do you actually run it?</strong> That's the <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code> — one value, a group, or a chain.</li>
+</ul>
+<p>Nearly everything on this page falls into one bucket or the other. Let's start with plans.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=setup>Setup<a href=#setup class=hash-link aria-label="Direct link to Setup" title="Direct link to Setup" translate=no>​</a></h2>
+<p>Animation lives in its own library, so let's start by adding it:</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>Library Required</div><div class=admonitionContent_BuS1><p>Include the <code><a href=https://nacular.github.io/doodle-api/animation target=_blank rel="noopener noreferrer">Animation</a></code> library to your app's dependencies.</p><code theme=darcula mode=kotlin data-highlight-only=true>dependencies {
+    implementation ("io.nacular.doodle:animation:$doodleVersion")
+}</code></div></div>
+<p>Here's a small wrinkle worth flagging: unlike the <a class="" href=/doodle/docs/applications#switching-on-optional-features-with-modules>modules</a> you've used so far, `<code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code> doesn't come with a ready-made one — you bind it yourself:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.AnimatorImpl
@@ -51,8 +35,8 @@ class MyApp(display: Display, animator: Animator): Application {
 }
 
 //sampleStart
-val AnimationModule = Module(name = &quot;AnimationModule&quot;) {
-    bindProvider&lt;Animator&gt; { AnimatorImpl(timer = instance(), animationScheduler = instance()) }
+val AnimationModule = Module(name = "AnimationModule") {
+    bindProvider&lt;Animator> { AnimatorImpl(timer = instance(), animationScheduler = instance()) }
 }
 
 fun main() {
@@ -61,10 +45,154 @@ fun main() {
     }
 }
 //sampleEnd</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="animating-a-single-value">Animating a single value<a href="#animating-a-single-value" class="hash-link" aria-label="Direct link to Animating a single value" title="Direct link to Animating a single value" translate="no">​</a></h2>
-<p>Doodle offers two main APIs to handle common animation use cases. The first allows you to animate a value from start to finish and handle each increment within a lambda. This is a very flexible API that can be used to accomplish most use cases.</p>
-<p>These animations are of the following form. This examples animates a <code>Float</code> value between <code>0</code> and <code>1</code> using a <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear" target="_blank" rel="noopener noreferrer">linear</a></code> easing that takes <code>250 ms</code>.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<p>From there, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code> gets injected exactly like everything else you've met so far.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=plans-what-the-value-does>Plans: what the value does<a href=#plans-what-the-value-does class=hash-link aria-label="Direct link to Plans: what the value does" title="Direct link to Plans: what the value does" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=tweens>Tweens<a href=#tweens class=hash-link aria-label="Direct link to Tweens" title="Direct link to Tweens" translate=no>​</a></h3>
+<p>A <strong>tween</strong> interpolates between two values over a duration, following an easing curve. Every <code>tween*</code> function has the same shape:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.transition.EasingFunction
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+
+fun
+//sampleStart
+    tween___(easing: EasingFunction, duration: Measure&lt;Time>)
+//sampleEnd
+{
+}</code>
+<p>Tweens are happy to work on anything convertible to a number. Doodle ships variants for the obvious numeric types (<code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-float target=_blank rel="noopener noreferrer">tweenFloat</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-double target=_blank rel="noopener noreferrer">tweenDouble</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-int target=_blank rel="noopener noreferrer">tweenInt</a></code>) plus the geometry and drawing types you'd actually want to animate in practice — <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-point target=_blank rel="noopener noreferrer">tweenPoint</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-size target=_blank rel="noopener noreferrer">tweenSize</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-rect target=_blank rel="noopener noreferrer">tweenRect</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-color target=_blank rel="noopener noreferrer">tweenColor</a></code>.</p>
+<p>An <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/-easing-function target=_blank rel="noopener noreferrer">EasingFunction</a></code> turns out to be delightfully simple underneath: just <code>(Float) -> Float</code>, mapping progress in <code>0..1</code> to output in (or slightly outside) that same range. Doodle includes the usual suspects — <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear target=_blank rel="noopener noreferrer">linear</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/ease-out-bounce target=_blank rel="noopener noreferrer">easeOutBounce</a></code>, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/ease-in-elastic target=_blank rel="noopener noreferrer">easeInElastic</a></code> — and since the signature is this minimal, writing your own is a one-liner.</p>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<p>This <a class="" href=/doodle/docs/ui_components/buttons#switch>Switch</a> draws a heart (uses a custom <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code>) that animates selection using an arbitrary easing function.</p>
+<div class=doodle_u3ra><div style=position:relative;height:300px></div></div>
+<div style=font-size:10px;text-align:right;color:gray>Inspired by <a style=color:gray href=https://dribbble.com/shots/8306407-I-heart-toggle title="I heart toggle">Tore Bernhoft</a></div>
+<p>The <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/cubic-bezier target=_blank rel="noopener noreferrer">cubicBezier</a></code> function returns an <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/-easing-function target=_blank rel="noopener noreferrer">EasingFunction</a></code>, so it works with all the existing animation APIs. The app below lets you play with various curves to see how they affect the animation.</p>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<div style=font-size:10px;text-align:right;color:gray>Inspired by <a style=color:gray href=https://cubic-bezier.com/ title=cubic-bezier.com>cubic-bezier.com</a></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.cubicBezier
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.doodle.geometry.Point
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+
+fun cubicBezier(animate: Animator, duration: Measure&lt;Time>) {
+//sampleStart
+    animate(0f to 1f, tweenFloat(cubicBezier(1f, 1f, 1f, 0.5f), duration)) {
+        // ...
+    }
+
+    animate {
+        0f to 1f using (tweenFloat(cubicBezier(Point(1f, 1f), Point(1f, 0.5f)), duration)) {
+            // ...
+        }
+    }
+//sampleEnd
+}</code>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=key-frames>Key frames<a href=#key-frames class=hash-link aria-label="Direct link to Key frames" title="Direct link to Key frames" translate=no>​</a></h3>
+<p>Where a tween travels start-to-end along one curve, <strong>key frames</strong> let you pin intermediate values at specific moments, each with its own easing to the next:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.keyFramesDouble
+import io.nacular.doodle.animation.transition.easeInElastic
+import io.nacular.doodle.animation.transition.easeOutBack
+import io.nacular.doodle.animation.transition.linear
+import io.nacular.doodle.core.View
+import io.nacular.measured.units.Time.Companion.seconds
+import io.nacular.measured.units.times
+
+fun size(animate: Animator, graph: View) {
+//sampleStart
+    val duration = 1 * seconds
+
+    animate(0.0 to graph.height, keyFramesDouble(duration) {
+//  value           | at what time      | easing to next value
+//  --------------------------------------------------------------
+        0.0                at duration * 0   then easeInElastic
+        graph.height * 1/3 at duration * 1/3 then linear
+        graph.height * 2/3 at duration * 2/3 then easeOutBack
+    }) {
+        // ...
+    }
+//sampleEnd
+}</code>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Easing from the <code>start</code> value to the first key frame is <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear target=_blank rel="noopener noreferrer">linear</a></code> by default. The example above overrides that by making the first key frame the start value itself.</div></div>
+<p>The <code>keyFrames*</code> functions cover the same data types as <code>tween*</code>.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=repetition-and-delays>Repetition and delays<a href=#repetition-and-delays class=hash-link aria-label="Direct link to Repetition and delays" title="Direct link to Repetition and delays" translate=no>​</a></h3>
+<p>Three small wrappers take an <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation-plan target=_blank rel="noopener noreferrer">AnimationPlan</a></code> and hand back a modified one, so they compose neatly with anything above:</p>
+<ul>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/repeat target=_blank rel="noopener noreferrer">repeat</a></code> — run it a fixed number of times.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/loop target=_blank rel="noopener noreferrer">loop</a></code> — same idea, forever.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/after target=_blank rel="noopener noreferrer">after</a></code> — wait, then go.</li>
+</ul>
+<p>The <code>type</code> is either <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-restart target=_blank rel="noopener noreferrer">Restart</a></code> (jump back to the beginning each time) or <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-reverse target=_blank rel="noopener noreferrer">Reverse</a></code> (play backwards, then forwards, ping-pong style).</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.RepetitionType.Reverse
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.repeat
+import io.nacular.doodle.animation.transition.EasingFunction
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+
+fun repeat(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time>) {
+//sampleStart
+    animate(0f to 1f, repeat(tweenFloat(easing, duration), times = 2, type = Reverse)) {
+        // ...
+    }
+//sampleEnd
+}</code>
+<div class=doodle_u3ra><div style=position:relative;height:300px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.RepetitionType.Reverse
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.loop
+import io.nacular.doodle.animation.transition.EasingFunction
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+
+fun loop(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time>) {
+//sampleStart
+    animate.invoke(0f to 1f, loop(tweenFloat(easing, duration), type = Reverse)) {
+        // ...
+    }
+//sampleEnd
+}</code>
+<div class=doodle_u3ra><div style=position:relative;height:320px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
+
+import io.nacular.doodle.animation.Animator
+import io.nacular.doodle.animation.after
+import io.nacular.doodle.animation.invoke
+import io.nacular.doodle.animation.transition.EasingFunction
+import io.nacular.doodle.animation.tweenFloat
+import io.nacular.measured.units.Measure
+import io.nacular.measured.units.Time
+
+fun delay(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time>, delay: Measure&lt;Time>) {
+//sampleStart
+    animate(0f to 1f, after(delay, tweenFloat(easing, duration))) {
+        // ...
+    }
+//sampleEnd
+}</code>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=running-plans-one-many-or-in-sequence>Running plans: one, many, or in sequence<a href=#running-plans-one-many-or-in-sequence class=hash-link aria-label="Direct link to Running plans: one, many, or in sequence" title="Direct link to Running plans: one, many, or in sequence" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=a-single-value>A single value<a href=#a-single-value class=hash-link aria-label="Direct link to A single value" title="Direct link to A single value" translate=no>​</a></h3>
+<p>The simplest form of all: a start value, an end value, a plan, and a lambda that fires on every increment.</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.invoke
@@ -75,18 +203,15 @@ import io.nacular.measured.units.times
 
 fun singleValue(animate: Animator) {
 //sampleStart
-    animate(0f to 1f, using = tweenFloat(linear, 0.25 * seconds)) { value: Float -&gt;
+    animate(0f to 1f, using = tweenFloat(linear, 0.25 * seconds)) { value: Float ->
         // ...
     }
 //sampleEnd
 }</code>
-<p>The lambda provided to the <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator" target="_blank" rel="noopener noreferrer">Animator</a></code> will be evaluated every time the animating value changes. This allows the app to take action in real time.</p>
-<p>Notice that this API does not make any references to <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view" target="_blank" rel="noopener noreferrer">View</a></code> or any other Doodle concept. This allows animations like these to operate on any compatible data.</p>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>info</div><div class="admonitionContent_BuS1"><p>The animating ball example above uses this approach to change the ball&#x27;s vertical position.</p></div></div>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="grouped-animations">Grouped animations<a href="#grouped-animations" class="hash-link" aria-label="Direct link to Grouped animations" title="Direct link to Grouped animations" translate="no">​</a></h2>
-<p>You can also animate a series of properties under a single <code>Animation</code> handle. This makes it easy to track and modify the behavior of several properties at once instead of having an animation for each.</p>
-<p>This code below shows how the <a href="#loops" class="">looping ball</a> example animates 3 different properties. The resulting <code>animation</code> will manage all the underlying items as expected.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<p>Notice this API never once mentions <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> — it animates <em>values</em>, full stop, so it's happy to work on anything.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=a-group-of-values>A group of values<a href=#a-group-of-values class=hash-link aria-label="Direct link to A group of values" title="Direct link to A group of values" translate=no>​</a></h3>
+<p>Sometimes several properties want to move together, under one handle you can track, pause, or cancel as a unit:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.RepetitionType.Reverse
@@ -102,7 +227,7 @@ import io.nacular.doodle.geometry.Size
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 
-fun groupedValues(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
+fun groupedValues(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time>) {
     val circle = view {}
 
 //sampleStart
@@ -121,12 +246,12 @@ fun groupedValues(animate: Animator, easing: EasingFunction, duration: Measure&l
     }
 //sampleEnd
 }</code>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>tip</div><div class="admonitionContent_BuS1"><p>There is no requirement that the animations define within the block have the same duration or are even of the same type.</p></div></div>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="chaining-animations">Chaining animations<a href="#chaining-animations" class="hash-link" aria-label="Direct link to Chaining animations" title="Direct link to Chaining animations" translate="no">​</a></h2>
-<p>Animations within a block can be chained together to create new sequential animations that have nice cancellation properties. This is helpful for cases where you&#x27;d like to start a follow-up animation after a previous one completes, while keeping the ability to cancel the chain if needed. Manually doing this via <code>onComplete</code> results in creating additional, independent animations, which requires more bookkeeping to cancel everything.</p>
-<p>This app shows an example of animation chaining. The wheel bounces, then slides and rolls down the hill. The bounce animates first, then the slide and roll are done as a single chained block that begins when the bounce completes.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package io.nacular.doodle.docs.apps
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Animations in one block don't need to share a duration, a plan type, or even a data type.</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=a-sequence>A sequence<a href=#a-sequence class=hash-link aria-label="Direct link to A sequence" title="Direct link to A sequence" translate=no>​</a></h3>
+<p><code>then</code> chains animations together so the next one starts the moment the previous finishes — and, crucially, keeps the whole chain cancelable as a single unit. Try to do this by hand with completion callbacks instead, and you end up with a handful of independent animations you have to track and cancel separately. That is exactly the kind of bookkeeping this API exists to save you from.</p>
+<p>This is the heart of the rolling-wheel demo: the wheel falls and bounces, <em>then</em> slides and rolls down the ramp, with the slide and the roll happening together as one step.</p>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
 
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator
@@ -210,7 +335,7 @@ class AnimationChainingApp(private val display: Display, private val animate: An
         }
     }
 
-    private var animation: Animation&lt;*&gt;? by autoCanceling()
+    private var animation: Animation&lt;*>? by autoCanceling()
 
     private val wheel        = Wheel().apply { suggestSize(Size(100)) }
     private var rampBounds   = calculateRampBounds()
@@ -244,7 +369,7 @@ class AnimationChainingApp(private val display: Display, private val animate: An
                 pressed = { startAnimation() }
             )
 
-            wheel.boundsChanged += { _,old,new -&gt;
+            wheel.boundsChanged += { _,old,new ->
                 if (old.size != new.size) {
                     rampBounds = calculateRampBounds()
                     animation?.cancel()
@@ -257,7 +382,7 @@ class AnimationChainingApp(private val display: Display, private val animate: An
         display.fill(controlBackgroundColor.paint)
 
         display.layout       = constrain(display.first(), fill)
-        display.sizeChanged += { _,_,_ -&gt;
+        display.sizeChanged += { _,_,_ ->
             rampBounds = calculateRampBounds()
             animation?.cancel()
             resetWheel()
@@ -299,7 +424,7 @@ class AnimationChainingApp(private val display: Display, private val animate: An
                 wheel.bottom = it
             } then {
                 // (2) Then it slides down the hill and bounces off the wall, by animating x and deriving y
-                wheel.bottom.x to rampBounds.width using (tweenDouble(rollBounce, rollDuration)) { x -&gt;
+                wheel.bottom.x to rampBounds.width using (tweenDouble(rollBounce, rollDuration)) { x ->
                     wheel.bottom = Point(x, wheelBottomY(x, tippingPoint))
                 }
 
@@ -313,14 +438,14 @@ class AnimationChainingApp(private val display: Display, private val animate: An
     }
 
     /**
-     * Calculate the ball&#x27;s bottom position to keep it on the ramp as it moves horizontally.
+     * Calculate the ball's bottom position to keep it on the ramp as it moves horizontally.
      *
      * The first phase of the move is the portion where the ball is rolling over the edge.
      * Then it transitions to normal linear motion.
      */
     private fun wheelBottomY(centerX: Double, tippingPoint: Vector3D) = when {
-        centerX &lt; tippingPoint.x -&gt; rampBounds.y - wheel.radius * cos((centerX - wheel.radius) / wheel.radius)
-        else                     -&gt; tippingPoint.y + (centerX - tippingPoint.x) * rampBounds.height / rampBounds.width
+        centerX &lt; tippingPoint.x -> rampBounds.y - wheel.radius * cos((centerX - wheel.radius) / wheel.radius)
+        else                     -> tippingPoint.y + (centerX - tippingPoint.x) * rampBounds.height / rampBounds.width
     } + wheel.radius
 
     private fun calculateRampBounds() = Rectangle(
@@ -334,296 +459,10 @@ class AnimationChainingApp(private val display: Display, private val animate: An
         animation?.cancel()
     }
 }</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="tweens">Tweens<a href="#tweens" class="hash-link" aria-label="Direct link to Tweens" title="Direct link to Tweens" translate="no">​</a></h2>
-<p>Tween animations let you interpolate data between two values using a curve (or easing function). These animations work with data that can be converted to numeric (<code>Double</code>) representation. Doodle has several <code>tween*</code> functions, all with the form:</p>
-<div class="language-kotlin codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-kotlin codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">tween</span><span class="token operator" style="color:#393A34">*</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    easing  </span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> EasingFunction</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    duration</span><span class="token operator" style="color:#393A34">:</span><span class="token plain"> Measure</span><span class="token operator" style="color:#393A34">&lt;</span><span class="token plain">Time</span><span class="token operator" style="color:#393A34">&gt;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numeric-data">Numeric data<a href="#numeric-data" class="hash-link" aria-label="Direct link to Numeric data" title="Direct link to Numeric data" translate="no">​</a></h3>
-<p>Doodle supports tweens with any <code>Number</code> type and includes APIs for working with <code>Float</code>, <code>Double</code> and <code>Int</code>. This shows how you can animate a <code>Float</code> from <code>0</code> to <code>100</code> using a <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear" target="_blank" rel="noopener noreferrer">linear</a></code> tween that lasts <code>250 ms</code>.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.linear
-import io.nacular.doodle.animation.tweenFloat
-import io.nacular.measured.units.Time.Companion.milliseconds
-import io.nacular.measured.units.times
-
-fun numeric(animate: Animator) {
-//sampleStart
-    animate(0f to 1f, using = tweenFloat(linear, 250 * milliseconds)) {
-        println(it)
-    }
-//sampleEnd
-}</code>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>tip</div><div class="admonitionContent_BuS1"><p>You can also use <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-double" target="_blank" rel="noopener noreferrer">tweenDouble</a></code> and <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/tween-int" target="_blank" rel="noopener noreferrer">tweenInt</a></code> to work with other number types.</p></div></div>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="colors-sizes-">Colors, Sizes, ...<a href="#colors-sizes-" class="hash-link" aria-label="Direct link to Colors, Sizes, ..." title="Direct link to Colors, Sizes, ..." translate="no">​</a></h3>
-<p>Doodle also allows you to tween non-numeric data, as long as it can be converted to a numeric representation. This works really well for things like <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.geometry/-point" target="_blank" rel="noopener noreferrer">Point</a></code>, <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.geometry/-size" target="_blank" rel="noopener noreferrer">Size</a></code>, <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.geometry/-rectangle" target="_blank" rel="noopener noreferrer">Rectangle</a></code>, and <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.drawing/-color" target="_blank" rel="noopener noreferrer">Color</a></code>. All of these data types are supported by built-in tween variants. So you can do any of the following.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div>
-<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Point</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Size</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Rect</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Color</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenPoint
-import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun point(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Origin to Point(100, 200), using = tweenPoint(easing, duration)) {
-        // ...
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenSize
-import io.nacular.doodle.geometry.Size
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun size(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Size(100) to Size(100, 200), using = tweenSize(easing, duration)) {
-        // ...
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenRect
-import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Rectangle.Companion.Empty
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun rect(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Empty to Rectangle(100, 200), using = tweenRect(easing, duration)) {
-        // ...
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenColor
-import io.nacular.doodle.drawing.Color.Companion.Green
-import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun color(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Red to Green, using = tweenColor(easing, duration)) {
-        // ...
-    }
-//sampleEnd
-}</code></div></div></div>
-<p>This is an example of a <a class="" href="/doodle/docs/ui_components/overview#switch">Switch</a> with a custom <code><a href="https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior" target="_blank" rel="noopener noreferrer">Behavior</a></code> that draws a heart and animates between selection state using an arbitrary easing function.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:300px"></div></div>
-<div style="font-size:10px;text-align:right;color:gray">Inspired by <a style="color:gray" href="https://dribbble.com/shots/8306407-I-heart-toggle" title="I heart toggle">Tore Bernhoft</a></div>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="easing-functions">Easing functions<a href="#easing-functions" class="hash-link" aria-label="Direct link to Easing functions" title="Direct link to Easing functions" translate="no">​</a></h3>
-<p>The <code>tween*</code> functions work with one or more <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/-easing-function" target="_blank" rel="noopener noreferrer">EasingFunction</a></code> and a <code>duration</code> of (<a href="https://nacular.github.io/measured" target="_blank" rel="noopener noreferrer" class=""><code>Measure&lt;Time&gt;</code></a>). <code>EasingFunction</code> is simply a function that takes a <code>Float</code> between <code>0</code> and <code>1</code> and returns another <code>Float</code> scaled to <code>0</code> and <code>1</code>. Doodle includes many common easing functions already.</p>
-<p>But it is just as simple to create a custom one as well. Simply provide a function of the following form that maps inputs between <code>0</code> and <code>1</code> to a normalized output in (or slightly outside) that range.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">(Float) -&gt; Float</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="key-frames">Key frames<a href="#key-frames" class="hash-link" aria-label="Direct link to Key frames" title="Direct link to Key frames" translate="no">​</a></h2>
-<p>Doodle also supports key-frame animations. These let you specify intermediate values the animated property will have at specific times, and the easing curves between these values. The following example animates the ball&#x27;s y position so it takes 1/3 of the total duration to get from one level to the next. But it provides 3 separate curves to animate between each level.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.keyFramesDouble
-import io.nacular.doodle.animation.transition.easeInElastic
-import io.nacular.doodle.animation.transition.easeOutBack
-import io.nacular.doodle.animation.transition.linear
-import io.nacular.doodle.core.View
-import io.nacular.measured.units.Time.Companion.seconds
-import io.nacular.measured.units.times
-
-fun size(animate: Animator, graph: View) {
-//sampleStart
-    val duration = 1 * seconds
-
-    animate(0.0 to graph.height, keyFramesDouble(duration) {
-//  value           | at what time      | easing to next value
-//  --------------------------------------------------------------
-        0.0                at duration * 0   then easeInElastic
-        graph.height * 1/3 at duration * 1/3 then linear
-        graph.height * 2/3 at duration * 2/3 then easeOutBack
-    }) {
-        // ...
-    }
-//sampleEnd
-}</code>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>tip</div><div class="admonitionContent_BuS1"><p>The default ease from the <code>start</code> to the first value in the key frames is <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear" target="_blank" rel="noopener noreferrer">linear</a></code>. The example above overrides this by specifying the first key frame as the <code>start</code>, then it is able to specify how to ease from the beginning.</p></div></div>
-<p>Key-frame animations are defined using the <code>keyFrame*</code> (i.e. <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/key-frames-float" target="_blank" rel="noopener noreferrer">keyFramesFloat</a></code>) functions that work on data that can be mapped to numeric values like <code>tween*</code>. Similarly, Doodle provides built-in support for the same set of data types here as it does for <code>tween*</code>.</p>
-<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role="tablist" aria-orientation="horizontal" class="tabs"><li role="tab" tabindex="0" aria-selected="true" class="tabs__item tabItem_LNqP tabs__item--active">Point</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Size</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Rect</li><li role="tab" tabindex="-1" aria-selected="false" class="tabs__item tabItem_LNqP">Color</li></ul><div class="margin-top--md"><div role="tabpanel" class="tabItem_Ymn6"><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.keyFramesPoint
-import io.nacular.doodle.geometry.Point
-import io.nacular.doodle.geometry.Point.Companion.Origin
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun pointKeyframe(animate: Animator, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Origin to Point(100, 200), using = keyFramesPoint(duration) {
-        // key frame definition
-    }) {
-        // animation block
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.keyFramesSize
-import io.nacular.doodle.geometry.Size
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun sizeKeyframe(animate: Animator, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Size(100) to Size(100, 200), using = keyFramesSize(duration) {
-        // key frame definition
-    }) {
-        // animation block
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.keyFramesRect
-import io.nacular.doodle.geometry.Rectangle
-import io.nacular.doodle.geometry.Rectangle.Companion.Empty
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun rectKeyframe(animate: Animator, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Empty to Rectangle(100, 200), using = keyFramesRect(duration) {
-        // key frame definition
-    }) {
-        // animation block
-    }
-//sampleEnd
-}</code></div><div role="tabpanel" class="tabItem_Ymn6" hidden=""><code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.keyFramesColor
-import io.nacular.doodle.drawing.Color.Companion.Green
-import io.nacular.doodle.drawing.Color.Companion.Red
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun colorKeyframe(animate: Animator, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(Red to Green, using = keyFramesColor(duration) {
-        // key frame definition
-    }) {
-        // animation block
-    }
-//sampleEnd
-}</code></div></div></div>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="repetition">Repetition<a href="#repetition" class="hash-link" aria-label="Direct link to Repetition" title="Direct link to Repetition" translate="no">​</a></h2>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="finite-repeating">Finite repeating<a href="#finite-repeating" class="hash-link" aria-label="Direct link to Finite repeating" title="Direct link to Finite repeating" translate="no">​</a></h3>
-<p>You can repeat animations like <code>tween*</code> or <code>keyFrame*</code> using the <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/repeat" target="_blank" rel="noopener noreferrer">repeat</a></code> wrapper. This wrapper takes an <code>animationPlan</code>, the number of <code>times</code> it should be repeated and the type of repetition (<code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-restart" target="_blank" rel="noopener noreferrer">Restart</a></code> or <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-reverse" target="_blank" rel="noopener noreferrer">Reverse</a></code>).</p>
-<div class="doodle_u3ra"><div style="position:relative;height:300px"></div></div>
-<p>For example, you can <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/repeat" target="_blank" rel="noopener noreferrer">repeat</a></code> a <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation.transition/linear" target="_blank" rel="noopener noreferrer">linear</a></code> tween from <code>0</code> to <code>1</code> as follows.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.RepetitionType.Reverse
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.repeat
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenFloat
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun repeat(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(0f to 1f, repeat(tweenFloat(easing, duration), times = 2, type = Reverse)) {
-        // ...
-    }
-
-    animate {
-        0f to 1f using (repeat(tweenFloat(easing, duration), times = 2, type = Reverse)) {
-            // ...
-        }
-    }
-//sampleEnd
-}</code>
-<p>The <code>type</code> determines what the animation will do at each repetition boundary. <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-restart" target="_blank" rel="noopener noreferrer">Restart</a></code> will run the animation again as though it were just beginning. While <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-repetition-type/-reverse" target="_blank" rel="noopener noreferrer">Reverse</a></code> will run the animation from its end to start.</p>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="loops">Loops<a href="#loops" class="hash-link" aria-label="Direct link to Loops" title="Direct link to Loops" translate="no">​</a></h3>
-<p>Sometimes you&#x27;d like to run an animation that repeats indefinitely. The <code>loop</code> function makes this easy. It is just like <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/repeat" target="_blank" rel="noopener noreferrer">repeat</a></code>, except it takes no <code>times</code> value and continues &quot;forever&quot;. The following app runs a looping animation (that reverses) to change the ball&#x27;s <code>y</code>, <code>color</code>, and <code>size</code> based on an easing.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:350px"></div></div>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.RepetitionType.Reverse
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.loop
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenFloat
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun loop(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
-//sampleStart
-    animate.invoke(0f to 1f, loop(tweenFloat(easing, duration), type = Reverse)) {
-        // ...
-    }
-
-    animate {
-        0f to 1f using (loop(tweenFloat(easing, duration), type = Reverse)) {
-            // ...
-        }
-    }
-//sampleEnd
-}</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="delays">Delays<a href="#delays" class="hash-link" aria-label="Direct link to Delays" title="Direct link to Delays" translate="no">​</a></h2>
-<p>All animations can be delayed using the <code>after</code> function. It takes a time to delay and executes the given animation after that delay has passed.</p>
-<div class="doodle_u3ra"><div style="position:relative;height:400px"></div></div>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
-
-import io.nacular.doodle.animation.Animator
-import io.nacular.doodle.animation.after
-import io.nacular.doodle.animation.invoke
-import io.nacular.doodle.animation.transition.EasingFunction
-import io.nacular.doodle.animation.tweenFloat
-import io.nacular.measured.units.Measure
-import io.nacular.measured.units.Time
-
-fun delay(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;, delay: Measure&lt;Time&gt;) {
-//sampleStart
-    animate(0f to 1f, after(delay, tweenFloat(easing, duration))) {
-        // ...
-    }
-
-    animate {
-        0f to 1f using (after(delay, tweenFloat(easing, duration))) {
-            // ...
-        }
-    }
-//sampleEnd
-}</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="animating-properties">Animating properties<a href="#animating-properties" class="hash-link" aria-label="Direct link to Animating properties" title="Direct link to Animating properties" translate="no">​</a></h2>
-<p>An <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator" target="_blank" rel="noopener noreferrer">Animator</a></code> can also be used to create animatable properties for a class. These properties will then animate from their current value to a new one whenever they are changed. This is done as follows:</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<p>Pause, cancel, and completion handlers all reach across the entire chain, not just the step that's currently running.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=animatable-properties>Animatable properties<a href=#animatable-properties class=hash-link aria-label="Direct link to Animatable properties" title="Direct link to Animatable properties" translate=no>​</a></h2>
+<p>Rather than triggering animations by hand every time, you can make a property animate itself the instant it's assigned:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.invoke
@@ -638,29 +477,29 @@ import io.nacular.measured.units.times
 class MyView(animate: Animator): View() {
     // ..
 
-    var color by animate(default = Red, tweenColor(linear, 250 * milliseconds)) { old, new -&gt;
+    var color by animate(default = Red, tweenColor(linear, 250 * milliseconds)) { old, new ->
         rerenderNow()
     }
 
     // ..
 }
 //sampleEnd</code>
-<p>Doodle manages the animation lifecycle of these properties for you and optionally notifies you of changes throughout the animation. This makes it easy to react as the value changes. An existing animation will be canceled if a new value is set for the property, and the property will begin animating towards that new value.</p>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>info</div><div class="admonitionContent_BuS1"><p>An interruption in the animation will reset the elapsed time. So setting <code>color</code> in the above example to something new while it was in the middle of animating would require 250 ms to get from the intermediate value to the new value specified.</p></div></div>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="animation-lifecycle">Animation lifecycle<a href="#animation-lifecycle" class="hash-link" aria-label="Direct link to Animation lifecycle" title="Direct link to Animation lifecycle" translate="no">​</a></h2>
-<p>All animations result in an <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation" target="_blank" rel="noopener noreferrer">Animation</a></code> instance being created to track their lifecycle. This type implements <code>Completable</code>, which means it notifies listeners when it is <code>completed</code> or <code>canceled</code>. You can register to be notified of these state changes as follows:</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<p>Setting <code>color</code> now glides from the current value to the new one, no extra ceremony required. Doodle manages the whole lifecycle for you: assigning again mid-animation cancels the in-flight one and heads toward the new target instead.</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p>An interruption resets elapsed time. Reassigning <code>color</code> halfway through still takes the full 250 ms to reach the new value from wherever it currently is.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=lifecycle>Lifecycle<a href=#lifecycle class=hash-link aria-label="Direct link to Lifecycle" title="Direct link to Lifecycle" translate=no>​</a></h2>
+<p>Every animation hands you back an <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation target=_blank rel="noopener noreferrer">Animation</a></code> handle implementing <code>Completable</code>:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animation
 
-fun lifeCycle(animation: Animation&lt;*&gt;) {
+fun lifeCycle(animation: Animation&lt;*>) {
 //sampleStart
     animation.completed += { /*...*/ }
     animation.canceled  += { /*...*/ }
 //sampleEnd
 }</code>
-<p>Doodle provides the <code>autoCanceling</code> property delegate to automatically cancel <code>Completable</code> instances when a new value is assigned to them. This is useful for animations as well.</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<p>Here's a mistake that's easy to make without realizing it: starting a new animation while an old one is still running on the same value. The two fight over it, and the result jitters unpleasantly. The <code>autoCanceling</code> delegate heads this off by canceling whatever's already there the moment a new animation is assigned:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animation
 import io.nacular.doodle.animation.Animator
@@ -675,7 +514,7 @@ import io.nacular.measured.units.times
 fun autoCancel(animate: Animator) {
 //sampleStart
     // using autoCanceling ensures existing animation is canceled when a new one is assigned
-    var someAnimation: Animation&lt;Float&gt;? by autoCanceling()
+    var someAnimation: Animation&lt;Float>? by autoCanceling()
 
     someAnimation = animate.invoke(0f to 1f, using = tweenFloat(linear, 1 * seconds)) {
         // ...
@@ -690,13 +529,11 @@ fun autoCancel(animate: Animator) {
 
 //sampleEnd
 }</code>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="animating-custom-data">Animating custom data<a href="#animating-custom-data" class="hash-link" aria-label="Direct link to Animating custom data" title="Direct link to Animating custom data" translate="no">​</a></h2>
-<p>It is possible to animate custom data in addition to the built-in types that Doodle offers. The simplest case is when you have some data that can be represented numerically. These data types can be used directly in tween, keyFrame and other existing animation types as long as you provide logic to convert them to and from their numeric form.</p>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numeric-conversion">Numeric conversion<a href="#numeric-conversion" class="hash-link" aria-label="Direct link to Numeric conversion" title="Direct link to Numeric conversion" translate="no">​</a></h3>
-<p>You can animate data that is convertible to and from numbers using either <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-single-data-converter" target="_blank" rel="noopener noreferrer">SingleDataConverter</a></code> or <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-multi-data-converter" target="_blank" rel="noopener noreferrer">MultiDataConverter</a></code>. These support single and multi-dimensional data respectively. These converters define how a type is mapped to and from a <code>Double</code> or <code>Array&lt;Double&gt;</code>.</p>
+<div class="theme-admonition theme-admonition-caution admonition_xJq3 alert alert--warning"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>caution</div><div class=admonitionContent_BuS1><p>Cancel running animations in your app's <code>shutdown()</code>, the same way the rolling-wheel demo does.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=animating-custom-data>Animating custom data<a href=#animating-custom-data class=hash-link aria-label="Direct link to Animating custom data" title="Direct link to Animating custom data" translate=no>​</a></h2>
+<p>Any type that can be boiled down to a number is fair game for animation. Implement <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-single-data-converter target=_blank rel="noopener noreferrer">SingleDataConverter</a></code> (one dimension) or <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-multi-data-converter target=_blank rel="noopener noreferrer">MultiDataConverter</a></code> (several), then hand it to the generic <code>tween</code>:</p>
 <!-- -->
-<p>Simply implement a custom converter and provide it to one of the generic animation builders as follows:</p>
-<code theme="darcula" mode="kotlin" data-highlight-only="true">package animation
+<code theme=darcula mode=kotlin data-highlight-only=true>package animation
 
 import io.nacular.doodle.animation.Animator
 import io.nacular.doodle.animation.SingleDataConverter
@@ -706,24 +543,29 @@ import io.nacular.doodle.animation.tween
 import io.nacular.measured.units.Measure
 import io.nacular.measured.units.Time
 
-fun customData(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time&gt;) {
+fun customData(animate: Animator, easing: EasingFunction, duration: Measure&lt;Time>) {
 //sampleStart
     data class Foo(val value: String)
 
-    val customDataConverter = object: SingleDataConverter&lt;Foo&gt; {
-        override val zero                      : Foo = Foo(&quot;&quot;)
+    val customDataConverter = object: SingleDataConverter&lt;Foo> {
+        override val zero                      : Foo = Foo("")
         override fun serialize  (value: Foo   ): Double = value.value.toDouble()
-        override fun deserialize(value: Double): Foo    = Foo(&quot;$value&quot;)
+        override fun deserialize(value: Double): Foo    = Foo("$value")
     }
 
-    animate(Foo(&quot;1&quot;) to Foo(&quot;2&quot;), tween(customDataConverter, easing, duration)) { value: Foo -&gt;
+    animate(Foo("1") to Foo("2"), tween(customDataConverter, easing, duration)) { value: Foo ->
         // ...
     }
 //sampleEnd
 }</code>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>info</div><div class="admonitionContent_BuS1"><p>Doodle has several built-in <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/animation-converter" target="_blank" rel="noopener noreferrer">converters</a></code> that use this technique to animate several common data types.</p></div></div>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="non-numeric-data">Non-numeric data<a href="#non-numeric-data" class="hash-link" aria-label="Direct link to Non-numeric data" title="Direct link to Non-numeric data" translate="no">​</a></h3>
-<p>The <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator" target="_blank" rel="noopener noreferrer">Animator</a></code> interface actually works with a lower-level definition of an animation than those used for numeric data. This interface is the entry point for truly custom data that cannot be converted to numeric form. Doodle currently does not have any use cases like this, but the API is there in case applications have a need.</p>
-<p>See the <code><a href="https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation-plan" target="_blank" rel="noopener noreferrer">AnimationPlan</a></code> for more details.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/doodle/docs/transforms"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Transforms</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/doodle/docs/dragdrop"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Drag • Drop</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#requirements" class="table-of-contents__link toc-highlight">Requirements</a></li><li><a href="#animating-a-single-value" class="table-of-contents__link toc-highlight">Animating a single value</a></li><li><a href="#grouped-animations" class="table-of-contents__link toc-highlight">Grouped animations</a></li><li><a href="#chaining-animations" class="table-of-contents__link toc-highlight">Chaining animations</a></li><li><a href="#tweens" class="table-of-contents__link toc-highlight">Tweens</a><ul><li><a href="#numeric-data" class="table-of-contents__link toc-highlight">Numeric data</a></li><li><a href="#colors-sizes-" class="table-of-contents__link toc-highlight">Colors, Sizes, ...</a></li><li><a href="#easing-functions" class="table-of-contents__link toc-highlight">Easing functions</a></li></ul></li><li><a href="#key-frames" class="table-of-contents__link toc-highlight">Key frames</a></li><li><a href="#repetition" class="table-of-contents__link toc-highlight">Repetition</a><ul><li><a href="#finite-repeating" class="table-of-contents__link toc-highlight">Finite repeating</a></li><li><a href="#loops" class="table-of-contents__link toc-highlight">Loops</a></li></ul></li><li><a href="#delays" class="table-of-contents__link toc-highlight">Delays</a></li><li><a href="#animating-properties" class="table-of-contents__link toc-highlight">Animating properties</a></li><li><a href="#animation-lifecycle" class="table-of-contents__link toc-highlight">Animation lifecycle</a></li><li><a href="#animating-custom-data" class="table-of-contents__link toc-highlight">Animating custom data</a><ul><li><a href="#numeric-conversion" class="table-of-contents__link toc-highlight">Numeric conversion</a></li><li><a href="#non-numeric-data" class="table-of-contents__link toc-highlight">Non-numeric data</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2025 Nacular</div></div></div></footer></div>
-</body>
-</html>
+<p>And that's exactly how Doodle's own <a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/animation-converter target=_blank rel="noopener noreferrer" class="">built-in converters</a> work under the hood — no special magic beyond what you just wrote.</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p>For data that genuinely can't be numeric, <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code> exposes a lower-level <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation-plan target=_blank rel="noopener noreferrer">AnimationPlan</a></code> API. Doodle has no use cases for it today — it's there if your app does.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class="">Animation is a separate library, and <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code> needs a Kodein binding you write yourself.</li>
+<li class="">An <strong><code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animation-plan target=_blank rel="noopener noreferrer">AnimationPlan</a></code></strong> describes what a value does over time: <code>tween*</code> for a single curve, <code>keyFrames*</code> for pinned intermediate values, wrapped in <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/repeat target=_blank rel="noopener noreferrer">repeat</a></code> <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/loop target=_blank rel="noopener noreferrer">loop</a></code> <code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/after target=_blank rel="noopener noreferrer">after</a></code> as needed.</li>
+<li class="">The <strong><code><a href=https://nacular.github.io/doodle-api/animation/io.nacular.doodle.animation/-animator target=_blank rel="noopener noreferrer">Animator</a></code></strong> runs plans: one value, a group under one handle, or a <code>then</code> chain that stays cancelable as a unit.</li>
+<li class=""><code>by animator(...)</code> makes a property animate itself on assignment.</li>
+<li class="">Use <code>autoCanceling</code> to avoid two animations fighting over the same value, and cancel in <code>shutdown()</code>.</li>
+</ul>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/dragdrop>Drag & Drop</a></strong> for moving data between Views and applications.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/transforms><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Transforms</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/dragdrop><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Drag • Drop</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#setup class="table-of-contents__link toc-highlight">Setup</a><li><a href=#plans-what-the-value-does class="table-of-contents__link toc-highlight">Plans: what the value does</a><ul><li><a href=#tweens class="table-of-contents__link toc-highlight">Tweens</a><li><a href=#key-frames class="table-of-contents__link toc-highlight">Key frames</a><li><a href=#repetition-and-delays class="table-of-contents__link toc-highlight">Repetition and delays</a></ul><li><a href=#running-plans-one-many-or-in-sequence class="table-of-contents__link toc-highlight">Running plans: one, many, or in sequence</a><ul><li><a href=#a-single-value class="table-of-contents__link toc-highlight">A single value</a><li><a href=#a-group-of-values class="table-of-contents__link toc-highlight">A group of values</a><li><a href=#a-sequence class="table-of-contents__link toc-highlight">A sequence</a></ul><li><a href=#animatable-properties class="table-of-contents__link toc-highlight">Animatable properties</a><li><a href=#lifecycle class="table-of-contents__link toc-highlight">Lifecycle</a><li><a href=#animating-custom-data class="table-of-contents__link toc-highlight">Animating custom data</a><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>

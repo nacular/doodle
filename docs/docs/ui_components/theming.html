@@ -1,0 +1,477 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-ui_components/theming" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Theming | Doodle</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true name=twitter:image content=https://nacular.github.io/doodle/img/doodle.png /><meta data-rh=true property=og:url content=https://nacular.github.io/doodle/docs/ui_components/theming /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=og:image:width content=380 /><meta data-rh=true name=og:image:height content=78 /><meta data-rh=true name=keywords content="web, kotlin, javascript, wasm, framework, ui, user interface, programming, development, desktop"/><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Theming | Doodle"/><meta data-rh=true name=description content="Behaviors let a View delegate its rendering and hit-detection to something swappable. Themes coordinate Behaviors across your whole app at once. This page covers both, plus how to keep a Theme's bundle-size footprint small."/><meta data-rh=true property=og:description content="Behaviors let a View delegate its rendering and hit-detection to something swappable. Themes coordinate Behaviors across your whole app at once. This page covers both, plus how to keep a Theme's bundle-size footprint small."/><link data-rh=true rel=icon href=/doodle/img/favicon.png /><link data-rh=true rel=canonical href=https://nacular.github.io/doodle/docs/ui_components/theming /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/theming hreflang=en /><link data-rh=true rel=alternate href=https://nacular.github.io/doodle/docs/ui_components/theming hreflang=x-default /><link rel=preconnect href=https://www.google-analytics.com><link rel=preconnect href=https://www.googletagmanager.com><script async src="https://www.googletagmanager.com/gtag/js?id=G-N4LZ5T22WN"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag("js",new Date),gtag("config","G-N4LZ5T22WN",{anonymize_ip:!0})</script><script src=https://unpkg.com/kotlin-playground@1></script><link rel=stylesheet href=/doodle/assets/css/styles.37acb171.css /><script src=/doodle/assets/js/runtime~main.d09747e6.js defer></script><script src=/doodle/assets/js/main.e10d9da8.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-0e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/doodle/><div class=navbar__logo><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/doodle/img/doodle.svg alt="Doodle Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/nacular/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link" aria-label="GitHub repository"></a><a href=https://kotlinlang.slack.com/messages/doodle target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-slack-link" aria-label="Slack channel"></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/introduction><span class=linkLabel_WmDU>Hello Doodle</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/doodle/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=true href=/doodle/docs/applications><span class=categoryLinkLabel_W154>Fundamentals</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/applications><span class=linkLabel_WmDU>Applications</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/display><span class=linkLabel_WmDU>Displays</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/views><span class=linkLabel_WmDU>Views</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/canvas><span class=categoryLinkLabel_W154>Rendering</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/doodle/docs/positioning><span class=categoryLinkLabel_W154>Layout</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/userinput><span class=linkLabel_WmDU>User Input</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/transforms><span class=categoryLinkLabel_W154>Advanced Topics</span></a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true href=/doodle/docs/ui_components/theming><span class=categoryLinkLabel_W154>Component Library</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/doodle/docs/ui_components/theming><span class=linkLabel_WmDU>Theming</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/wheresmyview><span class=linkLabel_WmDU>Where's My View?</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/overview><span class=linkLabel_WmDU>Catalog</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/buttons><span class=linkLabel_WmDU>Buttons</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/sliders><span class=linkLabel_WmDU>Sliders & Value Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/selection><span class=linkLabel_WmDU>Selection & Text</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/datadisplay><span class=linkLabel_WmDU>Data Display</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/panels><span class=linkLabel_WmDU>Panels & Layout</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/media><span class=linkLabel_WmDU>Media & Pickers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form><span class=linkLabel_WmDU>Forms</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/doodle/docs/ui_components/form_controls><span class=linkLabel_WmDU>Form Controls</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false href=/doodle/docs/platform_specific/desktop><span class=categoryLinkLabel_W154>Platform Specific</span></a></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-tutorials target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>Tutorials</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a href=https://nacular.github.io/doodle-api/ target=_blank rel="noopener noreferrer" class="menu__link menuExternalLink_NmtK"><span class=linkLabel_WmDU>API Docs</span><svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Theming</h1></header>
+<p>Coming off <a class="" href=/doodle/docs/accessibility>Accessibility</a>, the last stop in Advanced Topics, let's start the <strong>Component Library</strong> with the one idea nearly every control in it depends on: how a View's appearance and behavior get separated from the View itself, and applied consistently across an entire app.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=behaviors>Behaviors<a href=#behaviors class=hash-link aria-label="Direct link to Behaviors" title="Direct link to Behaviors" translate=no>​</a></h2>
+<p>It's common to want a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code>'s behavior and presentation to be configurable. Plenty of the time, simple properties handle it just fine — colors, fonts, and so on:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package rendering
+
+import io.nacular.doodle.controls.text.TextField
+import io.nacular.doodle.drawing.Color.Companion.Darkgray
+import io.nacular.doodle.drawing.Color.Companion.White
+
+fun example() {
+//sampleStart
+    val textField = TextField().apply {
+        backgroundColor = Darkgray
+        foregroundColor = White
+        borderVisible   = false
+    }
+//sampleEnd
+}</code>
+<p>But some Views need more than a handful of properties can comfortably express. Take <a class="" href=/doodle/docs/ui_components/panels#tabbedpanel><code>TabbedPanel</code></a> — the range of ways you might want one to look and behave is wide open, and an API trying to cover all of it would collapse under its own complexity.</p>
+<p>This is exactly where a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> earns its keep. A View can hand off its rendering, hit-detection, and pretty much everything else to a Behavior, swapping in a different one whenever it wants a different look or feel. <code>TabbedPanel</code> does this, and so do <a class="" href=/doodle/docs/ui_components/selection#textfield><code>TextField</code></a> and plenty of other built-in controls.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=implementing-a-behavior>Implementing a Behavior<a href=#implementing-a-behavior class=hash-link aria-label="Direct link to Implementing a Behavior" title="Direct link to Implementing a Behavior" translate=no>​</a></h3>
+<p>A Behavior offers a handful of common hooks for customizing a View. Build one by implementing <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> directly, or a more specific subtype when your target View calls for it:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package rendering
+
+import io.nacular.doodle.controls.buttons.Button
+import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.drawing.Canvas
+import io.nacular.doodle.geometry.Point
+
+//sampleStart
+class MyBehavior: Behavior&lt;Button> {
+    override fun install              (view: Button                ) {}
+    override fun render               (view: Button, canvas: Canvas) {}
+    override fun contains             (view: Button, point : Point ) = point in view.bounds
+    override fun clipCanvasToBounds   (view: Button                ) = true
+    override fun mirrorWhenRightToLeft(view: Button                ) = view.mirrorWhenRightLeft
+    override fun uninstall            (view: Button                ) {}
+}
+//sampleEnd</code>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>The methods on <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> are all optional</div></div>
+<p>Behaviors get installed onto a View and uninstalled from it, which gives each one a clean moment to configure its target on first assignment, and an equally clean moment to tidy up when it's removed.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=delegating-to-a-behavior>Delegating to a Behavior<a href=#delegating-to-a-behavior class=hash-link aria-label="Direct link to Delegating to a Behavior" title="Direct link to Delegating to a Behavior" translate=no>​</a></h3>
+<p>Here's a small Kotlin wrinkle worth knowing about: the language has no self-types, so the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> base class can't offer a built-in <code>behavior&lt;Self></code> property to make this automatic. Each View subtype manages its own Behavior directly instead:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package rendering
+
+import io.nacular.doodle.core.Behavior
+import io.nacular.doodle.core.View
+import io.nacular.doodle.core.behavior
+
+//sampleStart
+class AView: View() {
+    // ...
+    var behavior: Behavior&lt;AView>? by behavior()
+}
+//sampleEnd</code>
+<p>That <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/behavior target=_blank rel="noopener noreferrer">behavior</a></code> delegate is there to make it painless — it guarantees proper installation and uninstallation, and makes sure overrides like <code>clipCanvasToBounds</code> or <code>mirrorWhenRightToLeft</code> never get missed along the way.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=specialized-behaviors>Specialized Behaviors<a href=#specialized-behaviors class=hash-link aria-label="Direct link to Specialized Behaviors" title="Direct link to Specialized Behaviors" translate=no>​</a></h3>
+<p><code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-tabbed-panel target=_blank rel="noopener noreferrer">TabbedPanel</a></code> leans on its Behavior more heavily than most — it actually exposes its own <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-container target=_blank rel="noopener noreferrer">Container</a></code> nature to it, through a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-tabbed-panel-behavior target=_blank rel="noopener noreferrer">TabbedPanelBehavior</a></code> sub-interface. Implement that, and you can modify the panel's <code>children</code> and <code>layout</code> directly:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package rendering
+
+import io.nacular.doodle.controls.panels.TabbedPanel
+import io.nacular.doodle.controls.panels.TabbedPanelBehavior
+import io.nacular.doodle.core.Layout.Companion.simpleLayout
+import io.nacular.doodle.core.view
+import io.nacular.doodle.utils.diff.Differences
+
+//sampleStart
+class MyTabbedPanelBehavior: TabbedPanelBehavior&lt;Any>() {
+    override fun install(view: TabbedPanel&lt;Any>) {
+        // children and layout accessible to TabbedPanelBehavior subclasses
+        view        += view {}
+        view.layout  = simpleLayout { views, min, current, max, insets ->
+            // ...
+            current
+        }
+    }
+
+    override fun uninstall(view: TabbedPanel&lt;Any>) {
+        view.children.clear()
+        view.layout = null
+    }
+
+    override fun itemsChanged(panel: TabbedPanel&lt;Any>, differences: Differences&lt;Any>) {
+        // ...
+    }
+
+    override fun selectionChanged(panel: TabbedPanel&lt;Any>, new: Any?, newIndex: Int?, old: Any?, oldIndex: Int?) {
+        // ...
+    }
+}
+
+fun usage(tabbedPanel: TabbedPanel&lt;Any>) {
+    tabbedPanel.behavior = MyTabbedPanelBehavior()
+}
+//sampleEnd</code>
+<p>That's a lot of flexibility for defining how a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.panels/-tabbed-panel target=_blank rel="noopener noreferrer">TabbedPanel</a></code> looks and behaves — and nothing stops you from doing the same for Views of your own.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=themes>Themes<a href=#themes class=hash-link aria-label="Direct link to Themes" title="Direct link to Themes" translate=no>​</a></h2>
+<p>Behaviors solve customization one View at a time. A <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme target=_blank rel="noopener noreferrer">Theme</a></code> is what coordinates them across your whole app at once, giving every <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> a consistent look and feel without you wiring up each one by hand. Doodle ships two out of the box: <span><code>NativeTheme</code> (<a href=https://nacular.github.io/doodle-api/browser/io.nacular.doodle.theme.native/-native-theme/-companion target=_blank rel="noopener noreferrer">Web</a>, <a href=https://nacular.github.io/doodle-api/desktop/io.nacular.doodle.theme.native/-native-theme/-companion target=_blank rel="noopener noreferrer">Desktop</a>)</span>, which styles controls using the system's own default look, and <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.basic/-basic-theme/-companion target=_blank rel="noopener noreferrer">BasicTheme</a></code> (with light and dark variants), a customizable foundation to build further on.</p>
+<p>The following app shows a <a class="" href=/doodle/docs/ui_components/datadisplay#list>List</a> of numbers that are visualized as custom <a class="" href=/doodle/docs/ui_components/selection#label>Labels</a>. These are all themed dynamically based on the <strong>OS dark vs light setting</strong> and the <a class="" href=/doodle/docs/ui_components/sliders#spinbutton>SpinButton</a> control that manages which theme is selected.</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>Library Required</div><div class=admonitionContent_BuS1><p>Include the <code><a href=https://nacular.github.io/doodle-api/themes target=_blank rel="noopener noreferrer">Themes</a></code> library to your app's dependencies.</p><code theme=darcula mode=kotlin data-highlight-only=true>dependencies {
+    implementation ("io.nacular.doodle:themes:$doodleVersion")
+}</code></div></div>
+<div class=doodle_u3ra><div style=position:relative;height:400px></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Change the dark/light setting in your OS to see the app change in realtime.</div></div>
+<div class="theme-tabs-container tabs-container tabList__CuJ"><ul role=tablist aria-orientation=horizontal class=tabs><li role=tab tabindex=0 aria-selected=true class="tabs__item tabItem_LNqP tabs__item--active">App<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Helpers<li role=tab tabindex=-1 aria-selected=false class="tabs__item tabItem_LNqP">Launcher</ul><div class=margin-top--md><div role=tabpanel class=tabItem_Ymn6><code theme=darcula mode=kotlin data-highlight-only=true>package io.nacular.doodle.docs.apps
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.controls.MultiSelectionModel
+import io.nacular.doodle.controls.invoke
+import io.nacular.doodle.controls.list.List
+import io.nacular.doodle.controls.panels.ScrollPanel
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.core.center
+import io.nacular.doodle.docs.utils.HighlightingTextVisualizer
+import io.nacular.doodle.drawing.Color
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.drawing.paint
+import io.nacular.doodle.geometry.Rectangle
+import io.nacular.doodle.geometry.Size
+import io.nacular.doodle.geometry.centered
+import io.nacular.doodle.layout.constraints.constrain
+import io.nacular.doodle.layout.constraints.ideal
+import io.nacular.doodle.theme.ThemeManager
+import io.nacular.doodle.theme.ThemePicker
+import io.nacular.doodle.theme.adhoc.DynamicTheme
+import io.nacular.doodle.theme.adhoc.plus
+import io.nacular.doodle.user.UserPreferences
+import io.nacular.doodle.user.UserPreferences.ColorScheme
+import io.nacular.doodle.user.UserPreferences.ColorScheme.Dark
+import io.nacular.doodle.utils.Resizer
+
+class ThemeApp(
+                display        : Display,
+    private val themeManager   : ThemeManager,
+                nativeTheme    : DynamicTheme,
+                basicTheme     : DynamicTheme,
+                basicDarkTheme : DynamicTheme,
+    private val userPreferences: UserPreferences?
+): Application {
+    private val lightTheme = nativeTheme + basicTheme
+    private val darkTheme  = nativeTheme + basicDarkTheme
+
+    // Monitor changes to the OS color scheme
+    private val colorSchemeChanged = { _: UserPreferences, _: ColorScheme, new: ColorScheme ->
+        when (new) {
+            Dark -> {
+                themeManager.selected = darkTheme
+                display.fill(Color(0x282828u).paint)
+            }
+            else -> {
+                themeManager.selected = lightTheme
+                display.fill(White.paint)
+            }
+        }
+    }
+
+    private val themePicker = setupThemeControls()
+
+    private val list = List(
+        progression    = 1..1000,
+        itemVisualizer = HighlightingTextVisualizer(),
+        selectionModel = MultiSelectionModel(),
+    ).apply {
+        cellAlignment = {
+            it.left    eq      2
+            it.size    prefers ideal
+            it.centerY eq      parent.centerY
+        }
+    }
+
+    init {
+        themeManager.selectionChanged += { _,_,_ ->
+            updateDisplayBackground(display)
+        }
+
+        display += themePicker
+        display += ScrollPanel(list).apply {
+            suggestBounds(Rectangle(300, 200).centered(display.center))
+
+            contentConstraints = { it.width eq parent.width - verticalScrollBarWidth }
+
+            Resizer(this, movable = false)
+        }
+
+        display.layout = constrain(themePicker) {
+            it.top     eq parent.bottom - readonly(it.height) - 10
+            it.size.preserve
+            it.centerX eq parent.centerX
+        }
+
+        updateDisplayBackground(display)
+    }
+
+    private fun updateDisplayBackground(display: Display) {
+        display.fill(when (themeManager.selected) {
+            darkTheme -> Color(0x282828u)
+            else      -> White
+        }.paint)
+    }
+
+//sampleStart
+    private fun setupThemeControls(): ThemePicker {
+        userPreferences?.colorSchemeChanged += colorSchemeChanged
+
+        themeManager.themes += setOf(lightTheme, darkTheme)
+
+        themeManager.selected = when (userPreferences?.colorScheme) {
+            Dark -> darkTheme
+            else -> lightTheme
+        }
+
+        return ThemePicker(themeManager).apply { suggestSize(Size(280, 30)) }
+    }
+//sampleEnd
+
+    override fun shutdown() {
+        userPreferences?.colorSchemeChanged -= colorSchemeChanged
+    }
+}</code></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.controls.IndexedItem
+import io.nacular.doodle.controls.itemVisualizer
+import io.nacular.doodle.controls.text.Label
+import io.nacular.doodle.controls.theme.CommonLabelBehavior
+import io.nacular.doodle.drawing.Color.Companion.White
+import io.nacular.doodle.text.AnnotatedString
+import io.nacular.doodle.theme.Modules.Companion.bindBehavior
+import io.nacular.doodle.theme.basic.BasicTheme.BasicThemeConfig
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicThemeModule
+import io.nacular.doodle.utils.PropertyObservers
+import io.nacular.doodle.utils.PropertyObserversImpl
+import io.nacular.doodle.utils.observable
+import org.kodein.di.instance
+import io.nacular.doodle.theme.basic.BasicTheme as BasicThemeType
+
+//sampleStart
+/**
+ * Visualizer that converts a String into a HighlightingLabel.
+ */
+fun highlightingTextVisualizer() = itemVisualizer&lt;String, IndexedItem> { item, previous, context ->
+    when (previous) {
+        is HighlightingLabel -> previous.apply {
+            text     = item
+            selected = context.selected
+        }
+        else                 -> HighlightingLabel(AnnotatedString(item), context.selected)
+    }
+}
+
+/**
+ * Simple Label that tracks whether it is selected.
+ */
+class HighlightingLabel(styledText: AnnotatedString, selected: Boolean): Label(styledText) {
+    val selectedChanged: PropertyObservers&lt;HighlightingLabel, Boolean> by lazy { PropertyObserversImpl(this) }
+
+    var selected by observable(selected, selectedChanged as PropertyObserversImpl&lt;HighlightingLabel, Boolean>)
+}
+
+/**
+ * Custom module that installs a special Label Behavior into HighlightingLabels whenever the BasicTheme is selected.
+ * This behavior ensures the foreground is White whenever the label is selected, and the theme default otherwise.
+ */
+val highlightingLabelBehavior by lazy {
+    basicThemeModule(name = "HighlightingLabelBehavior") {
+        bindBehavior&lt;HighlightingLabel>(BasicThemeType::class) { label ->
+            label.behavior = object: CommonLabelBehavior(textMetrics = instance()) {
+                private val selectedChanged = { _: HighlightingLabel, _: Boolean, _: Boolean ->
+                    label.foregroundColor = foregroundColor
+                }
+
+                override val foregroundColor get() = when {
+                    label.selected -> White
+                    else           -> instance&lt;BasicThemeConfig>().foregroundColor
+                }
+
+                override fun install(view: Label) {
+                    super.install(view)
+                    label.selectedChanged += selectedChanged
+                }
+
+                override fun uninstall(view: Label) {
+                    label.selectedChanged -= selectedChanged
+                    super.uninstall(view)
+                }
+            }
+        }
+    }
+}
+//sampleEnd</code></div><div role=tabpanel class=tabItem_Ymn6 hidden><code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.application.Modules.Companion.UserPreferencesModule
+import io.nacular.doodle.application.application
+import io.nacular.doodle.docs.apps.ThemeApp
+import io.nacular.doodle.drawing.Color.Companion.Black
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.BasicTheme
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicButtonBehavior
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicLabelBehavior
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicListBehavior
+import io.nacular.doodle.theme.basic.BasicTheme.Companion.basicSpinButtonBehavior
+import io.nacular.doodle.theme.basic.DarkBasicTheme.Companion.DarkBasicTheme
+import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
+import io.nacular.doodle.theme.native.NativeTheme.Companion.nativeScrollPanelBehavior
+import org.kodein.di.instance
+
+fun launch() {
+//sampleStart
+    val appModules = listOf(
+        BasicTheme,
+        NativeTheme,
+        DarkBasicTheme,
+        UserPreferencesModule,
+        basicListBehavior(),
+        basicLabelBehavior(),
+        basicButtonBehavior(foregroundColor = Black, insets = 12.0),
+        basicSpinButtonBehavior(incrementA11yLabel = "Increment", decrementA11yLabel = "Decrement"),
+        highlightingLabelBehavior,
+        nativeScrollPanelBehavior(),
+    )
+
+    application(modules = appModules) {
+        ThemeApp(
+            display         = instance(),
+            basicTheme      = instance(),
+            nativeTheme     = instance(),
+            themeManager    = instance(),
+            basicDarkTheme  = instance(),
+            userPreferences = instance()
+        )
+    }
+//sampleEnd
+}
+</code></div></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=how-themes-work>How themes work<a href=#how-themes-work class=hash-link aria-label="Direct link to How themes work" title="Direct link to How themes work" translate=no>​</a></h3>
+<p>A <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme target=_blank rel="noopener noreferrer">Theme</a></code> implements a small interface that lets it walk the whole View graph and apply style and behavior changes wherever it likes:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.core.View
+import io.nacular.doodle.theme.Scene
+import io.nacular.doodle.theme.Theme
+
+//sampleStart
+class MyTheme: Theme {
+    override fun install(scene: Scene) {
+        //
+    }
+
+    override fun install(view: View) {
+        //
+    }
+}
+//sampleEnd</code>
+<p>Doodle calls <code>install</code> the first time a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme target=_blank rel="noopener noreferrer">Theme</a></code> is applied, and again whenever new Views join the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-display target=_blank rel="noopener noreferrer">Display</a></code>. Notice it's a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-scene target=_blank rel="noopener noreferrer">Scene</a></code> being handed over, not a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-display target=_blank rel="noopener noreferrer">Display</a></code> directly: recall from <a class="" href=/doodle/docs/display#on-desktop-one-display-per-window>Displays</a> that a Desktop app can juggle several Displays at once, one per window. A <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-scene target=_blank rel="noopener noreferrer">Scene</a></code> represents everything currently visible across all of them, which is exactly the scope a Theme needs to style your app consistently no matter how many windows it has open.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=thememanager>ThemeManager<a href=#thememanager class=hash-link aria-label="Direct link to ThemeManager" title="Direct link to ThemeManager" translate=no>​</a></h3>
+<p>Themes are handled by the <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-theme-manager target=_blank rel="noopener noreferrer">ThemeManager</a></code>, which gives you a simple way to pick the active one. Inject it into your app to work with Themes at all:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.application.application
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.theme.Theme
+import io.nacular.doodle.theme.ThemeManager
+import io.nacular.doodle.theme.native.NativeTheme.Companion.NativeTheme
+import org.kodein.di.instance
+
+//sampleStart
+class SomeApp(display: Display, manager: ThemeManager, theme: Theme): Application {
+    init {
+        manager.selected = theme
+
+        // ...
+    }
+
+    override fun shutdown() {}
+}
+
+fun main() {
+    application(modules = listOf(NativeTheme)) {
+        SomeApp(display = instance(), manager = instance(), theme = instance())
+    }
+}
+//sampleEnd</code>
+<p>This installs <code>NativeTheme</code>, available as a ready-made bundle of the same name. That bundle also quietly pulls in <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme/-modules/-companion/-theme-module target=_blank rel="noopener noreferrer">ThemeModule</a></code>, which is what makes <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-theme-manager target=_blank rel="noopener noreferrer">ThemeManager</a></code> available for injection in the first place.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=bundle-size>Bundle size<a href=#bundle-size class=hash-link aria-label="Direct link to Bundle size" title="Direct link to Bundle size" translate=no>​</a></h2>
+<p>Here's a trap worth knowing about ahead of time: depending on how you implement one, a Theme can quietly drag a much larger bundle along with it than you'd expect. Take this one, for instance:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.controls.ProgressBar
+import io.nacular.doodle.controls.buttons.PushButton
+import io.nacular.doodle.controls.range.Slider
+import io.nacular.doodle.core.View
+import io.nacular.doodle.theme.Scene
+import io.nacular.doodle.theme.Theme
+
+//sampleStart
+class NaiveTheme: Theme {
+    override fun install(scene: Scene) = scene.forEachView {
+        install(it)
+    }
+
+    override fun install(view: View) {
+        when (view) {
+            is Slider&lt;*>   -> { /* it.behavior = ... */ }
+            is PushButton  -> { /* it.behavior = ... */ }
+            is ProgressBar -> { /* it.behavior = ... */ }
+            // ...
+        }
+    }
+}
+//sampleEnd</code>
+<div class="theme-admonition theme-admonition-danger admonition_xJq3 alert alert--danger"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M5.05.31c.81 2.17.41 3.38-.52 4.31C3.55 5.67 1.98 6.45.9 7.98c-1.45 2.05-1.7 6.53 3.53 7.7-2.2-1.16-2.67-4.52-.3-6.61-.61 2.03.53 3.33 1.94 2.86 1.39-.47 2.3.53 2.27 1.67-.02.78-.31 1.44-1.13 1.81 3.42-.59 4.78-3.42 4.78-5.56 0-2.84-2.53-3.22-1.25-5.61-1.52.13-2.03 1.13-1.89 2.75.09 1.08-1.02 1.8-1.86 1.33-.67-.41-.66-1.19-.06-1.78C8.18 5.31 8.68 2.45 5.05.32L5.03.3l.02.01z"/></svg></span>danger</div><div class=admonitionContent_BuS1><p>A Theme built this way isn't very portable — its bundle cost is steep, because it hard-codes references to every View and Behavior type it might ever need to handle.</div></div>
+<p>Look at what that costs an app that doesn't even use most of those controls:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package themes
+
+import io.nacular.doodle.application.Application
+import io.nacular.doodle.controls.buttons.PushButton
+import io.nacular.doodle.core.Display
+import io.nacular.doodle.theme.Theme
+import io.nacular.doodle.theme.ThemeManager
+
+//sampleStart
+/**
+ * [NaiveTheme]'s static implementation leads to lots of dependencies that are
+ * not used in [SimpleApp]. This includes the View and Behavior classes it uses.
+ */
+class SimpleApp(display: Display, manager: ThemeManager, theme: Theme): Application {
+    init {
+        manager.selected = theme
+
+        display += PushButton()
+    }
+
+    override fun shutdown() {}
+}
+//sampleEnd</code>
+<p><code>SimpleApp</code> only ever shows a <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.buttons/-push-button target=_blank rel="noopener noreferrer">PushButton</a></code>, yet <code>NaiveTheme</code> still drags in code for <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls.range/-slider target=_blank rel="noopener noreferrer">Slider</a></code> and <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code> too, since they're all hard-referenced in one <code>when</code> block.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=dynamic-themes>Dynamic themes<a href=#dynamic-themes class=hash-link aria-label="Direct link to Dynamic themes" title="Direct link to Dynamic themes" translate=no>​</a></h3>
+<p><code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme target=_blank rel="noopener noreferrer">DynamicTheme</a></code> solves this with a neat trick: instead of hard-coding which Views it handles, it uses dependency injection to discover whatever Behaviors happen to be installed via Kodein modules, and filters that list down to the ones it actually cares about. No hard dependencies on Views or Behaviors your app never touches.</p>
+<p>The tradeoff is that Behaviors need explicit registration to be discoverable this way. Doodle's built-in Themes define one module per Behavior — using <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme/-modules/-companion/bind-behavior target=_blank rel="noopener noreferrer">bindBehavior</a></code>, which takes a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme target=_blank rel="noopener noreferrer">Theme</a></code> class and binds a <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme target=_blank rel="noopener noreferrer">DynamicTheme</a></code> scoped to just the Behaviors associated with it — so you can mix and match freely:</p>
+<code theme=darcula mode=kotlin data-highlight-only=true>package themes.dynamic
+
+import io.nacular.doodle.application.application
+import io.nacular.doodle.theme.native.NativeTheme.Companion.nativeButtonBehavior
+import org.kodein.di.instance
+import themes.SimpleApp
+
+//sampleStart
+fun main() {
+
+    // DynamicThemes require a list of Behavior modules since the
+    // Theme itself is essentially a Behavior filter.
+    // These modules are added to the list of app modules as follows
+
+    application(modules = listOf(nativeButtonBehavior(), /* other modules */)) {
+
+        // The nativeButtonBehavior module also makes ThemeManager and Theme
+        // available by default; so there's no need to use additional modules
+        // for them.
+
+        SimpleApp(display = instance(), manager = instance(), theme = instance())
+    }
+}
+//sampleEnd</code>
+<p>Now <code>SimpleApp</code> has no lingering dependency on <code><a href=https://nacular.github.io/doodle-api/controls/io.nacular.doodle.controls/-progress-bar target=_blank rel="noopener noreferrer">ProgressBar</a></code> or its Behavior — just the button it actually uses.</p>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Define your own Behavior modules the same way, so they can slot into a <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme target=_blank rel="noopener noreferrer">DynamicTheme</a></code> too.</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=recap>Recap<a href=#recap class=hash-link aria-label="Direct link to Recap" title="Direct link to Recap" translate=no>​</a></h2>
+<ul>
+<li class="">A <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> lets a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code> hand off rendering, hit-detection, and more to something swappable — build one with <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/behavior target=_blank rel="noopener noreferrer">behavior</a></code> so installation and uninstallation are never missed.</li>
+<li class="">A <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme target=_blank rel="noopener noreferrer">Theme</a></code> coordinates Behaviors across your whole app, installing onto a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-scene target=_blank rel="noopener noreferrer">Scene</a></code> (which spans every Display your app has open) rather than a single <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-view target=_blank rel="noopener noreferrer">View</a></code>.</li>
+<li class=""><code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.theme/-theme-manager target=_blank rel="noopener noreferrer">ThemeManager</a></code> picks which Theme is active.</li>
+<li class="">Prefer <code><a href=https://nacular.github.io/doodle-api/themes/io.nacular.doodle.theme.adhoc/-dynamic-theme target=_blank rel="noopener noreferrer">DynamicTheme</a></code> over hard-coded, per-type Themes — it keeps your bundle free of Views and Behaviors your app never actually uses.</li>
+</ul>
+<div class="theme-admonition theme-admonition-caution admonition_xJq3 alert alert--warning"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>caution</div><div class=admonitionContent_BuS1><p>Forget to give a control a <code><a href=https://nacular.github.io/doodle-api/core/io.nacular.doodle.core/-behavior target=_blank rel="noopener noreferrer">Behavior</a></code> at all — no custom one, no Theme — and it renders as nothing. It's the single most common "why isn't anything showing up" moment in Doodle, and the next page walks through exactly what that looks like and how to fix it.</div></div>
+<p><strong>Next:</strong> on to <strong><a class="" href=/doodle/docs/ui_components/wheresmyview>Where's My View?</a></strong> to see what happens when this step gets skipped — then the <strong><a class="" href=/doodle/docs/ui_components/overview>Catalog</a></strong> itself.</div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/doodle/docs/accessibility><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Accessibility</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/doodle/docs/ui_components/wheresmyview><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Where's My View?</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#behaviors class="table-of-contents__link toc-highlight">Behaviors</a><ul><li><a href=#implementing-a-behavior class="table-of-contents__link toc-highlight">Implementing a Behavior</a><li><a href=#delegating-to-a-behavior class="table-of-contents__link toc-highlight">Delegating to a Behavior</a><li><a href=#specialized-behaviors class="table-of-contents__link toc-highlight">Specialized Behaviors</a></ul><li><a href=#themes class="table-of-contents__link toc-highlight">Themes</a><ul><li><a href=#how-themes-work class="table-of-contents__link toc-highlight">How themes work</a><li><a href=#thememanager class="table-of-contents__link toc-highlight">ThemeManager</a></ul><li><a href=#bundle-size class="table-of-contents__link toc-highlight">Bundle size</a><ul><li><a href=#dynamic-themes class="table-of-contents__link toc-highlight">Dynamic themes</a></ul><li><a href=#recap class="table-of-contents__link toc-highlight">Recap</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 Nacular</div></div></div></footer></div></body>
